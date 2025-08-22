@@ -1,0 +1,76 @@
+name: 'Copilot Setup Steps'
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+  pull_request:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+
+jobs:
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install JavaScript dependencies
+        run: pnpm install
+
+      - name: Install Netlify CLI
+        run: pnpm add -g netlify-cli
+
+      - name: Install Supabase CLI as dev dependency
+        run: pnpm add -D supabase
+
+      - name: Verify Supabase CLI
+        run: pnpm exec supabase --version || true
+
+      # Install Python and uv for MCP servers that require Python
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install uv (Python package manager)
+        run: pip install uv
+
+      - name: Install pipx
+        run: pip install pipx
+
+      # Install additional dependencies for MCP servers
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Validate build (allow errors)
+        run: pnpm run build
+        continue-on-error: true
+
+      - name: Run lint and tests
+        run: pnpm test || pnpm run lint
+        continue-on-error: true
+
+      - name: Test MCP server installations
+        run: |
+          echo "Testing MCP server availability..."
+          npx --version
+          echo "✓ NPX available for Node.js MCP servers"
+          uv --version || echo "⚠ UV not available for Python MCP servers"
+          pipx --version || echo "⚠ PIPX not available for Python MCP servers"
+        continue-on-error: true

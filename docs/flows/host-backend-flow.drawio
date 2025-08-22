@@ -1,0 +1,86 @@
+<mxfile host="app.diagrams.net" modified="2025-08-21T14:03:23.749Z" agent="5.0" version="24.7.17" etag="generated">
+  <diagram name="Host Backend Flow" id="host-backend-flow">
+    
+<mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    
+    <!-- Start State -->
+    <mxCell id="start" value="Game Exists" style="ellipse;whiteSpace=wrap;html=1;fillColor=#DC2626;fontColor=white;strokeColor=white;" vertex="1" parent="1">
+      <mxGeometry x="360" y="40" width="120" height="60" as="geometry"/>
+    </mxCell>
+    
+    <!-- Load Game State -->
+    <mxCell id="load_state" value="Load Game State\n(Supabase SELECT)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DC2626;fontColor=white;strokeColor=white;" vertex="1" parent="1">
+      <mxGeometry x="360" y="140" width="120" height="60" as="geometry"/>
+    </mxCell>
+    
+    <!-- Subscribe to Updates -->
+    <mxCell id="subscribe" value="Subscribe Updates\n(Realtime channel)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DC2626;fontColor=white;strokeColor=white;" vertex="1" parent="1">
+      <mxGeometry x="360" y="240" width="120" height="60" as="geometry"/>
+    </mxCell>
+    
+    <!-- Video Room Creation -->
+    <mxCell id="video_create" value="Video Room API\n(Daily.co create)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DC2626;fontColor=white;strokeColor=white;" vertex="1" parent="1">
+      <mxGeometry x="360" y="340" width="120" height="60" as="geometry"/>
+    </mxCell>
+    
+    <!-- Game State Updates -->
+    <mxCell id="state_updates" value="Game State Updates\n(phase: PLAYING)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DC2626;fontColor=white;strokeColor=white;" vertex="1" parent="1">
+      <mxGeometry x="200" y="440" width="120" height="60" as="geometry"/>
+    </mxCell>
+    
+    <!-- Segment Progression -->
+    <mxCell id="segment_prog" value="Segment Progression\n(current_segment)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DC2626;fontColor=white;strokeColor=white;" vertex="1" parent="1">
+      <mxGeometry x="520" y="440" width="120" height="60" as="geometry"/>
+    </mxCell>
+    
+    <!-- Score Updates -->
+    <mxCell id="score_updates" value="Score Updates\n(Player records)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DC2626;fontColor=white;strokeColor=white;" vertex="1" parent="1">
+      <mxGeometry x="200" y="540" width="120" height="60" as="geometry"/>
+    </mxCell>
+    
+    <!-- Timer Sync -->
+    <mxCell id="timer_sync" value="Timer Sync\n(timer, is_timer_running)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DC2626;fontColor=white;strokeColor=white;" vertex="1" parent="1">
+      <mxGeometry x="520" y="540" width="120" height="60" as="geometry"/>
+    </mxCell>
+    
+    <!-- End State -->
+    <mxCell id="end" value="Game Complete\n(phase: COMPLETED)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#DC2626;fontColor=white;strokeColor=white;" vertex="1" parent="1">
+      <mxGeometry x="360" y="640" width="120" height="60" as="geometry"/>
+    </mxCell>
+    
+    <!-- Transitions -->
+    <mxCell edge="1" parent="1" source="start" target="load_state">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell edge="1" parent="1" source="load_state" target="subscribe">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell edge="1" parent="1" source="subscribe" target="video_create">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell edge="1" parent="1" source="video_create" target="state_updates">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell edge="1" parent="1" source="video_create" target="segment_prog">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell edge="1" parent="1" source="state_updates" target="score_updates">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell edge="1" parent="1" source="segment_prog" target="timer_sync">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell edge="1" parent="1" source="score_updates" target="end">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell edge="1" parent="1" source="timer_sync" target="end">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    
+  </root>
+</mxGraphModel>
+  </diagram>
+</mxfile>

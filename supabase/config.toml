@@ -1,0 +1,56 @@
+# Supabase Configuration File
+# Generated for Thirty Challenge Quiz App
+
+# Project settings
+project_id = "zgvmkjefgdabumvafqch"
+
+# Database settings
+[db]
+port = 54322
+major_version = 15
+
+# Authentication
+[auth]
+enabled = true
+site_url = "https://thirtyquiz.tyshub.xyz"
+additional_redirect_urls = [
+  "http://localhost:3000",
+  "http://localhost:5173",
+  "https://thirtyquiz.tyshub.xyz"
+]
+
+[auth.email]
+enable_signup = true
+enable_confirmations = true
+
+# API settings
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+# Storage configuration
+[storage]
+enabled = true
+file_size_limit = "50MiB"
+
+# Edge Functions (must be a table, not just a bool)
+[functions]
+[functions.hello_world]
+verify_jwt = false
+
+# Analytics
+[analytics]
+enabled = true
+
+# Studio configuration
+[studio]
+enabled = true
+port = 54323
+
+# Inbucket (local email testing)
+[inbucket]
+enabled = true
+port = 54324

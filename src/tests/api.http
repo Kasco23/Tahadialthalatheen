@@ -1,0 +1,25 @@
+### Create room
+POST http://localhost:8888/.netlify/functions/create-daily-room
+Content-Type: application/json
+
+{
+  "roomName": "vs-test"
+}
+
+### Token
+POST http://localhost:8888/.netlify/functions/create-daily-token
+Content-Type: application/json
+
+{
+  "room": "vs-test",
+  "user": "Alice",
+  "isHost": true
+}
+
+### Delete room
+POST http://localhost:8888/.netlify/functions/delete-daily-room
+Content-Type: application/json
+
+{
+  "roomName": "vs-test"
+}

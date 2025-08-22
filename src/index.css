@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --brand-dark: #0f172a;
+  --brand-grad: #22c55e;
+  --brand-light: #f8fafc;
+  --accent-blue: #0ea5e9;
+  --accent-green: #10b981;
+  --accent-orange: #f59e0b;
+  --football-green: #22c55e;
+  --football-dark: #15803d;
+  --font-header: 'DG Bebo', sans-serif;
+  --font-body: 'Almarai', sans-serif;
+}
+
+@font-face {
+  font-family: 'DG Bebo';
+  src: url('/tahadialthalatheen/fonts/DG-BeboT.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Almarai';
+  src: url('/tahadialthalatheen/fonts/Almarai-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+body {
+  @apply bg-brand-dark text-brand-light font-body;
+}
+
+/* Theme-specific styles */
+.football {
+  --theme-primary: #22c55e;
+  --theme-secondary: #059669;
+  --theme-accent: #eab308;
+  --theme-background: #064e3b;
+  --theme-surface: rgba(6, 78, 59, 0.8);
+}
+
+.neon {
+  --theme-primary: #00ff88;
+  --theme-secondary: #00d4ff;
+  --theme-accent: #ff0080;
+  --theme-background: #0a0a0a;
+  --theme-surface: rgba(10, 10, 10, 0.9);
+}
+
+.light {
+  --theme-primary: #16a34a;
+  --theme-secondary: #0284c7;
+  --theme-accent: #7c3aed;
+  --theme-background: #ffffff;
+  --theme-surface: rgba(255, 255, 255, 0.9);
+}
+
+.dark {
+  --theme-primary: #22c55e;
+  --theme-secondary: #38bdf8;
+  --theme-accent: #6a5acd;
+  --theme-background: #0f172a;
+  --theme-surface: rgba(15, 23, 42, 0.8);
+}
+
+.font-arabic {
+  font-family: 'Noto Naskh Arabic', Tajawal, Arial, sans-serif;
+}
+.glow {
+  filter: drop-shadow(0 0 18px #38bdf8) drop-shadow(0 0 8px #7c3aed);
+}
+.bg-glass {
+  background: rgba(30, 32, 60, 0.7);
+  backdrop-filter: blur(18px);
+}

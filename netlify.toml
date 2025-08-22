@@ -1,0 +1,25 @@
+[build]
+  # How to build your Vite app
+  command    = "corepack enable && pnpm i --frozen-lockfile && pnpm build"
+  # Where Vite outputs the production files
+  publish    = "dist"
+  # Pin build environment to Node 20 as used locally
+  environment = { NODE_VERSION = "20", PNPM_VERSION = "10" }
+
+[functions]
+  # Functions are located in ./netlify/functions relative to this file
+  directory    = "netlify/functions"
+  node_bundler = "esbuild"
+
+[[redirects]]
+  # Single‑page app fallback — serves index.html for all non‑function URLs
+  from   = "/*"
+  to     = "/index.html"
+  status = 200
+
+[dev]
+  framework = "vite"
+  command    = "pnpm run dev"
+  port       = 3000        # Netlify’s public port
+  targetPort = 5173        # where Vite actually listens
+  autoLaunch = false

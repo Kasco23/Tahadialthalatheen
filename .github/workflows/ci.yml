@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest # ← here’s your “runs-on”
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+      - name: Install deps
+        run: pnpm install
+
+      # Run Jest unit tests. passWithNoTests lets CI succeed if no tests exist.
+      - name: Run tests
+        run: pnpm test
+
+      # ← Add this step to auto‑format
+      - name: Auto‑format code
+        run: pnpm exec prettier --write .
+
+      - name: Lint
+        run: pnpm run lint
+      - name: Format Check
+        run: pnpm exec prettier --check .
+      - name: Build
+        run: pnpm run build

@@ -1,0 +1,46 @@
+name: Generate User Flow Diagrams
+on:
+  push:
+    paths:
+      - 'src/**/*'
+      - 'scripts/**/*'
+      - '.github/workflows/generate-flow.yml'
+  workflow_dispatch:
+
+jobs:
+  generate-flow-diagrams:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Setup Python for diagram generation
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: |
+          pip install diagrams graphviz
+
+      - name: Generate User Flow State Diagrams
+        run: |
+          node scripts/generate-user-flows.mjs
+
+      - name: Commit generated diagrams
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: 'chore(ci): update user flow diagrams'
+          file_pattern: 'docs/flows/*.drawio docs/flows/*.svg'
