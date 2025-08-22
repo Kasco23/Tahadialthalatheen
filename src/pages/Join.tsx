@@ -1,19 +1,19 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import {
-  getAllTeams,
-  searchTeams,
-  searchFlags,
-  type Team,
-} from '@/utils/teamUtils';
+import ConfirmationModal from '@/components/ConfirmationModal';
+import LazyImage from '@/components/LazyImage';
+import { useTranslation } from '@/hooks/useTranslation';
 import { GameDatabase } from '@/lib/gameDatabase';
 import { getSupabase } from '@/lib/supabaseLazy';
-import LazyImage from '@/components/LazyImage';
-import ConfirmationModal from '@/components/ConfirmationModal';
-import { useTranslation } from '@/hooks/useTranslation';
-import { useAtomValue } from 'jotai';
 import { isArabicAtom } from '@/state/languageAtoms';
+import {
+  getAllTeams,
+  searchFlags,
+  searchTeams,
+  type Team,
+} from '@/utils/teamUtils';
+import { motion } from 'framer-motion';
+import { useAtomValue } from 'jotai';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export default function Join() {
   const navigate = useNavigate();

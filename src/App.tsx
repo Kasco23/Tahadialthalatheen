@@ -13,6 +13,7 @@ const Lobby = lazy(() => import('@/pages/Lobby'));
 const QuizRoom = lazy(() => import('@/pages/QuizRoom'));
 const ControlRoom = lazy(() => import('@/pages/ControlRoom'));
 const FinalScores = lazy(() => import('@/pages/FinalScores'));
+const ApiStatus = lazy(() => import('@/pages/ApiStatus'));
 const NotFound = lazy(() => import('@/pages/NotFound'));
 
 // Loading component for suspense fallback
@@ -47,6 +48,7 @@ export default function App() {
             <Route path="/lobby/:gameId" element={<Lobby />} />
             <Route path="/quiz" element={<QuizRoom />} />
             <Route path="/scores" element={<FinalScores />} />
+            <Route path="/api-status" element={<ApiStatus />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>

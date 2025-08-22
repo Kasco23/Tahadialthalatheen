@@ -7,7 +7,7 @@ const logoModules = import.meta.glob('@/assets/logos/*.svg', {
 export interface Team {
   name: string;
   displayName: string;
-  logoPath: string | (() => Promise<string>);
+  logoPath: string;
   searchTerms: string[];
 }
 
@@ -28,15 +28,14 @@ export async function getAllTeams(): Promise<Team[]> {
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
 
-    // Create a cached lazy loader
-    const logoPath = async () => {
-      if (logoCache.has(fileName)) {
-        return logoCache.get(fileName)!;
-      }
-      const url = await logoLoader();
-      logoCache.set(fileName, url);
-      return url;
-    };
+    // Load the logo URL
+    let logoPath = '';
+    if (logoCache.has(fileName)) {
+      logoPath = logoCache.get(fileName) || '';
+    } else {
+      logoPath = await logoLoader();
+      logoCache.set(fileName, logoPath);
+    }
 
     teams.push({
       name: fileName,
