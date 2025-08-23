@@ -413,18 +413,18 @@ export default function Lobby() {
   // Loading state
   if (!myParticipant || !gameId) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-[#10102a] to-blue-900 flex items-center justify-center">
-        <div className="text-center text-white">
-          <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+      <div className="min-h-screen bg-[var(--theme-bg-primary)] flex items-center justify-center">
+        <div className="text-center text-[var(--theme-text)]">
+          <div className="w-12 h-12 border-4 border-[var(--theme-primary)] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <h2 className="text-xl font-bold mb-2">{t('loading')}</h2>
-          <p className="text-white/70">Preparing session...</p>
+          <p className="text-[var(--theme-text-muted)]">Preparing session...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-[#10102a] to-blue-900 p-4">
+    <div className="min-h-screen bg-[var(--theme-bg-primary)] p-4">
       {/* Language Toggle */}
       <LanguageToggle />
 

@@ -122,7 +122,7 @@ export default function CreateSession() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-[#10102a] to-blue-900 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-[var(--theme-bg-primary)] p-4">
       <form
         onSubmit={handleSubmit}
         className="bg-white/10 backdrop-blur-sm p-8 rounded-3xl w-full max-w-md space-y-6"

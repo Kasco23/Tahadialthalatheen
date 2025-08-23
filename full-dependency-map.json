@@ -90,6 +90,10 @@
   "src/state/syncAtoms.ts": [],
   "src/state/videoAtoms.ts": [],
   "src/tests/setup.ts": [],
+  "src/theme/__tests__/teamSelection.test.ts": [
+    "src/theme/core/tokens.ts",
+    "src/theme/palette/index.ts"
+  ],
   "src/theme/background/HexBackground.module.css": [],
   "src/theme/background/HexBackground.tsx": [
     "src/theme/background/HexBackground.module.css",
