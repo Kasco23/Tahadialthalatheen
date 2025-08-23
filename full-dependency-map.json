@@ -122,10 +122,16 @@
     "src/theme/types.ts"
   ],
   "src/theme/background/texture.ts": [],
+  "src/theme/components/LazyThemeControls.tsx": [
+    "src/theme/data/teams.ts",
+    "src/theme/palette/index.ts",
+    "src/theme/state/index.ts"
+  ],
   "src/theme/components/SimpleThemeControls.css": [],
   "src/theme/components/SimpleThemeControls.tsx": [
     "src/theme/components/SimpleThemeControls.css",
     "src/theme/data/teams.ts",
+    "src/theme/palette/index.ts",
     "src/theme/state/index.ts"
   ],
   "src/theme/components/ThemeControls.module.css": [],
