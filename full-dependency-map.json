@@ -7,6 +7,7 @@
   "netlify/functions/delete-daily-room.ts": [],
   "netlify/functions/game-event.ts": [],
   "netlify/functions/get-room-presence.ts": [],
+  "netlify/functions/supabase-health.ts": [],
   "src/App.tsx": [],
   "src/components/ActiveGames.tsx": [],
   "src/components/AlertBanner.tsx": [
@@ -60,6 +61,7 @@
     "src/App.tsx"
   ],
   "src/pages/ApiStatus.tsx": [],
+  "src/pages/ApiStatusFixed.tsx": [],
   "src/pages/ControlRoom.tsx": [],
   "src/pages/CreateSession.tsx": [],
   "src/pages/FinalScores.tsx": [],
