@@ -250,10 +250,14 @@ function getTeamLeague(slug: string): string {
   return 'Other';
 }
 
-// Get all logo files from the assets/logos directory
-const logoModules = import.meta.glob('../../assets/logos/*.svg', { eager: true, query: '?url', import: 'default' });
+// Get all logo files from the assets/logos directory (non-eager for better bundle size)
+const logoModules = import.meta.glob('../../assets/logos/*.svg', { query: '?url', import: 'default' });
 
-export const teams: Team[] = Object.entries(logoModules).map(([path, url]) => {
+// Cache for loaded logos to avoid repeated dynamic imports
+const logoCache = new Map<string, string>();
+
+// Generate teams data from available logo files (logos loaded on-demand)
+export const teams: Team[] = Object.keys(logoModules).map((path) => {
   // Extract team slug from file path (e.g., "../../assets/logos/real-madrid.svg" -> "real-madrid")
   const slug = path.split('/').pop()?.replace('.svg', '') || '';
   
@@ -267,7 +271,7 @@ export const teams: Team[] = Object.entries(logoModules).map(([path, url]) => {
     name,
     displayName,
     slug,
-    logoPath: url as string,
+    logoPath: '', // Will be loaded lazily when needed
     searchTerms: generateSearchTerms(name, displayName, league),
     league,
     category,
@@ -277,6 +281,33 @@ export const teams: Team[] = Object.entries(logoModules).map(([path, url]) => {
     accentColor: '#60a5fa',
   };
 });
+
+/**
+ * Load logo URL for a specific team (lazy loaded)
+ */
+export async function loadTeamLogo(teamId: string): Promise<string> {
+  if (logoCache.has(teamId)) {
+    const cachedLogo = logoCache.get(teamId);
+    return cachedLogo || '';
+  }
+
+  const logoPath = `../../assets/logos/${teamId}.svg`;
+  const logoLoader = logoModules[logoPath];
+  
+  if (!logoLoader) {
+    console.warn(`Logo not found for team: ${teamId}`);
+    return '';
+  }
+
+  try {
+    const logoUrl = await logoLoader() as string;
+    logoCache.set(teamId, logoUrl);
+    return logoUrl;
+  } catch (error) {
+    console.error(`Failed to load logo for team: ${teamId}`, error);
+    return '';
+  }
+}
 
 // Group teams by category for easier filtering
 export const teamsByCategory = {
