@@ -413,7 +413,7 @@ export default function Lobby() {
   // Loading state
   if (!myParticipant || !gameId) {
     return (
-      <div className="min-h-screen bg-[var(--theme-bg-primary)] flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center text-[var(--theme-text)]">
           <div className="w-12 h-12 border-4 border-[var(--theme-primary)] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <h2 className="text-xl font-bold mb-2">{t('loading')}</h2>
@@ -424,7 +424,7 @@ export default function Lobby() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--theme-bg-primary)] p-4">
+    <div className="min-h-screen p-4">
       {/* Language Toggle */}
       <LanguageToggle />
 
