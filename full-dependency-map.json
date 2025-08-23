@@ -90,6 +90,108 @@
   "src/state/syncAtoms.ts": [],
   "src/state/videoAtoms.ts": [],
   "src/tests/setup.ts": [],
+  "src/theme/background/HexBackground.module.css": [],
+  "src/theme/background/HexBackground.tsx": [
+    "src/theme/background/HexBackground.module.css",
+    "src/theme/background/colorDistribution.ts",
+    "src/theme/background/hexGrid.ts",
+    "src/theme/background/texture.ts",
+    "src/theme/types.ts"
+  ],
+  "src/theme/background/ThemedHexBackground.tsx": [
+    "src/theme/background/HexBackground.tsx",
+    "src/theme/state/index.ts"
+  ],
+  "src/theme/background/colorDistribution.ts": [
+    "src/theme/background/hexGrid.ts",
+    "src/theme/types.ts"
+  ],
+  "src/theme/background/hexGrid.ts": [
+    "src/theme/types.ts"
+  ],
+  "src/theme/background/index.ts": [
+    "src/theme/background/HexBackground.tsx",
+    "src/theme/background/ThemedHexBackground.tsx",
+    "src/theme/background/colorDistribution.ts",
+    "src/theme/background/hexGrid.ts",
+    "src/theme/background/texture.ts",
+    "src/theme/types.ts"
+  ],
+  "src/theme/background/texture.ts": [],
+  "src/theme/components/SimpleThemeControls.css": [],
+  "src/theme/components/SimpleThemeControls.tsx": [
+    "src/theme/components/SimpleThemeControls.css",
+    "src/theme/data/teams.ts",
+    "src/theme/state/index.ts"
+  ],
+  "src/theme/components/ThemeControls.module.css": [],
+  "src/theme/components/ThemeControls.tsx": [
+    "src/theme/background/index.ts",
+    "src/theme/components/ThemeControls.module.css",
+    "src/theme/palette/index.ts",
+    "src/theme/state/themeAtoms.ts",
+    "src/theme/types.ts"
+  ],
+  "src/theme/components/ThemeProvider.tsx": [
+    "src/theme/state/themeAtoms.ts"
+  ],
+  "src/theme/components/index.ts": [
+    "src/theme/components/ThemeControls.tsx"
+  ],
+  "src/theme/core/contrast.ts": [
+    "src/theme/core/tokens.ts",
+    "src/theme/types.ts"
+  ],
+  "src/theme/core/storage.ts": [
+    "src/theme/types.ts"
+  ],
+  "src/theme/core/tokens.ts": [
+    "src/theme/types.ts"
+  ],
+  "src/theme/data/teams.ts": [
+    "src/theme/types.ts"
+  ],
+  "src/theme/demo/ThemeDemo.tsx": [
+    "src/theme/index.ts"
+  ],
+  "src/theme/index.ts": [
+    "src/theme/background/index.ts",
+    "src/theme/components/SimpleThemeControls.tsx",
+    "src/theme/components/ThemeProvider.tsx",
+    "src/theme/core/contrast.ts",
+    "src/theme/core/storage.ts",
+    "src/theme/core/tokens.ts",
+    "src/theme/demo/ThemeDemo.tsx",
+    "src/theme/palette/index.ts",
+    "src/theme/state/themeAtoms.ts",
+    "src/theme/types.ts"
+  ],
+  "src/theme/palette/extractor.ts": [
+    "src/theme/core/tokens.ts",
+    "src/theme/types.ts"
+  ],
+  "src/theme/palette/index.ts": [
+    "src/theme/palette/extractor.ts",
+    "src/theme/palette/quantizer.ts",
+    "src/theme/types.ts"
+  ],
+  "src/theme/palette/quantizer.ts": [
+    "src/theme/core/tokens.ts",
+    "src/theme/types.ts"
+  ],
+  "src/theme/state/index.ts": [
+    "src/theme/state/themeAtoms.ts",
+    "src/theme/state/useThemeContext.ts"
+  ],
+  "src/theme/state/themeAtoms.ts": [
+    "src/theme/core/storage.ts",
+    "src/theme/core/tokens.ts",
+    "src/theme/types.ts"
+  ],
+  "src/theme/state/useThemeContext.ts": [
+    "src/theme/state/themeAtoms.ts"
+  ],
+  "src/theme/types.ts": [],
   "src/types/database.ts": [],
   "src/types/game.ts": [],
   "src/utils/__tests__/debugLog.test.ts": [
