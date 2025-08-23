@@ -9,6 +9,7 @@ import { extractTeamPalette } from '../palette';
 import {
   applyThemeAtom,
   selectedTeamAtom,
+  setExtractedPaletteAtom,
   textureTypeAtom,
   themeModeAtom,
 } from '../state/themeAtoms';
@@ -62,6 +63,7 @@ export const ThemeControls: React.FC<ThemeControlsProps> = ({
   const [selectedTeam, setSelectedTeam] = useAtom(selectedTeamAtom);
   const [selectedTexture, setSelectedTexture] = useAtom(textureTypeAtom);
   const [, applyTheme] = useAtom(applyThemeAtom);
+  const [, setExtractedPalette] = useAtom(setExtractedPaletteAtom);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [isExpanded, setIsExpanded] = useState(false);
@@ -112,6 +114,11 @@ export const ThemeControls: React.FC<ThemeControlsProps> = ({
       try {
         setSelectedTeam(team);
         setThemeMode('team');
+        
+        // Extract colors from team logo
+        const palette = await extractTeamPalette(team.logoPath);
+        setExtractedPalette(palette);
+        
         setSearchTerm('');
         setIsExpanded(false);
         await applyTheme();
@@ -121,7 +128,7 @@ export const ThemeControls: React.FC<ThemeControlsProps> = ({
         setIsLoading(false);
       }
     },
-    [setSelectedTeam, setThemeMode, applyTheme],
+    [setSelectedTeam, setThemeMode, setExtractedPalette, applyTheme],
   );
 
   /**

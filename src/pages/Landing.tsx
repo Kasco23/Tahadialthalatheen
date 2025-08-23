@@ -28,7 +28,7 @@ export default function Landing() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-[#10102a] to-blue-900 relative overflow-hidden">
+    <div className="min-h-screen bg-[var(--theme-bg-primary)] relative overflow-hidden">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 opacity-30">
         <motion.div
@@ -116,7 +116,7 @@ export default function Landing() {
               transition={{ type: 'spring', stiffness: 300 }}
             />
             <motion.div
-              className="absolute -inset-4 bg-gradient-to-r from-green-400/20 to-blue-400/20 rounded-full blur-xl"
+              className="absolute -inset-4 bg-[var(--theme-primary)]/20 rounded-full blur-xl"
               animate={{
                 scale: [1, 1.2, 1],
                 opacity: [0.3, 0.6, 0.3],
@@ -132,7 +132,7 @@ export default function Landing() {
           <motion.h1
             className={`text-4xl sm:text-6xl lg:text-7xl font-extrabold mb-4 text-center ${
               isArabic ? 'font-arabic' : ''
-            } bg-gradient-to-r from-green-400 via-blue-400 to-purple-400 bg-clip-text text-transparent`}
+            } text-[var(--theme-text)]`}
             initial={{ y: -50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.4, duration: 0.8 }}
@@ -180,7 +180,7 @@ export default function Landing() {
             >
               <ActiveGames onJoinGame={handleJoinGameById} />
               <motion.div
-                className="absolute -inset-1 bg-gradient-to-r from-green-600/20 to-blue-600/20 rounded-xl blur opacity-0"
+                className="absolute -inset-1 bg-[var(--theme-primary)]/20 rounded-xl blur opacity-0"
                 whileHover={{ opacity: 1 }}
                 transition={{ duration: 0.3 }}
               />
@@ -206,9 +206,9 @@ export default function Landing() {
               transition={{ delay: 1.2, duration: 0.5 }}
             >
               <motion.div
-                className="absolute inset-0 bg-gradient-to-r from-green-500 to-emerald-600"
+                className="absolute inset-0 bg-[var(--theme-primary)]"
                 whileHover={{
-                  background: 'linear-gradient(to right, #10b981, #059669)',
+                  backgroundColor: 'var(--theme-primary)',
                 }}
               />
               <motion.div
@@ -234,10 +234,10 @@ export default function Landing() {
               transition={{ delay: 1.4, duration: 0.5 }}
             >
               <motion.div
-                className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20"
+                className="absolute inset-0 bg-[var(--theme-secondary)]/20"
                 whileHover={{
-                  background:
-                    'linear-gradient(to right, rgba(59, 130, 246, 0.3), rgba(147, 51, 234, 0.3))',
+                  backgroundColor: 'var(--theme-secondary)',
+                  opacity: 0.3,
                 }}
               />
               <span className="relative z-10 text-white/90 group-hover:text-white">
