@@ -1,10 +1,10 @@
 /**
- * Simple Theme Controls component without CSS modules
- * Basic version for integration testing
+ * Lazy-loaded Theme Controls component
+ * This component will be code-split to reduce main bundle size
  */
 
 import { useAtom } from 'jotai';
-import { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { loadTeamLogo, teams } from '../data/teams';
 import {
   isThemeUIOpenAtom,
@@ -16,9 +16,9 @@ import {
   applyThemeAtom,
   setExtractedPaletteAtom,
 } from '../state';
-import './SimpleThemeControls.css';
+import type { Team } from '../types';
 
-export function SimpleThemeControls() {
+export function LazyThemeControls() {
   const [isOpen] = useAtom(isThemeUIOpenAtom);
   const [themeMode] = useAtom(themeModeAtom);
   const [selectedTeam] = useAtom(selectedTeamAtom);
@@ -28,6 +28,7 @@ export function SimpleThemeControls() {
   const [, applyTheme] = useAtom(applyThemeAtom);
   const [, setExtractedPalette] = useAtom(setExtractedPaletteAtom);
   
+  const [teamLogos, setTeamLogos] = useState<Map<string, string>>(new Map());
   const [loadingTeam, setLoadingTeam] = useState<string | null>(null);
 
   const toggleOpen = () => {
@@ -45,17 +46,23 @@ export function SimpleThemeControls() {
     setLoadingTeam(teamId);
     
     try {
-      // Load team logo
-      const logoUrl = await loadTeamLogo(teamId);
-      team.logoPath = logoUrl; // Update team object with loaded logo
+      // Load team logo if not already loaded
+      if (!teamLogos.has(teamId)) {
+        const logoUrl = await loadTeamLogo(teamId);
+        setTeamLogos(prev => new Map(prev.set(teamId, logoUrl)));
+        team.logoPath = logoUrl; // Update team object with loaded logo
+      } else {
+        team.logoPath = teamLogos.get(teamId) || '';
+      }
+
       setSelectedTeam(team);
 
       // If in team mode and we have a logo, extract palette
-      if (themeMode === 'team' && logoUrl) {
+      if (themeMode === 'team' && team.logoPath) {
         try {
-          // Dynamic import of palette extraction to avoid bundling in main chunk
+          // Dynamic import of palette extraction
           const { extractTeamPalette } = await import('../palette');
-          const palette = await extractTeamPalette(logoUrl);
+          const palette = await extractTeamPalette(team.logoPath);
           setExtractedPalette(palette);
           await applyTheme();
         } catch (error) {
@@ -67,7 +74,32 @@ export function SimpleThemeControls() {
     } finally {
       setLoadingTeam(null);
     }
-  }, [themeMode, setSelectedTeam, setExtractedPalette, applyTheme]);
+  }, [teamLogos, themeMode, setSelectedTeam, setExtractedPalette, applyTheme]);
+
+  // Preload logos for popular teams
+  useEffect(() => {
+    const popularTeamIds = [
+      'barcelona',
+      'real-madrid', 
+      'manchester-united',
+      'arsenal',
+      'liverpool',
+      'chelsea',
+      'bayern-munchen',
+      'paris-saint-germain',
+    ];
+
+    popularTeamIds.forEach(async (teamId) => {
+      if (!teamLogos.has(teamId)) {
+        try {
+          const logoUrl = await loadTeamLogo(teamId);
+          setTeamLogos(prev => new Map(prev.set(teamId, logoUrl)));
+        } catch (error) {
+          console.warn(`Failed to preload logo for ${teamId}:`, error);
+        }
+      }
+    });
+  }, [teamLogos]);
 
   const popularTeams = teams.filter((team) =>
     [
