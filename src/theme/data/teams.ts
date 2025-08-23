@@ -287,7 +287,8 @@ export const teams: Team[] = Object.keys(logoModules).map((path) => {
  */
 export async function loadTeamLogo(teamId: string): Promise<string> {
   if (logoCache.has(teamId)) {
-    return logoCache.get(teamId)!;
+    const cachedLogo = logoCache.get(teamId);
+    return cachedLogo || '';
   }
 
   const logoPath = `../../assets/logos/${teamId}.svg`;

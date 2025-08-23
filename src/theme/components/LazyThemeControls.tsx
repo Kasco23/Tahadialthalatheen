@@ -16,7 +16,6 @@ import {
   applyThemeAtom,
   setExtractedPaletteAtom,
 } from '../state';
-import type { Team } from '../types';
 
 export function LazyThemeControls() {
   const [isOpen] = useAtom(isThemeUIOpenAtom);
