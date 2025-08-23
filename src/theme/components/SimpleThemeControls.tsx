@@ -4,8 +4,7 @@
  */
 
 import { useAtom } from 'jotai';
-import { useCallback, useState } from 'react';
-import { loadTeamLogo, teams } from '../data/teams';
+import { teams } from '../data/teams';
 import {
   isThemeUIOpenAtom,
   selectedTeamAtom,
@@ -13,8 +12,6 @@ import {
   setThemeModeAtom,
   themeModeAtom,
   toggleThemeUIAtom,
-  applyThemeAtom,
-  setExtractedPaletteAtom,
 } from '../state';
 import './SimpleThemeControls.css';
 
@@ -25,10 +22,6 @@ export function SimpleThemeControls() {
   const [, setThemeMode] = useAtom(setThemeModeAtom);
   const [, setSelectedTeam] = useAtom(setSelectedTeamAtom);
   const [, toggleThemeUI] = useAtom(toggleThemeUIAtom);
-  const [, applyTheme] = useAtom(applyThemeAtom);
-  const [, setExtractedPalette] = useAtom(setExtractedPaletteAtom);
-  
-  const [loadingTeam, setLoadingTeam] = useState<string | null>(null);
 
   const toggleOpen = () => {
     toggleThemeUI();
@@ -38,36 +31,10 @@ export function SimpleThemeControls() {
     setThemeMode(themeMode === 'default' ? 'team' : 'default');
   };
 
-  const handleTeamSelect = useCallback(async (teamId: string) => {
+  const handleTeamSelect = (teamId: string) => {
     const team = teams.find((t) => t.id === teamId);
-    if (!team) return;
-
-    setLoadingTeam(teamId);
-    
-    try {
-      // Load team logo
-      const logoUrl = await loadTeamLogo(teamId);
-      team.logoPath = logoUrl; // Update team object with loaded logo
-      setSelectedTeam(team);
-
-      // If in team mode and we have a logo, extract palette
-      if (themeMode === 'team' && logoUrl) {
-        try {
-          // Dynamic import of palette extraction to avoid bundling in main chunk
-          const { extractTeamPalette } = await import('../palette');
-          const palette = await extractTeamPalette(logoUrl);
-          setExtractedPalette(palette);
-          await applyTheme();
-        } catch (error) {
-          console.error('Failed to extract team palette:', error);
-        }
-      }
-    } catch (error) {
-      console.error('Failed to load team:', error);
-    } finally {
-      setLoadingTeam(null);
-    }
-  }, [themeMode, setSelectedTeam, setExtractedPalette, applyTheme]);
+    setSelectedTeam(team || null);
+  };
 
   const popularTeams = teams.filter((team) =>
     [
@@ -107,10 +74,9 @@ export function SimpleThemeControls() {
                   <button
                     key={team.id}
                     onClick={() => handleTeamSelect(team.id)}
-                    disabled={loadingTeam === team.id}
                     className={`teamButton ${selectedTeam?.id === team.id ? 'selected' : ''}`}
                   >
-                    {loadingTeam === team.id ? 'Loading...' : team.name}
+                    {team.name}
                   </button>
                 ))}
               </div>
@@ -118,7 +84,7 @@ export function SimpleThemeControls() {
           )}
 
           <div className="themeStatus">
-            Theme system with lazy loading! 🎉
+            Theme system integrated successfully! 🎉
             <br />
             <small>
               {teams.length} teams available • Hexagonal backgrounds active
