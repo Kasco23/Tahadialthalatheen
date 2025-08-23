@@ -17,6 +17,16 @@
   to     = "/index.html"
   status = 200
 
+# [[plugins]]
+#   package = "@netlify/plugin-vite"
+
+# [[plugins]]
+#   package = "@netlify/plugin-lighthouse"
+
+# [plugins.inputs.audits]
+#     output_path = "docs/lighthouse.html"
+#     preset = ["desktop", "mobile"]
+
 [dev]
   framework = "vite"
   command    = "pnpm run dev"

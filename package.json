@@ -19,7 +19,7 @@
   "dependencies": {
     "@daily-co/daily-js": "^0.81.0",
     "@daily-co/daily-react": "^0.23.2",
-    "@supabase/supabase-js": "^2.55.0",
+    "@supabase/supabase-js": "^2.56.0",
     "dayjs": "^1.11.13",
     "dompurify": "^3.2.6",
     "flag-icons": "^7.5.0",
@@ -29,25 +29,26 @@
     "node-vibrant": "^4.0.3",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "react-router-dom": "^7.8.1",
+    "react-router-dom": "^7.8.2",
     "react-window": "^1.8.11",
     "svgson": "^5.3.1"
   },
   "devDependencies": {
-    "@eslint/js": "^9.33.0",
+    "@eslint/js": "^9.34.0",
     "@netlify/functions": "^4.2.2",
+    "@netlify/plugin-lighthouse": "^6.0.3",
     "@testing-library/jest-dom": "^6.8.0",
     "@testing-library/react": "^15.0.7",
     "@types/jest": "^29.5.14",
     "@types/node": "^24.3.0",
-    "@types/react": "^19.1.10",
+    "@types/react": "^19.1.11",
     "@types/react-dom": "^19.1.7",
     "@types/react-router-dom": "^5.3.3",
     "@types/react-window": "^1.8.8",
     "@vitejs/plugin-react": "^4.7.0",
     "autoprefixer": "^10.4.21",
     "babel-jest": "^29.7.0",
-    "eslint": "^9.33.0",
+    "eslint": "^9.34.0",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
@@ -71,5 +72,5 @@
     "vite-plugin-bundlesize": "^0.2.0",
     "vite-plugin-node": "^7.0.0"
   },
-  "packageManager": "pnpm@10.14.0+sha512.ad27a79641b49c3e481a16a805baa71817a04bbe06a38d17e60e2eaee83f6a146c6a688125f5792e48dd5ba30e7da52a5cda4c3992b9ccf333f9ce223af84748"
+  "packageManager": "pnpm@10.15.0+sha512.486ebc259d3e999a4e8691ce03b5cac4a71cbeca39372a9b762cb500cfdf0873e2cb16abe3d951b1ee2cf012503f027b98b6584e4df22524e0c7450d9ec7aa7b"
 }
