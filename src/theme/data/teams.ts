@@ -255,8 +255,7 @@ const logoModules = import.meta.glob('../../assets/logos/*.svg', { eager: true, 
 
 export const teams: Team[] = Object.entries(logoModules).map(([path, url]) => {
   // Extract team slug from file path (e.g., "../../assets/logos/real-madrid.svg" -> "real-madrid")
-  const fileName = path.split('/').pop()?.replace('.svg', '') || '';
-  const slug = fileName;
+  const slug = path.split('/').pop()?.replace('.svg', '') || '';
   
   const name = formatTeamName(slug);
   const displayName = name;
