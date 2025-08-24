@@ -27,7 +27,7 @@ export function SimpleThemeControls() {
   const [, toggleThemeUI] = useAtom(toggleThemeUIAtom);
   const [, applyTheme] = useAtom(applyThemeAtom);
   const [, setExtractedPalette] = useAtom(setExtractedPaletteAtom);
-  
+
   const [loadingTeam, setLoadingTeam] = useState<string | null>(null);
 
   const toggleOpen = () => {
@@ -38,36 +38,39 @@ export function SimpleThemeControls() {
     setThemeMode(themeMode === 'default' ? 'team' : 'default');
   };
 
-  const handleTeamSelect = useCallback(async (teamId: string) => {
-    const team = teams.find((t) => t.id === teamId);
-    if (!team) return;
+  const handleTeamSelect = useCallback(
+    async (teamId: string) => {
+      const team = teams.find((t) => t.id === teamId);
+      if (!team) return;
 
-    setLoadingTeam(teamId);
-    
-    try {
-      // Load team logo
-      const logoUrl = await loadTeamLogo(teamId);
-      team.logoPath = logoUrl; // Update team object with loaded logo
-      setSelectedTeam(team);
+      setLoadingTeam(teamId);
 
-      // If in team mode and we have a logo, extract palette
-      if (themeMode === 'team' && logoUrl) {
-        try {
-          // Dynamic import of palette extraction to avoid bundling in main chunk
-          const { extractTeamPalette } = await import('../palette');
-          const palette = await extractTeamPalette(logoUrl);
-          setExtractedPalette(palette);
-          await applyTheme();
-        } catch (error) {
-          console.error('Failed to extract team palette:', error);
+      try {
+        // Load team logo
+        const logoUrl = await loadTeamLogo(teamId);
+        team.logoPath = logoUrl; // Update team object with loaded logo
+        setSelectedTeam(team);
+
+        // If in team mode and we have a logo, extract palette
+        if (themeMode === 'team' && logoUrl) {
+          try {
+            // Dynamic import of palette extraction to avoid bundling in main chunk
+            const { extractTeamPalette } = await import('../palette');
+            const palette = await extractTeamPalette(logoUrl);
+            setExtractedPalette(palette);
+            await applyTheme();
+          } catch (error) {
+            console.error('Failed to extract team palette:', error);
+          }
         }
+      } catch (error) {
+        console.error('Failed to load team:', error);
+      } finally {
+        setLoadingTeam(null);
       }
-    } catch (error) {
-      console.error('Failed to load team:', error);
-    } finally {
-      setLoadingTeam(null);
-    }
-  }, [themeMode, setSelectedTeam, setExtractedPalette, applyTheme]);
+    },
+    [themeMode, setSelectedTeam, setExtractedPalette, applyTheme],
+  );
 
   const popularTeams = teams.filter((team) =>
     [

@@ -1,218 +1,168 @@
 {
-  "netlify/functions/batch-check-rooms.ts": [],
-  "netlify/functions/check-daily-room.ts": [],
-  "netlify/functions/create-daily-room.ts": [],
-  "netlify/functions/create-daily-token.ts": [],
-  "netlify/functions/daily-diagnostics.ts": [],
-  "netlify/functions/delete-daily-room.ts": [],
-  "netlify/functions/game-event.ts": [],
-  "netlify/functions/get-room-presence.ts": [],
-  "netlify/functions/supabase-health.ts": [],
-  "src/App.tsx": [],
-  "src/components/ActiveGames.tsx": [],
-  "src/components/AlertBanner.tsx": [
-    "src/utils/debugLog.ts"
+  "App.tsx": [],
+  "components/ActiveGames.tsx": [],
+  "components/AlertBanner.tsx": ["utils/debugLog.ts"],
+  "components/Buzzer.tsx": [],
+  "components/ConfirmationModal.tsx": [],
+  "components/ConnectionBanner.tsx": [],
+  "components/ErrorBoundary.tsx": [],
+  "components/LanguageToggle.tsx": [],
+  "components/LazyImage.tsx": [],
+  "components/Scoreboard.tsx": [],
+  "components/Timer.tsx": [],
+  "components/VideoRoom.tsx": ["components/AlertBanner.tsx"],
+  "context/GameContext.tsx": [
+    "context/defaults.ts",
+    "context/gameReducer.ts",
+    "context/initialGameState.ts"
   ],
-  "src/components/Buzzer.tsx": [],
-  "src/components/ConfirmationModal.tsx": [],
-  "src/components/ConnectionBanner.tsx": [],
-  "src/components/ErrorBoundary.tsx": [],
-  "src/components/LanguageToggle.tsx": [],
-  "src/components/LazyImage.tsx": [],
-  "src/components/Scoreboard.tsx": [],
-  "src/components/Timer.tsx": [],
-  "src/components/VideoRoom.tsx": [
-    "src/components/AlertBanner.tsx"
+  "context/GameContextDefinition.ts": [],
+  "context/defaults.ts": [],
+  "context/gameReducer.ts": [],
+  "context/initialGameState.ts": ["context/defaults.ts"],
+  "data/questions.ts": [],
+  "hooks/useErrorLog.ts": [],
+  "hooks/useGame.ts": [],
+  "hooks/useGameAtoms.ts": [],
+  "hooks/useSupabaseFetch.ts": [],
+  "hooks/useTranslation.ts": [],
+  "lib/atomGameSync.ts": [],
+  "lib/dailyConfig.ts": [],
+  "lib/database.types.ts": [],
+  "lib/gameDatabase.ts": ["lib/supabaseLazy.ts"],
+  "lib/gameSync.ts": [
+    "lib/gameDatabase.ts",
+    "lib/supabaseLazy.ts",
+    "types/game.ts"
   ],
-  "src/context/GameContext.tsx": [
-    "src/context/defaults.ts",
-    "src/context/gameReducer.ts",
-    "src/context/initialGameState.ts"
+  "lib/playerManager.ts": ["lib/gameDatabase.ts"],
+  "lib/supabaseLazy.ts": [],
+  "lib/translations.ts": [],
+  "main.tsx": ["App.tsx"],
+  "pages/ApiStatus.tsx": [],
+  "pages/ApiStatusFixed.tsx": [],
+  "pages/ControlRoom.tsx": [],
+  "pages/CreateSession.tsx": [],
+  "pages/FinalScores.tsx": [],
+  "pages/Join.tsx": [],
+  "pages/Landing.tsx": [],
+  "pages/Lobby.tsx": [],
+  "pages/NotFound.tsx": [],
+  "pages/QuizRoom.tsx": [],
+  "pages/Scoreboard.tsx": [],
+  "pages/SegmentIntro.tsx": [],
+  "segments/index.ts": [
+    "segments/useBellSegment.ts",
+    "segments/useRemoSegment.ts",
+    "segments/useSingSegment.ts"
   ],
-  "src/context/GameContextDefinition.ts": [],
-  "src/context/defaults.ts": [],
-  "src/context/gameReducer.ts": [],
-  "src/context/initialGameState.ts": [
-    "src/context/defaults.ts"
+  "segments/useBellSegment.ts": [],
+  "segments/useRemoSegment.ts": [],
+  "segments/useSingSegment.ts": [],
+  "state/gameAtoms.ts": [],
+  "state/index.ts": [
+    "state/gameAtoms.ts",
+    "state/syncAtoms.ts",
+    "state/videoAtoms.ts"
   ],
-  "src/data/questions.ts": [],
-  "src/hooks/useErrorLog.ts": [],
-  "src/hooks/useGame.ts": [],
-  "src/hooks/useGameAtoms.ts": [],
-  "src/hooks/useSupabaseFetch.ts": [],
-  "src/hooks/useTranslation.ts": [],
-  "src/lib/atomGameSync.ts": [],
-  "src/lib/dailyConfig.ts": [],
-  "src/lib/database.types.ts": [],
-  "src/lib/gameDatabase.ts": [
-    "src/lib/supabaseLazy.ts"
+  "state/languageAtoms.ts": [],
+  "state/syncAtoms.ts": [],
+  "state/videoAtoms.ts": [],
+  "tests/setup.ts": [],
+  "theme/__tests__/teamSelection.test.ts": [
+    "theme/core/tokens.ts",
+    "theme/palette/index.ts"
   ],
-  "src/lib/gameSync.ts": [
-    "src/lib/gameDatabase.ts",
-    "src/lib/supabaseLazy.ts",
-    "src/types/game.ts"
+  "theme/background/HexBackground.module.css": [],
+  "theme/background/HexBackground.tsx": [
+    "theme/background/HexBackground.module.css",
+    "theme/background/colorDistribution.ts",
+    "theme/background/hexGrid.ts",
+    "theme/background/texture.ts",
+    "theme/types.ts"
   ],
-  "src/lib/playerManager.ts": [
-    "src/lib/gameDatabase.ts"
+  "theme/background/ThemedHexBackground.tsx": [
+    "theme/background/HexBackground.tsx",
+    "theme/state/index.ts"
   ],
-  "src/lib/supabaseLazy.ts": [],
-  "src/lib/translations.ts": [],
-  "src/main.tsx": [
-    "src/App.tsx"
+  "theme/background/colorDistribution.ts": [
+    "theme/background/hexGrid.ts",
+    "theme/types.ts"
   ],
-  "src/pages/ApiStatus.tsx": [],
-  "src/pages/ApiStatusFixed.tsx": [],
-  "src/pages/ControlRoom.tsx": [],
-  "src/pages/CreateSession.tsx": [],
-  "src/pages/FinalScores.tsx": [],
-  "src/pages/Join.tsx": [],
-  "src/pages/Landing.tsx": [],
-  "src/pages/Lobby.tsx": [],
-  "src/pages/NotFound.tsx": [],
-  "src/pages/QuizRoom.tsx": [],
-  "src/pages/Scoreboard.tsx": [],
-  "src/pages/SegmentIntro.tsx": [],
-  "src/segments/index.ts": [
-    "src/segments/useBellSegment.ts",
-    "src/segments/useRemoSegment.ts",
-    "src/segments/useSingSegment.ts"
+  "theme/background/hexGrid.ts": ["theme/types.ts"],
+  "theme/background/index.ts": [
+    "theme/background/HexBackground.tsx",
+    "theme/background/ThemedHexBackground.tsx",
+    "theme/background/colorDistribution.ts",
+    "theme/background/hexGrid.ts",
+    "theme/background/texture.ts",
+    "theme/types.ts"
   ],
-  "src/segments/useBellSegment.ts": [],
-  "src/segments/useRemoSegment.ts": [],
-  "src/segments/useSingSegment.ts": [],
-  "src/state/gameAtoms.ts": [],
-  "src/state/index.ts": [
-    "src/state/gameAtoms.ts",
-    "src/state/syncAtoms.ts",
-    "src/state/videoAtoms.ts"
+  "theme/background/texture.ts": [],
+  "theme/components/LazyThemeControls.tsx": [
+    "theme/data/teams.ts",
+    "theme/palette/index.ts",
+    "theme/state/index.ts"
   ],
-  "src/state/languageAtoms.ts": [],
-  "src/state/syncAtoms.ts": [],
-  "src/state/videoAtoms.ts": [],
-  "src/tests/setup.ts": [],
-  "src/theme/__tests__/teamSelection.test.ts": [
-    "src/theme/core/tokens.ts",
-    "src/theme/palette/index.ts"
+  "theme/components/SimpleThemeControls.css": [],
+  "theme/components/SimpleThemeControls.tsx": [
+    "theme/components/SimpleThemeControls.css",
+    "theme/data/teams.ts",
+    "theme/palette/index.ts",
+    "theme/state/index.ts"
   ],
-  "src/theme/background/HexBackground.module.css": [],
-  "src/theme/background/HexBackground.tsx": [
-    "src/theme/background/HexBackground.module.css",
-    "src/theme/background/colorDistribution.ts",
-    "src/theme/background/hexGrid.ts",
-    "src/theme/background/texture.ts",
-    "src/theme/types.ts"
+  "theme/components/ThemeControls.module.css": [],
+  "theme/components/ThemeControls.tsx": [
+    "theme/background/index.ts",
+    "theme/components/ThemeControls.module.css",
+    "theme/palette/index.ts",
+    "theme/state/themeAtoms.ts",
+    "theme/types.ts"
   ],
-  "src/theme/background/ThemedHexBackground.tsx": [
-    "src/theme/background/HexBackground.tsx",
-    "src/theme/state/index.ts"
+  "theme/components/ThemeProvider.tsx": ["theme/state/themeAtoms.ts"],
+  "theme/components/index.ts": ["theme/components/ThemeControls.tsx"],
+  "theme/core/contrast.ts": ["theme/core/tokens.ts", "theme/types.ts"],
+  "theme/core/storage.ts": ["theme/types.ts"],
+  "theme/core/tokens.ts": ["theme/types.ts"],
+  "theme/data/teams.ts": ["theme/types.ts"],
+  "theme/demo/ThemeDemo.tsx": ["theme/index.ts"],
+  "theme/index.ts": [
+    "theme/background/index.ts",
+    "theme/components/SimpleThemeControls.tsx",
+    "theme/components/ThemeProvider.tsx",
+    "theme/core/contrast.ts",
+    "theme/core/storage.ts",
+    "theme/core/tokens.ts",
+    "theme/demo/ThemeDemo.tsx",
+    "theme/palette/index.ts",
+    "theme/state/themeAtoms.ts",
+    "theme/types.ts"
   ],
-  "src/theme/background/colorDistribution.ts": [
-    "src/theme/background/hexGrid.ts",
-    "src/theme/types.ts"
+  "theme/palette/extractor.ts": ["theme/core/tokens.ts", "theme/types.ts"],
+  "theme/palette/index.ts": [
+    "theme/data/teams.ts",
+    "theme/palette/extractor.ts",
+    "theme/palette/quantizer.ts",
+    "theme/types.ts"
   ],
-  "src/theme/background/hexGrid.ts": [
-    "src/theme/types.ts"
+  "theme/palette/quantizer.ts": ["theme/core/tokens.ts", "theme/types.ts"],
+  "theme/state/index.ts": [
+    "theme/state/themeAtoms.ts",
+    "theme/state/useThemeContext.ts"
   ],
-  "src/theme/background/index.ts": [
-    "src/theme/background/HexBackground.tsx",
-    "src/theme/background/ThemedHexBackground.tsx",
-    "src/theme/background/colorDistribution.ts",
-    "src/theme/background/hexGrid.ts",
-    "src/theme/background/texture.ts",
-    "src/theme/types.ts"
+  "theme/state/themeAtoms.ts": [
+    "theme/core/storage.ts",
+    "theme/core/tokens.ts",
+    "theme/types.ts"
   ],
-  "src/theme/background/texture.ts": [],
-  "src/theme/components/LazyThemeControls.tsx": [
-    "src/theme/data/teams.ts",
-    "src/theme/palette/index.ts",
-    "src/theme/state/index.ts"
-  ],
-  "src/theme/components/SimpleThemeControls.css": [],
-  "src/theme/components/SimpleThemeControls.tsx": [
-    "src/theme/components/SimpleThemeControls.css",
-    "src/theme/data/teams.ts",
-    "src/theme/palette/index.ts",
-    "src/theme/state/index.ts"
-  ],
-  "src/theme/components/ThemeControls.module.css": [],
-  "src/theme/components/ThemeControls.tsx": [
-    "src/theme/background/index.ts",
-    "src/theme/components/ThemeControls.module.css",
-    "src/theme/palette/index.ts",
-    "src/theme/state/themeAtoms.ts",
-    "src/theme/types.ts"
-  ],
-  "src/theme/components/ThemeProvider.tsx": [
-    "src/theme/state/themeAtoms.ts"
-  ],
-  "src/theme/components/index.ts": [
-    "src/theme/components/ThemeControls.tsx"
-  ],
-  "src/theme/core/contrast.ts": [
-    "src/theme/core/tokens.ts",
-    "src/theme/types.ts"
-  ],
-  "src/theme/core/storage.ts": [
-    "src/theme/types.ts"
-  ],
-  "src/theme/core/tokens.ts": [
-    "src/theme/types.ts"
-  ],
-  "src/theme/data/teams.ts": [
-    "src/theme/types.ts"
-  ],
-  "src/theme/demo/ThemeDemo.tsx": [
-    "src/theme/index.ts"
-  ],
-  "src/theme/index.ts": [
-    "src/theme/background/index.ts",
-    "src/theme/components/SimpleThemeControls.tsx",
-    "src/theme/components/ThemeProvider.tsx",
-    "src/theme/core/contrast.ts",
-    "src/theme/core/storage.ts",
-    "src/theme/core/tokens.ts",
-    "src/theme/demo/ThemeDemo.tsx",
-    "src/theme/palette/index.ts",
-    "src/theme/state/themeAtoms.ts",
-    "src/theme/types.ts"
-  ],
-  "src/theme/palette/extractor.ts": [
-    "src/theme/core/tokens.ts",
-    "src/theme/types.ts"
-  ],
-  "src/theme/palette/index.ts": [
-    "src/theme/data/teams.ts",
-    "src/theme/palette/extractor.ts",
-    "src/theme/palette/quantizer.ts",
-    "src/theme/types.ts"
-  ],
-  "src/theme/palette/quantizer.ts": [
-    "src/theme/core/tokens.ts",
-    "src/theme/types.ts"
-  ],
-  "src/theme/state/index.ts": [
-    "src/theme/state/themeAtoms.ts",
-    "src/theme/state/useThemeContext.ts"
-  ],
-  "src/theme/state/themeAtoms.ts": [
-    "src/theme/core/storage.ts",
-    "src/theme/core/tokens.ts",
-    "src/theme/types.ts"
-  ],
-  "src/theme/state/useThemeContext.ts": [
-    "src/theme/state/themeAtoms.ts"
-  ],
-  "src/theme/types.ts": [],
-  "src/types/database.ts": [],
-  "src/types/game.ts": [],
-  "src/utils/__tests__/debugLog.test.ts": [
-    "src/utils/debugLog.ts"
-  ],
-  "src/utils/debugLog.ts": [],
-  "src/utils/debugNetworkRequests.ts": [],
-  "src/utils/heartbeat.ts": [
-    "src/utils/debugLog.ts"
-  ],
-  "src/utils/teamUtils.ts": [],
-  "src/vite-env.d.ts": []
+  "theme/state/useThemeContext.ts": ["theme/state/themeAtoms.ts"],
+  "theme/types.ts": [],
+  "types/database.ts": [],
+  "types/game.ts": [],
+  "utils/__tests__/debugLog.test.ts": ["utils/debugLog.ts"],
+  "utils/debugLog.ts": [],
+  "utils/debugNetworkRequests.ts": [],
+  "utils/heartbeat.ts": ["utils/debugLog.ts"],
+  "utils/teamUtils.ts": [],
+  "vite-env.d.ts": []
 }

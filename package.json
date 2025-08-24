@@ -11,7 +11,7 @@
     "lint": "eslint .",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "preview": "vite preview",
-    "dep:graph": "madge --image full-graph.dot --extensions ts,tsx,js,jsx src && madge --json --extensions ts,tsx,js,jsx > full-dependency-map.json src",
+    "dep:graph": "madge --json --extensions ts,tsx,js,jsx > full-dependency-map.json src && (madge --image full-graph.dot --extensions ts,tsx,js,jsx src || echo 'Graphviz not available, skipping image generation')",
     "flow:update": "node scripts/flow-from-json.mjs",
     "flow:generate": "node scripts/generate-user-flows.mjs",
     "analyze": "pnpm run build && pnpm exec vite-bundle-analyzer"

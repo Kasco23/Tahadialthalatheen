@@ -54,7 +54,7 @@ jobs:
       - name: Install pipx
         run: pip install pipx
 
-      # Install additional dependencies for MCP 
+      # Install additional dependencies for MCP
       - name: Validate build (allow errors)
         run: pnpm run build
         continue-on-error: true
