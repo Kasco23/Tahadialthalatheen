@@ -54,10 +54,7 @@ jobs:
       - name: Install pipx
         run: pip install pipx
 
-      # Install additional dependencies for MCP servers
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
-
+      # Install additional dependencies for MCP 
       - name: Validate build (allow errors)
         run: pnpm run build
         continue-on-error: true
