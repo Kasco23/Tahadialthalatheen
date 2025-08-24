@@ -3,7 +3,7 @@
  */
 
 import { useAtom } from 'jotai';
-import React, { useEffect } from 'react';
+import React, { useLayoutEffect } from 'react';
 import { activeThemeConfigAtom, applyThemeAtom } from '../state/themeAtoms';
 
 interface ThemeProviderProps {
@@ -19,8 +19,8 @@ export function ThemeProvider({
   const [, applyTheme] = useAtom(applyThemeAtom);
   const [themeConfig] = useAtom(activeThemeConfigAtom);
 
-  // Apply theme on mount and when config changes
-  useEffect(() => {
+  // Apply theme on mount and when config changes (use useLayoutEffect for synchronous execution)
+  useLayoutEffect(() => {
     applyTheme();
   }, [applyTheme, themeConfig]);
 

@@ -194,44 +194,49 @@ export function generateColorScale(baseColor: string): Record<string, string> {
  * Apply theme tokens to CSS variables
  */
 export function applyThemeTokens(tokens: ThemeTokens): void {
-  const root = document.documentElement;
+  try {
+    const root = document.documentElement;
 
-  // Apply base colors
-  root.style.setProperty(CSS_VARIABLES.PRIMARY, tokens.primary);
-  root.style.setProperty(CSS_VARIABLES.SECONDARY, tokens.secondary);
-  root.style.setProperty(CSS_VARIABLES.ACCENT, tokens.accent);
+    // Apply base colors
+    root.style.setProperty(CSS_VARIABLES.PRIMARY, tokens.primary);
+    root.style.setProperty(CSS_VARIABLES.SECONDARY, tokens.secondary);
+    root.style.setProperty(CSS_VARIABLES.ACCENT, tokens.accent);
 
-  // Apply backgrounds
-  root.style.setProperty(CSS_VARIABLES.BG_PRIMARY, tokens.bgPrimary);
-  root.style.setProperty(CSS_VARIABLES.BG_SECONDARY, tokens.bgSecondary);
-  root.style.setProperty(CSS_VARIABLES.SURFACE, tokens.surface);
+    // Apply backgrounds
+    root.style.setProperty(CSS_VARIABLES.BG_PRIMARY, tokens.bgPrimary);
+    root.style.setProperty(CSS_VARIABLES.BG_SECONDARY, tokens.bgSecondary);
+    root.style.setProperty(CSS_VARIABLES.SURFACE, tokens.surface);
 
-  // Apply text colors
-  root.style.setProperty(CSS_VARIABLES.TEXT, tokens.text);
-  root.style.setProperty(CSS_VARIABLES.TEXT_MUTED, tokens.textMuted);
-  root.style.setProperty(CSS_VARIABLES.TEXT_INVERSE, tokens.textInverse);
+    // Apply text colors
+    root.style.setProperty(CSS_VARIABLES.TEXT, tokens.text);
+    root.style.setProperty(CSS_VARIABLES.TEXT_MUTED, tokens.textMuted);
+    root.style.setProperty(CSS_VARIABLES.TEXT_INVERSE, tokens.textInverse);
 
-  // Apply UI colors
-  root.style.setProperty(CSS_VARIABLES.BORDER, tokens.border);
-  root.style.setProperty(CSS_VARIABLES.FOCUS_RING, tokens.focusRing);
+    // Apply UI colors
+    root.style.setProperty(CSS_VARIABLES.BORDER, tokens.border);
+    root.style.setProperty(CSS_VARIABLES.FOCUS_RING, tokens.focusRing);
 
-  // Apply semantic colors
-  root.style.setProperty(CSS_VARIABLES.SUCCESS, tokens.success);
-  root.style.setProperty(CSS_VARIABLES.WARNING, tokens.warning);
-  root.style.setProperty(CSS_VARIABLES.ERROR, tokens.error);
+    // Apply semantic colors
+    root.style.setProperty(CSS_VARIABLES.SUCCESS, tokens.success);
+    root.style.setProperty(CSS_VARIABLES.WARNING, tokens.warning);
+    root.style.setProperty(CSS_VARIABLES.ERROR, tokens.error);
 
-  // Apply color scales
-  Object.entries(tokens.primaryScale).forEach(([shade, color]) => {
-    root.style.setProperty(`${CSS_VARIABLES.PRIMARY_SCALE}${shade}`, color);
-  });
+    // Apply color scales
+    Object.entries(tokens.primaryScale).forEach(([shade, color]) => {
+      root.style.setProperty(`${CSS_VARIABLES.PRIMARY_SCALE}${shade}`, color);
+    });
 
-  Object.entries(tokens.secondaryScale).forEach(([shade, color]) => {
-    root.style.setProperty(`${CSS_VARIABLES.SECONDARY_SCALE}${shade}`, color);
-  });
+    Object.entries(tokens.secondaryScale).forEach(([shade, color]) => {
+      root.style.setProperty(`${CSS_VARIABLES.SECONDARY_SCALE}${shade}`, color);
+    });
 
-  Object.entries(tokens.accentScale).forEach(([shade, color]) => {
-    root.style.setProperty(`${CSS_VARIABLES.ACCENT_SCALE}${shade}`, color);
-  });
+    Object.entries(tokens.accentScale).forEach(([shade, color]) => {
+      root.style.setProperty(`${CSS_VARIABLES.ACCENT_SCALE}${shade}`, color);
+    });
+  } catch (error) {
+    console.error('Failed to apply theme tokens:', error);
+    // Don't throw to prevent breaking the app - fallback CSS variables in HTML will be used
+  }
 }
 
 /**
