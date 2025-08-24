@@ -28,7 +28,7 @@ export default function Landing() {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--theme-bg-primary)] relative overflow-hidden">
+    <div className="min-h-screen relative overflow-hidden">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 opacity-30">
         <motion.div

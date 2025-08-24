@@ -110,10 +110,14 @@ export const HexBackground: React.FC<HexBackgroundProps> = ({
         performance,
       );
 
+      // Enhanced color selection for textures
       const textureConfig = {
         ...texturePresets[textureType],
         baseColor: palette.colors[0] || '#1f2937',
         accentColor: palette.colors[1] || '#374151',
+        // Pass additional colors for enhanced texture generation
+        additionalColors: palette.colors.slice(2) || [],
+        palette: palette, // Pass full palette for advanced texture generation
       };
 
       try {

@@ -20,6 +20,13 @@ export interface TextureConfig {
   baseColor: string;
   /** Accent color for texture */
   accentColor: string;
+  /** Additional colors for enhanced texture generation */
+  additionalColors?: string[];
+  /** Full color palette for advanced texture effects */
+  palette?: {
+    colors: string[];
+    weights: number[];
+  };
 }
 
 /**
@@ -55,7 +62,9 @@ export function generateTexture(
 }
 
 /**
- * Generate carbon fiber texture pattern
+ * Generate enhanced carbon fiber texture pattern
+ * Based on real carbon fiber weave with diagonal fiber bundles
+ * Enhanced to use team color palettes for consistent theming
  */
 function generateCarbonFiber(
   ctx: CanvasRenderingContext2D,
@@ -64,56 +73,172 @@ function generateCarbonFiber(
   config: TextureConfig,
   animationTime: number,
 ): ImageData {
-  const { scale, baseColor, accentColor, animationSpeed } = config;
-  const fiberWidth = 4 * scale;
-  const fiberSpacing = 8 * scale;
-  const offset = animationTime * animationSpeed * 10;
+  const {
+    scale,
+    baseColor,
+    accentColor,
+    animationSpeed,
+    additionalColors = [],
+  } = config;
+  const bundleWidth = 12 * scale; // Wider fiber bundles
+  const bundleSpacing = 24 * scale; // Space between bundles
+  const fiberWidth = 1.5 * scale; // Individual fiber thickness
+  const offset = animationTime * animationSpeed * 5; // Slower animation
 
-  // Clear canvas
-  ctx.fillStyle = baseColor;
+  // Parse colors
+  const base = hexToRgb(baseColor);
+  const accent = hexToRgb(accentColor);
+
+  // Parse additional colors for enhanced theming
+  const additionalRgb = additionalColors.map(hexToRgb);
+
+  // Create darker base for carbon fiber
+  const carbonBase = {
+    r: Math.max(0, base.r - 40),
+    g: Math.max(0, base.g - 40),
+    b: Math.max(0, base.b - 40),
+  };
+
+  // Clear canvas with darker base
+  ctx.fillStyle = `rgb(${carbonBase.r}, ${carbonBase.g}, ${carbonBase.b})`;
   ctx.fillRect(0, 0, width, height);
 
-  // Draw fiber patterns in both directions
-  ctx.strokeStyle = accentColor;
-  ctx.lineWidth = fiberWidth;
-  ctx.globalAlpha = 0.3;
+  // Save context for restoration
+  ctx.save();
 
-  // Horizontal fibers
-  for (
-    let y = offset % (fiberSpacing * 2);
-    y < height + fiberSpacing;
-    y += fiberSpacing * 2
-  ) {
-    ctx.beginPath();
-    ctx.moveTo(0, y);
-    ctx.lineTo(width, y);
-    ctx.stroke();
+  // Generate the weave pattern using pixel manipulation for better control
+  const imageData = ctx.createImageData(width, height);
+  const data = imageData.data;
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const index = (y * width + x) * 4;
+
+      // Calculate fiber bundle positions
+      const bundleX = Math.floor((x + offset) / bundleSpacing);
+      const bundleY = Math.floor((y + offset * 0.7) / bundleSpacing);
+
+      // Create checkerboard weave pattern
+      const isOverWeave = (bundleX + bundleY) % 2 === 0;
+
+      // Calculate position within bundle
+      const localX = (x + offset) % bundleSpacing;
+      const localY = (y + offset * 0.7) % bundleSpacing;
+
+      // Base color
+      let r = carbonBase.r;
+      let g = carbonBase.g;
+      let b = carbonBase.b;
+
+      // Add fiber structure
+      if (localX < bundleWidth && localY < bundleWidth) {
+        // We're in a fiber bundle
+        let fiberIntensity = 0;
+        let colorIndex = 0; // Which color to use for this fiber bundle
+
+        if (isOverWeave) {
+          // Horizontal fibers (lighter when on top)
+          const fiberY = localY % (bundleWidth / 4);
+          if (fiberY < fiberWidth) {
+            fiberIntensity = 0.6 - (fiberY / fiberWidth) * 0.3;
+
+            // Add individual fiber texture
+            const individualFiber = Math.sin(x * 0.5) * 0.1;
+            fiberIntensity += individualFiber;
+
+            // Add metallic highlights using team colors
+            const highlight = Math.sin((x + y * 0.3 + offset * 2) * 0.1) * 0.2;
+            fiberIntensity += Math.max(0, highlight);
+
+            // Use different team colors for variation
+            colorIndex = bundleX % (additionalRgb.length + 2); // Include base and accent
+          }
+        } else {
+          // Vertical fibers (darker when underneath)
+          const fiberX = localX % (bundleWidth / 4);
+          if (fiberX < fiberWidth) {
+            fiberIntensity = 0.3 - (fiberX / fiberWidth) * 0.1;
+
+            // Add individual fiber texture
+            const individualFiber = Math.sin(y * 0.5) * 0.1;
+            fiberIntensity += individualFiber;
+
+            // Subtle under-weave reflection
+            const underReflection =
+              Math.sin((x * 0.2 + y + offset) * 0.15) * 0.1;
+            fiberIntensity += Math.max(0, underReflection * 0.5);
+
+            // Use different team colors for variation
+            colorIndex = bundleY % (additionalRgb.length + 2);
+          }
+        }
+
+        // Apply fiber intensity with team color variation
+        fiberIntensity = Math.max(0, Math.min(1, fiberIntensity));
+
+        if (fiberIntensity > 0) {
+          let targetColor;
+
+          // Select color based on bundle position and available team colors
+          if (colorIndex === 0) {
+            targetColor = accent;
+          } else if (colorIndex === 1) {
+            targetColor = base;
+          } else {
+            // Use additional team colors if available
+            const additionalIndex = (colorIndex - 2) % additionalRgb.length;
+            targetColor = additionalRgb[additionalIndex] || accent;
+          }
+
+          // Blend with selected team color
+          r = Math.floor(
+            carbonBase.r + (targetColor.r - carbonBase.r) * fiberIntensity,
+          );
+          g = Math.floor(
+            carbonBase.g + (targetColor.g - carbonBase.g) * fiberIntensity,
+          );
+          b = Math.floor(
+            carbonBase.b + (targetColor.b - carbonBase.b) * fiberIntensity,
+          );
+
+          // Add team-aware shimmer effect
+          const shimmer = Math.sin((x + y + offset * 3) * 0.05) * 0.1;
+          if (shimmer > 0 && additionalRgb.length > 0) {
+            // Use brightest team color for shimmer
+            const shimmerColor = additionalRgb.reduce((brightest, color) => {
+              const brightness = color.r + color.g + color.b;
+              const brightestValue = brightest.r + brightest.g + brightest.b;
+              return brightness > brightestValue ? color : brightest;
+            }, targetColor);
+
+            r = Math.min(255, r + shimmer * shimmerColor.r * 0.2);
+            g = Math.min(255, g + shimmer * shimmerColor.g * 0.2);
+            b = Math.min(255, b + shimmer * shimmerColor.b * 0.2);
+          } else if (shimmer > 0) {
+            // Fallback shimmer
+            r = Math.min(255, r + shimmer * 30);
+            g = Math.min(255, g + shimmer * 30);
+            b = Math.min(255, b + shimmer * 30);
+          }
+        }
+      }
+
+      // Add subtle noise for texture
+      const noise = (Math.random() - 0.5) * 8;
+      r = Math.max(0, Math.min(255, r + noise));
+      g = Math.max(0, Math.min(255, g + noise));
+      b = Math.max(0, Math.min(255, b + noise));
+
+      data[index] = r; // Red
+      data[index + 1] = g; // Green
+      data[index + 2] = b; // Blue
+      data[index + 3] = 255; // Alpha
+    }
   }
 
-  // Vertical fibers (offset pattern)
-  ctx.globalAlpha = 0.2;
-  for (
-    let x = (offset * 0.7) % (fiberSpacing * 2);
-    x < width + fiberSpacing;
-    x += fiberSpacing * 2
-  ) {
-    ctx.beginPath();
-    ctx.moveTo(x, 0);
-    ctx.lineTo(x, height);
-    ctx.stroke();
-  }
-
-  // Add subtle diagonal weave
-  ctx.globalAlpha = 0.1;
-  ctx.lineWidth = fiberWidth * 0.5;
-  for (let i = 0; i < width + height; i += fiberSpacing * 3) {
-    ctx.beginPath();
-    ctx.moveTo(i - offset * 0.3, 0);
-    ctx.lineTo(i - offset * 0.3 - height, height);
-    ctx.stroke();
-  }
-
-  return ctx.getImageData(0, 0, width, height);
+  // Restore context and return enhanced image data
+  ctx.restore();
+  return imageData;
 }
 
 /**
@@ -284,9 +409,9 @@ export const texturePresets: Record<
 > = {
   carbon: {
     type: 'carbon',
-    scale: 1.0,
-    opacity: 0.15,
-    animationSpeed: 0.1,
+    scale: 1.2, // Slightly larger scale for better detail visibility
+    opacity: 0.25, // Higher opacity to show enhanced details
+    animationSpeed: 0.05, // Slower animation for more subtle effect
   },
   metallic: {
     type: 'metallic',

@@ -287,12 +287,8 @@ export default function ControlRoom() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-brand-dark via-slate-900 to-football-dark">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute inset-0 background-pattern" />
-      </div>
-
+    <div className="min-h-screen relative">
+      {/* Remove static background to use ThemedHexBackground from App level */}
       <div className="relative z-10 p-6">
         {/* Header */}
         <motion.div

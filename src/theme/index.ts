@@ -9,9 +9,9 @@
 export type {
   ColorPalette,
   ContrastResult,
+  HSL,
   HexCoordinate,
   HexGridConfig,
-  HSL,
   Point,
   RGB,
   Team,
@@ -76,6 +76,8 @@ export {
 
 // Hexagonal background system
 export {
+  HexBackground,
+  ThemedHexBackground,
   calculateOptimalHexSize,
   createAdaptiveDensity,
   createColorFlow,
@@ -85,7 +87,6 @@ export {
   getHexVertices,
   getOptimalTextureSize,
   getVisibleHexes,
-  HexBackground,
   hexDistance,
   hexHash,
   hexRandom,
@@ -94,7 +95,6 @@ export {
   interpolateColorDistribution,
   pixelToHex,
   texturePresets,
-  ThemedHexBackground,
   type ColorDistribution,
   type DistributionConfig,
   type HexBackgroundProps,
@@ -109,5 +109,5 @@ export {
 // export { ThemeControls, type ThemeControlsProps } from './components'; // Temporarily disabled due to CSS issues
 export { SimpleThemeControls } from './components/SimpleThemeControls';
 
-// Demo component (for development/showcase)
-export { ThemeDemo } from './demo/ThemeDemo';
+// Demo component has been moved to deprecated folder
+// export { ThemeDemo } from './demo/ThemeDemo';

@@ -199,7 +199,7 @@ export default function Join() {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--theme-bg-primary)] flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4">
       <motion.div
         className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 w-full max-w-md"
         initial={{ opacity: 0, scale: 0.8 }}

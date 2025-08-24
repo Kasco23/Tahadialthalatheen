@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useGameActions } from '@/hooks/useGameAtoms';
+import { useTranslation } from '@/hooks/useTranslation';
 import { GameDatabase } from '@/lib/gameDatabase';
 import { getConfigurationError } from '@/lib/supabaseLazy';
-import { useTranslation } from '@/hooks/useTranslation';
 import type { SegmentCode } from '@/types/game';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 /**
  * Enhanced session creation page with improved error handling and user feedback.
@@ -122,7 +122,7 @@ export default function CreateSession() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[var(--theme-bg-primary)] p-4">
+    <div className="min-h-screen flex items-center justify-center p-4">
       <form
         onSubmit={handleSubmit}
         className="bg-white/10 backdrop-blur-sm p-8 rounded-3xl w-full max-w-md space-y-6"
