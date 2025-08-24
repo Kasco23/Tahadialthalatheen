@@ -24,6 +24,10 @@
   "src/components/VideoRoom.tsx": [
     "src/components/AlertBanner.tsx"
   ],
+  "src/components/theme/ThemeSelector.tsx": [],
+  "src/components/theme/index.ts": [
+    "src/components/theme/ThemeSelector.tsx"
+  ],
   "src/context/GameContext.tsx": [
     "src/context/defaults.ts",
     "src/context/gameReducer.ts",
@@ -166,11 +170,6 @@
   "src/theme/data/teams.ts": [
     "src/theme/types.ts"
   ],
-  "src/theme/demo/ThemeDemo.tsx": [
-    "src/theme/background/index.ts",
-    "src/theme/components/SimpleThemeControls.tsx",
-    "src/theme/components/ThemeProvider.tsx"
-  ],
   "src/theme/index.ts": [
     "src/theme/background/index.ts",
     "src/theme/components/SimpleThemeControls.tsx",
@@ -178,7 +177,6 @@
     "src/theme/core/contrast.ts",
     "src/theme/core/storage.ts",
     "src/theme/core/tokens.ts",
-    "src/theme/demo/ThemeDemo.tsx",
     "src/theme/palette/index.ts",
     "src/theme/state/themeAtoms.ts",
     "src/theme/types.ts"
