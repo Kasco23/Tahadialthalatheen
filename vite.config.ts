@@ -24,6 +24,7 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: true,
     rollupOptions: {
+      external: ['react/jsx-runtime'],
       output: {
         manualChunks: (id) => {
           // Vendor chunks for major libraries
