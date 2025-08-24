@@ -1,20 +1,40 @@
 /**
- * Main palette extraction module that combines SVG parsing and Canvas fallback
+ * Main palette extraction module that combines hardcoded palettes with SVG parsing fallback
  */
 
 import type { ColorPalette } from '../types';
+import { getTeamColorPalette } from '../data/teams';
 import { extractColorsFromSVGUrlCached } from './extractor';
 import { extractColorsFromSVGCanvas } from './quantizer';
 
 /**
- * Extract color palette from team logo with fallback strategies
- * 1. Try direct SVG parsing first (faster, more accurate)
- * 2. Fall back to Canvas rasterization if SVG parsing fails or yields poor results
+ * Extract color palette from team logo using hardcoded palettes
+ * Falls back to dynamic extraction if team is not found in hardcoded palettes
  */
 export async function extractTeamPalette(
   logoUrl: string,
 ): Promise<ColorPalette> {
   try {
+    // Extract team ID from logo URL
+    const teamId = extractTeamIdFromUrl(logoUrl);
+    
+    if (teamId) {
+      // Try to get hardcoded palette first
+      const hardcodedPalette = getTeamColorPalette(teamId);
+      
+      // If we have a hardcoded palette (not the default fallback), use it
+      if (hardcodedPalette && teamId !== 'default') {
+        console.debug('Using hardcoded palette for team:', teamId);
+        return {
+          colors: hardcodedPalette.colors,
+          weights: hardcodedPalette.weights,
+        };
+      }
+    }
+
+    // Fallback to dynamic extraction for unknown teams
+    console.debug('No hardcoded palette found, falling back to dynamic extraction for:', logoUrl);
+    
     // First attempt: Direct SVG parsing
     const svgPalette = await extractColorsFromSVGUrlCached(logoUrl);
 
@@ -36,17 +56,34 @@ export async function extractTeamPalette(
       return canvasPalette;
     }
 
-    // If both methods fail, return the best we have
+    // If both methods fail, return the best we have or default
     const bestPalette =
       svgPalette.colors.length >= canvasPalette.colors.length
         ? svgPalette
         : canvasPalette;
 
     console.warn('Limited color extraction results for:', logoUrl, bestPalette);
-    return bestPalette;
+    return bestPalette.colors.length > 0 ? bestPalette : getTeamColorPalette('default');
   } catch (error) {
     console.error('Color extraction failed completely for:', logoUrl, error);
-    return { colors: [], weights: [] };
+    return getTeamColorPalette('default');
+  }
+}
+
+/**
+ * Extract team ID from logo URL
+ */
+function extractTeamIdFromUrl(logoUrl: string): string | null {
+  try {
+    // Extract filename from URL (handle both relative and absolute URLs)
+    const filename = logoUrl.split('/').pop();
+    if (!filename) return null;
+    
+    // Remove file extension and return team ID
+    return filename.replace(/\.(svg|png|jpg|jpeg|webp)$/i, '');
+  } catch (error) {
+    console.warn('Failed to extract team ID from URL:', logoUrl, error);
+    return null;
   }
 }
 
