@@ -669,49 +669,46 @@ export class GameDatabase {
     // Subscribe to game updates
     // Use lazy supabase client
     const supabase = await getSupabase();
-    const gameSubscription = supabase
-      .channel(`game:${gameId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'games',
-          filter: `id=eq.${gameId}`,
-        },
-        (payload) => {
-          console.log('Game update:', payload);
-          if (payload.eventType === 'UPDATE' && callbacks.onGameUpdate) {
-            callbacks.onGameUpdate(payload.new as GameRecord);
-          }
-        },
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'players',
-          filter: `game_id=eq.${gameId}`,
-        },
-        (payload) => {
-          console.log('Player update:', payload);
-          if (payload.eventType === 'INSERT' && callbacks.onPlayerJoin) {
-            callbacks.onPlayerJoin(payload.new as PlayerRecord);
-          } else if (
-            payload.eventType === 'UPDATE' &&
-            callbacks.onPlayerUpdate
-          ) {
-            callbacks.onPlayerUpdate(payload.new as PlayerRecord);
-          } else if (
-            payload.eventType === 'DELETE' &&
-            callbacks.onPlayerLeave
-          ) {
-            callbacks.onPlayerLeave(payload.old.id);
-          }
-        },
-      )
-      .subscribe();
+    const gameChannel = supabase.channel(`game:${gameId}`);
+
+    gameChannel.on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'games',
+        filter: `id=eq.${gameId}`,
+      },
+      (payload) => {
+        console.log('Game update:', payload);
+        if (payload.eventType === 'UPDATE' && callbacks.onGameUpdate) {
+          callbacks.onGameUpdate(payload.new as GameRecord);
+        }
+      },
+    );
+
+    gameChannel.on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'players',
+        filter: `game_id=eq.${gameId}`,
+      },
+      (payload) => {
+        console.log('Player update:', payload);
+        if (payload.eventType === 'INSERT' && callbacks.onPlayerJoin) {
+          callbacks.onPlayerJoin(payload.new as PlayerRecord);
+        } else if (payload.eventType === 'UPDATE' && callbacks.onPlayerUpdate) {
+          callbacks.onPlayerUpdate(payload.new as PlayerRecord);
+        } else if (payload.eventType === 'DELETE' && callbacks.onPlayerLeave) {
+          callbacks.onPlayerLeave(payload.old.id);
+        }
+      },
+    );
+
+    const gameSubscription = gameChannel;
+    gameChannel.subscribe();
 
     return gameSubscription;
   }

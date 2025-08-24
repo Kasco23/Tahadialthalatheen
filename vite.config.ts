@@ -24,7 +24,6 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: true,
     rollupOptions: {
-      external: ['react/jsx-runtime'],
       output: {
         manualChunks: (id) => {
           // Vendor chunks for major libraries
@@ -37,7 +36,24 @@ export default defineConfig({
             return 'react';
           if (id.includes('react-router')) return 'router';
 
-          // Theme system chunk (heavy dependencies)
+          // Keep Jotai with vendor but separate atoms and avoid potential circular imports
+          if (
+            id.includes('jotai') &&
+            !id.includes('Atoms') &&
+            !id.includes('src/theme/') &&
+            !id.includes('src/state/')
+          )
+            return 'vendor';
+
+          // Separate state management to prevent circular dependencies
+          if (
+            id.includes('src/state/') ||
+            id.includes('gameAtoms') ||
+            id.includes('themeAtoms')
+          )
+            return 'state';
+
+          // Theme system chunk (heavy dependencies) - keep separate from state
           if (id.includes('node-vibrant') || id.includes('svgson'))
             return 'theme-heavy';
           if (
@@ -55,7 +71,6 @@ export default defineConfig({
           // UI framework chunk
           if (id.includes('framer-motion')) return 'ui';
           if (id.includes('@supabase/supabase-js')) return 'supabase';
-          if (id.includes('jotai')) return 'jotai';
 
           // Default behavior for other vendor modules
           if (id.includes('node_modules')) return 'vendor-misc';

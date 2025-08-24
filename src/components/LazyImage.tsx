@@ -18,7 +18,7 @@ export default function LazyImage({
   src,
   alt,
   className = '',
-  fallback = '/tahadialthalatheen/images/placeholder.svg',
+  fallback = '/images/placeholder.svg',
   loading = 'lazy',
   onLoad,
   onError,

@@ -1,7 +1,10 @@
 import ConnectionBanner from '@/components/ConnectionBanner';
 import LanguageToggle from '@/components/LanguageToggle';
-import { SimpleThemeControls, ThemeProvider } from '@/theme';
-import { ThemedHexBackground } from '@/theme/background';
+import {
+  SimpleThemeControls,
+  ThemedHexBackground,
+  ThemeProvider,
+} from '@/theme';
 import { Provider as JotaiProvider } from 'jotai';
 import { lazy, Suspense } from 'react';
 import { Route, Routes } from 'react-router-dom';

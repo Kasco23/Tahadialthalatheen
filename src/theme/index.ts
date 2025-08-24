@@ -9,9 +9,9 @@
 export type {
   ColorPalette,
   ContrastResult,
-  HSL,
   HexCoordinate,
   HexGridConfig,
+  HSL,
   Point,
   RGB,
   Team,
@@ -50,7 +50,7 @@ export {
   saveThemeMode,
 } from './core/storage';
 
-// State management
+// State management atoms (specific exports to avoid circular dependencies)
 export {
   activeThemeConfigAtom,
   applyThemeAtom,
@@ -76,7 +76,6 @@ export {
 
 // Hexagonal background system
 export {
-  HexBackground,
   calculateOptimalHexSize,
   createAdaptiveDensity,
   createColorFlow,
@@ -86,6 +85,7 @@ export {
   getHexVertices,
   getOptimalTextureSize,
   getVisibleHexes,
+  HexBackground,
   hexDistance,
   hexHash,
   hexRandom,
@@ -94,6 +94,7 @@ export {
   interpolateColorDistribution,
   pixelToHex,
   texturePresets,
+  ThemedHexBackground,
   type ColorDistribution,
   type DistributionConfig,
   type HexBackgroundProps,
@@ -101,6 +102,7 @@ export {
   type HexPixel,
   type TextureConfig,
   type TextureType,
+  type ThemedHexBackgroundProps,
 } from './background';
 
 // UI Components

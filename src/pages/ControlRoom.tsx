@@ -5,6 +5,7 @@ import {
   useGameSync,
 } from '@/hooks/useGameAtoms';
 import { useTranslation } from '@/hooks/useTranslation';
+import '@/styles/ControlRoom.css';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -289,12 +290,7 @@ export default function ControlRoom() {
     <div className="min-h-screen bg-gradient-to-br from-brand-dark via-slate-900 to-football-dark">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-10">
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%2322c55e' fill-opacity='0.2'%3E%3Ccircle cx='20' cy='20' r='1.5'/%3E%3C/g%3E%3C/svg%3E")`,
-          }}
-        />
+        <div className="absolute inset-0 background-pattern" />
       </div>
 
       <div className="relative z-10 p-6">
@@ -306,7 +302,7 @@ export default function ControlRoom() {
         >
           <div className="flex items-center space-x-4">
             <img
-              src="/tahadialthalatheen/images/Logo.png"
+              src="/images/Logo.png"
               alt="تحدي الثلاثين"
               className="w-12 h-12"
             />
@@ -582,7 +578,7 @@ export default function ControlRoom() {
           className="bg-blue-500/10 rounded-xl p-6 border border-blue-500/30"
         >
           <h3
-            className={`text-xl font-bold text-blue-300 mb-4 ${language === 'ar' ? 'font-arabic' : ''}`}
+            className={`text-lg font-bold text-blue-300 mb-4 ${language === 'ar' ? 'font-arabic' : ''}`}
           >
             💡 Controller Instructions
           </h3>

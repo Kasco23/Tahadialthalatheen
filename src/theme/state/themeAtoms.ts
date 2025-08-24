@@ -4,16 +4,13 @@
 
 import { atom } from 'jotai';
 import { atomWithStorage } from 'jotai/utils';
+import { DEFAULT_TOKENS } from '../core/defaultTokens';
 import {
   loadSelectedTeam,
   loadTextureType,
   loadThemeMode,
 } from '../core/storage';
-import {
-  applyThemeTokens,
-  DEFAULT_TOKENS,
-  generateThemeTokens,
-} from '../core/tokens';
+import { applyThemeTokens, generateThemeTokens } from '../core/tokens';
 import type {
   ColorPalette,
   Team,

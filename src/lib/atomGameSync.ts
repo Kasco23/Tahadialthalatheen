@@ -82,8 +82,15 @@ export class AtomGameSync {
       });
 
       // Listen for game state broadcasts with correct payload structure
+      // Get channel reference to avoid repeated casting
+      const channel = this.channel;
+      if (!channel) return;
+
+      // Use proper type casting for the channel methods
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (this.channel as any).on(
+      const channelWithMethods = channel as any;
+
+      channelWithMethods.on(
         'broadcast',
         { event: 'game_state_update' },
         (data: { payload?: { gameState?: Partial<GameState> } }) => {
@@ -94,8 +101,7 @@ export class AtomGameSync {
       );
 
       // Listen for player events with correct payload structure
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (this.channel as any).on(
+      channelWithMethods.on(
         'broadcast',
         { event: 'player_join' },
         (data: { payload?: { playerId?: PlayerId; playerData?: unknown } }) => {
@@ -105,8 +111,7 @@ export class AtomGameSync {
         },
       );
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (this.channel as any).on(
+      channelWithMethods.on(
         'broadcast',
         { event: 'player_leave' },
         (data: { payload?: { playerId?: PlayerId } }) => {
@@ -120,67 +125,72 @@ export class AtomGameSync {
       );
 
       // Handle presence updates
-      this.channel.on('presence', { event: 'sync' }, () => {
+      channelWithMethods.on('presence', { event: 'sync' }, () => {
         this.updatePresenceState();
       });
 
-      this.channel.on('presence', { event: 'join' }, () => {
+      channelWithMethods.on('presence', { event: 'join' }, () => {
         this.updatePresenceState();
       });
 
-      this.channel.on('presence', { event: 'leave' }, () => {
+      channelWithMethods.on('presence', { event: 'leave' }, () => {
         this.updatePresenceState();
       });
 
       // Subscribe to postgres changes for game and players
-      this.gameSubscription = supabase
-        .channel(`postgres:${this.gameId}`)
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'games',
-            filter: `id=eq.${this.gameId}`,
-          },
-          (payload) => {
-            const newRow = payload.new as GameRecord;
-            this.store.set(updateGameStateAtom, mapRecordToState(newRow));
-          },
-        )
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'players',
-            filter: `game_id=eq.${this.gameId}`,
-          },
-          (payload) => {
-            const pl = payload.new as PlayerRecord;
-            this.store.set(addPlayerAtom, mapPlayerRecord(pl));
-          },
-        )
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'players',
-            filter: `game_id=eq.${this.gameId}`,
-          },
-          (payload) => {
-            const pl = payload.new as PlayerRecord;
-            this.store.set(updatePlayerAtom, {
-              playerId: pl.id as PlayerId,
-              update: mapPlayerRecord(pl),
-            });
-          },
-        )
-        .subscribe();
+      const postgresChannel = supabase.channel(`postgres:${this.gameId}`);
+
+      postgresChannel.on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'games',
+          filter: `id=eq.${this.gameId}`,
+        },
+        (payload) => {
+          const newRow = payload.new as GameRecord;
+          this.store.set(updateGameStateAtom, mapRecordToState(newRow));
+        },
+      );
+
+      postgresChannel.on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'players',
+          filter: `game_id=eq.${this.gameId}`,
+        },
+        (payload) => {
+          const pl = payload.new as PlayerRecord;
+          this.store.set(addPlayerAtom, mapPlayerRecord(pl));
+        },
+      );
+
+      postgresChannel.on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'players',
+          filter: `game_id=eq.${this.gameId}`,
+        },
+        (payload) => {
+          const pl = payload.new as PlayerRecord;
+          this.store.set(updatePlayerAtom, {
+            playerId: pl.id as PlayerId,
+            update: mapPlayerRecord(pl),
+          });
+        },
+      );
+
+      // Store the subscription reference and subscribe
+      this.gameSubscription = postgresChannel;
+      postgresChannel.subscribe();
 
       // Subscribe to the main channel
-      await this.channel.subscribe(async (status: string) => {
+      await channelWithMethods.subscribe(async (status: string) => {
         if (status === 'SUBSCRIBED') {
           console.log(`Connected to game channel: ${this.gameId}`);
           this.store.set(isConnectedToSupabaseAtom, true);

@@ -109,7 +109,7 @@ export default function Landing() {
             }}
           >
             <motion.img
-              src="/tahadialthalatheen/images/Logo.png"
+              src="/images/Logo.png"
               alt="تحدي الثلاثين"
               className="w-24 sm:w-32 filter drop-shadow-lg"
               whileHover={{ scale: 1.1, rotate: 5 }}

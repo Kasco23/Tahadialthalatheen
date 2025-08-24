@@ -3,7 +3,9 @@
  */
 
 import React, { useState } from 'react';
-import { HexBackground, SimpleThemeControls, ThemeProvider } from '../index';
+import { HexBackground } from '../background';
+import { SimpleThemeControls } from '../components/SimpleThemeControls';
+import { ThemeProvider } from '../components/ThemeProvider';
 
 export const ThemeDemo: React.FC = () => {
   const [isControlsOpen, setIsControlsOpen] = useState(false);

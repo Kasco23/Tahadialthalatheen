@@ -17,14 +17,14 @@
 
 @font-face {
   font-family: 'DG Bebo';
-  src: url('/tahadialthalatheen/fonts/DG-BeboT.ttf') format('truetype');
+  src: url('/fonts/DG-BeboT.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
 }
 
 @font-face {
   font-family: 'Almarai';
-  src: url('/tahadialthalatheen/fonts/Almarai-Regular.ttf') format('truetype');
+  src: url('/fonts/Almarai-Regular.ttf') format('truetype');
   font-weight: 400;
   font-style: normal;
 }
