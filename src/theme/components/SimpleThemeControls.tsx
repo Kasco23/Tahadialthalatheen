@@ -7,14 +7,13 @@ import { useAtom } from 'jotai';
 import { useCallback, useState } from 'react';
 import { loadTeamLogo, teams } from '../data/teams';
 import {
+  applyThemeAtom,
   isThemeUIOpenAtom,
   selectedTeamAtom,
   setSelectedTeamAtom,
   setThemeModeAtom,
   themeModeAtom,
   toggleThemeUIAtom,
-  applyThemeAtom,
-  setExtractedPaletteAtom,
 } from '../state';
 import './SimpleThemeControls.css';
 
@@ -26,7 +25,6 @@ export function SimpleThemeControls() {
   const [, setSelectedTeam] = useAtom(setSelectedTeamAtom);
   const [, toggleThemeUI] = useAtom(toggleThemeUIAtom);
   const [, applyTheme] = useAtom(applyThemeAtom);
-  const [, setExtractedPalette] = useAtom(setExtractedPaletteAtom);
 
   const [loadingTeam, setLoadingTeam] = useState<string | null>(null);
 
@@ -46,30 +44,22 @@ export function SimpleThemeControls() {
       setLoadingTeam(teamId);
 
       try {
-        // Load team logo
+        // Load team logo for display purposes
         const logoUrl = await loadTeamLogo(teamId);
         team.logoPath = logoUrl; // Update team object with loaded logo
+
+        // Set the selected team - this will automatically load the color palette in the atom
         setSelectedTeam(team);
 
-        // If in team mode and we have a logo, extract palette
-        if (themeMode === 'team' && logoUrl) {
-          try {
-            // Dynamic import of palette extraction to avoid bundling in main chunk
-            const { extractTeamPalette } = await import('../palette');
-            const palette = await extractTeamPalette(logoUrl);
-            setExtractedPalette(palette);
-            await applyTheme();
-          } catch (error) {
-            console.error('Failed to extract team palette:', error);
-          }
-        }
+        // Apply theme changes
+        await applyTheme();
       } catch (error) {
         console.error('Failed to load team:', error);
       } finally {
         setLoadingTeam(null);
       }
     },
-    [themeMode, setSelectedTeam, setExtractedPalette, applyTheme],
+    [setSelectedTeam, applyTheme],
   );
 
   const popularTeams = teams.filter((team) =>

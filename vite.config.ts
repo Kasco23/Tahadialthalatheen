@@ -8,9 +8,21 @@ export default defineConfig({
     react(),
     bundlesize({
       limits: [
-        // Allow a little extra headroom so Netlify builds don't fail on
-        // minor bundle size fluctuations while still keeping bundles small
-        { name: '**/*.js', limit: '230 kB' },
+        // Main entry bundle should stay small
+        { name: 'assets/index-*.js', limit: '200 kB' },
+        // React ecosystem chunks
+        { name: 'assets/vendor-react-dom-*.js', limit: '300 kB' },
+        { name: 'assets/vendor-react-*.js', limit: '200 kB' },
+        // Large vendor libraries
+        { name: 'assets/vendor-framer-*.js', limit: '200 kB' },
+        { name: 'assets/vendor-misc-*.js', limit: '400 kB' },
+        { name: 'assets/vendor-state-*.js', limit: '100 kB' },
+        // Supabase
+        { name: 'assets/supabase-*.js', limit: '50 kB' },
+        // Application chunks
+        { name: 'assets/translations-*.js', limit: '50 kB' },
+        // Page chunks should be reasonable
+        { name: 'assets/*-*.js', limit: '100 kB' },
       ],
     }),
   ],
@@ -26,54 +38,30 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: (id) => {
-          // Vendor chunks for major libraries
-          if (id.includes('react-dom')) return 'vendor';
-          if (
-            id.includes('react') &&
-            !id.includes('react-dom') &&
-            !id.includes('react-router')
-          )
-            return 'react';
-          if (id.includes('react-router')) return 'router';
+          // React ecosystem - be more conservative to avoid initialization issues
+          if (id.includes('react-dom')) return 'vendor-react-dom';
+          if (id.includes('react') && !id.includes('react-dom'))
+            return 'vendor-react';
+          if (id.includes('react-router')) return 'vendor-react';
 
-          // Keep Jotai with vendor but separate atoms and avoid potential circular imports
-          if (
-            id.includes('jotai') &&
-            !id.includes('Atoms') &&
-            !id.includes('src/theme/') &&
-            !id.includes('src/state/')
-          )
-            return 'vendor';
-
-          // Separate state management to prevent circular dependencies
-          if (
-            id.includes('src/state/') ||
-            id.includes('gameAtoms') ||
-            id.includes('themeAtoms')
-          )
-            return 'state';
-
-          // Theme system chunk (heavy dependencies) - keep separate from state
-          if (id.includes('node-vibrant') || id.includes('svgson'))
-            return 'theme-heavy';
-          if (
-            id.includes('src/theme/') &&
-            (id.includes('palette') ||
-              id.includes('background') ||
-              id.includes('ThemeControls'))
-          )
-            return 'theme';
-
-          // Translation chunk
-          if (id.includes('lib/translations') || id.includes('i18n'))
-            return 'translations';
-
-          // UI framework chunk
-          if (id.includes('framer-motion')) return 'ui';
+          // Supabase - large and independent
           if (id.includes('@supabase/supabase-js')) return 'supabase';
 
-          // Default behavior for other vendor modules
-          if (id.includes('node_modules')) return 'vendor-misc';
+          // Split large vendor libraries
+          if (id.includes('node_modules')) {
+            // Framer Motion is very large, separate it
+            if (id.includes('framer-motion')) return 'vendor-framer';
+
+            // State management libraries
+            if (id.includes('jotai')) return 'vendor-state';
+
+            // Everything else goes to vendor-misc
+            return 'vendor-misc';
+          }
+
+          // Application code - minimal chunking
+          if (id.includes('lib/translations') || id.includes('i18n'))
+            return 'translations';
         },
       },
     },

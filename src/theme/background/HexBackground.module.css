@@ -1,6 +1,6 @@
 /* Hexagonal background component styles */
 
-.hex-background-container {
+.hexBackgroundContainer {
   position: fixed;
   top: 0;
   left: 0;
@@ -11,7 +11,7 @@
   pointer-events: none;
 }
 
-.hex-background-texture {
+.hexBackgroundTexture {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -19,7 +19,7 @@
   z-index: 1;
 }
 
-.hex-background-grid {
+.hexBackgroundGrid {
   position: absolute;
   inset: 0;
   width: 100%;

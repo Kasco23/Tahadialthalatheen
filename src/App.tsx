@@ -42,7 +42,7 @@ export default function App() {
   return (
     <JotaiProvider>
       <ThemeProvider>
-        <div className="dark min-h-screen relative">
+        <div className="min-h-screen relative">
           {/* Dynamic theme-based hexagonal background */}
           <ThemedHexBackground />
 

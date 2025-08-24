@@ -30,7 +30,7 @@
 }
 
 body {
-  @apply bg-brand-dark text-brand-light font-body;
+  @apply text-brand-light font-body;
 }
 
 .font-arabic {

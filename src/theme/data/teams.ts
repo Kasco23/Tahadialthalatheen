@@ -264,28 +264,28 @@ const teamColorPalettes: Record<
 > = {
   // Premier League
   arsenal: {
-    colors: ['#EF0107', '#9C824A', '#023474'],
-    weights: [0.5, 0.3, 0.2],
+    colors: ['#EF0107', '#9C824A', '#023474', '#FFFFFF'],
+    weights: [0.45, 0.25, 0.2, 0.1],
   },
   chelsea: {
-    colors: ['#001489', '#DBA111', '#FFFFFF'],
-    weights: [0.6, 0.25, 0.15],
+    colors: ['#034694', '#DBA111', '#FFFFFF', '#ED1C24'],
+    weights: [0.5, 0.25, 0.15, 0.1],
   },
   liverpool: {
-    colors: ['#E51C25', '#00529F', '#FFD700'],
-    weights: [0.5, 0.35, 0.15],
+    colors: ['#C8102E', '#00B2A9', '#F6EB61', '#FFFFFF'],
+    weights: [0.45, 0.25, 0.2, 0.1],
   },
   'manchester-united': {
-    colors: ['#DA020E', '#FFE500', '#000000'],
-    weights: [0.5, 0.3, 0.2],
+    colors: ['#DA020E', '#FFE500', '#000000', '#FFFFFF'],
+    weights: [0.45, 0.25, 0.2, 0.1],
   },
   'manchester-city': {
-    colors: ['#5CBDED', '#1C2C5B', '#FFFFFF'],
-    weights: [0.5, 0.3, 0.2],
+    colors: ['#6CABDD', '#1C2C5B', '#FFC659', '#D4A12A', '#EC3325'],
+    weights: [0.35, 0.25, 0.2, 0.15, 0.05],
   },
   tottenham: {
-    colors: ['#132257', '#FFFFFF', '#1C2C5B'],
-    weights: [0.5, 0.3, 0.2],
+    colors: ['#132257', '#FFFFFF', '#1C2C5B', '#FFE500'],
+    weights: [0.45, 0.25, 0.2, 0.1],
   },
   newcastle: {
     colors: ['#000000', '#FFFFFF', '#FFCC00'],
@@ -350,16 +350,16 @@ const teamColorPalettes: Record<
 
   // La Liga
   barcelona: {
-    colors: ['#A50044', '#004D98', '#EDBB00'],
-    weights: [0.4, 0.35, 0.25],
+    colors: ['#EDBB00', '#004D98', '#A50044', '#DB0030', '#FFED02', '#000000'],
+    weights: [0.25, 0.25, 0.2, 0.15, 0.1, 0.05],
   },
   'real-madrid': {
-    colors: ['#FEBE10', '#00529F', '#FFFFFF'],
-    weights: [0.4, 0.35, 0.25],
+    colors: ['#FFFFFF', '#FEBE10', '#00529F', '#8A2BE2'],
+    weights: [0.4, 0.3, 0.2, 0.1],
   },
   'atletico-madrid': {
-    colors: ['#CE3524', '#143F90', '#FFFFFF'],
-    weights: [0.5, 0.3, 0.2],
+    colors: ['#CE3524', '#143F90', '#FFFFFF', '#FFE500'],
+    weights: [0.4, 0.3, 0.2, 0.1],
   },
   sevilla: {
     colors: ['#D50000', '#FFFFFF', '#000000'],
@@ -416,16 +416,16 @@ const teamColorPalettes: Record<
 
   // Bundesliga
   'bayern-munchen': {
-    colors: ['#DC052D', '#0066B2', '#FFFFFF'],
-    weights: [0.5, 0.3, 0.2],
+    colors: ['#DC052D', '#0066B2', '#FFFFFF', '#FFD700'],
+    weights: [0.4, 0.3, 0.2, 0.1],
   },
   'borussia-dortmund': {
-    colors: ['#FDE100', '#000000', '#FFFFFF'],
-    weights: [0.5, 0.3, 0.2],
+    colors: ['#FDE100', '#000000', '#FFFFFF', '#808080'],
+    weights: [0.4, 0.3, 0.2, 0.1],
   },
   'rb-leipzig': {
-    colors: ['#DD0741', '#FFFFFF', '#000000'],
-    weights: [0.6, 0.25, 0.15],
+    colors: ['#DD0741', '#FFFFFF', '#000000', '#1E90FF'],
+    weights: [0.5, 0.25, 0.15, 0.1],
   },
   'bayer-leverkusen': {
     colors: ['#E32221', '#000000', '#FFFFFF'],

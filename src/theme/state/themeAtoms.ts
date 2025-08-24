@@ -57,20 +57,29 @@ export const activeThemeConfigAtom = atom<ThemeConfig>((get) => {
   // Generate theme tokens based on current state
   let tokens: ThemeTokens;
 
-  if (
-    mode === 'team' &&
-    extractedPalette &&
-    extractedPalette.colors.length > 0
-  ) {
-    // Use team palette colors
-    const [primary, secondary, accent] = extractedPalette.colors;
+  if (mode === 'team') {
+    if (extractedPalette && extractedPalette.colors.length > 0) {
+      // Use extracted palette colors (from hardcoded team palettes)
+      const [primary, secondary, accent] = extractedPalette.colors;
 
-    tokens = generateThemeTokens({
-      ...baseTokens,
-      primary: primary || baseTokens.primary,
-      secondary: secondary || primary || baseTokens.secondary,
-      accent: accent || secondary || primary || baseTokens.accent,
-    });
+      tokens = generateThemeTokens({
+        ...baseTokens,
+        primary: primary || baseTokens.primary,
+        secondary: secondary || primary || baseTokens.secondary,
+        accent: accent || secondary || primary || baseTokens.accent,
+      });
+    } else if (selectedTeam) {
+      // Fallback to team's hardcoded colors if no extracted palette yet
+      tokens = generateThemeTokens({
+        ...baseTokens,
+        primary: selectedTeam.primaryColor || baseTokens.primary,
+        secondary: selectedTeam.secondaryColor || baseTokens.secondary,
+        accent: selectedTeam.accentColor || baseTokens.accent,
+      });
+    } else {
+      // No team selected in team mode, use default
+      tokens = baseTokens;
+    }
   } else {
     // Use default tokens
     tokens = baseTokens;
@@ -94,20 +103,36 @@ export const applyThemeAtom = atom(null, (get, _set, _update: void) => {
 // Action atoms for theme operations
 export const setThemeModeAtom = atom(null, (_get, set, mode: ThemeMode) => {
   set(themeModeAtom, mode);
+
+  // Clear extracted palette when switching to default mode
+  if (mode === 'default') {
+    set(extractedPaletteAtom, null);
+  }
+
   set(applyThemeAtom); // Trigger theme application
 });
 
 export const setSelectedTeamAtom = atom(
   null,
-  (_get, set, team: Team | null) => {
+  async (_get, set, team: Team | null) => {
     set(selectedTeamAtom, team);
 
     // Clear extracted palette when team changes
     set(extractedPaletteAtom, null);
 
-    // If switching to team mode, ensure mode is set
+    // If switching to team mode, ensure mode is set and load team palette
     if (team) {
       set(themeModeAtom, 'team');
+
+      // Automatically load the team's hardcoded color palette
+      try {
+        // Dynamic import to avoid circular dependencies
+        const { getTeamColorPalette } = await import('../data/teams');
+        const palette = getTeamColorPalette(team.id);
+        set(extractedPaletteAtom, palette);
+      } catch (error) {
+        console.error('Failed to load team color palette:', error);
+      }
     }
 
     set(applyThemeAtom); // Trigger theme application
