@@ -114,11 +114,11 @@ export const ThemeControls: React.FC<ThemeControlsProps> = ({
       try {
         setSelectedTeam(team);
         setThemeMode('team');
-        
+
         // Extract colors from team logo
         const palette = await extractTeamPalette(team.logoPath);
         setExtractedPalette(palette);
-        
+
         setSearchTerm('');
         setIsExpanded(false);
         await applyTheme();

@@ -12,7 +12,7 @@ VITE_SUPABASE_URL=https://projectID.supabase.co
 VITE_SUPABASE_ANON_KEY=  # Your actual anon key
 SUPABASE_SERVICE_ROLE_KEY= # Your actual service role key
 
-# Daily.co keys 
+# Daily.co keys
 DAILY_API_KEY=
 VITE_DAILY_DOMAIN=project.daily.co
 

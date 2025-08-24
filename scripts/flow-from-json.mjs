@@ -58,8 +58,10 @@ const lines = [
   '  note right of QuizControl : Host does segment logic\\n(strikes, reset bell)',
   '  note left of LOBBY : Players + Host phone join\\nDaily room starts',
   '  note right of FINISHED : Scores locked\\nDB update → results',
-  '```'
+  '```',
 ];
 
 await fs.writeFile('docs/current-flow.mmd', lines.join('\n'));
-console.log('✅ docs/current-flow.mmd regenerated using fork/join + annotations');
+console.log(
+  '✅ docs/current-flow.mmd regenerated using fork/join + annotations',
+);

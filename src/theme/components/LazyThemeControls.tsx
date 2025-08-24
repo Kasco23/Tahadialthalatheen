@@ -26,7 +26,7 @@ export function LazyThemeControls() {
   const [, toggleThemeUI] = useAtom(toggleThemeUIAtom);
   const [, applyTheme] = useAtom(applyThemeAtom);
   const [, setExtractedPalette] = useAtom(setExtractedPaletteAtom);
-  
+
   const [teamLogos, setTeamLogos] = useState<Map<string, string>>(new Map());
   const [loadingTeam, setLoadingTeam] = useState<string | null>(null);
 
@@ -38,48 +38,51 @@ export function LazyThemeControls() {
     setThemeMode(themeMode === 'default' ? 'team' : 'default');
   };
 
-  const handleTeamSelect = useCallback(async (teamId: string) => {
-    const team = teams.find((t) => t.id === teamId);
-    if (!team) return;
+  const handleTeamSelect = useCallback(
+    async (teamId: string) => {
+      const team = teams.find((t) => t.id === teamId);
+      if (!team) return;
 
-    setLoadingTeam(teamId);
-    
-    try {
-      // Load team logo if not already loaded
-      if (!teamLogos.has(teamId)) {
-        const logoUrl = await loadTeamLogo(teamId);
-        setTeamLogos(prev => new Map(prev.set(teamId, logoUrl)));
-        team.logoPath = logoUrl; // Update team object with loaded logo
-      } else {
-        team.logoPath = teamLogos.get(teamId) || '';
-      }
+      setLoadingTeam(teamId);
 
-      setSelectedTeam(team);
-
-      // If in team mode and we have a logo, extract palette
-      if (themeMode === 'team' && team.logoPath) {
-        try {
-          // Dynamic import of palette extraction
-          const { extractTeamPalette } = await import('../palette');
-          const palette = await extractTeamPalette(team.logoPath);
-          setExtractedPalette(palette);
-          await applyTheme();
-        } catch (error) {
-          console.error('Failed to extract team palette:', error);
+      try {
+        // Load team logo if not already loaded
+        if (!teamLogos.has(teamId)) {
+          const logoUrl = await loadTeamLogo(teamId);
+          setTeamLogos((prev) => new Map(prev.set(teamId, logoUrl)));
+          team.logoPath = logoUrl; // Update team object with loaded logo
+        } else {
+          team.logoPath = teamLogos.get(teamId) || '';
         }
+
+        setSelectedTeam(team);
+
+        // If in team mode and we have a logo, extract palette
+        if (themeMode === 'team' && team.logoPath) {
+          try {
+            // Dynamic import of palette extraction
+            const { extractTeamPalette } = await import('../palette');
+            const palette = await extractTeamPalette(team.logoPath);
+            setExtractedPalette(palette);
+            await applyTheme();
+          } catch (error) {
+            console.error('Failed to extract team palette:', error);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load team:', error);
+      } finally {
+        setLoadingTeam(null);
       }
-    } catch (error) {
-      console.error('Failed to load team:', error);
-    } finally {
-      setLoadingTeam(null);
-    }
-  }, [teamLogos, themeMode, setSelectedTeam, setExtractedPalette, applyTheme]);
+    },
+    [teamLogos, themeMode, setSelectedTeam, setExtractedPalette, applyTheme],
+  );
 
   // Preload logos for popular teams
   useEffect(() => {
     const popularTeamIds = [
       'barcelona',
-      'real-madrid', 
+      'real-madrid',
       'manchester-united',
       'arsenal',
       'liverpool',
@@ -92,7 +95,7 @@ export function LazyThemeControls() {
       if (!teamLogos.has(teamId)) {
         try {
           const logoUrl = await loadTeamLogo(teamId);
-          setTeamLogos(prev => new Map(prev.set(teamId, logoUrl)));
+          setTeamLogos((prev) => new Map(prev.set(teamId, logoUrl)));
         } catch (error) {
           console.warn(`Failed to preload logo for ${teamId}:`, error);
         }

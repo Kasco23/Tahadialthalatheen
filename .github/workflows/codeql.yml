@@ -1,4 +1,4 @@
-name: "CodeQL"
+name: 'CodeQL'
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [main]
   schedule:
-    - cron: '0 5 * * 1'  # weekly scan
+    - cron: '0 5 * * 1' # weekly scan
 
 jobs:
   analyze:

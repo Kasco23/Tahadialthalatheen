@@ -28,25 +28,34 @@ export default defineConfig({
         manualChunks: (id) => {
           // Vendor chunks for major libraries
           if (id.includes('react-dom')) return 'vendor';
-          if (id.includes('react') && !id.includes('react-dom') && !id.includes('react-router')) return 'react';
+          if (
+            id.includes('react') &&
+            !id.includes('react-dom') &&
+            !id.includes('react-router')
+          )
+            return 'react';
           if (id.includes('react-router')) return 'router';
-          
+
           // Theme system chunk (heavy dependencies)
-          if (id.includes('node-vibrant') || id.includes('svgson')) return 'theme-heavy';
-          if (id.includes('src/theme/') && (
-            id.includes('palette') || 
-            id.includes('background') ||
-            id.includes('ThemeControls')
-          )) return 'theme';
-          
+          if (id.includes('node-vibrant') || id.includes('svgson'))
+            return 'theme-heavy';
+          if (
+            id.includes('src/theme/') &&
+            (id.includes('palette') ||
+              id.includes('background') ||
+              id.includes('ThemeControls'))
+          )
+            return 'theme';
+
           // Translation chunk
-          if (id.includes('lib/translations') || id.includes('i18n')) return 'translations';
-          
-          // UI framework chunk  
+          if (id.includes('lib/translations') || id.includes('i18n'))
+            return 'translations';
+
+          // UI framework chunk
           if (id.includes('framer-motion')) return 'ui';
           if (id.includes('@supabase/supabase-js')) return 'supabase';
           if (id.includes('jotai')) return 'jotai';
-          
+
           // Default behavior for other vendor modules
           if (id.includes('node_modules')) return 'vendor-misc';
         },
