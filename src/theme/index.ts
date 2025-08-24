@@ -75,7 +75,9 @@ export {
 } from './palette';
 
 // Hexagonal background system
+// Background components with enhanced visual rendering
 export {
+  ConditionalBackground,
   HexBackground,
   ThemedHexBackground,
   calculateOptimalHexSize,

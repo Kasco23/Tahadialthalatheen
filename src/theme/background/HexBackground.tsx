@@ -215,12 +215,72 @@ export const HexBackground: React.FC<HexBackgroundProps> = ({
         }
         ctx.closePath();
 
-        // Apply color with alpha and intensity
+        // Enhanced visual styling for better depth and sophistication
         const alpha = colorDist.alpha * colorDist.intensity;
-        ctx.fillStyle = `${colorDist.color}${Math.floor(alpha * 255)
+        const hexColorWithAlpha = `${colorDist.color}${Math.floor(alpha * 255)
           .toString(16)
           .padStart(2, '0')}`;
+
+        // Apply base fill with gradient effect
+        const centerX =
+          vertices.reduce((sum, v) => sum + v.x, 0) / vertices.length;
+        const centerY =
+          vertices.reduce((sum, v) => sum + v.y, 0) / vertices.length;
+        const radius = layout.size * 0.8;
+
+        // Create radial gradient for depth
+        const gradient = ctx.createRadialGradient(
+          centerX,
+          centerY,
+          0,
+          centerX,
+          centerY,
+          radius,
+        );
+
+        // Enhanced gradient with more sophisticated color distribution
+        const baseColor = colorDist.color;
+        const lightAlpha = Math.min(alpha * 1.2, 0.8);
+        const darkAlpha = Math.max(alpha * 0.6, 0.1);
+
+        gradient.addColorStop(
+          0,
+          `${baseColor}${Math.floor(lightAlpha * 255)
+            .toString(16)
+            .padStart(2, '0')}`,
+        );
+        gradient.addColorStop(0.7, hexColorWithAlpha);
+        gradient.addColorStop(
+          1,
+          `${baseColor}${Math.floor(darkAlpha * 255)
+            .toString(16)
+            .padStart(2, '0')}`,
+        );
+
+        ctx.fillStyle = gradient;
         ctx.fill();
+
+        // Add subtle border for definition
+        if (alpha > 0.15) {
+          ctx.strokeStyle = `${baseColor}${Math.floor(
+            Math.min(alpha * 1.5, 1) * 255,
+          )
+            .toString(16)
+            .padStart(2, '0')}`;
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
+
+        // Add inner glow effect for high-intensity hexes
+        if (colorDist.intensity > 0.7 && alpha > 0.2) {
+          ctx.save();
+          ctx.globalCompositeOperation = 'screen';
+          ctx.fillStyle = `${baseColor}${Math.floor(alpha * 0.3 * 255)
+            .toString(16)
+            .padStart(2, '0')}`;
+          ctx.fill();
+          ctx.restore();
+        }
       });
 
       // Limit cache size for memory management

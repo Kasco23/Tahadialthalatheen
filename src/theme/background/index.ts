@@ -2,6 +2,9 @@
  * Main background module exports
  */
 
+export { ConditionalBackground } from './ConditionalBackground';
+export type { ConditionalBackgroundProps } from './ConditionalBackground';
+
 export { HexBackground } from './HexBackground';
 export type { HexBackgroundProps } from './HexBackground';
 

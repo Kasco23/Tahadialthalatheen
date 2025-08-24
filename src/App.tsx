@@ -1,8 +1,8 @@
 import ConnectionBanner from '@/components/ConnectionBanner';
 import LanguageToggle from '@/components/LanguageToggle';
 import {
+  ConditionalBackground,
   SimpleThemeControls,
-  ThemedHexBackground,
   ThemeProvider,
 } from '@/theme';
 import { Provider as JotaiProvider } from 'jotai';
@@ -43,8 +43,8 @@ export default function App() {
     <JotaiProvider>
       <ThemeProvider>
         <div className="min-h-screen relative">
-          {/* Dynamic theme-based hexagonal background */}
-          <ThemedHexBackground />
+          {/* Dynamic theme-based background (conditional) */}
+          <ConditionalBackground />
 
           {/* Application content */}
           <div className="relative z-20 min-h-screen">

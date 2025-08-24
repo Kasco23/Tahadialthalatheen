@@ -708,7 +708,29 @@ export function getTeamColorPalette(teamId: string): {
   colors: string[];
   weights: number[];
 } {
-  return teamColorPalettes[teamId] || teamColorPalettes['default'];
+  const basePalette = teamColorPalettes[teamId] || teamColorPalettes['default'];
+
+  // Ensure primary color has at least 0.6 weight for better dominance
+  if (basePalette.weights.length > 0 && basePalette.weights[0] < 0.6) {
+    const newWeights = [...basePalette.weights];
+    newWeights[0] = 0.6;
+
+    // Redistribute remaining weight proportionally among other colors
+    const remainingSum = newWeights.slice(1).reduce((sum, w) => sum + w, 0);
+    if (remainingSum > 0) {
+      const scale = (1 - 0.6) / remainingSum;
+      for (let i = 1; i < newWeights.length; i++) {
+        newWeights[i] *= scale;
+      }
+    }
+
+    return {
+      colors: basePalette.colors,
+      weights: newWeights,
+    };
+  }
+
+  return basePalette;
 }
 
 /**

@@ -9,6 +9,12 @@
   z-index: -10;
   overflow: hidden;
   pointer-events: none;
+  background: linear-gradient(
+    135deg,
+    rgba(0, 0, 0, 0.95) 0%,
+    rgba(15, 23, 42, 0.9) 50%,
+    rgba(0, 0, 0, 0.95) 100%
+  );
 }
 
 .hexBackgroundTexture {
@@ -17,6 +23,8 @@
   width: 100%;
   height: 100%;
   z-index: 1;
+  opacity: 0.6;
+  mix-blend-mode: overlay;
 }
 
 .hexBackgroundGrid {
@@ -25,4 +33,34 @@
   width: 100%;
   height: 100%;
   z-index: 2;
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.1));
+}
+
+/* Enhanced visual effects for depth */
+.hexBackgroundContainer::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 0%,
+    rgba(0, 0, 0, 0.3) 70%,
+    rgba(0, 0, 0, 0.7) 100%
+  );
+  z-index: 3;
+  pointer-events: none;
+}
+
+.hexBackgroundContainer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    45deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.02) 50%,
+    transparent 100%
+  );
+  z-index: 4;
+  pointer-events: none;
 }

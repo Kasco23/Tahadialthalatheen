@@ -3,6 +3,7 @@
 @tailwind utilities;
 
 :root {
+  /* Legacy brand colors - keeping for fallback */
   --brand-dark: #0f172a;
   --brand-grad: #22c55e;
   --brand-light: #f8fafc;
@@ -13,6 +14,22 @@
   --football-dark: #15803d;
   --font-header: 'DG Bebo', sans-serif;
   --font-body: 'Almarai', sans-serif;
+
+  /* Default theme variables - these will be overridden by the theme system */
+  --theme-primary: #22c55e;
+  --theme-secondary: #374151;
+  --theme-accent: #60a5fa;
+  --theme-bg-primary: #0f172a;
+  --theme-bg-secondary: #1e293b;
+  --theme-surface: #334155;
+  --theme-text: #f8fafc;
+  --theme-text-muted: #cbd5e1;
+  --theme-text-inverse: #0f172a;
+  --theme-border: #475569;
+  --theme-focus-ring: #22c55e;
+  --theme-success: #10b981;
+  --theme-warning: #f59e0b;
+  --theme-error: #ef4444;
 }
 
 @font-face {
@@ -30,7 +47,9 @@
 }
 
 body {
-  @apply text-brand-light font-body;
+  @apply font-body;
+  background-color: var(--theme-bg-primary);
+  color: var(--theme-text);
 }
 
 .font-arabic {

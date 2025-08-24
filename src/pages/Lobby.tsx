@@ -233,13 +233,14 @@ export default function Lobby() {
     if (
       !gameId ||
       videoRoomState.isCreating ||
-      state.videoRoomCreated ||
+      (state.videoRoomCreated && state.videoRoomUrl) ||
       videoRoomState.isCreated
     ) {
       console.log('[LobbyImproved] Skipping video room creation:', {
         gameId: !!gameId,
         isCreating: videoRoomState.isCreating,
         videoRoomCreated: state.videoRoomCreated,
+        videoRoomUrl: !!state.videoRoomUrl,
         isCreated: videoRoomState.isCreated,
       });
       return;
@@ -308,11 +309,45 @@ export default function Lobby() {
     videoRoomState.isCreating,
     videoRoomState.isCreated,
     state.videoRoomCreated,
+    state.videoRoomUrl,
     checkVideoRoomExists,
     createVideoRoom,
     updateVideoRoomState,
     showAlertMessage,
   ]);
+
+  // Manual sync function to fix state inconsistencies
+  const handleSyncVideoRoomState = useCallback(async () => {
+    if (!gameId) return;
+
+    console.log('[LobbyImproved] Manually syncing video room state...');
+    setVideoRoomState((prev) => ({ ...prev, isCreating: true, error: null }));
+
+    try {
+      // Force a direct state update with known room URL
+      const knownRoomUrl = `https://thirty.daily.co/${gameId}`;
+      console.log(
+        '[LobbyImproved] Updating state with known room URL:',
+        knownRoomUrl,
+      );
+
+      await updateVideoRoomState(knownRoomUrl, true);
+      setVideoRoomState((prev) => ({
+        ...prev,
+        isCreated: true,
+        isCreating: false,
+      }));
+      showAlertMessage('Video room state synchronized successfully', 'success');
+    } catch (error) {
+      console.error('[LobbyImproved] Failed to sync video room state:', error);
+      setVideoRoomState((prev) => ({
+        ...prev,
+        error: 'Failed to sync state',
+        isCreating: false,
+      }));
+      showAlertMessage('Failed to sync video room state', 'error');
+    }
+  }, [gameId, updateVideoRoomState, showAlertMessage]);
 
   // Auto-create video room when first participant joins
   useEffect(() => {
@@ -476,12 +511,21 @@ export default function Lobby() {
               <div className="text-red-300">
                 Video Room Error: {videoRoomState.error}
               </div>
-              <button
-                onClick={handleCreateVideoRoom}
-                className="mt-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
-              >
-                Retry Creating Room
-              </button>
+              <div className="flex gap-2 mt-2">
+                <button
+                  onClick={handleCreateVideoRoom}
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+                >
+                  Retry Creating Room
+                </button>
+                <button
+                  onClick={handleSyncVideoRoomState}
+                  className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-sm"
+                  title="If the room exists but shows error, try syncing state"
+                >
+                  🔄 Sync State
+                </button>
+              </div>
             </div>
           )}
 
@@ -496,12 +540,21 @@ export default function Lobby() {
           ) : !videoRoomState.isCreating && !videoRoomState.error ? (
             <div className="text-center py-8">
               <div className="text-gray-400 mb-4">Video Room Not Created</div>
-              <button
-                onClick={handleCreateVideoRoom}
-                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-              >
-                Create Video Room
-              </button>
+              <div className="space-y-3">
+                <button
+                  onClick={handleCreateVideoRoom}
+                  className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                >
+                  Create Video Room
+                </button>
+                <button
+                  onClick={handleSyncVideoRoomState}
+                  className="block mx-auto px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-sm"
+                  title="If the room exists but UI shows 'Not Created', click to sync state"
+                >
+                  🔄 Sync Video Room State
+                </button>
+              </div>
             </div>
           ) : null}
         </div>

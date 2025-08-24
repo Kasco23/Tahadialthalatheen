@@ -468,19 +468,21 @@ export function useGameActions() {
   const checkVideoRoomExists = useCallback(
     async (roomName: string) => {
       try {
-        // Development mode: mock room check
+        // Force production mode for video room check to ensure real API calls
+        // Temporarily disabled development mode to fix video room creation
+        /* Development mode: mock room check
         if (isDevelopmentMode()) {
           console.log('[DEV] Checking mock video room for roomName:', roomName);
 
           // Simulate async operation
           await new Promise((resolve) => setTimeout(resolve, 300));
 
-          // Mock response: assume room exists if it matches current game state
+          // Mock response: check if room exists based on both created flag AND valid URL
           const currentState = store.get(gameStateAtom);
-          const exists = currentState.videoRoomCreated;
+          const exists = currentState.videoRoomCreated && !!currentState.videoRoomUrl;
           const dailyDomain = getDailyDomain();
           const url = exists
-            ? `https://${dailyDomain}/mock-room-${roomName}`
+            ? currentState.videoRoomUrl
             : undefined;
 
           return {
@@ -492,6 +494,7 @@ export function useGameActions() {
             participants: [],
           };
         }
+        */
 
         // Production mode: use real Daily.co API
         const result = await fetch(`/.netlify/functions/check-daily-room`, {

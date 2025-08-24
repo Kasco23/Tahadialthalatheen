@@ -77,7 +77,7 @@ export default function Landing() {
       {/* API Status Button */}
       <motion.button
         onClick={handleApiStatus}
-        className="absolute top-4 left-4 z-50 px-3 py-2 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white/80 hover:text-white rounded-lg transition-all duration-300 text-sm border border-white/20"
+        className="absolute top-4 left-4 z-50 px-3 py-2 bg-theme-surface/50 backdrop-blur-sm hover:bg-theme-surface/70 text-theme-text-muted hover:text-theme-text rounded-lg transition-all duration-300 text-sm border border-theme-border"
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: 0.5 }}
@@ -158,7 +158,7 @@ export default function Landing() {
           <motion.p
             className={`mb-8 text-lg text-center ${
               isArabic ? 'font-arabic' : ''
-            } text-white/80`}
+            } text-theme-text-muted`}
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.6, duration: 0.6 }}

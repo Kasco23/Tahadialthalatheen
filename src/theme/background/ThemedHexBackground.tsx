@@ -46,20 +46,20 @@ export const ThemedHexBackground: React.FC<ThemedHexBackgroundProps> = ({
           themeConfig.selectedTeam.secondaryColor,
           themeConfig.selectedTeam.accentColor,
         ],
-        weights: [0.5, 0.3, 0.2],
+        weights: [0.6, 0.25, 0.15], // Primary color gets at least 60% dominance
       };
     } else {
       // No team selected in team mode, use default
       palette = {
         colors: ['#1f2937', '#374151', '#60a5fa'],
-        weights: [0.4, 0.4, 0.2],
+        weights: [0.6, 0.25, 0.15], // Consistent weight distribution
       };
     }
   } else {
     // Always use default palette in default mode
     palette = {
       colors: ['#1f2937', '#374151', '#60a5fa'],
-      weights: [0.4, 0.4, 0.2],
+      weights: [0.6, 0.25, 0.15], // Consistent weight distribution
     };
   }
 
