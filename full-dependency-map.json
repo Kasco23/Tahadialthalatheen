@@ -72,6 +72,7 @@
   "src/pages/QuizRoom.tsx": [],
   "src/pages/Scoreboard.tsx": [],
   "src/pages/SegmentIntro.tsx": [],
+  "src/pages/TestJotai.tsx": [],
   "src/segments/index.ts": [
     "src/segments/useBellSegment.ts",
     "src/segments/useRemoSegment.ts",
@@ -152,17 +153,23 @@
     "src/theme/core/tokens.ts",
     "src/theme/types.ts"
   ],
+  "src/theme/core/defaultTokens.ts": [
+    "src/theme/types.ts"
+  ],
   "src/theme/core/storage.ts": [
     "src/theme/types.ts"
   ],
   "src/theme/core/tokens.ts": [
+    "src/theme/core/defaultTokens.ts",
     "src/theme/types.ts"
   ],
   "src/theme/data/teams.ts": [
     "src/theme/types.ts"
   ],
   "src/theme/demo/ThemeDemo.tsx": [
-    "src/theme/index.ts"
+    "src/theme/background/index.ts",
+    "src/theme/components/SimpleThemeControls.tsx",
+    "src/theme/components/ThemeProvider.tsx"
   ],
   "src/theme/index.ts": [
     "src/theme/background/index.ts",
@@ -195,6 +202,7 @@
     "src/theme/state/useThemeContext.ts"
   ],
   "src/theme/state/themeAtoms.ts": [
+    "src/theme/core/defaultTokens.ts",
     "src/theme/core/storage.ts",
     "src/theme/core/tokens.ts",
     "src/theme/types.ts"
