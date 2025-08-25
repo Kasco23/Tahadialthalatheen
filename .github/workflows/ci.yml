@@ -6,11 +6,8 @@ on:
   pull_request:
 
 jobs:
-  build:
-    runs-on: ubuntu-latest # ← here’s your “runs-on”
-    defaults:
-      run:
-        working-directory: .
+  test:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Install pnpm
@@ -19,20 +16,55 @@ jobs:
         with:
           node-version: 20
           cache: 'pnpm'
-      - name: Install deps
-        run: pnpm install
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
-      # Run Jest unit tests. passWithNoTests lets CI succeed if no tests exist.
-      - name: Run tests
+      # Run unit tests (Jest)
+      - name: Run unit tests
         run: pnpm test
 
-      # ← Add this step to auto‑format
-      - name: Auto‑format code
-        run: pnpm exec prettier --write .
-
+      # Lint check
       - name: Lint
         run: pnpm run lint
+
+      # Format check
       - name: Format Check
         run: pnpm exec prettier --check .
+
+      # TypeScript compile check
+      - name: TypeScript check
+        run: pnpm tsc --noEmit
+
+      # Build
       - name: Build
         run: pnpm run build
+
+  e2e-tests:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Install Playwright browsers
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps
+
+      # Run E2E tests
+      - name: Run E2E tests
+        run: pnpm test:e2e
+
+      # Upload test results
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30

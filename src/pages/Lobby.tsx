@@ -254,7 +254,11 @@ export default function Lobby() {
     try {
       // Check if room already exists
       const roomCheckResult = await checkVideoRoomExists(gameId);
-      if (roomCheckResult && roomCheckResult.success && roomCheckResult.exists) {
+      if (
+        roomCheckResult &&
+        roomCheckResult.success &&
+        roomCheckResult.exists
+      ) {
         console.log(
           '[LobbyImproved] Video room already exists, updating state',
         );

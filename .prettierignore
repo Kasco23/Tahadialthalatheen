@@ -2,3 +2,7 @@ node_modules
 coverage
 dist
 public
+playwright-report
+test-results
+full-dependency-map.json
+pnpm-lock.yaml

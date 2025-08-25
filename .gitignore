@@ -43,3 +43,7 @@ netlify/functions-build/
 coverage/
 
 .playwright-mcp/
+
+# Test artifacts
+playwright-report/
+test-results/

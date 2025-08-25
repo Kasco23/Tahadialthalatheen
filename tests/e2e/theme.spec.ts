@@ -135,7 +135,7 @@ test.describe('Theme System', () => {
     const canvasHandle = await canvas.elementHandle();
     const hasContent = await page.evaluate((canvas) => {
       if (!canvas) return false;
-      const ctx = canvas.getContext('2d');
+      const ctx = (canvas as HTMLCanvasElement).getContext('2d');
       if (!ctx) return false;
 
       // Get image data from a small area
