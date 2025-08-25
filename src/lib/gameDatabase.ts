@@ -265,6 +265,20 @@ export class GameDatabase {
   }
 
   /**
+   * Release the atomic lock for video room creation
+   * This should be called after room creation completes (success or failure)
+   */
+  static releaseVideoRoomLock(gameId: string): void {
+    // Development mode: release the atomic lock
+    if (shouldUseDevelopmentMode()) {
+      const lockKey = `video_room_${gameId}`;
+      developmentStorage.atomicLocks.delete(lockKey);
+      console.log('[DEV] Released video room atomic lock for:', gameId);
+    }
+    // Production mode: no explicit lock release needed as DB transaction handles it
+  }
+
+  /**
    * Atomically set video_room_created flag to true if it's currently false.
    * This prevents race conditions during room creation.
    *
