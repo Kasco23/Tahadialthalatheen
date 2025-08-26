@@ -64,7 +64,7 @@ export function generateTexture(
 /**
  * Generate enhanced carbon fiber texture pattern
  * Based on real carbon fiber weave with diagonal fiber bundles
- * Enhanced to use team color palettes for consistent theming
+ * Enhanced with 3D depth, realistic lighting, and team color integration
  */
 function generateCarbonFiber(
   ctx: CanvasRenderingContext2D,
@@ -80,10 +80,10 @@ function generateCarbonFiber(
     animationSpeed,
     additionalColors = [],
   } = config;
-  const bundleWidth = 12 * scale; // Wider fiber bundles
-  const bundleSpacing = 24 * scale; // Space between bundles
-  const fiberWidth = 1.5 * scale; // Individual fiber thickness
-  const offset = animationTime * animationSpeed * 5; // Slower animation
+  const bundleWidth = 16 * scale; // Wider fiber bundles for better visibility
+  const bundleSpacing = 32 * scale; // More space between bundles
+  const fiberWidth = 2 * scale; // Thicker individual fibers
+  const offset = animationTime * animationSpeed * 3; // Smoother animation
 
   // Parse colors
   const base = hexToRgb(baseColor);
@@ -92,11 +92,11 @@ function generateCarbonFiber(
   // Parse additional colors for enhanced theming
   const additionalRgb = additionalColors.map(hexToRgb);
 
-  // Create darker base for carbon fiber
+  // Create much darker base for realistic carbon fiber
   const carbonBase = {
-    r: Math.max(0, base.r - 40),
-    g: Math.max(0, base.g - 40),
-    b: Math.max(0, base.b - 40),
+    r: Math.max(8, Math.floor(base.r * 0.15)), // Much darker base
+    g: Math.max(8, Math.floor(base.g * 0.15)),
+    b: Math.max(8, Math.floor(base.b * 0.15)),
   };
 
   // Clear canvas with darker base
@@ -114,67 +114,80 @@ function generateCarbonFiber(
     for (let x = 0; x < width; x++) {
       const index = (y * width + x) * 4;
 
-      // Calculate fiber bundle positions
+      // Calculate fiber bundle positions with diagonal offset for realism
       const bundleX = Math.floor((x + offset) / bundleSpacing);
-      const bundleY = Math.floor((y + offset * 0.7) / bundleSpacing);
+      const bundleY = Math.floor((y + offset * 0.8) / bundleSpacing);
 
       // Create checkerboard weave pattern
       const isOverWeave = (bundleX + bundleY) % 2 === 0;
 
       // Calculate position within bundle
       const localX = (x + offset) % bundleSpacing;
-      const localY = (y + offset * 0.7) % bundleSpacing;
+      const localY = (y + offset * 0.8) % bundleSpacing;
 
       // Base color
       let r = carbonBase.r;
       let g = carbonBase.g;
       let b = carbonBase.b;
 
-      // Add fiber structure
+      // Add enhanced fiber structure with 3D depth
       if (localX < bundleWidth && localY < bundleWidth) {
         // We're in a fiber bundle
         let fiberIntensity = 0;
+        let depthFactor = 0;
         let colorIndex = 0; // Which color to use for this fiber bundle
 
         if (isOverWeave) {
-          // Horizontal fibers (lighter when on top)
-          const fiberY = localY % (bundleWidth / 4);
+          // Horizontal fibers (lighter when on top) - enhanced 3D effect
+          const fiberY = localY % (bundleWidth / 6); // More fibers per bundle
           if (fiberY < fiberWidth) {
-            fiberIntensity = 0.6 - (fiberY / fiberWidth) * 0.3;
+            // Base intensity with stronger contrast
+            fiberIntensity = 0.8 - (fiberY / fiberWidth) * 0.4;
+            
+            // 3D depth effect - fibers appear rounded
+            const depthCurve = Math.sin((fiberY / fiberWidth) * Math.PI);
+            depthFactor = depthCurve * 0.3;
+            fiberIntensity += depthFactor;
 
-            // Add individual fiber texture
-            const individualFiber = Math.sin(x * 0.5) * 0.1;
+            // Add detailed individual fiber texture
+            const individualFiber = Math.sin(x * 0.8) * 0.15;
             fiberIntensity += individualFiber;
 
-            // Add metallic highlights using team colors
-            const highlight = Math.sin((x + y * 0.3 + offset * 2) * 0.1) * 0.2;
-            fiberIntensity += Math.max(0, highlight);
+            // Enhanced metallic highlights using team colors
+            const highlight = Math.sin((x + y * 0.4 + offset * 2) * 0.12) * 0.4;
+            const specular = Math.pow(Math.max(0, highlight), 2) * 0.6; // Sharper specular highlights
+            fiberIntensity += specular;
 
             // Use different team colors for variation
-            colorIndex = bundleX % (additionalRgb.length + 2); // Include base and accent
+            colorIndex = bundleX % (additionalRgb.length + 2);
           }
         } else {
-          // Vertical fibers (darker when underneath)
-          const fiberX = localX % (bundleWidth / 4);
+          // Vertical fibers (darker when underneath) - enhanced shadow effect
+          const fiberX = localX % (bundleWidth / 6);
           if (fiberX < fiberWidth) {
-            fiberIntensity = 0.3 - (fiberX / fiberWidth) * 0.1;
+            // Base intensity with stronger shadow
+            fiberIntensity = 0.4 - (fiberX / fiberWidth) * 0.2;
+            
+            // 3D shadow effect
+            const shadowCurve = Math.sin((fiberX / fiberWidth) * Math.PI);
+            depthFactor = -shadowCurve * 0.2; // Negative for shadow
+            fiberIntensity += depthFactor;
 
             // Add individual fiber texture
-            const individualFiber = Math.sin(y * 0.5) * 0.1;
+            const individualFiber = Math.sin(y * 0.8) * 0.1;
             fiberIntensity += individualFiber;
 
-            // Subtle under-weave reflection
-            const underReflection =
-              Math.sin((x * 0.2 + y + offset) * 0.15) * 0.1;
-            fiberIntensity += Math.max(0, underReflection * 0.5);
+            // Subtle under-weave reflection with team color tint
+            const underReflection = Math.sin((x * 0.3 + y + offset) * 0.18) * 0.15;
+            fiberIntensity += Math.max(0, underReflection * 0.7);
 
             // Use different team colors for variation
             colorIndex = bundleY % (additionalRgb.length + 2);
           }
         }
 
-        // Apply fiber intensity with team color variation
-        fiberIntensity = Math.max(0, Math.min(1, fiberIntensity));
+        // Apply fiber intensity with enhanced team color variation
+        fiberIntensity = Math.max(0, Math.min(1.2, fiberIntensity)); // Allow slight overbrightness
 
         if (fiberIntensity > 0) {
           let targetColor;
@@ -190,41 +203,44 @@ function generateCarbonFiber(
             targetColor = additionalRgb[additionalIndex] || accent;
           }
 
-          // Blend with selected team color
+          // Enhanced color blending with stronger team color presence
+          const blendStrength = Math.min(1, fiberIntensity * 1.2);
           r = Math.floor(
-            carbonBase.r + (targetColor.r - carbonBase.r) * fiberIntensity,
+            carbonBase.r + (targetColor.r - carbonBase.r) * blendStrength,
           );
           g = Math.floor(
-            carbonBase.g + (targetColor.g - carbonBase.g) * fiberIntensity,
+            carbonBase.g + (targetColor.g - carbonBase.g) * blendStrength,
           );
           b = Math.floor(
-            carbonBase.b + (targetColor.b - carbonBase.b) * fiberIntensity,
+            carbonBase.b + (targetColor.b - carbonBase.b) * blendStrength,
           );
 
-          // Add team-aware shimmer effect
-          const shimmer = Math.sin((x + y + offset * 3) * 0.05) * 0.1;
-          if (shimmer > 0 && additionalRgb.length > 0) {
-            // Use brightest team color for shimmer
+          // Enhanced team-aware shimmer effect with better brightness
+          const shimmer = Math.sin((x + y + offset * 4) * 0.06) * 0.25;
+          if (shimmer > 0.1 && additionalRgb.length > 0) {
+            // Use brightest team color for shimmer with better selection
             const shimmerColor = additionalRgb.reduce((brightest, color) => {
-              const brightness = color.r + color.g + color.b;
-              const brightestValue = brightest.r + brightest.g + brightest.b;
+              const brightness = color.r * 0.299 + color.g * 0.587 + color.b * 0.114; // Proper luminance
+              const brightestValue = brightest.r * 0.299 + brightest.g * 0.587 + brightest.b * 0.114;
               return brightness > brightestValue ? color : brightest;
             }, targetColor);
 
-            r = Math.min(255, r + shimmer * shimmerColor.r * 0.2);
-            g = Math.min(255, g + shimmer * shimmerColor.g * 0.2);
-            b = Math.min(255, b + shimmer * shimmerColor.b * 0.2);
-          } else if (shimmer > 0) {
-            // Fallback shimmer
-            r = Math.min(255, r + shimmer * 30);
-            g = Math.min(255, g + shimmer * 30);
-            b = Math.min(255, b + shimmer * 30);
+            const shimmerStrength = (shimmer - 0.1) * 0.4;
+            r = Math.min(255, r + shimmerStrength * shimmerColor.r * 0.4);
+            g = Math.min(255, g + shimmerStrength * shimmerColor.g * 0.4);
+            b = Math.min(255, b + shimmerStrength * shimmerColor.b * 0.4);
+          } else if (shimmer > 0.1) {
+            // Enhanced fallback shimmer
+            const shimmerStrength = (shimmer - 0.1) * 0.3;
+            r = Math.min(255, r + shimmerStrength * 60);
+            g = Math.min(255, g + shimmerStrength * 60);
+            b = Math.min(255, b + shimmerStrength * 60);
           }
         }
       }
 
-      // Add subtle noise for texture
-      const noise = (Math.random() - 0.5) * 8;
+      // Add fine-grain noise for realistic texture with reduced intensity
+      const noise = (Math.random() - 0.5) * 6;
       r = Math.max(0, Math.min(255, r + noise));
       g = Math.max(0, Math.min(255, g + noise));
       b = Math.max(0, Math.min(255, b + noise));
@@ -409,9 +425,9 @@ export const texturePresets: Record<
 > = {
   carbon: {
     type: 'carbon',
-    scale: 1.2, // Slightly larger scale for better detail visibility
-    opacity: 0.25, // Higher opacity to show enhanced details
-    animationSpeed: 0.05, // Slower animation for more subtle effect
+    scale: 1.5, // Larger scale for better visibility of enhanced details
+    opacity: 0.35, // Higher opacity to show enhanced 3D effects
+    animationSpeed: 0.03, // Slower animation for more premium feel
   },
   metallic: {
     type: 'metallic',
