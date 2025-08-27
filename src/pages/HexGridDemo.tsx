@@ -5,6 +5,7 @@
 
 import React, { useState } from 'react';
 import { HexGridBackground } from '@/components/HexGridBackground';
+import { AdvancedHexGrid } from '@/components/AdvancedHexGrid';
 
 const TEAM_PALETTES = {
   'Real Madrid': ['#FEBE10', '#00529F'],
@@ -23,20 +24,32 @@ export default function HexGridDemo() {
   const [patternSize, setPatternSize] = useState(40);
   const [glow, setGlow] = useState(false);
   const [texture, setTexture] = useState(true);
+  const [useAdvanced, setUseAdvanced] = useState(false);
+  const [depth, setDepth] = useState(0.5);
 
   const currentColors = TEAM_PALETTES[selectedTeam as keyof typeof TEAM_PALETTES] || ['#22c55e'];
 
   return (
     <div className="min-h-screen relative">
       {/* HexGrid Background */}
-      <HexGridBackground
-        colors={currentColors}
-        backgroundColor={backgroundColor}
-        strokeWidth={strokeWidth}
-        patternSize={patternSize}
-        glow={glow}
-        texture={texture}
-      />
+      {useAdvanced ? (
+        <AdvancedHexGrid
+          colors={currentColors}
+          backgroundColor={backgroundColor}
+          patternSize={patternSize}
+          depth={depth}
+          glow={glow}
+        />
+      ) : (
+        <HexGridBackground
+          colors={currentColors}
+          backgroundColor={backgroundColor}
+          strokeWidth={strokeWidth}
+          patternSize={patternSize}
+          glow={glow}
+          texture={texture}
+        />
+      )}
       
       {/* Controls Panel */}
       <div className="relative z-10 p-8">
@@ -86,21 +99,63 @@ export default function HexGridDemo() {
               <span className="ml-2 text-gray-300">{backgroundColor}</span>
             </div>
 
-            {/* Stroke Width */}
+            {/* Rendering Mode Toggle */}
             <div>
-              <label className="block text-white font-medium mb-2">
-                Stroke Width: {strokeWidth}
+              <label className="flex items-center text-white font-medium">
+                <input
+                  type="checkbox"
+                  checked={useAdvanced}
+                  onChange={(e) => setUseAdvanced(e.target.checked)}
+                  className="mr-2"
+                />
+                Advanced Canvas/WebGL Rendering
               </label>
-              <input
-                type="range"
-                min="0.5"
-                max="5"
-                step="0.5"
-                value={strokeWidth}
-                onChange={(e) => setStrokeWidth(Number(e.target.value))}
-                className="w-full"
-              />
+              <div className="text-gray-400 text-xs mt-1">
+                {useAdvanced ? 
+                  'Using advanced Canvas rendering with 3D effects and dynamic animations' : 
+                  'Using simple SVG rendering with basic animations'
+                }
+              </div>
             </div>
+
+            {/* Stroke Width - only for SVG mode */}
+            {!useAdvanced && (
+              <div>
+                <label className="block text-white font-medium mb-2">
+                  Stroke Width: {strokeWidth}
+                </label>
+                <input
+                  type="range"
+                  min="0.5"
+                  max="5"
+                  step="0.5"
+                  value={strokeWidth}
+                  onChange={(e) => setStrokeWidth(Number(e.target.value))}
+                  className="w-full"
+                />
+              </div>
+            )}
+
+            {/* Depth - only for advanced mode */}
+            {useAdvanced && (
+              <div>
+                <label className="block text-white font-medium mb-2">
+                  3D Depth Effect: {depth.toFixed(1)}
+                </label>
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.1"
+                  value={depth}
+                  onChange={(e) => setDepth(Number(e.target.value))}
+                  className="w-full"
+                />
+                <div className="text-gray-400 text-xs mt-1">
+                  Controls the intensity of 3D lighting and shadow effects
+                </div>
+              </div>
+            )}
 
             {/* Pattern Size */}
             <div>
@@ -127,28 +182,46 @@ export default function HexGridDemo() {
                   onChange={(e) => setGlow(e.target.checked)}
                   className="mr-2"
                 />
-                Glow Animation
+                {useAdvanced ? 'Advanced Glow Animation' : 'Glow Animation'}
               </label>
+              <div className="text-gray-400 text-xs mt-1">
+                {useAdvanced ? 
+                  'Animated pulsing glow with dynamic particle effects' : 
+                  'Simple CSS-based glow animation'
+                }
+              </div>
             </div>
 
-            {/* Texture Effect */}
-            <div>
-              <label className="flex items-center text-white font-medium">
-                <input
-                  type="checkbox"
-                  checked={texture}
-                  onChange={(e) => setTexture(e.target.checked)}
-                  className="mr-2"
-                />
-                Carbon Fiber Texture
-              </label>
-            </div>
+            {/* Texture Effect - only for SVG mode */}
+            {!useAdvanced && (
+              <div>
+                <label className="flex items-center text-white font-medium">
+                  <input
+                    type="checkbox"
+                    checked={texture}
+                    onChange={(e) => setTexture(e.target.checked)}
+                    className="mr-2"
+                  />
+                  Carbon Fiber Texture
+                </label>
+              </div>
+            )}
 
             {/* Color Count Info */}
             <div className="text-gray-300 text-sm">
-              Current palette has {currentColors.length} color{currentColors.length !== 1 ? 's' : ''}.
-              {currentColors.length === 1 ? ' Using as stroke only.' : ' Using gradient for stroke.'}
-              {texture ? ' Carbon fiber texture enabled.' : ' Flat background mode.'}
+              <div>Current palette has {currentColors.length} color{currentColors.length !== 1 ? 's' : ''}.</div>
+              <div>Rendering mode: {useAdvanced ? 'Advanced Canvas/WebGL' : 'Simple SVG'}</div>
+              {useAdvanced ? (
+                <div>
+                  {glow ? 'Advanced glow with particles enabled.' : 'Static rendering mode.'}
+                  {depth > 0 ? ` 3D depth: ${(depth * 100).toFixed(0)}%` : ' Flat 2D mode.'}
+                </div>
+              ) : (
+                <div>
+                  {currentColors.length === 1 ? ' Using as stroke only.' : ' Using gradient for stroke.'}
+                  {texture ? ' Carbon fiber texture enabled.' : ' Flat background mode.'}
+                </div>
+              )}
             </div>
           </div>
         </div>
