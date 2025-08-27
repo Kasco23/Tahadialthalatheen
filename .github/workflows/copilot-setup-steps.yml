@@ -21,6 +21,7 @@ jobs:
         with:
           submodules: recursive
 
+      # --- Node & pnpm setup ---
       - name: Install pnpm
         uses: pnpm/action-setup@v4
 
@@ -42,11 +43,24 @@ jobs:
       - name: Verify Supabase CLI
         run: pnpm exec supabase --version || true
 
-      # Install Python and uv for MCP servers that require Python
+      # --- Python & MCP tools setup ---
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
+
+      # Cache Python package installs
+      - name: Cache pipx environment
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/pipx
+          key: ${{ runner.os }}-pipx-${{ hashFiles('.github/workflows/copilot-setup-steps.yml') }}
+
+      - name: Cache uv packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/uv
+          key: ${{ runner.os }}-uv-${{ hashFiles('.github/workflows/copilot-setup-steps.yml') }}
 
       - name: Install uv (Python package manager)
         run: pip install uv
@@ -54,7 +68,13 @@ jobs:
       - name: Install pipx
         run: pip install pipx
 
-      # Install additional dependencies for MCP
+      - name: Install ImageSorcery MCP
+        run: pipx install imagesorcery-mcp
+
+      - name: Install Playwright browsers
+        run: npx -y playwright install --with-deps
+
+      # --- Project validation (optional, allow failures) ---
       - name: Validate build (allow errors)
         run: pnpm run build
         continue-on-error: true
@@ -63,11 +83,16 @@ jobs:
         run: pnpm test || pnpm run lint
         continue-on-error: true
 
+      # --- Debug MCP availability ---
       - name: Test MCP server installations
         run: |
           echo "Testing MCP server availability..."
           npx --version
           echo "✓ NPX available for Node.js MCP servers"
-          uv --version || echo "⚠ UV not available for Python MCP servers"
-          pipx --version || echo "⚠ PIPX not available for Python MCP servers"
+
+          imagesorcery-mcp --version || echo "⚠ ImageSorcery MCP not found"
+          npx -y @playwright/mcp@latest --help || echo "⚠ Playwright MCP not found"
+
+          uv --version || echo "⚠ UV not available"
+          pipx --version || echo "⚠ PIPX not available"
         continue-on-error: true
