@@ -540,7 +540,6 @@ export default function Lobby() {
             <VideoRoom
               gameId={gameId}
               className="w-full"
-              observerMode={myParticipant.type === 'controller'}
               onLeave={handleLeaveVideoRoom}
             />
           ) : !videoRoomState.isCreating && !videoRoomState.error ? (

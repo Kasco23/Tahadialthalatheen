@@ -1,4 +1,4 @@
-const { withSentry, createApiResponse } = require('./_sentry.js');
+import { withSentry } from './_sentry.js';
 
 /**
  * Get Daily.co room presence information to check if room is active

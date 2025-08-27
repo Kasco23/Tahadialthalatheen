@@ -74,7 +74,7 @@
 .teamOption.selected {
   background-color: var(--theme-primary);
   color: var(--theme-text);
-  opacity: 0.1;
+  opacity: 0.8;
 }
 
 .teamLogo {
@@ -132,7 +132,7 @@
 .textureOption.active {
   border-color: var(--theme-primary);
   background-color: var(--theme-primary);
-  opacity: 0.05;
+  opacity: 0.3;
 }
 
 .texturePreview {

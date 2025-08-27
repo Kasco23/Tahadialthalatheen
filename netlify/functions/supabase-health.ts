@@ -1,5 +1,5 @@
 import type { HandlerContext, HandlerEvent } from '@netlify/functions';
-const { withSentry, createApiResponse } = require('./_sentry.js');
+import { withSentry } from './_sentry.js';
 
 /**
  * Simple Supabase health check endpoint

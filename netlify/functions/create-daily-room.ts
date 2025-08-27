@@ -1,5 +1,5 @@
 import type { HandlerContext, HandlerEvent } from '@netlify/functions';
-const { withSentry, createApiResponse } = require('./_sentry.js');
+import { createApiResponse, withSentry } from './_sentry.js';
 
 // Import Supabase for database check
 const SUPABASE_URL = process.env.SUPABASE_URL;

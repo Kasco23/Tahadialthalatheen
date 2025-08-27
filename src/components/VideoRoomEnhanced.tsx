@@ -24,7 +24,6 @@ interface VideoRoomProps {
   gameId: string;
   className?: string;
   onLeave?: () => void;
-  observerMode?: boolean;
 }
 
 interface ParticipantVideoProps {
@@ -620,7 +619,6 @@ function VideoRoomContent({ gameId, className = '', onLeave }: VideoRoomProps) {
 
 // Main component wrapper with DailyProvider
 export default function VideoRoom(props: VideoRoomProps) {
-  const { gameId, className, onLeave, observerMode = false } = props;
   const state = useGameState();
   const [callObject, setCallObject] = useState<DailyCall | null>(null);
 
@@ -660,7 +658,9 @@ export default function VideoRoom(props: VideoRoomProps) {
   // Loading state
   if (!callObject || !state.videoRoomUrl) {
     return (
-      <div className={`${className} min-h-96 flex items-center justify-center`}>
+      <div
+        className={`${props.className} min-h-96 flex items-center justify-center`}
+      >
         <div className="text-center text-white">
           <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <div>Setting up video room...</div>

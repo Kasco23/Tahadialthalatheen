@@ -1,4 +1,4 @@
-const { withSentry, createApiResponse } = require('./_sentry.js');
+import { withSentry } from './_sentry.js';
 
 // Helper function to generate unique user IDs
 function generateUniqueUserId(role: string): string {

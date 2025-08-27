@@ -1,5 +1,6 @@
 import type { HandlerContext, HandlerEvent } from '@netlify/functions';
-const { withSentry, createApiResponse } = require('./_sentry.js');
+import { createClient } from '@supabase/supabase-js';
+import { withSentry } from './_sentry.js';
 
 interface GameEventRequest {
   gameId: string;
@@ -98,7 +99,6 @@ const gameEventHandler = async (
     }
 
     // Initialize Supabase client
-    const { createClient } = await import('@supabase/supabase-js');
     const supabase = createClient(
       process.env.SUPABASE_URL,
       process.env.SUPABASE_ANON_KEY,

@@ -1,4 +1,4 @@
-const { withSentry, createApiResponse } = require('./_sentry.js');
+import { withSentry } from './_sentry.js';
 
 const checkDailyRoomHandler = async (event, _context) => {
   // Handle CORS preflight requests

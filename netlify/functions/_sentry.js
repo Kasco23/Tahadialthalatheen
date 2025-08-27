@@ -69,6 +69,11 @@ function withSentry(functionName, handler) {
   };
 }
 
+// Alternative export for compatibility
+function withSentry2(functionName, handler) {
+  return withSentry(functionName, handler);
+}
+
 // Helper for API responses with error tracking
 function createApiResponse(statusCode, body, headers = {}) {
   const defaultHeaders = {
@@ -86,4 +91,10 @@ function createApiResponse(statusCode, body, headers = {}) {
   };
 }
 
-module.exports = { initSentryFunction, withSentry, createApiResponse, Sentry };
+module.exports = {
+  initSentryFunction,
+  withSentry,
+  withSentry2,
+  createApiResponse,
+  Sentry,
+};

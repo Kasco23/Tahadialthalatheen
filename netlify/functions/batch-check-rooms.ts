@@ -1,10 +1,14 @@
-const { withSentry, createApiResponse } = require('./_sentry.js');
+import type { HandlerContext, HandlerEvent } from '@netlify/functions';
+import { withSentry } from './_sentry.js';
 
 /**
  * Batch check multiple Daily.co rooms to see which ones are active
  * Used by ActiveGames component to filter games with active video rooms
  */
-const batchCheckRoomsHandler = async (event, _context) => {
+const batchCheckRoomsHandler = async (
+  event: HandlerEvent,
+  _context: HandlerContext,
+) => {
   // Handle CORS preflight requests
   if (event.httpMethod === 'OPTIONS') {
     return {
