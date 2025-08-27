@@ -9,11 +9,15 @@ jobs:
   # Fast checks that can run in parallel
   code-quality:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     strategy:
       matrix:
         check: [lint, format, typecheck]
     steps:
       - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install pnpm
         uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
@@ -34,11 +38,11 @@ jobs:
       - name: Commit formatting changes
         if: matrix.check == 'format'
         run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
           git add .
           git diff --staged --quiet || git commit -m "Auto-fix formatting with Prettier [skip ci]"
-          git push
+          git push origin HEAD:${{ github.head_ref || github.ref_name }}
 
       - name: Run TypeScript check
         if: matrix.check == 'typecheck'
