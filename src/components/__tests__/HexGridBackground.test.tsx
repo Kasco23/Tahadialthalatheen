@@ -108,5 +108,27 @@ describe('HexGridBackground', () => {
     
     const path = container.querySelector('path');
     expect(path).toHaveAttribute('stroke-width', '1.5');
+    
+    // Should have texture enabled by default
+    const textureLayer = container.querySelector('.carbon-fiber-texture');
+    expect(textureLayer).toBeInTheDocument();
+  });
+
+  it('toggles texture layer correctly', () => {
+    const { container: withTexture } = render(
+      <HexGridBackground colors={['#ff0000']} texture={true} />
+    );
+    
+    const { container: withoutTexture } = render(
+      <HexGridBackground colors={['#ff0000']} texture={false} />
+    );
+    
+    // With texture enabled
+    const textureLayer = withTexture.querySelector('.carbon-fiber-texture');
+    expect(textureLayer).toBeInTheDocument();
+    
+    // With texture disabled
+    const noTextureLayer = withoutTexture.querySelector('.carbon-fiber-texture');
+    expect(noTextureLayer).not.toBeInTheDocument();
   });
 });

@@ -22,6 +22,7 @@ export default function HexGridDemo() {
   const [strokeWidth, setStrokeWidth] = useState(1.5);
   const [patternSize, setPatternSize] = useState(40);
   const [glow, setGlow] = useState(false);
+  const [texture, setTexture] = useState(true);
 
   const currentColors = TEAM_PALETTES[selectedTeam as keyof typeof TEAM_PALETTES] || ['#22c55e'];
 
@@ -34,6 +35,7 @@ export default function HexGridDemo() {
         strokeWidth={strokeWidth}
         patternSize={patternSize}
         glow={glow}
+        texture={texture}
       />
       
       {/* Controls Panel */}
@@ -129,10 +131,24 @@ export default function HexGridDemo() {
               </label>
             </div>
 
+            {/* Texture Effect */}
+            <div>
+              <label className="flex items-center text-white font-medium">
+                <input
+                  type="checkbox"
+                  checked={texture}
+                  onChange={(e) => setTexture(e.target.checked)}
+                  className="mr-2"
+                />
+                Carbon Fiber Texture
+              </label>
+            </div>
+
             {/* Color Count Info */}
             <div className="text-gray-300 text-sm">
               Current palette has {currentColors.length} color{currentColors.length !== 1 ? 's' : ''}.
               {currentColors.length === 1 ? ' Using as stroke only.' : ' Using gradient for stroke.'}
+              {texture ? ' Carbon fiber texture enabled.' : ' Flat background mode.'}
             </div>
           </div>
         </div>

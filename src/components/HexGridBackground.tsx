@@ -18,6 +18,8 @@ export interface HexGridBackgroundProps {
   patternSize?: number;
   /** Enable glow animation */
   glow?: boolean;
+  /** Enable carbon fiber/metallic texture fill */
+  texture?: boolean;
   /** Additional CSS classes */
   className?: string;
 }
@@ -77,6 +79,7 @@ export const HexGridBackground: React.FC<HexGridBackgroundProps> = ({
   strokeWidth = 1.5,
   patternSize = 40,
   glow = false,
+  texture = true,
   className = '',
 }) => {
   // Validate colors array
@@ -96,16 +99,16 @@ export const HexGridBackground: React.FC<HexGridBackgroundProps> = ({
   
   // Determine stroke and fill based on color count
   let strokeColor: string;
-  let fillColor: string | undefined;
+  let hexFillColor: string | undefined;
   
   if (colors.length === 1) {
     // Single color: use as stroke only
     strokeColor = colors[0];
-    fillColor = 'none';
+    hexFillColor = 'none';
   } else {
     // Multiple colors: create gradient for stroke
     strokeColor = `url(#${gradientId})`;
-    fillColor = 'none';
+    hexFillColor = 'none';
   }
   
   // Animation class for glow effect
@@ -113,44 +116,67 @@ export const HexGridBackground: React.FC<HexGridBackgroundProps> = ({
     ? 'animate-[glow_2s_ease-in-out_infinite_alternate]' 
     : '';
   
+  // Texture class selection
+  const textureClass = texture ? 'carbon-fiber-texture' : '';
+  
+  // Improved pattern sizing for seamless tiling
+  const patternWidth = patternSize * 1.5;
+  const patternHeight = patternSize * Math.sqrt(3);
+  
   return (
     <div 
-      className={`fixed inset-0 z-[-10] pointer-events-none ${className}`}
+      className={`absolute inset-0 w-full h-full z-[-10] pointer-events-none ${className}`}
       style={{ backgroundColor }}
     >
+      {/* Texture Layer (below hex grid) */}
+      {texture && (
+        <div 
+          className={`absolute inset-0 w-full h-full ${textureClass}`}
+          style={{ 
+            mixBlendMode: 'overlay',
+            opacity: 0.6
+          }}
+        />
+      )}
+      
+      {/* Hex Grid Layer (on top) */}
       <svg
         width="100%"
         height="100%"
-        className={`w-full h-full ${animationClass}`}
+        className={`absolute inset-0 w-full h-full ${animationClass}`}
       >
         <defs>
           {/* Create gradient if we have multiple colors */}
           {colors.length > 1 && createGradient(colors, gradientId)}
           
-          {/* Define the hexagon pattern */}
+          {/* Define the hexagon pattern with improved seamless tiling */}
           <pattern
             id={patternId}
             x="0"
             y="0"
-            width={patternSize * 1.5}
-            height={patternSize * Math.sqrt(3)}
+            width={patternWidth}
+            height={patternHeight}
             patternUnits="userSpaceOnUse"
           >
-            {/* Main hexagon */}
+            {/* Main hexagon positioned for seamless tiling */}
             <path
               d={hexPath}
-              fill={fillColor}
+              fill={hexFillColor}
               stroke={strokeColor}
               strokeWidth={strokeWidth}
+              strokeLinejoin="round"
+              strokeLinecap="round"
             />
             
-            {/* Offset hexagon to create proper tiling */}
+            {/* Offset hexagon to create proper honeycomb tiling */}
             <path
               d={hexPath}
-              fill={fillColor}
+              fill={hexFillColor}
               stroke={strokeColor}
               strokeWidth={strokeWidth}
-              transform={`translate(${patternSize * 0.75}, ${patternSize * Math.sqrt(3) * 0.5})`}
+              strokeLinejoin="round"
+              strokeLinecap="round"
+              transform={`translate(${patternSize * 0.75}, ${patternHeight * 0.5})`}
             />
           </pattern>
         </defs>
