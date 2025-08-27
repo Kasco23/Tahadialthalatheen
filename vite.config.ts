@@ -1,8 +1,8 @@
+import { sentryVitePlugin } from '@sentry/vite-plugin';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
 import { defineConfig } from 'vite';
 import bundlesize from 'vite-plugin-bundlesize';
-import { sentryVitePlugin } from "@sentry/vite-plugin";
 
 export default defineConfig({
   plugins: [
@@ -26,14 +26,21 @@ export default defineConfig({
         { name: 'assets/*-*.js', limit: '100 kB' },
       ],
     }),
-     sentryVitePlugin({
-      org: "kasco-ul",
-      project: "tahadialthalatheen",
-      authToken: process.env.SENTRY_AUTH_TOKEN, // set in Netlify/GitHub
-      sourcemaps: {
-        assets: "./dist/**", // upload all compiled assets
-      },
-    }),
+    // Only add Sentry plugin if auth token is available
+    ...(process.env.SENTRY_AUTH_TOKEN
+      ? [
+          sentryVitePlugin({
+            org: 'kasco-ul',
+            project: 'tahadialthalatheen',
+            authToken: process.env.SENTRY_AUTH_TOKEN,
+            sourcemaps: {
+              assets: './dist/**', // upload all compiled assets
+            },
+            // Disable telemetry to reduce noise
+            telemetry: false,
+          }),
+        ]
+      : []),
   ],
   base: '/',
   resolve: {

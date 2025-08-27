@@ -2,9 +2,28 @@ import ActiveGames from '@/components/ActiveGames';
 import LanguageToggle from '@/components/LanguageToggle';
 import { useTranslation } from '@/hooks/useTranslation';
 import { isArabicAtom } from '@/state/languageAtoms';
+import * as Sentry from '@sentry/react';
 import { motion } from 'framer-motion';
 import { useAtomValue } from 'jotai';
 import { useNavigate } from 'react-router-dom';
+
+function ErrorButton() {
+  return (
+    <button
+      onClick={() => {
+        console.log('Triggering Sentry error...');
+        const error = new Error('This is your first error!');
+        Sentry.captureException(error); // Manually capture the error
+        throw error;
+      }}
+      className="fixed top-20 left-4 z-[60] px-6 py-4 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xl font-bold shadow-2xl border-2 border-red-400"
+      aria-label="Trigger test error (Sentry)"
+      title="Trigger test error (Sentry)"
+    >
+      🔥 Break the world
+    </button>
+  );
+}
 
 export default function Landing() {
   const navigate = useNavigate();
@@ -75,7 +94,7 @@ export default function Landing() {
       </div>
 
       {/* API Status Button */}
-        <motion.button
+      <motion.button
         onClick={handleApiStatus}
         className="absolute top-4 left-4 z-50 px-3 py-2 bg-theme-surface/50 backdrop-blur-sm hover:bg-theme-surface/70 text-theme-text-muted hover:text-theme-text rounded-lg transition-all duration-300 text-sm border border-theme-border"
         initial={{ opacity: 0, x: -20 }}
@@ -86,6 +105,9 @@ export default function Landing() {
       >
         API Status
       </motion.button>
+
+      {/* Error testing button for Sentry */}
+      <ErrorButton />
 
       {/* Main Content */}
       <div className="relative z-10">

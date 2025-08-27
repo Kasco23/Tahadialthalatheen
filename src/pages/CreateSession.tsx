@@ -216,6 +216,8 @@ export default function CreateSession() {
               }
               disabled={isCreating}
               className="w-20 px-2 py-1 rounded bg-white/10 text-white text-center disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-accent2"
+              title="Enter number for this segment"
+              placeholder="0"
             />
           </div>
         ))}

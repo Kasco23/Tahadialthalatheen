@@ -3,5 +3,10 @@ ignoredBuiltDependencies:
   - supabase
 
 onlyBuiltDependencies:
+  - '@parcel/watcher'
+  - '@sentry/cli'
   - esbuild
+  - netlify
+  - sharp
   - supabase
+  - unix-dgram
