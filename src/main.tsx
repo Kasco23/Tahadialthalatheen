@@ -8,22 +8,65 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 
-Sentry.init({
-  dsn: 'https://15eb5a2c2b6cb8525318038b8fa29e3f@o4509883241594880.ingest.de.sentry.io/4509915253506128',
-  // Setting this option to true will send default PII data to Sentry.
-  // For example, automatic IP address collection on events
-  sendDefaultPii: true,
-  environment: import.meta.env.MODE,
-  // Add more debugging in development
-  debug: import.meta.env.DEV,
-  // Set sample rate for development (100% in dev, lower in prod)
-  tracesSampleRate: import.meta.env.DEV ? 1.0 : 0.1,
-});
+// Initialize Sentry with DSN from environment variables
+function initSentry() {
+  const dsn = import.meta.env.VITE_SENTRY_DSN;
 
-console.log(
-  'Sentry initialized with DSN:',
-  'https://15eb5a2c2b6cb8525318038b8fa29e3f@o4509883241594880.ingest.de.sentry.io/4509915253506128',
-);
+  if (!dsn) {
+    console.warn('VITE_SENTRY_DSN not found - monitoring disabled');
+    return;
+  }
+
+  Sentry.init({
+    dsn,
+    sendDefaultPii: true,
+    environment: import.meta.env.MODE,
+    debug: import.meta.env.DEV,
+
+    // Performance Monitoring
+    tracesSampleRate: import.meta.env.DEV ? 1.0 : 0.1,
+    tracePropagationTargets: [
+      'localhost',
+      /^https:\/\/thirtyquiz\.tyshub\.xyz/,
+      /^https:\/\/.*\.netlify\.app/,
+      /^https:\/\/.*\.supabase\.co/,
+      /^https:\/\/.*\.daily\.co/,
+    ],
+
+    // Profiling
+    profilesSampleRate: import.meta.env.DEV ? 1.0 : 0.05,
+
+    // Release tracking
+    release: import.meta.env.VITE_APP_VERSION || 'development',
+
+    // User feedback
+    beforeSend(event) {
+      // In development, log events for debugging
+      if (import.meta.env.DEV) {
+        console.log('Sentry event (dev mode):', event);
+      }
+      return event;
+    },
+
+    // Additional integrations
+    integrations: [
+      Sentry.browserTracingIntegration(),
+      Sentry.replayIntegration({
+        maskAllText: false,
+        blockAllMedia: false,
+      }),
+    ],
+
+    // Session Replay
+    replaysSessionSampleRate: import.meta.env.DEV ? 1.0 : 0.1,
+    replaysOnErrorSampleRate: 1.0,
+  });
+
+  console.log('✅ Sentry initialized with DSN from environment');
+}
+
+// Initialize Sentry immediately
+initSentry();
 
 // Enable network debugging in development
 enableNetworkDebugging();

@@ -1,4 +1,5 @@
-import type { Handler } from '@netlify/functions';
+import type { HandlerContext, HandlerEvent } from '@netlify/functions';
+const { withSentry, createApiResponse } = require('./_sentry.js');
 
 interface GameEventRequest {
   gameId: string;
@@ -21,7 +22,10 @@ interface GameEventResponse {
 }
 
 // Enhanced game event tracking and analytics endpoint
-export const handler: Handler = async (event) => {
+const gameEventHandler = async (
+  event: HandlerEvent,
+  _context: HandlerContext,
+) => {
   // Early diagnostic logging (masked)
   if (process.env.NETLIFY_DEV) {
     const anon = process.env.SUPABASE_ANON_KEY;
@@ -266,3 +270,6 @@ export const handler: Handler = async (event) => {
     };
   }
 };
+
+// Export with Sentry monitoring
+export const handler = withSentry('game-event', gameEventHandler);

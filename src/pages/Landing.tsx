@@ -8,17 +8,57 @@ import { useAtomValue } from 'jotai';
 import { useNavigate } from 'react-router-dom';
 
 function ErrorButton() {
+  const handleError = () => {
+    console.log('Triggering Sentry error...');
+    const error = new Error('This is your first error!');
+
+    // Add user context and tags
+    Sentry.setUser({
+      id: 'test-user-' + Date.now(),
+      email: 'test@example.com',
+      username: 'test-user',
+    });
+
+    Sentry.setTags({
+      component: 'Landing',
+      action: 'error-button-click',
+      environment: import.meta.env.MODE,
+    });
+
+    Sentry.setContext('test-error', {
+      timestamp: new Date().toISOString(),
+      userAgent: navigator.userAgent,
+      url: window.location.href,
+      version: import.meta.env.VITE_APP_VERSION,
+    });
+
+    // Capture the error
+    const eventId = Sentry.captureException(error);
+
+    // Show user feedback dialog
+    setTimeout(() => {
+      Sentry.showReportDialog({
+        eventId,
+        title: 'Test Error Triggered',
+        subtitle: 'Help us improve by providing feedback',
+        subtitle2: 'This is a test error for monitoring setup',
+        labelName: 'Name (optional)',
+        labelEmail: 'Email (optional)',
+        labelComments: 'What happened before this error?',
+        labelSubmit: 'Send Feedback',
+        successMessage: 'Thank you for your feedback!',
+      });
+    }, 500);
+
+    throw error;
+  };
+
   return (
     <button
-      onClick={() => {
-        console.log('Triggering Sentry error...');
-        const error = new Error('This is your first error!');
-        Sentry.captureException(error); // Manually capture the error
-        throw error;
-      }}
+      onClick={handleError}
       className="fixed top-20 left-4 z-[60] px-6 py-4 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xl font-bold shadow-2xl border-2 border-red-400"
       aria-label="Trigger test error (Sentry)"
-      title="Trigger test error (Sentry)"
+      title="Trigger test error with user feedback"
     >
       🔥 Break the world
     </button>

@@ -1,9 +1,13 @@
-import type { Handler } from '@netlify/functions';
+import type { HandlerContext, HandlerEvent } from '@netlify/functions';
+const { withSentry, createApiResponse } = require('./_sentry.js');
 
 /**
  * Simple Supabase health check endpoint
  */
-export const handler: Handler = async (event) => {
+const supabaseHealthHandler = async (
+  event: HandlerEvent,
+  _context: HandlerContext,
+) => {
   // Handle CORS preflight requests
   if (event.httpMethod === 'OPTIONS') {
     return {
@@ -118,3 +122,6 @@ export const handler: Handler = async (event) => {
     };
   }
 };
+
+// Export with Sentry monitoring
+export const handler = withSentry('supabase-health', supabaseHealthHandler);

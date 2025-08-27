@@ -1,4 +1,5 @@
 import ConnectionBanner from '@/components/ConnectionBanner';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import LanguageToggle from '@/components/LanguageToggle';
 import {
   ConditionalBackground,
@@ -43,38 +44,40 @@ function PageLoader() {
  */
 export default function App() {
   return (
-    <JotaiProvider>
-      <ThemeProvider>
-        <div className="min-h-screen relative">
-          {/* Dynamic theme-based background (conditional) */}
-          <ConditionalBackground />
+    <ErrorBoundary>
+      <JotaiProvider>
+        <ThemeProvider>
+          <div className="min-h-screen relative">
+            {/* Dynamic theme-based background (conditional) */}
+            <ConditionalBackground />
 
-          {/* Application content */}
-          <div className="relative z-20 min-h-screen">
-            <ConnectionBanner />
-            <LanguageToggle />
-            <SimpleThemeControls />
-            <Suspense fallback={<PageLoader />}>
-              <Routes>
-                <Route path="/" element={<Landing />} />
-                <Route path="/create-session" element={<CreateSession />} />
-                <Route path="/control-room" element={<ControlRoom />} />
-                <Route path="/join" element={<Join />} />
-                <Route path="/lobby" element={<Lobby />} />
-                <Route path="/lobby/:gameId" element={<Lobby />} />
-                <Route path="/quiz" element={<QuizRoom />} />
-                <Route path="/scores" element={<FinalScores />} />
-                <Route path="/api-status" element={<ApiStatus />} />
-                {/* Development-only routes */}
-                {import.meta.env.DEV && (
-                  <Route path="/hex-demo" element={<HexGridDemo />} />
-                )}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </Suspense>
+            {/* Application content */}
+            <div className="relative z-20 min-h-screen">
+              <ConnectionBanner />
+              <LanguageToggle />
+              <SimpleThemeControls />
+              <Suspense fallback={<PageLoader />}>
+                <Routes>
+                  <Route path="/" element={<Landing />} />
+                  <Route path="/create-session" element={<CreateSession />} />
+                  <Route path="/control-room" element={<ControlRoom />} />
+                  <Route path="/join" element={<Join />} />
+                  <Route path="/lobby" element={<Lobby />} />
+                  <Route path="/lobby/:gameId" element={<Lobby />} />
+                  <Route path="/quiz" element={<QuizRoom />} />
+                  <Route path="/scores" element={<FinalScores />} />
+                  <Route path="/api-status" element={<ApiStatus />} />
+                  {/* Development-only routes */}
+                  {import.meta.env.DEV && (
+                    <Route path="/hex-demo" element={<HexGridDemo />} />
+                  )}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Suspense>
+            </div>
           </div>
-        </div>
-      </ThemeProvider>
-    </JotaiProvider>
+        </ThemeProvider>
+      </JotaiProvider>
+    </ErrorBoundary>
   );
 }

@@ -1,6 +1,7 @@
 import type { Handler } from '@netlify/functions';
+const { withSentry, createApiResponse } = require('./_sentry.js');
 
-export const handler: Handler = async (event) => {
+const check-daily-roomHandler = async (event, _context) => {
   // Handle CORS preflight requests
   if (event.httpMethod === 'OPTIONS') {
     return {
@@ -101,4 +102,7 @@ export const handler: Handler = async (event) => {
       body: JSON.stringify({ error: 'Internal server error' }),
     };
   }
+
+// Export with Sentry monitoring
+export const handler = withSentry('check-daily-room', check-daily-roomHandler);
 };

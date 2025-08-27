@@ -29,6 +29,11 @@ Sections
 - ~~Implement game event logging improvements~~
   - Rationale: Enhanced game_events table with player attribution, sequence numbering, and metadata fields — 2025-01-23
 
+## Monitoring & Observability
+
+- ~~Set up comprehensive Sentry monitoring for frontend and backend~~
+  - Rationale: Implemented complete Sentry monitoring with error tracking, performance monitoring, session replay, user feedback, and release tracking for both frontend and all Netlify functions — 2024-12-28
+
 - ~~Optimize player session tracking~~
   - Rationale: Added last_seen, connection_status, session_id to players table with utility functions for real-time tracking — 2025-01-23
 

@@ -1,4 +1,5 @@
-import type { Handler } from '@netlify/functions';
+import type { HandlerContext, HandlerEvent } from '@netlify/functions';
+const { withSentry, createApiResponse } = require('./_sentry.js');
 
 // Import Supabase for database check
 const SUPABASE_URL = process.env.SUPABASE_URL;
@@ -47,7 +48,10 @@ async function checkVideoRoomStatus(
 }
 
 // Enhanced Daily.co room creation with comprehensive error handling and validation
-export const handler: Handler = async (event) => {
+const createDailyRoomHandler = async (
+  event: HandlerEvent,
+  _context: HandlerContext,
+) => {
   // Handle CORS preflight requests
   if (event.httpMethod === 'OPTIONS') {
     return {
@@ -301,14 +305,13 @@ export const handler: Handler = async (event) => {
     };
   } catch (error) {
     console.error('Function error:', error);
-    return {
-      statusCode: 500,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        error: 'Internal server error',
-        code: 'INTERNAL_ERROR',
-        message: error instanceof Error ? error.message : 'Unknown error',
-      }),
-    };
+    return createApiResponse(500, {
+      error: 'Internal server error',
+      code: 'INTERNAL_ERROR',
+      message: error instanceof Error ? error.message : 'Unknown error',
+    });
   }
 };
+
+// Export with Sentry monitoring
+export const handler = withSentry('create-daily-room', createDailyRoomHandler);

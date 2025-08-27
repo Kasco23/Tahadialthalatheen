@@ -1,8 +1,16 @@
 import { sentryVitePlugin } from '@sentry/vite-plugin';
 import react from '@vitejs/plugin-react';
+import { readFileSync } from 'fs';
 import { resolve } from 'path';
 import { defineConfig } from 'vite';
 import bundlesize from 'vite-plugin-bundlesize';
+
+// Generate version from package.json and git commit (if available)
+const packageJson = JSON.parse(readFileSync('./package.json', 'utf-8'));
+const version = process.env.npm_package_version || packageJson.version;
+const gitCommit =
+  process.env.GITHUB_SHA || process.env.VERCEL_GIT_COMMIT_SHA || 'local';
+const appVersion = `${version}-${gitCommit.slice(0, 7)}`;
 
 export default defineConfig({
   plugins: [
@@ -32,22 +40,17 @@ export default defineConfig({
             org: 'kasco-ul',
             project: 'tahadialthalatheen',
             authToken: process.env.SENTRY_AUTH_TOKEN,
-            sourcemaps: {
-              assets: './dist/**', // upload all compiled assets
+            release: {
+              name: appVersion,
             },
-            // Disable telemetry to reduce noise
+            sourcemaps: {
+              assets: './dist/**',
+              ignore: ['node_modules'],
+            },
             telemetry: false,
           }),
         ]
       : []),
-    sentryVitePlugin({
-      org: 'kasco-ul',
-      project: 'tahadialthalatheen',
-    }),
-    sentryVitePlugin({
-      org: 'kasco-ul',
-      project: 'tahadialthalatheen',
-    }),
   ],
   base: '/',
   resolve: {
@@ -103,6 +106,8 @@ export default defineConfig({
   define: {
     // Ensure environment variables are available at build time
     __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
+    // Make version available to the app
+    'import.meta.env.VITE_APP_VERSION': JSON.stringify(appVersion),
   },
   // Add server configuration for development
   server: {
