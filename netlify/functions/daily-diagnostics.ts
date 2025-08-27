@@ -1,4 +1,3 @@
-import type { Handler } from '@netlify/functions';
 const { withSentry, createApiResponse } = require('./_sentry.js');
 
 interface DailyRoomInfo {
@@ -30,7 +29,7 @@ interface GameDatabaseInfo {
 }
 
 // Daily.co integration diagnostics and analytics
-const daily-diagnosticsHandler = async (event, _context) => {
+const dailyDiagnosticsHandler = async (event, _context) => {
   // Handle CORS preflight requests
   if (event.httpMethod === 'OPTIONS') {
     return {
@@ -243,7 +242,7 @@ const daily-diagnosticsHandler = async (event, _context) => {
       }),
     };
   }
+};
 
 // Export with Sentry monitoring
-export const handler = withSentry('daily-diagnostics', daily-diagnosticsHandler);
-};
+export const handler = withSentry('daily-diagnostics', dailyDiagnosticsHandler);

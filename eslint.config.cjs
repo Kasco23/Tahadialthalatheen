@@ -62,4 +62,13 @@ module.exports = tseslint.config([
       'no-console': 'off',
     },
   },
+  // Configuration for Netlify functions
+  {
+    files: ['netlify/functions/**/*.{js,ts}'],
+    rules: {
+      '@typescript-eslint/no-require-imports': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
+      'no-console': 'off',
+    },
+  },
 ]);

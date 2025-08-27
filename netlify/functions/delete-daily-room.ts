@@ -1,11 +1,10 @@
-import type { Handler } from '@netlify/functions';
 const { withSentry, createApiResponse } = require('./_sentry.js');
 
 /**
  * Delete a Daily.co video room by name.
  * This is triggered via POST request with JSON body `{ roomName }`.
  */
-const delete-daily-roomHandler = async (event, _context) => {
+const deleteDailyRoomHandler = async (event, _context) => {
   // Handle CORS preflight requests
   if (event.httpMethod === 'OPTIONS') {
     return {
@@ -79,7 +78,7 @@ const delete-daily-roomHandler = async (event, _context) => {
       body: JSON.stringify({ error: 'Internal server error' }),
     };
   }
+};
 
 // Export with Sentry monitoring
-export const handler = withSentry('delete-daily-room', delete-daily-roomHandler);
-};
+export const handler = withSentry('delete-daily-room', deleteDailyRoomHandler);

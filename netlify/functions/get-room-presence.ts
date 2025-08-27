@@ -1,11 +1,10 @@
-import type { Handler } from '@netlify/functions';
 const { withSentry, createApiResponse } = require('./_sentry.js');
 
 /**
  * Get Daily.co room presence information to check if room is active
  * and has participants. Used for filtering active games.
  */
-const get-room-presenceHandler = async (event, _context) => {
+const getRoomPresenceHandler = async (event, _context) => {
   // Handle CORS preflight requests
   if (event.httpMethod === 'OPTIONS') {
     return {
@@ -186,7 +185,7 @@ const get-room-presenceHandler = async (event, _context) => {
       }),
     };
   }
+};
 
 // Export with Sentry monitoring
-export const handler = withSentry('get-room-presence', get-room-presenceHandler);
-};
+export const handler = withSentry('get-room-presence', getRoomPresenceHandler);

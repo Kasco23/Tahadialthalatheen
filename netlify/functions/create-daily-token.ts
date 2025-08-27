@@ -1,4 +1,3 @@
-import type { Handler } from '@netlify/functions';
 const { withSentry, createApiResponse } = require('./_sentry.js');
 
 // Helper function to generate unique user IDs
@@ -9,7 +8,7 @@ function generateUniqueUserId(role: string): string {
 }
 
 // Enhanced Daily.co token generation with comprehensive error handling and validation
-const create-daily-tokenHandler = async (event, _context) => {
+const createDailyTokenHandler = async (event, _context) => {
   // Handle CORS preflight requests
   if (event.httpMethod === 'OPTIONS') {
     return {
@@ -238,7 +237,10 @@ const create-daily-tokenHandler = async (event, _context) => {
       }),
     };
   }
+};
 
 // Export with Sentry monitoring
-export const handler = withSentry('create-daily-token', create-daily-tokenHandler);
-};
+export const handler = withSentry(
+  'create-daily-token',
+  createDailyTokenHandler,
+);
