@@ -101,11 +101,15 @@ function getVisibleHexes(
  * Parse color string to RGB values
  */
 function parseColor(color: string): { r: number; g: number; b: number } {
+  if (!color) {
+    return { r: 255, g: 255, b: 255 }; // Default to white
+  }
+  
   // Remove # if present
   const hex = color.replace('#', '');
-  const r = parseInt(hex.substr(0, 2), 16);
-  const g = parseInt(hex.substr(2, 2), 16);
-  const b = parseInt(hex.substr(4, 2), 16);
+  const r = parseInt(hex.substr(0, 2), 16) || 0;
+  const g = parseInt(hex.substr(2, 2), 16) || 0;
+  const b = parseInt(hex.substr(4, 2), 16) || 0;
   return { r, g, b };
 }
 
@@ -125,16 +129,20 @@ export const AdvancedHexGrid: React.FC<AdvancedHexGridProps> = ({
   const lastTimeRef = useRef<number>(0);
 
   /**
-   * Check WebGL support
+   * Try to create WebGL context with fallback to Canvas
    */
-  const checkWebGLSupport = useCallback(() => {
-    try {
-      const canvas = document.createElement('canvas');
-      const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-      return !!gl;
-    } catch {
-      return false;
+  const getContext = useCallback((canvas: HTMLCanvasElement) => {
+    // Try WebGL first for better performance
+    const webglContext = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+    
+    if (webglContext) {
+      // WebGL is available - could implement WebGL shaders here in the future
+      console.log('WebGL context available - using Canvas for compatibility');
     }
+    
+    // For now, always use Canvas 2D for reliability
+    // Future enhancement: implement WebGL shaders for advanced effects
+    return canvas.getContext('2d');
   }, []);
 
   /**
@@ -153,7 +161,7 @@ export const AdvancedHexGrid: React.FC<AdvancedHexGridProps> = ({
     canvas.style.width = `${rect.width}px`;
     canvas.style.height = `${rect.height}px`;
 
-    const ctx = canvas.getContext('2d');
+    const ctx = getContext(canvas);
     if (ctx) {
       ctx.scale(dpr, dpr);
       // Enable high-quality rendering
@@ -169,10 +177,17 @@ export const AdvancedHexGrid: React.FC<AdvancedHexGridProps> = ({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d');
+    const ctx = getContext(canvas);
     if (!ctx) return;
 
     const rect = canvas.getBoundingClientRect();
+    
+    // Handle empty colors array
+    if (!colors || colors.length === 0) {
+      ctx.fillStyle = backgroundColor;
+      ctx.fillRect(0, 0, rect.width, rect.height);
+      return;
+    }
     
     // Clear canvas with background color
     ctx.fillStyle = backgroundColor;
@@ -213,8 +228,8 @@ export const AdvancedHexGrid: React.FC<AdvancedHexGridProps> = ({
       ctx.closePath();
 
       // Dynamic color selection based on position and time
-      const colorIndex = (Math.abs(hex.q + hex.r) + Math.floor(time * 0.5)) % colors.length;
-      const currentColor = colors[colorIndex] || colors[0];
+      const colorIndex = (Math.abs(hex.q + hex.r) + Math.floor(time * 0.5)) % Math.max(1, colors.length);
+      const currentColor = colors[colorIndex] || colors[0] || '#ffffff';
       const color = parseColor(currentColor);
 
       // 3D depth effect
@@ -273,8 +288,8 @@ export const AdvancedHexGrid: React.FC<AdvancedHexGridProps> = ({
         const alpha = Math.sin(time * 3 + i) * 0.3 + 0.3;
         
         if (alpha > 0) {
-          const colorIndex = i % colors.length;
-          const particleColor = parseColor(colors[colorIndex] || colors[0]);
+          const colorIndex = i % Math.max(1, colors.length);
+          const particleColor = parseColor(colors[colorIndex] || colors[0] || '#ffffff');
           
           ctx.fillStyle = `rgba(${particleColor.r}, ${particleColor.g}, ${particleColor.b}, ${alpha})`;
           ctx.beginPath();
@@ -312,8 +327,7 @@ export const AdvancedHexGrid: React.FC<AdvancedHexGridProps> = ({
    * Initialize component
    */
   useEffect(() => {
-    // Note: WebGL support check available for future enhancement
-    checkWebGLSupport();
+    // Note: WebGL support detection and future enhancement capability
     initializeCanvas();
     
     // Start animation loop
@@ -328,7 +342,7 @@ export const AdvancedHexGrid: React.FC<AdvancedHexGridProps> = ({
       }
       window.removeEventListener('resize', handleResize);
     };
-  }, [checkWebGLSupport, initializeCanvas, animate, handleResize]);
+  }, [initializeCanvas, animate, handleResize, getContext]);
 
   /**
    * Update when props change
