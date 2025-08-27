@@ -27,9 +27,18 @@ jobs:
         if: matrix.check == 'lint'
         run: pnpm run lint
 
-      - name: Run format check
+      - name: Run format check and fix
         if: matrix.check == 'format'
-        run: pnpm exec prettier --check .
+        run: pnpm exec prettier --write .
+
+      - name: Commit formatting changes
+        if: matrix.check == 'format'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .
+          git diff --staged --quiet || git commit -m "Auto-fix formatting with Prettier [skip ci]"
+          git push
 
       - name: Run TypeScript check
         if: matrix.check == 'typecheck'
