@@ -1,4 +1,5 @@
 {
+  "netlify/functions/_sentry.ts": [],
   "netlify/functions/batch-check-rooms.ts": [],
   "netlify/functions/check-daily-room.ts": [],
   "netlify/functions/create-daily-room.ts": [],
