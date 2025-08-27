@@ -104,6 +104,10 @@
     "src/theme/core/tokens.ts",
     "src/theme/palette/index.ts"
   ],
+  "src/theme/background/ConditionalBackground.tsx": [
+    "src/theme/background/ThemedHexBackground.tsx",
+    "src/theme/state/index.ts"
+  ],
   "src/theme/background/HexBackground.module.css": [],
   "src/theme/background/HexBackground.tsx": [
     "src/theme/background/HexBackground.module.css",
@@ -125,6 +129,7 @@
     "src/theme/types.ts"
   ],
   "src/theme/background/index.ts": [
+    "src/theme/background/ConditionalBackground.tsx",
     "src/theme/background/HexBackground.tsx",
     "src/theme/background/ThemedHexBackground.tsx",
     "src/theme/background/colorDistribution.ts",
