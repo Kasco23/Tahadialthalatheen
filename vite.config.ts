@@ -6,7 +6,7 @@ import bundlesize from 'vite-plugin-bundlesize';
 
 export default defineConfig({
   plugins: [
-    react(),
+    react(), // Only add Sentry plugin if auth token is available
     bundlesize({
       limits: [
         // Main entry bundle should stay small
@@ -26,7 +26,6 @@ export default defineConfig({
         { name: 'assets/*-*.js', limit: '100 kB' },
       ],
     }),
-    // Only add Sentry plugin if auth token is available
     ...(process.env.SENTRY_AUTH_TOKEN
       ? [
           sentryVitePlugin({
@@ -41,6 +40,14 @@ export default defineConfig({
           }),
         ]
       : []),
+    sentryVitePlugin({
+      org: 'kasco-ul',
+      project: 'tahadialthalatheen',
+    }),
+    sentryVitePlugin({
+      org: 'kasco-ul',
+      project: 'tahadialthalatheen',
+    }),
   ],
   base: '/',
   resolve: {
