@@ -143,7 +143,7 @@ function generateCarbonFiber(
           if (fiberY < fiberWidth) {
             // Base intensity with stronger contrast
             fiberIntensity = 0.8 - (fiberY / fiberWidth) * 0.4;
-            
+
             // 3D depth effect - fibers appear rounded
             const depthCurve = Math.sin((fiberY / fiberWidth) * Math.PI);
             depthFactor = depthCurve * 0.3;
@@ -167,7 +167,7 @@ function generateCarbonFiber(
           if (fiberX < fiberWidth) {
             // Base intensity with stronger shadow
             fiberIntensity = 0.4 - (fiberX / fiberWidth) * 0.2;
-            
+
             // 3D shadow effect
             const shadowCurve = Math.sin((fiberX / fiberWidth) * Math.PI);
             depthFactor = -shadowCurve * 0.2; // Negative for shadow
@@ -178,7 +178,8 @@ function generateCarbonFiber(
             fiberIntensity += individualFiber;
 
             // Subtle under-weave reflection with team color tint
-            const underReflection = Math.sin((x * 0.3 + y + offset) * 0.18) * 0.15;
+            const underReflection =
+              Math.sin((x * 0.3 + y + offset) * 0.18) * 0.15;
             fiberIntensity += Math.max(0, underReflection * 0.7);
 
             // Use different team colors for variation
@@ -220,8 +221,10 @@ function generateCarbonFiber(
           if (shimmer > 0.1 && additionalRgb.length > 0) {
             // Use brightest team color for shimmer with better selection
             const shimmerColor = additionalRgb.reduce((brightest, color) => {
-              const brightness = color.r * 0.299 + color.g * 0.587 + color.b * 0.114; // Proper luminance
-              const brightestValue = brightest.r * 0.299 + brightest.g * 0.587 + brightest.b * 0.114;
+              const brightness =
+                color.r * 0.299 + color.g * 0.587 + color.b * 0.114; // Proper luminance
+              const brightestValue =
+                brightest.r * 0.299 + brightest.g * 0.587 + brightest.b * 0.114;
               return brightness > brightestValue ? color : brightest;
             }, targetColor);
 

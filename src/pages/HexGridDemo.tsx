@@ -8,12 +8,12 @@ import { HexGridBackground } from '@/components/HexGridBackground';
 
 const TEAM_PALETTES = {
   'Real Madrid': ['#FEBE10', '#00529F'],
-  'Barcelona': ['#A50044', '#004D98', '#EDBB00'],
+  Barcelona: ['#A50044', '#004D98', '#EDBB00'],
   'Inter Milan': ['#0033A0', '#FFD700', '#111111'],
   'Manchester United': ['#FF0000', '#FFFF00', '#000000'],
-  'Chelsea': ['#034694', '#FFFFFF'],
-  'Liverpool': ['#C8102E', '#FFFFFF', '#00B2A9'],
-  'Arsenal': ['#EF0107', '#023474', '#9C824A'],
+  Chelsea: ['#034694', '#FFFFFF'],
+  Liverpool: ['#C8102E', '#FFFFFF', '#00B2A9'],
+  Arsenal: ['#EF0107', '#023474', '#9C824A'],
 };
 
 export default function HexGridDemo() {
@@ -24,7 +24,9 @@ export default function HexGridDemo() {
   const [glow, setGlow] = useState(false);
   const [texture, setTexture] = useState(true);
 
-  const currentColors = TEAM_PALETTES[selectedTeam as keyof typeof TEAM_PALETTES] || ['#22c55e'];
+  const currentColors = TEAM_PALETTES[
+    selectedTeam as keyof typeof TEAM_PALETTES
+  ] || ['#22c55e'];
 
   return (
     <div className="min-h-screen relative">
@@ -37,14 +39,14 @@ export default function HexGridDemo() {
         glow={glow}
         texture={texture}
       />
-      
+
       {/* Controls Panel */}
       <div className="relative z-10 p-8">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-3xl font-bold text-white mb-8 text-center">
             HexGrid Background Demo
           </h1>
-          
+
           <div className="bg-black/30 backdrop-blur-sm rounded-lg p-6 space-y-6">
             {/* Team Selection */}
             <div>
@@ -56,8 +58,10 @@ export default function HexGridDemo() {
                 onChange={(e) => setSelectedTeam(e.target.value)}
                 className="w-full p-2 rounded bg-gray-800 text-white border border-gray-600"
               >
-                {Object.keys(TEAM_PALETTES).map(team => (
-                  <option key={team} value={team}>{team}</option>
+                {Object.keys(TEAM_PALETTES).map((team) => (
+                  <option key={team} value={team}>
+                    {team}
+                  </option>
                 ))}
               </select>
               <div className="flex gap-2 mt-2">
@@ -146,9 +150,14 @@ export default function HexGridDemo() {
 
             {/* Color Count Info */}
             <div className="text-gray-300 text-sm">
-              Current palette has {currentColors.length} color{currentColors.length !== 1 ? 's' : ''}.
-              {currentColors.length === 1 ? ' Using as stroke only.' : ' Using gradient for stroke.'}
-              {texture ? ' Carbon fiber texture enabled.' : ' Flat background mode.'}
+              Current palette has {currentColors.length} color
+              {currentColors.length !== 1 ? 's' : ''}.
+              {currentColors.length === 1
+                ? ' Using as stroke only.'
+                : ' Using gradient for stroke.'}
+              {texture
+                ? ' Carbon fiber texture enabled.'
+                : ' Flat background mode.'}
             </div>
           </div>
         </div>

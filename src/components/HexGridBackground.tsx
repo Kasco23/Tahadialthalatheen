@@ -1,6 +1,6 @@
 /**
  * SVG-based hexagonal grid background component
- * 
+ *
  * Renders a repeating hexagon pattern with team color palettes and optional glow effects.
  * Simpler alternative to the complex Canvas-based HexBackground system.
  */
@@ -31,16 +31,16 @@ function generateHexagonPath(size: number): string {
   const points: [number, number][] = [];
   const centerX = size;
   const centerY = size;
-  
+
   // Generate 6 vertices of hexagon (pointy-top orientation)
   for (let i = 0; i < 6; i++) {
     const angleDeg = 60 * i;
     const angleRad = (Math.PI / 180) * angleDeg;
-    const x = centerX + (size * 0.5) * Math.cos(angleRad);
-    const y = centerY + (size * 0.5) * Math.sin(angleRad);
+    const x = centerX + size * 0.5 * Math.cos(angleRad);
+    const y = centerY + size * 0.5 * Math.sin(angleRad);
     points.push([x, y]);
   }
-  
+
   return `M ${points.map(([x, y]) => `${x},${y}`).join(' L ')} Z`;
 }
 
@@ -51,18 +51,12 @@ function createGradient(colors: string[], id: string): React.ReactElement {
   if (colors.length < 2) {
     return <React.Fragment></React.Fragment>;
   }
-  
+
   const stops = colors.map((color, index) => {
     const offset = (index / (colors.length - 1)) * 100;
-    return (
-      <stop
-        key={index}
-        offset={`${offset}%`}
-        stopColor={color}
-      />
-    );
+    return <stop key={index} offset={`${offset}%`} stopColor={color} />;
   });
-  
+
   return (
     <linearGradient id={id} x1="0%" y1="0%" x2="100%" y2="100%">
       {stops}
@@ -87,20 +81,20 @@ export const HexGridBackground: React.FC<HexGridBackgroundProps> = ({
     console.warn('HexGridBackground: colors array is empty, using default');
     colors = ['#22c55e'];
   }
-  
+
   if (colors.length > 7) {
     console.warn('HexGridBackground: too many colors, limiting to 7');
     colors = colors.slice(0, 7);
   }
-  
+
   const hexPath = generateHexagonPath(patternSize);
   const patternId = `hex-pattern-${Math.random().toString(36).substr(2, 9)}`;
   const gradientId = `hex-gradient-${Math.random().toString(36).substr(2, 9)}`;
-  
+
   // Determine stroke and fill based on color count
   let strokeColor: string;
   let hexFillColor: string | undefined;
-  
+
   if (colors.length === 1) {
     // Single color: use as stroke only
     strokeColor = colors[0];
@@ -110,35 +104,35 @@ export const HexGridBackground: React.FC<HexGridBackgroundProps> = ({
     strokeColor = `url(#${gradientId})`;
     hexFillColor = 'none';
   }
-  
+
   // Animation class for glow effect
-  const animationClass = glow 
-    ? 'animate-[glow_2s_ease-in-out_infinite_alternate]' 
+  const animationClass = glow
+    ? 'animate-[glow_2s_ease-in-out_infinite_alternate]'
     : '';
-  
+
   // Texture class selection
   const textureClass = texture ? 'carbon-fiber-texture' : '';
-  
+
   // Improved pattern sizing for seamless tiling
   const patternWidth = patternSize * 1.5;
   const patternHeight = patternSize * Math.sqrt(3);
-  
+
   return (
-    <div 
+    <div
       className={`absolute inset-0 w-full h-full z-[-10] pointer-events-none ${className}`}
       style={{ backgroundColor }}
     >
       {/* Texture Layer (below hex grid) */}
       {texture && (
-        <div 
+        <div
           className={`absolute inset-0 w-full h-full ${textureClass}`}
-          style={{ 
+          style={{
             mixBlendMode: 'overlay',
-            opacity: 0.6
+            opacity: 0.6,
           }}
         />
       )}
-      
+
       {/* Hex Grid Layer (on top) */}
       <svg
         width="100%"
@@ -148,7 +142,7 @@ export const HexGridBackground: React.FC<HexGridBackgroundProps> = ({
         <defs>
           {/* Create gradient if we have multiple colors */}
           {colors.length > 1 && createGradient(colors, gradientId)}
-          
+
           {/* Define the hexagon pattern with improved seamless tiling */}
           <pattern
             id={patternId}
@@ -167,7 +161,7 @@ export const HexGridBackground: React.FC<HexGridBackgroundProps> = ({
               strokeLinejoin="round"
               strokeLinecap="round"
             />
-            
+
             {/* Offset hexagon to create proper honeycomb tiling */}
             <path
               d={hexPath}
@@ -180,13 +174,9 @@ export const HexGridBackground: React.FC<HexGridBackgroundProps> = ({
             />
           </pattern>
         </defs>
-        
+
         {/* Apply pattern to full viewport */}
-        <rect
-          width="100%"
-          height="100%"
-          fill={`url(#${patternId})`}
-        />
+        <rect width="100%" height="100%" fill={`url(#${patternId})`} />
       </svg>
     </div>
   );

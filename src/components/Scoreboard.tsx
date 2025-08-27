@@ -83,7 +83,9 @@ export default function Scoreboard() {
             <div
               key={index}
               className={`w-3 h-3 rounded-full ${
-                index < (player.strikes ?? 0) ? 'bg-theme-error' : 'bg-theme-border'
+                index < (player.strikes ?? 0)
+                  ? 'bg-theme-error'
+                  : 'bg-theme-border'
               }`}
             />
           ))}
