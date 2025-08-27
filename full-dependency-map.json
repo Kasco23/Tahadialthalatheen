@@ -17,12 +17,16 @@
   "src/components/ConfirmationModal.tsx": [],
   "src/components/ConnectionBanner.tsx": [],
   "src/components/ErrorBoundary.tsx": [],
+  "src/components/HexGridBackground.tsx": [],
   "src/components/LanguageToggle.tsx": [],
   "src/components/LazyImage.tsx": [],
   "src/components/Scoreboard.tsx": [],
   "src/components/Timer.tsx": [],
   "src/components/VideoRoom.tsx": [
     "src/components/AlertBanner.tsx"
+  ],
+  "src/components/__tests__/HexGridBackground.test.tsx": [
+    "src/components/HexGridBackground.tsx"
   ],
   "src/components/theme/ThemeSelector.tsx": [],
   "src/components/theme/index.ts": [
@@ -69,6 +73,7 @@
   "src/pages/ControlRoom.tsx": [],
   "src/pages/CreateSession.tsx": [],
   "src/pages/FinalScores.tsx": [],
+  "src/pages/HexGridDemo.tsx": [],
   "src/pages/Join.tsx": [],
   "src/pages/Landing.tsx": [],
   "src/pages/Lobby.tsx": [],

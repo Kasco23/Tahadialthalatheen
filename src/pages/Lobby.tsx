@@ -254,18 +254,24 @@ export default function Lobby() {
 
     try {
       // Check if room already exists
-      const roomExists = await checkVideoRoomExists(gameId);
-      if (roomExists) {
+      const roomCheckResult = await checkVideoRoomExists(gameId);
+      if (
+        roomCheckResult &&
+        roomCheckResult.success &&
+        roomCheckResult.exists
+      ) {
         console.log(
           '[LobbyImproved] Video room already exists, updating state',
         );
+        const existingRoomUrl = roomCheckResult.url || '';
         setVideoRoomState((prev) => ({
           ...prev,
           isCreated: true,
           isCreating: false,
         }));
-        // The updateVideoRoomState function will handle the game state update
-        await updateVideoRoomState('', true);
+        // Update state with the existing room URL
+        await updateVideoRoomState(existingRoomUrl, true);
+        showAlertMessage('Video room already exists and ready', 'success');
         return;
       }
 

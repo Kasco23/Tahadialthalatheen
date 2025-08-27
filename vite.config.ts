@@ -2,6 +2,7 @@ import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
 import { defineConfig } from 'vite';
 import bundlesize from 'vite-plugin-bundlesize';
+import { sentryVitePlugin } from "@sentry/vite-plugin";
 
 export default defineConfig({
   plugins: [
@@ -24,6 +25,14 @@ export default defineConfig({
         // Page chunks should be reasonable
         { name: 'assets/*-*.js', limit: '100 kB' },
       ],
+    }),
+     sentryVitePlugin({
+      org: "kasco-ul",
+      project: "tahadialthalatheen",
+      authToken: process.env.SENTRY_AUTH_TOKEN, // set in Netlify/GitHub
+      sourcemaps: {
+        assets: "./dist/**", // upload all compiled assets
+      },
     }),
   ],
   base: '/',

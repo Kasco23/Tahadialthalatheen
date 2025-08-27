@@ -33,7 +33,7 @@ export default function Scoreboard() {
     return (
       <motion.div
         key={playerId}
-        className="relative bg-white/10 backdrop-blur-sm rounded-2xl p-4 border-2 border-white/20"
+        className="relative bg-theme-surface/20 backdrop-blur-sm rounded-2xl p-4 border-2 border-theme-border"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: playerIndex * 0.1 }}
@@ -48,14 +48,14 @@ export default function Scoreboard() {
 
             {/* Player Name */}
             <div>
-              <h3 className="text-white font-bold font-arabic">
+              <h3 className="text-theme-text font-bold font-arabic">
                 {player.name}
               </h3>
               <div
                 className={`text-xs px-2 py-1 rounded-full ${
                   player.isConnected
-                    ? 'bg-green-500/20 text-green-300'
-                    : 'bg-red-500/20 text-red-300'
+                    ? 'bg-theme-success/20 text-theme-success'
+                    : 'bg-theme-error/20 text-theme-error'
                 }`}
               >
                 {player.isConnected ? 'متصل' : 'غير متصل'}
@@ -67,14 +67,14 @@ export default function Scoreboard() {
         {/* Score Display */}
         <div className="text-center mb-3">
           <motion.div
-            className="text-3xl font-bold text-white mb-1"
+            className="text-3xl font-bold text-theme-text mb-1"
             animate={{ scale: [1, 1.1, 1] }}
             transition={{ duration: 0.3 }}
             key={player.score}
           >
             {player.score}
           </motion.div>
-          <p className="text-white/70 text-sm font-arabic">النقاط</p>
+          <p className="text-theme-text-muted text-sm font-arabic">النقاط</p>
         </div>
 
         {/* Strikes */}
@@ -83,7 +83,7 @@ export default function Scoreboard() {
             <div
               key={index}
               className={`w-3 h-3 rounded-full ${
-                index < (player.strikes ?? 0) ? 'bg-red-500' : 'bg-white/20'
+                index < (player.strikes ?? 0) ? 'bg-theme-error' : 'bg-theme-border'
               }`}
             />
           ))}
@@ -104,7 +104,7 @@ export default function Scoreboard() {
                     available ? config.color + '/20' : 'bg-gray-500/20'
                   }`}
                 >
-                  <span className="text-white/80 text-xs font-arabic">
+                  <span className="text-theme-text-muted text-xs font-arabic">
                     {config.name}
                   </span>
                   <span
@@ -122,7 +122,7 @@ export default function Scoreboard() {
         <div className="absolute top-2 right-2">
           <div
             className={`w-3 h-3 rounded-full ${
-              player.isConnected ? 'bg-green-500' : 'bg-red-500'
+              player.isConnected ? 'bg-theme-success' : 'bg-theme-error'
             }`}
           />
         </div>
@@ -132,7 +132,7 @@ export default function Scoreboard() {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-bold text-white text-center mb-4 font-arabic">
+      <h2 className="text-xl font-bold text-theme-text text-center mb-4 font-arabic">
         لوحة النتائج
       </h2>
 
@@ -141,15 +141,15 @@ export default function Scoreboard() {
       </div>
 
       {/* Current Segment Info */}
-      <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 text-center">
-        <h3 className="text-white font-bold mb-2 font-arabic">
+      <div className="bg-theme-surface/20 backdrop-blur-sm rounded-xl p-4 text-center">
+        <h3 className="text-theme-text font-bold mb-2 font-arabic">
           الفقرة الحالية
         </h3>
-        <div className="text-accent2 font-arabic text-lg">
+        <div className="text-theme-accent font-arabic text-lg">
           {state.currentSegment}
         </div>
         {state.currentSegment && (
-          <div className="text-white/70 text-sm font-arabic">
+          <div className="text-theme-text-muted text-sm font-arabic">
             السؤال {state.currentQuestionIndex + 1} من{' '}
             {state.segmentSettings[state.currentSegment]}
           </div>

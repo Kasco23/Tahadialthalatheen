@@ -75,7 +75,7 @@ export default function Landing() {
       </div>
 
       {/* API Status Button */}
-      <motion.button
+        <motion.button
         onClick={handleApiStatus}
         className="absolute top-4 left-4 z-50 px-3 py-2 bg-theme-surface/50 backdrop-blur-sm hover:bg-theme-surface/70 text-theme-text-muted hover:text-theme-text rounded-lg transition-all duration-300 text-sm border border-theme-border"
         initial={{ opacity: 0, x: -20 }}
@@ -116,7 +116,7 @@ export default function Landing() {
               transition={{ type: 'spring', stiffness: 300 }}
             />
             <motion.div
-              className="absolute -inset-4 bg-[var(--theme-primary)]/20 rounded-full blur-xl"
+              className="absolute -inset-4 bg-theme-primary/20 rounded-full blur-xl"
               animate={{
                 scale: [1, 1.2, 1],
                 opacity: [0.3, 0.6, 0.3],
@@ -132,7 +132,7 @@ export default function Landing() {
           <motion.h1
             className={`text-4xl sm:text-6xl lg:text-7xl font-extrabold mb-4 text-center ${
               isArabic ? 'font-arabic' : ''
-            } text-[var(--theme-text)]`}
+            } text-theme-text`}
             initial={{ y: -50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.4, duration: 0.8 }}
@@ -180,7 +180,7 @@ export default function Landing() {
             >
               <ActiveGames onJoinGame={handleJoinGameById} />
               <motion.div
-                className="absolute -inset-1 bg-[var(--theme-primary)]/20 rounded-xl blur opacity-0"
+                className="absolute -inset-1 bg-theme-primary/20 rounded-xl blur opacity-0"
                 whileHover={{ opacity: 1 }}
                 transition={{ duration: 0.3 }}
               />
@@ -206,7 +206,7 @@ export default function Landing() {
               transition={{ delay: 1.2, duration: 0.5 }}
             >
               <motion.div
-                className="absolute inset-0 bg-[var(--theme-primary)]"
+                className="absolute inset-0 bg-theme-primary"
                 whileHover={{
                   backgroundColor: 'var(--theme-primary)',
                 }}
@@ -217,14 +217,14 @@ export default function Landing() {
                 whileHover={{ x: '100%' }}
                 transition={{ duration: 0.6 }}
               />
-              <span className="relative z-10 text-white">
+              <span className="relative z-10 text-theme-text">
                 {t('createSession')}
               </span>
             </motion.button>
 
             <motion.button
               onClick={handleJoinGame}
-              className={`group relative w-full px-6 py-3 text-lg rounded-xl font-bold transition-all overflow-hidden border-2 border-white/30 ${
+              className={`group relative w-full px-6 py-3 text-lg rounded-xl font-bold transition-all overflow-hidden border-2 border-theme-border ${
                 isArabic ? 'font-arabic' : ''
               }`}
               whileHover={{ scale: 1.02, y: -1 }}
@@ -234,13 +234,13 @@ export default function Landing() {
               transition={{ delay: 1.4, duration: 0.5 }}
             >
               <motion.div
-                className="absolute inset-0 bg-[var(--theme-secondary)]/20"
+                className="absolute inset-0 bg-theme-secondary/20"
                 whileHover={{
                   backgroundColor: 'var(--theme-secondary)',
                   opacity: 0.3,
                 }}
               />
-              <span className="relative z-10 text-white/90 group-hover:text-white">
+              <span className="relative z-10 text-theme-text-muted group-hover:text-theme-text">
                 {t('joinSession')}
               </span>
             </motion.button>
@@ -250,7 +250,7 @@ export default function Landing() {
           <motion.div
             className={`mt-12 text-center text-sm max-w-md ${
               isArabic ? 'font-arabic' : ''
-            } text-white/60`}
+            } text-theme-text-muted`}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1.6, duration: 0.8 }}

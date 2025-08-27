@@ -21,6 +21,9 @@ const FinalScores = lazy(() => import('@/pages/FinalScores'));
 const ApiStatus = lazy(() => import('@/pages/ApiStatus'));
 const NotFound = lazy(() => import('@/pages/NotFound'));
 
+// Development-only components
+const HexGridDemo = lazy(() => import('@/pages/HexGridDemo'));
+
 // Loading component for suspense fallback
 function PageLoader() {
   return (
@@ -62,6 +65,10 @@ export default function App() {
                 <Route path="/quiz" element={<QuizRoom />} />
                 <Route path="/scores" element={<FinalScores />} />
                 <Route path="/api-status" element={<ApiStatus />} />
+                {/* Development-only routes */}
+                {import.meta.env.DEV && (
+                  <Route path="/hex-demo" element={<HexGridDemo />} />
+                )}
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>

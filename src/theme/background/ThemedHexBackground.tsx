@@ -63,6 +63,19 @@ export const ThemedHexBackground: React.FC<ThemedHexBackgroundProps> = ({
     };
   }
 
+  // For default mode, render a blue gradient background instead of hex grid
+  if (themeConfig.mode === 'default') {
+    return (
+      <div 
+        className={`fixed inset-0 z-[-10] pointer-events-none ${className}`}
+        style={{
+          background: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 25%, #60a5fa  50%, #93c5fd 75%, #dbeafe 100%)',
+          opacity: 0.8
+        }}
+      />
+    );
+  }
+
   return (
     <BaseHexBackground
       key={`${themeConfig.mode}-${themeConfig.selectedTeam?.id || 'default'}`}

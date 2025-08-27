@@ -313,6 +313,8 @@ export function useGameActions() {
           }
 
           console.log('[DEV] Mock video room created successfully:', mockUrl);
+          // Release the atomic lock after successful creation
+          GameDatabase.releaseVideoRoomLock(gameId);
           return { success: true, roomUrl: mockUrl };
         }
 
@@ -348,6 +350,8 @@ export function useGameActions() {
             });
           }
 
+          // Release the atomic lock after successful creation
+          GameDatabase.releaseVideoRoomLock(gameId);
           return { success: true, roomUrl: data.url };
         } else {
           // Room creation failed, reset the flag
@@ -359,6 +363,8 @@ export function useGameActions() {
             video_room_created: false,
           });
 
+          // Release the atomic lock after failed creation
+          GameDatabase.releaseVideoRoomLock(gameId);
           return { success: false, error: data.error || 'create failed' };
         }
       } catch (error) {
@@ -376,6 +382,8 @@ export function useGameActions() {
           );
         }
 
+        // Release the atomic lock after error
+        GameDatabase.releaseVideoRoomLock(gameId);
         return { success: false, error: 'Network error' };
       }
     },
