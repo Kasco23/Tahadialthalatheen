@@ -36,3 +36,9 @@ body {
 .font-arabic {
   font-family: 'Noto Naskh Arabic', Tajawal, Arial, sans-serif;
 }
+
+/* HexGrid glow animation keyframes */
+@keyframes glow {
+  0% { stroke-opacity: 0.4; }
+  100% { stroke-opacity: 1; }
+}
