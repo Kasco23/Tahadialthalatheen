@@ -1,14 +1,32 @@
 {
   "netlify/functions/_sentry.ts": [],
-  "netlify/functions/batch-check-rooms.ts": [],
-  "netlify/functions/check-daily-room.ts": [],
-  "netlify/functions/create-daily-room.ts": [],
-  "netlify/functions/create-daily-token.ts": [],
-  "netlify/functions/daily-diagnostics.ts": [],
-  "netlify/functions/delete-daily-room.ts": [],
-  "netlify/functions/game-event.ts": [],
-  "netlify/functions/get-room-presence.ts": [],
-  "netlify/functions/supabase-health.ts": [],
+  "netlify/functions/batch-check-rooms.ts": [
+    "netlify/functions/_sentry.ts"
+  ],
+  "netlify/functions/check-daily-room.ts": [
+    "netlify/functions/_sentry.ts"
+  ],
+  "netlify/functions/create-daily-room.ts": [
+    "netlify/functions/_sentry.ts"
+  ],
+  "netlify/functions/create-daily-token.ts": [
+    "netlify/functions/_sentry.ts"
+  ],
+  "netlify/functions/daily-diagnostics.ts": [
+    "netlify/functions/_sentry.ts"
+  ],
+  "netlify/functions/delete-daily-room.ts": [
+    "netlify/functions/_sentry.ts"
+  ],
+  "netlify/functions/game-event.ts": [
+    "netlify/functions/_sentry.ts"
+  ],
+  "netlify/functions/get-room-presence.ts": [
+    "netlify/functions/_sentry.ts"
+  ],
+  "netlify/functions/supabase-health.ts": [
+    "netlify/functions/_sentry.ts"
+  ],
   "src/App.tsx": [],
   "src/components/ActiveGames.tsx": [],
   "src/components/AlertBanner.tsx": [
@@ -24,6 +42,9 @@
   "src/components/Scoreboard.tsx": [],
   "src/components/Timer.tsx": [],
   "src/components/VideoRoom.tsx": [
+    "src/components/AlertBanner.tsx"
+  ],
+  "src/components/VideoRoomEnhanced.tsx": [
     "src/components/AlertBanner.tsx"
   ],
   "src/components/__tests__/HexGridBackground.test.tsx": [
