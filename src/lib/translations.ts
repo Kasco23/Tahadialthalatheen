@@ -108,6 +108,8 @@ export interface Translations {
   playersOnline: string;
   created: string;
   quickJoin: string;
+  quickJoinFirst: string;
+  noGamesAvailable: string;
   refreshGames: string;
 
   // Lobby
@@ -343,6 +345,8 @@ export const translations: Record<Language, Translations> = {
     playersOnline: 'players online',
     created: 'Created',
     quickJoin: 'Quick Join',
+    quickJoinFirst: 'Quick Join First Game',
+    noGamesAvailable: 'No Games Available',
     refreshGames: 'Refresh Games',
 
     // Lobby
@@ -577,6 +581,8 @@ export const translations: Record<Language, Translations> = {
     playersOnline: 'لاعبين متصلين',
     created: 'تم الإنشاء',
     quickJoin: 'انضمام سريع',
+    quickJoinFirst: 'انضمام سريع للعبة الأولى',
+    noGamesAvailable: 'لا توجد ألعاب متاحة',
     refreshGames: 'تحديث الألعاب',
 
     // Lobby

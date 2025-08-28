@@ -23,10 +23,14 @@ export default function ActiveGames({ onJoinGame }: ActiveGamesProps) {
   const [games, setGames] = useState<GameRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
+  const [refreshing, setRefreshing] = useState(false);
 
   const fetchActiveGames = async () => {
     try {
-      setLoading(true);
+      const wasInitialLoad = loading;
+      if (!wasInitialLoad) {
+        setRefreshing(true);
+      }
       setError('');
 
       // Get games that are in CONFIG or LOBBY phase (joinable)
@@ -88,6 +92,7 @@ export default function ActiveGames({ onJoinGame }: ActiveGamesProps) {
       setError('Failed to load active games');
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -96,11 +101,27 @@ export default function ActiveGames({ onJoinGame }: ActiveGamesProps) {
     // Refresh every 30 seconds
     const interval = setInterval(fetchActiveGames, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleQuickJoin = (gameId: string) => {
-    // Use the provided onJoinGame function
-    onJoinGame(gameId);
+    try {
+      // Use the provided onJoinGame function
+      onJoinGame(gameId);
+    } catch (err) {
+      console.error('Failed to join game:', err);
+      setError(`Failed to join game: ${gameId}`);
+    }
+  };
+
+  const handleQuickJoinFirst = () => {
+    if (games.length === 0) {
+      setError('No games available to join');
+      return;
+    }
+    
+    // Join the first available game
+    const firstGame = games[0];
+    handleQuickJoin(firstGame.id);
   };
 
   const formatTimeAgo = (dateString: string) => {
@@ -139,17 +160,17 @@ export default function ActiveGames({ onJoinGame }: ActiveGamesProps) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.8 }}
       >
-        <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+        <div className="bg-theme-surface/20 rounded-xl p-4 border border-theme-border backdrop-blur-sm">
           <div className="flex items-center justify-between mb-3">
             <h3
-              className={`text-lg font-semibold text-accent2 ${isArabic ? 'font-arabic' : ''}`}
+              className={`text-lg font-semibold text-theme-primary ${isArabic ? 'font-arabic' : ''}`}
             >
               {t('activeGames')}
             </h3>
-            <div className="w-4 h-4 border-2 border-accent2 border-t-transparent rounded-full animate-spin"></div>
+            <div className="w-4 h-4 border-2 border-theme-primary border-t-transparent rounded-full animate-spin"></div>
           </div>
           <p
-            className={`text-white/60 text-sm ${isArabic ? 'font-arabic' : ''}`}
+            className={`text-theme-text-muted text-sm ${isArabic ? 'font-arabic' : ''}`}
           >
             {t('loading')}
           </p>
@@ -166,20 +187,20 @@ export default function ActiveGames({ onJoinGame }: ActiveGamesProps) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.8 }}
       >
-        <div className="bg-red-500/10 rounded-xl p-4 border border-red-500/20">
+        <div className="bg-theme-error/10 rounded-xl p-4 border border-theme-error/30 backdrop-blur-sm">
           <h3
-            className={`text-lg font-semibold text-red-400 ${isArabic ? 'font-arabic' : ''}`}
+            className={`text-lg font-semibold text-theme-error ${isArabic ? 'font-arabic' : ''}`}
           >
             {t('error')}
           </h3>
           <p
-            className={`text-red-300 text-sm ${isArabic ? 'font-arabic' : ''}`}
+            className={`text-theme-error text-sm opacity-80 ${isArabic ? 'font-arabic' : ''}`}
           >
             {error}
           </p>
           <button
             onClick={fetchActiveGames}
-            className={`mt-2 px-3 py-1 text-sm rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-200 transition-all ${isArabic ? 'font-arabic' : ''}`}
+            className={`mt-2 px-3 py-1 text-sm rounded-lg bg-theme-error/20 hover:bg-theme-error/30 text-theme-error hover:text-theme-text transition-all border border-theme-error/30 hover:border-theme-error ${isArabic ? 'font-arabic' : ''}`}
           >
             {t('refreshGames')}
           </button>
@@ -196,20 +217,21 @@ export default function ActiveGames({ onJoinGame }: ActiveGamesProps) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.8 }}
       >
-        <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+        <div className="bg-theme-surface/20 rounded-xl p-4 border border-theme-border backdrop-blur-sm">
           <div className="flex items-center justify-between mb-2">
             <h3
-              className={`text-lg font-semibold text-accent2 ${isArabic ? 'font-arabic' : ''}`}
+              className={`text-lg font-semibold text-theme-primary ${isArabic ? 'font-arabic' : ''}`}
             >
               {t('activeGames')}
             </h3>
             <button
               onClick={fetchActiveGames}
-              className="text-white/60 hover:text-accent2 transition-all"
+              disabled={refreshing}
+              className="text-theme-text-muted hover:text-theme-primary transition-all disabled:opacity-50"
               title={t('refreshGames')}
             >
               <svg
-                className="w-4 h-4"
+                className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -224,7 +246,7 @@ export default function ActiveGames({ onJoinGame }: ActiveGamesProps) {
             </button>
           </div>
           <p
-            className={`text-white/60 text-sm ${isArabic ? 'font-arabic' : ''}`}
+            className={`text-theme-text-muted text-sm ${isArabic ? 'font-arabic' : ''}`}
           >
             {t('noActiveGames')}
           </p>
@@ -240,20 +262,21 @@ export default function ActiveGames({ onJoinGame }: ActiveGamesProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.8 }}
     >
-      <div className="bg-white/5 rounded-xl p-4 border border-white/10 backdrop-blur-sm">
+      <div className="bg-theme-surface/20 rounded-xl p-4 border border-theme-border backdrop-blur-sm">
         <div className="flex items-center justify-between mb-4">
           <h3
-            className={`text-lg font-semibold text-accent2 ${isArabic ? 'font-arabic' : ''}`}
+            className={`text-lg font-semibold text-theme-primary ${isArabic ? 'font-arabic' : ''}`}
           >
             {t('activeGames')}
           </h3>
           <button
             onClick={fetchActiveGames}
-            className="text-white/60 hover:text-accent2 transition-all"
+            disabled={refreshing}
+            className="text-theme-text-muted hover:text-theme-primary transition-all disabled:opacity-50"
             title={t('refreshGames')}
           >
             <svg
-              className="w-4 h-4"
+              className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`}
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -272,19 +295,19 @@ export default function ActiveGames({ onJoinGame }: ActiveGamesProps) {
           {games.map((game) => (
             <motion.div
               key={game.id}
-              className="bg-white/5 rounded-lg p-3 border border-white/10 hover:border-accent2/50 transition-all"
+              className="bg-theme-surface/20 rounded-lg p-3 border border-theme-border hover:border-theme-primary/50 transition-all"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
               <div className="flex justify-between items-start mb-2">
                 <div>
                   <div
-                    className={`font-semibold text-white ${isArabic ? 'font-arabic' : ''}`}
+                    className={`font-semibold text-theme-text ${isArabic ? 'font-arabic' : ''}`}
                   >
                     {game.host_name || 'Anonymous Host'}
                   </div>
                   <div
-                    className={`text-xs text-white/60 ${isArabic ? 'font-arabic' : ''}`}
+                    className={`text-xs text-theme-text-muted ${isArabic ? 'font-arabic' : ''}`}
                   >
                     {t('created')} {formatTimeAgo(game.created_at)}
                   </div>
@@ -292,8 +315,8 @@ export default function ActiveGames({ onJoinGame }: ActiveGamesProps) {
                 <div
                   className={`text-xs px-2 py-1 rounded-full ${
                     game.phase === 'LOBBY'
-                      ? 'bg-green-500/20 text-green-300 border border-green-500/30'
-                      : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                      ? 'bg-theme-success/20 text-theme-success border border-theme-success/30'
+                      : 'bg-theme-secondary/20 text-theme-secondary border border-theme-secondary/30'
                   } ${isArabic ? 'font-arabic' : ''}`}
                 >
                   {getPhaseDisplay(game.phase)}
@@ -302,13 +325,13 @@ export default function ActiveGames({ onJoinGame }: ActiveGamesProps) {
 
               <div className="flex justify-between items-center">
                 <div
-                  className={`text-xs text-white/60 ${isArabic ? 'font-arabic' : ''}`}
+                  className={`text-xs text-theme-text-muted ${isArabic ? 'font-arabic' : ''}`}
                 >
                   ID: {game.id}
                 </div>
                 <button
                   onClick={() => handleQuickJoin(game.id)}
-                  className={`px-3 py-1 text-sm rounded-lg bg-accent2/20 hover:bg-accent2/30 text-accent2 hover:text-white transition-all border border-accent2/30 hover:border-accent2 ${isArabic ? 'font-arabic' : ''}`}
+                  className={`px-3 py-1 text-sm rounded-lg bg-theme-primary/20 hover:bg-theme-primary/30 text-theme-primary hover:text-theme-text transition-all border border-theme-primary/30 hover:border-theme-primary ${isArabic ? 'font-arabic' : ''}`}
                 >
                   {t('quickJoin')}
                 </button>
@@ -317,8 +340,19 @@ export default function ActiveGames({ onJoinGame }: ActiveGamesProps) {
           ))}
         </div>
 
+        {/* Quick Join First Button */}
+        <div className="mt-4 pt-3 border-t border-theme-border">
+          <button
+            onClick={handleQuickJoinFirst}
+            disabled={games.length === 0}
+            className={`w-full px-4 py-2 text-sm rounded-lg bg-theme-secondary/20 hover:bg-theme-secondary/30 text-theme-secondary hover:text-theme-text transition-all border border-theme-secondary/30 hover:border-theme-secondary disabled:opacity-50 disabled:cursor-not-allowed ${isArabic ? 'font-arabic' : ''}`}
+          >
+            {games.length > 0 ? t('quickJoinFirst') || 'Quick Join First Game' : t('noGamesAvailable') || 'No Games Available'}
+          </button>
+        </div>
+
         <div
-          className={`mt-3 text-xs text-white/50 text-center ${isArabic ? 'font-arabic' : ''}`}
+          className={`mt-3 text-xs text-theme-text-muted text-center ${isArabic ? 'font-arabic' : ''}`}
         >
           {t('joinAsHostPlayer')}
         </div>
