@@ -6,8 +6,6 @@ import { motion } from 'framer-motion';
 import { useAtomValue } from 'jotai';
 import { useNavigate } from 'react-router-dom';
 
-
-
 export default function Landing() {
   const navigate = useNavigate();
   const { t } = useTranslation();
