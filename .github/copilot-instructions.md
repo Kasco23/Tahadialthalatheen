@@ -1,4 +1,8 @@
-# Copilot Instructions for Thirty C## Pull Request Checklist
+# Copilot Instructions for Thirty Quiz
+
+This document contains key instructions for GitHub Copilot and other AI coding agents when working with this project.
+
+## MCP Server IntegrationInstructions for Thirty C## Pull Request Checklist
 
 1. Code compiles (`pnpm tsc --noEmit`)
 2. ESLint passes (`pnpm lint`)
@@ -68,7 +72,7 @@ For local VS Code development, MCP servers are configured in the user's `mcp.jso
 3. Vitest passes (`pnpm test`)
 4. Bundle size guard (<200 kB JS)
 5. Regenerate dependency map if structure changes (`pnpm dep:graph`)
-6. Update `docs/DocsGuide.md` and `docs/TODOs.md` when behavior or docs change
+6. Update `docs/REFERENCE.md` and `docs/TODOs.md` when behavior or docs change
 
 ## Refactor Workflow (for AI Agents)
 
@@ -84,7 +88,7 @@ For local VS Code development, MCP servers are configured in the user's `mcp.jso
 - All new or updated documentation files must be created or updated under the `docs/` directory.
 - Whenever an automated agent (Copilot) adds documentation, notes, or design artifacts, it must:
   - Add/merge the file into `docs/`.
-  - Register the file and its purpose in `docs/DocsGuide.md` (see template in that file).
+  - Register the file and its purpose in `docs/INDEX.md` (comprehensive documentation index).
   - Update `docs/TODOs.md` to reflect how the new doc affects scope and outstanding work.
   - Log significant changes in `docs/CHANGELOG.md` following the Keep a Changelog format.
   - When modifying or superseding prior docs, the agent should mark old lines as struck-through using Markdown strikethrough (~~) and append a short rationale and timestamp.
@@ -107,14 +111,14 @@ For local VS Code development, MCP servers are configured in the user's `mcp.jso
 - `src/` – app source code
 - `src/segments/` – segment logic
 - `src/api/` – Supabase/Daily integration
-- `docs/` – canonical documentation (DocsGuide.md explains each file)
+- `docs/` – canonical documentation (see REFERENCE.md for file overview)
 - `full-dependency-map.json` – check for cycles
 - `docs/current-flow.mmd` – process/flowchart
 - `docs/PROJECT_OVERVIEW.md` – product overview
 
 ## When making code or doc changes (agent rules)
 
-- If you add or change behavior, update `docs/TODOs.md` and `docs/DocsGuide.md` as part of the same change.
+- If you add or change behavior, update `docs/TODOs.md` and `docs/REFERENCE.md` as part of the same change.
 - Use `pnpm` in all example commands inside docs.
 - Keep changes small and reversible; prefer feature branches `gpt/<desc>` for multi-file changes.
 

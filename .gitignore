@@ -44,6 +44,9 @@ coverage/
 
 .playwright-mcp/
 
+# Supabase CLI temp files (generated automatically)
+supabase/.temp/
+
 # Test artifacts
 playwright-report/
 test-results/

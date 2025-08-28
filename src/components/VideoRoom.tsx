@@ -447,7 +447,12 @@ function ScreenShareVideo() {
   );
 }
 
-function VideoRoomContent({ gameId, className = '', onLeave }: VideoRoomProps) {
+function VideoRoomContent({
+  gameId,
+  className = '',
+  onLeave,
+  observerMode = false,
+}: VideoRoomProps) {
   const daily = useDaily();
   const participantIds = useParticipantIds();
   const state = useGameState();
@@ -524,8 +529,10 @@ function VideoRoomContent({ gameId, className = '', onLeave }: VideoRoomProps) {
       userName = name;
     }
 
-    return { role: role || 'viewer', userName };
-  }, [state.hostName]);
+    // If in observer mode, force role to be viewer regardless of URL params
+    const effectiveRole = observerMode ? 'viewer' : role || 'viewer';
+    return { role: effectiveRole, userName };
+  }, [state.hostName, observerMode]);
 
   const { role, userName } = getUserInfo();
 
@@ -620,7 +627,7 @@ function VideoRoomContent({ gameId, className = '', onLeave }: VideoRoomProps) {
 
 // Main component wrapper with DailyProvider
 export default function VideoRoom(props: VideoRoomProps) {
-  const { gameId, className, onLeave, observerMode = false } = props;
+  const { className } = props;
   const state = useGameState();
   const [callObject, setCallObject] = useState<DailyCall | null>(null);
 

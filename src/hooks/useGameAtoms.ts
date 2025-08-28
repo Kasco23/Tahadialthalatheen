@@ -473,12 +473,11 @@ export function useGameActions() {
     [store],
   );
 
-  const checkVideoRoomExists = useCallback(
-    async (roomName: string) => {
-      try {
-        // Force production mode for video room check to ensure real API calls
-        // Temporarily disabled development mode to fix video room creation
-        /* Development mode: mock room check
+  const checkVideoRoomExists = useCallback(async (roomName: string) => {
+    try {
+      // Force production mode for video room check to ensure real API calls
+      // Temporarily disabled development mode to fix video room creation
+      /* Development mode: mock room check
         if (isDevelopmentMode()) {
           console.log('[DEV] Checking mock video room for roomName:', roomName);
 
@@ -504,50 +503,48 @@ export function useGameActions() {
         }
         */
 
-        // Production mode: use real Daily.co API
-        const result = await fetch(`/.netlify/functions/check-daily-room`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ roomName }),
-        });
+      // Production mode: use real Daily.co API
+      const result = await fetch(`/.netlify/functions/check-daily-room`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ roomName }),
+      });
 
-        const data = (await result.json()) as {
-          exists: boolean;
-          roomName?: string;
-          url?: string;
-          created?: string;
-          participants?: unknown[];
-          error?: string;
-        };
+      const data = (await result.json()) as {
+        exists: boolean;
+        roomName?: string;
+        url?: string;
+        created?: string;
+        participants?: unknown[];
+        error?: string;
+      };
 
-        if (data.error) {
-          console.error('Error checking room:', data.error);
-          return { success: false, error: data.error };
-        }
-
-        // Handle case where room exists but URL is missing (API issue)
-        if (data.exists && !data.url) {
-          const errorMsg =
-            'Room exists but API did not provide URL - please retry or contact support';
-          console.error('Video room check error:', errorMsg);
-          return { success: false, error: errorMsg };
-        }
-
-        return {
-          success: true,
-          exists: data.exists,
-          roomName: data.roomName,
-          url: data.url,
-          created: data.created,
-          participants: data.participants || [],
-        };
-      } catch (error) {
-        console.error('Failed to check video room:', error);
-        return { success: false, error: 'Network error' };
+      if (data.error) {
+        console.error('Error checking room:', data.error);
+        return { success: false, error: data.error };
       }
-    },
-    [store],
-  );
+
+      // Handle case where room exists but URL is missing (API issue)
+      if (data.exists && !data.url) {
+        const errorMsg =
+          'Room exists but API did not provide URL - please retry or contact support';
+        console.error('Video room check error:', errorMsg);
+        return { success: false, error: errorMsg };
+      }
+
+      return {
+        success: true,
+        exists: data.exists,
+        roomName: data.roomName,
+        url: data.url,
+        created: data.created,
+        participants: data.participants || [],
+      };
+    } catch (error) {
+      console.error('Failed to check video room:', error);
+      return { success: false, error: 'Network error' };
+    }
+  }, []);
 
   const generateDailyToken = useCallback(
     async (

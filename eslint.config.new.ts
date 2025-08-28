@@ -1,10 +1,10 @@
-const js = require('@eslint/js');
-const globals = require('globals');
-const reactHooks = require('eslint-plugin-react-hooks');
-const reactRefresh = require('eslint-plugin-react-refresh');
-const tseslint = require('typescript-eslint');
+import * as js from '@eslint/js';
+import * as reactHooks from 'eslint-plugin-react-hooks';
+import * as reactRefresh from 'eslint-plugin-react-refresh';
+import * as globals from 'globals';
+import tseslint from 'typescript-eslint';
 
-module.exports = tseslint.config([
+export default tseslint.config([
   // Ignore build output and archived code directories
   {
     ignores: ['dist', 'coverage', 'legacy/**', 'ignored/**', 'node_modules/**'],

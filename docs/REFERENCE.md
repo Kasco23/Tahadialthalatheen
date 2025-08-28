@@ -120,4 +120,4 @@ Questions are managed in `src/data/questions.ts` with customizable segment names
 
 - Keep theme assets small to respect bundle size limits
 - Avoid large imagery in themes
-- Register new theme documentation in `docs/DocsGuide.md`
+- Register new theme documentation in `docs/REFERENCE.md`

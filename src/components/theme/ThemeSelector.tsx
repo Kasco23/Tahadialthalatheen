@@ -39,7 +39,7 @@ export function ThemeSelector({
   className = '',
   onThemeChange,
 }: ThemeSelectorProps) {
-  const { t, language } = useTranslation();
+  const { language } = useTranslation();
   const [themeMode] = useAtom(themeModeAtom);
   const [selectedTeam] = useAtom(selectedTeamAtom);
   const [, setThemeMode] = useAtom(setThemeModeAtom);
