@@ -118,7 +118,7 @@ export default function ActiveGames({ onJoinGame }: ActiveGamesProps) {
       setError('No games available to join');
       return;
     }
-    
+
     // Join the first available game
     const firstGame = games[0];
     handleQuickJoin(firstGame.id);
@@ -347,7 +347,9 @@ export default function ActiveGames({ onJoinGame }: ActiveGamesProps) {
             disabled={games.length === 0}
             className={`w-full px-4 py-2 text-sm rounded-lg bg-theme-secondary/20 hover:bg-theme-secondary/30 text-theme-secondary hover:text-theme-text transition-all border border-theme-secondary/30 hover:border-theme-secondary disabled:opacity-50 disabled:cursor-not-allowed ${isArabic ? 'font-arabic' : ''}`}
           >
-            {games.length > 0 ? t('quickJoinFirst') || 'Quick Join First Game' : t('noGamesAvailable') || 'No Games Available'}
+            {games.length > 0
+              ? t('quickJoinFirst') || 'Quick Join First Game'
+              : t('noGamesAvailable') || 'No Games Available'}
           </button>
         </div>
 

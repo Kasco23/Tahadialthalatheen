@@ -507,7 +507,9 @@ export default function Lobby() {
             <div className="bg-theme-secondary/20 border border-theme-secondary/30 rounded-lg p-4 mb-4">
               <div className="flex items-center">
                 <div className="w-5 h-5 border-2 border-theme-secondary border-t-transparent rounded-full animate-spin mr-3"></div>
-                <span className="text-theme-secondary">Creating Video Room...</span>
+                <span className="text-theme-secondary">
+                  Creating Video Room...
+                </span>
               </div>
             </div>
           )}
@@ -544,7 +546,9 @@ export default function Lobby() {
             />
           ) : !videoRoomState.isCreating && !videoRoomState.error ? (
             <div className="text-center py-8">
-              <div className="text-theme-text-muted mb-4">Video Room Not Created</div>
+              <div className="text-theme-text-muted mb-4">
+                Video Room Not Created
+              </div>
               <div className="space-y-3">
                 <button
                   onClick={handleCreateVideoRoom}
@@ -588,7 +592,9 @@ export default function Lobby() {
                 <span className="text-theme-text-muted">Video Room:</span>
                 <span
                   className={
-                    state.videoRoomCreated ? 'text-theme-success' : 'text-theme-error'
+                    state.videoRoomCreated
+                      ? 'text-theme-success'
+                      : 'text-theme-error'
                   }
                 >
                   {state.videoRoomCreated ? 'Active' : 'Inactive'}
