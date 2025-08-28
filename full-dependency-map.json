@@ -55,15 +55,26 @@
     "src/components/theme/ThemeSelector.tsx"
   ],
   "src/context/GameContext.tsx": [
-    "src/context/defaults.ts",
+    "src/context/GameContextDefinition.ts",
     "src/context/gameReducer.ts",
     "src/context/initialGameState.ts"
   ],
   "src/context/GameContextDefinition.ts": [],
+  "src/context/GameContextDefinition.tsx": [
+    "src/context/gameReducer.ts"
+  ],
   "src/context/defaults.ts": [],
   "src/context/gameReducer.ts": [],
+  "src/context/gameUtils.ts": [
+    "src/context/defaults.ts",
+    "src/context/initialGameState.ts"
+  ],
   "src/context/initialGameState.ts": [
     "src/context/defaults.ts"
+  ],
+  "src/context/useGame.ts": [
+    "src/context/GameContextDefinition.ts",
+    "src/context/gameUtils.ts"
   ],
   "src/data/questions.ts": [],
   "src/hooks/useErrorLog.ts": [],
@@ -91,7 +102,6 @@
     "src/App.tsx"
   ],
   "src/pages/ApiStatus.tsx": [],
-  "src/pages/ApiStatusFixed.tsx": [],
   "src/pages/ControlRoom.tsx": [],
   "src/pages/CreateSession.tsx": [],
   "src/pages/FinalScores.tsx": [],
