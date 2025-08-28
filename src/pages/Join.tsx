@@ -228,7 +228,7 @@ export default function Join() {
           <div className="space-y-4">
             <motion.button
               onClick={() => handleJoinTypeSelect('host')}
-              className="w-full p-6 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/50 rounded-2xl text-white transition-all"
+              className="w-full p-6 bg-theme-secondary/20 hover:bg-theme-secondary/30 border border-theme-secondary/50 rounded-2xl text-theme-text transition-all"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
@@ -254,7 +254,7 @@ export default function Join() {
 
             <motion.button
               onClick={() => handleJoinTypeSelect('player')}
-              className="w-full p-6 bg-green-500/20 hover:bg-green-500/30 border border-green-500/50 rounded-2xl text-white transition-all"
+              className="w-full p-6 bg-theme-success/20 hover:bg-theme-success/30 border border-theme-success/50 rounded-2xl text-theme-text transition-all"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
@@ -496,7 +496,7 @@ export default function Join() {
               <button
                 type="submit"
                 disabled={!selectedFlag || !selectedTeam}
-                className={`flex-1 px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${isArabic ? 'font-arabic' : ''}`}
+                className={`flex-1 px-4 py-3 bg-theme-success hover:bg-theme-success/80 text-theme-text rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${isArabic ? 'font-arabic' : ''}`}
               >
                 {t('joinGame')}
               </button>

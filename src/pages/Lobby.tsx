@@ -482,51 +482,51 @@ export default function Lobby() {
         {/* Header */}
         <div className="text-center mb-8">
           <h1
-            className={`text-4xl font-bold text-white mb-4 ${language === 'ar' ? 'font-arabic' : ''}`}
+            className={`text-4xl font-bold text-theme-text mb-4 ${language === 'ar' ? 'font-arabic' : ''}`}
           >
             Game Lobby
           </h1>
-          <div className="text-accent2 text-lg">
+          <div className="text-theme-primary text-lg">
             {t('sessionId')}: <span className="font-mono">{gameId}</span>
           </div>
-          <div className="text-white/70 mt-2">
+          <div className="text-theme-text-muted mt-2">
             Connected Players: {connectedPlayers} | Role: {myParticipant.type}
           </div>
         </div>
 
         {/* Video Room Section */}
-        <div className="bg-white/5 rounded-xl p-6 border border-white/10 mb-8">
+        <div className="bg-theme-surface/20 rounded-xl p-6 border border-theme-border mb-8">
           <h2
-            className={`text-2xl font-bold text-white mb-4 ${language === 'ar' ? 'font-arabic' : ''}`}
+            className={`text-2xl font-bold text-theme-text mb-4 ${language === 'ar' ? 'font-arabic' : ''}`}
           >
             Video Room
           </h2>
 
           {/* Video Room Status */}
           {videoRoomState.isCreating && (
-            <div className="bg-blue-500/20 border border-blue-500/30 rounded-lg p-4 mb-4">
+            <div className="bg-theme-secondary/20 border border-theme-secondary/30 rounded-lg p-4 mb-4">
               <div className="flex items-center">
-                <div className="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin mr-3"></div>
-                <span className="text-blue-300">Creating Video Room...</span>
+                <div className="w-5 h-5 border-2 border-theme-secondary border-t-transparent rounded-full animate-spin mr-3"></div>
+                <span className="text-theme-secondary">Creating Video Room...</span>
               </div>
             </div>
           )}
 
           {videoRoomState.error && (
-            <div className="bg-red-500/20 border border-red-500/30 rounded-lg p-4 mb-4">
-              <div className="text-red-300">
+            <div className="bg-theme-error/20 border border-theme-error/30 rounded-lg p-4 mb-4">
+              <div className="text-theme-error">
                 Video Room Error: {videoRoomState.error}
               </div>
               <div className="flex gap-2 mt-2">
                 <button
                   onClick={handleCreateVideoRoom}
-                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+                  className="px-4 py-2 bg-theme-error/80 hover:bg-theme-error text-theme-text rounded-lg transition-colors"
                 >
                   Retry Creating Room
                 </button>
                 <button
                   onClick={handleSyncVideoRoomState}
-                  className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-sm"
+                  className="px-4 py-2 bg-theme-success/80 hover:bg-theme-success text-theme-text rounded-lg transition-colors text-sm"
                   title="If the room exists but shows error, try syncing state"
                 >
                   🔄 Sync State
@@ -544,17 +544,17 @@ export default function Lobby() {
             />
           ) : !videoRoomState.isCreating && !videoRoomState.error ? (
             <div className="text-center py-8">
-              <div className="text-gray-400 mb-4">Video Room Not Created</div>
+              <div className="text-theme-text-muted mb-4">Video Room Not Created</div>
               <div className="space-y-3">
                 <button
                   onClick={handleCreateVideoRoom}
-                  className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                  className="px-6 py-3 bg-theme-primary hover:bg-theme-primary/80 text-theme-text rounded-lg transition-colors"
                 >
                   Create Video Room
                 </button>
                 <button
                   onClick={handleSyncVideoRoomState}
-                  className="block mx-auto px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-sm"
+                  className="block mx-auto px-4 py-2 bg-theme-success/80 hover:bg-theme-success text-theme-text rounded-lg transition-colors text-sm"
                   title="If the room exists but UI shows 'Not Created', click to sync state"
                 >
                   🔄 Sync Video Room State
@@ -567,28 +567,28 @@ export default function Lobby() {
         {/* Game Info */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Session Info */}
-          <div className="bg-white/5 rounded-xl p-6 border border-white/10">
+          <div className="bg-theme-surface/20 rounded-xl p-6 border border-theme-border">
             <h3
-              className={`text-lg font-bold text-white mb-4 ${language === 'ar' ? 'font-arabic' : ''}`}
+              className={`text-lg font-bold text-theme-text mb-4 ${language === 'ar' ? 'font-arabic' : ''}`}
             >
               Session Information
             </h3>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-white/70">Phase:</span>
-                <span className="text-accent2">{state.phase}</span>
+                <span className="text-theme-text-muted">Phase:</span>
+                <span className="text-theme-primary">{state.phase}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-white/70">{t('hostName')}:</span>
-                <span className="text-white">
+                <span className="text-theme-text-muted">{t('hostName')}:</span>
+                <span className="text-theme-text">
                   {state.hostName || 'Unknown'}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-white/70">Video Room:</span>
+                <span className="text-theme-text-muted">Video Room:</span>
                 <span
                   className={
-                    state.videoRoomCreated ? 'text-green-400' : 'text-red-400'
+                    state.videoRoomCreated ? 'text-theme-success' : 'text-theme-error'
                   }
                 >
                   {state.videoRoomCreated ? 'Active' : 'Inactive'}
@@ -598,9 +598,9 @@ export default function Lobby() {
           </div>
 
           {/* Players */}
-          <div className="bg-white/5 rounded-xl p-6 border border-white/10">
+          <div className="bg-theme-surface/20 rounded-xl p-6 border border-theme-border">
             <h3
-              className={`text-lg font-bold text-white mb-4 ${language === 'ar' ? 'font-arabic' : ''}`}
+              className={`text-lg font-bold text-theme-text mb-4 ${language === 'ar' ? 'font-arabic' : ''}`}
             >
               Players
             </h3>
@@ -612,15 +612,15 @@ export default function Lobby() {
                 >
                   <div className="flex items-center">
                     <div
-                      className={`w-3 h-3 rounded-full mr-2 ${player.isConnected ? 'bg-green-500' : 'bg-red-500'}`}
+                      className={`w-3 h-3 rounded-full mr-2 ${player.isConnected ? 'bg-theme-success' : 'bg-theme-error'}`}
                     ></div>
-                    <span className="text-white">{player.name}</span>
+                    <span className="text-theme-text">{player.name}</span>
                   </div>
-                  <span className="text-accent2">{player.score}</span>
+                  <span className="text-theme-primary">{player.score}</span>
                 </div>
               ))}
               {Object.keys(state.players).length === 0 && (
-                <div className="text-white/50 text-center py-4">
+                <div className="text-theme-text-muted text-center py-4">
                   No Players Joined Yet
                 </div>
               )}
@@ -628,9 +628,9 @@ export default function Lobby() {
           </div>
 
           {/* Controls */}
-          <div className="bg-white/5 rounded-xl p-6 border border-white/10">
+          <div className="bg-theme-surface/20 rounded-xl p-6 border border-theme-border">
             <h3
-              className={`text-lg font-bold text-white mb-4 ${language === 'ar' ? 'font-arabic' : ''}`}
+              className={`text-lg font-bold text-theme-text mb-4 ${language === 'ar' ? 'font-arabic' : ''}`}
             >
               Controls
             </h3>
@@ -641,7 +641,7 @@ export default function Lobby() {
                   onClick={() =>
                     navigate(`/control-room`, { state: { gameId } })
                   }
-                  className="w-full px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+                  className="w-full px-4 py-2 bg-theme-accent/80 hover:bg-theme-accent text-theme-text rounded-lg transition-colors"
                 >
                   Open Control Room
                 </button>
@@ -649,7 +649,7 @@ export default function Lobby() {
 
               <button
                 onClick={() => navigate('/')}
-                className="w-full px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+                className="w-full px-4 py-2 bg-theme-surface hover:bg-theme-surface/80 text-theme-text-muted hover:text-theme-text rounded-lg transition-colors border border-theme-border"
               >
                 {t('backToHome')}
               </button>
