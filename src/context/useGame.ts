@@ -31,7 +31,7 @@ export function useGame() {
   const advanceQuestion = () => dispatch({ type: 'ADVANCE_QUESTION' });
 
   // ================= Daily.co video helpers =================
-  const callFn = async (name: string, payload: unknown) => {
+  const callFn = async (name: string, payload: Record<string, unknown>) => {
     try {
       const result = await fetch('/.netlify/functions/daily-co-proxy', {
         method: 'POST',
