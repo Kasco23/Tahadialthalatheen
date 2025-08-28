@@ -45,8 +45,8 @@ const gameEventHandler = async (
           'Host verification for restricted operations',
           'Player verification for game participation',
           'Enhanced RLS policy enforcement',
-          'Improved error handling and monitoring'
-        ]
+          'Improved error handling and monitoring',
+        ],
       },
       code: 'ENDPOINT_DEPRECATED',
     }),

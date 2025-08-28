@@ -48,17 +48,20 @@ This checklist ensures safe deployment of the Supabase authentication integratio
 ### Phase 1: Database Migration (Low Risk)
 
 1. [ ] **Create Production Backup**
+
    ```sql
    -- Create backup of current production state
    pg_dump --clean --if-exists --no-owner --no-privileges production_db > backup_pre_auth_$(date +%Y%m%d_%H%M%S).sql
    ```
 
 2. [ ] **Apply Schema Migration**
+
    ```bash
    pnpm supabase db push --linked
    ```
 
 3. [ ] **Verify Migration Success**
+
    ```bash
    # Test schema validation
    node test-schema-validation.js
@@ -116,6 +119,7 @@ This checklist ensures safe deployment of the Supabase authentication integratio
 ### Immediate Rollback (if critical issues detected)
 
 1. [ ] **Revert Function Deployments**
+
    ```bash
    # Revert to previous function versions
    git revert <deployment-commit>
@@ -123,6 +127,7 @@ This checklist ensures safe deployment of the Supabase authentication integratio
    ```
 
 2. [ ] **Restore Database** (if data corruption detected)
+
    ```bash
    # Restore from backup (LAST RESORT)
    psql production_db < backup_pre_auth_YYYYMMDD_HHMMSS.sql
@@ -135,6 +140,7 @@ This checklist ensures safe deployment of the Supabase authentication integratio
 ### Partial Rollback (for specific functions)
 
 1. [ ] **Individual Function Rollback**
+
    ```bash
    # Revert specific function
    git checkout HEAD~1 -- netlify/functions/problematic-function.ts
@@ -171,21 +177,25 @@ This checklist ensures safe deployment of the Supabase authentication integratio
 ## Success Criteria
 
 ✅ **Security Enhanced**
+
 - All permissive RLS policies replaced
 - No unauthorized access to restricted resources
 - Proper user isolation enforced
 
 ✅ **Functionality Maintained**
+
 - All existing features work as expected
 - Anonymous users can still join games
 - No breaking changes for existing users
 
 ✅ **Performance Acceptable**
+
 - Response times within 10% of baseline
 - No significant increase in error rates
 - Database performance maintained
 
 ✅ **Monitoring Active**
+
 - Authentication events properly tracked
 - Security violations detected and alerted
 - Performance metrics collected
@@ -205,7 +215,7 @@ This checklist ensures safe deployment of the Supabase authentication integratio
 
 ---
 
-**Deployment Date**: _____________
-**Deployed By**: _____________
-**Reviewed By**: _____________
+**Deployment Date**: ******\_******
+**Deployed By**: ******\_******
+**Reviewed By**: ******\_******
 **Status**: [ ] Success [ ] Partial [ ] Rollback Required

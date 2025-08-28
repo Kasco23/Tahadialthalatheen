@@ -1,4 +1,8 @@
-import { GameDatabase, type GameRecord, type PlayerRecord } from './gameDatabase.js';
+import {
+  GameDatabase,
+  type GameRecord,
+  type PlayerRecord,
+} from './gameDatabase.js';
 
 /**
  * Authentication-aware game operations that integrate with Supabase Auth
@@ -20,14 +24,14 @@ export async function createAuthenticatedGame(
   hostCode: string,
   hostUser: AuthenticatedUser,
   hostName?: string,
-  segmentSettings?: Record<string, number>
+  segmentSettings?: Record<string, number>,
 ): Promise<GameRecord | null> {
   return GameDatabase.createGame(
     gameId,
     hostCode,
     hostName || null,
     segmentSettings || {},
-    hostUser.id
+    hostUser.id,
   );
 }
 
@@ -45,7 +49,7 @@ export async function addAuthenticatedPlayer(
     role?: string;
     isHost?: boolean;
     sessionId?: string;
-  }
+  },
 ): Promise<PlayerRecord | null> {
   return GameDatabase.addPlayer(playerId, gameId, {
     ...playerData,
@@ -65,7 +69,7 @@ export async function addAnonymousPlayer(
     club?: string;
     role?: string;
     sessionId?: string;
-  }
+  },
 ): Promise<PlayerRecord | null> {
   return GameDatabase.addPlayer(playerId, gameId, {
     ...playerData,
@@ -79,7 +83,7 @@ export async function addAnonymousPlayer(
  */
 export async function verifyGameHostAccess(
   gameId: string,
-  userId: string
+  userId: string,
 ): Promise<boolean> {
   const game = await GameDatabase.getGame(gameId);
   return game?.host_id === userId;
@@ -90,10 +94,10 @@ export async function verifyGameHostAccess(
  */
 export async function verifyPlayerAccess(
   gameId: string,
-  userId: string
+  userId: string,
 ): Promise<boolean> {
   const players = await GameDatabase.getGamePlayers(gameId);
-  return players.some(player => player.user_id === userId);
+  return players.some((player) => player.user_id === userId);
 }
 
 /**
@@ -101,10 +105,10 @@ export async function verifyPlayerAccess(
  */
 export async function getUserPlayer(
   gameId: string,
-  userId: string
+  userId: string,
 ): Promise<PlayerRecord | null> {
   const players = await GameDatabase.getGamePlayers(gameId);
-  return players.find(player => player.user_id === userId) || null;
+  return players.find((player) => player.user_id === userId) || null;
 }
 
 /**
@@ -114,7 +118,7 @@ export async function getUserPlayer(
 export async function claimGameAsHost(
   gameId: string,
   hostCode: string,
-  userId: string
+  userId: string,
 ): Promise<boolean> {
   // Verify the user has the correct host code
   const game = await GameDatabase.getGameByHostCode(gameId, hostCode);
@@ -131,7 +135,7 @@ export async function claimGameAsHost(
   const updated = await GameDatabase.updateGame(gameId, {
     host_id: userId,
     status: 'active',
-    last_activity: new Date().toISOString()
+    last_activity: new Date().toISOString(),
   });
 
   return !!updated;
@@ -143,11 +147,11 @@ export async function claimGameAsHost(
 export async function authenticateExistingPlayer(
   playerId: string,
   gameId: string,
-  userId: string
+  userId: string,
 ): Promise<boolean> {
   const updated = await GameDatabase.updatePlayer(playerId, {
     user_id: userId,
-    last_active: new Date().toISOString()
+    last_active: new Date().toISOString(),
   });
 
   return !!updated;

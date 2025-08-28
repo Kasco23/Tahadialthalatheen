@@ -62,7 +62,11 @@ const joinGameHandler = async (
     const requestData: JoinGameRequest = JSON.parse(event.body || '{}');
 
     // Validate request data
-    if (!requestData.gameId || !requestData.playerId || !requestData.playerName) {
+    if (
+      !requestData.gameId ||
+      !requestData.playerId ||
+      !requestData.playerName
+    ) {
       return {
         statusCode: 400,
         headers: {
@@ -140,7 +144,8 @@ const joinGameHandler = async (
       console.error('Error adding player to game:', joinError);
 
       // Handle specific error cases
-      if (joinError.code === '23503') { // Foreign key violation
+      if (joinError.code === '23503') {
+        // Foreign key violation
         return {
           statusCode: 404,
           headers: {
@@ -169,18 +174,16 @@ const joinGameHandler = async (
     }
 
     // Log the player join event
-    await authContext.supabase
-      .from('game_events')
-      .insert({
-        game_id: requestData.gameId,
-        event_type: 'player_joined',
-        event_data: {
-          player_id: requestData.playerId,
-          player_name: requestData.playerName,
-          is_authenticated: authContext.isAuthenticated,
-          user_id: authContext.userId || null,
-        },
-      });
+    await authContext.supabase.from('game_events').insert({
+      game_id: requestData.gameId,
+      event_type: 'player_joined',
+      event_data: {
+        player_id: requestData.playerId,
+        player_name: requestData.playerName,
+        is_authenticated: authContext.isAuthenticated,
+        user_id: authContext.userId || null,
+      },
+    });
 
     // Update game status to active if this is the first player
     const { count: playerCount } = await authContext.supabase

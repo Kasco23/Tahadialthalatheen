@@ -9,14 +9,19 @@ import type { AuthContext } from './_auth.js';
  * Track authentication events for monitoring and analytics
  */
 export function trackAuthEvent(
-  event: 'auth_context_created' | 'auth_required' | 'auth_failed' | 'host_verification' | 'player_verification',
+  event:
+    | 'auth_context_created'
+    | 'auth_required'
+    | 'auth_failed'
+    | 'host_verification'
+    | 'player_verification',
   context: {
     functionName: string;
     userId?: string;
     gameId?: string;
     isAuthenticated?: boolean;
     error?: string;
-  }
+  },
 ) {
   Sentry.addBreadcrumb({
     category: 'auth',
@@ -44,7 +49,10 @@ export function trackAuthEvent(
     });
 
     if (event === 'auth_failed' && context.error) {
-      Sentry.captureMessage(`Authentication failed: ${context.error}`, 'warning');
+      Sentry.captureMessage(
+        `Authentication failed: ${context.error}`,
+        'warning',
+      );
     } else {
       Sentry.captureMessage(`Auth event: ${event}`, 'info');
     }
@@ -63,7 +71,7 @@ export function trackDatabaseOperation(
     recordId?: string;
     success: boolean;
     error?: string;
-  }
+  },
 ) {
   Sentry.addBreadcrumb({
     category: 'database',
@@ -92,7 +100,9 @@ export function trackDatabaseOperation(
         recordId: context.recordId,
       });
 
-      Sentry.captureException(new Error(`Database ${operation} failed: ${context.error}`));
+      Sentry.captureException(
+        new Error(`Database ${operation} failed: ${context.error}`),
+      );
     });
   }
 }
@@ -101,16 +111,23 @@ export function trackDatabaseOperation(
  * Track game security events (host verification, unauthorized access attempts)
  */
 export function trackSecurityEvent(
-  event: 'unauthorized_host_access' | 'unauthorized_player_access' | 'rls_policy_block' | 'permission_granted',
+  event:
+    | 'unauthorized_host_access'
+    | 'unauthorized_player_access'
+    | 'rls_policy_block'
+    | 'permission_granted',
   context: {
     functionName: string;
     userId?: string;
     gameId: string;
     attemptedAction: string;
     reason?: string;
-  }
+  },
 ) {
-  const level = event.startsWith('unauthorized') || event === 'rls_policy_block' ? 'warning' : 'info';
+  const level =
+    event.startsWith('unauthorized') || event === 'rls_policy_block'
+      ? 'warning'
+      : 'info';
 
   Sentry.addBreadcrumb({
     category: 'security',
@@ -138,7 +155,10 @@ export function trackSecurityEvent(
     });
 
     if (level === 'warning') {
-      Sentry.captureMessage(`Security violation: ${event} in ${context.functionName}`, 'warning');
+      Sentry.captureMessage(
+        `Security violation: ${event} in ${context.functionName}`,
+        'warning',
+      );
     } else {
       Sentry.captureMessage(`Security event: ${event}`, 'info');
     }
@@ -155,7 +175,7 @@ export function captureAuthError(
     authContext?: AuthContext;
     gameId?: string;
     operation?: string;
-  }
+  },
 ) {
   Sentry.withScope((scope) => {
     scope.setTag('error_type', 'authentication');
@@ -190,7 +210,7 @@ export function captureAuthError(
 export async function measureAuthPerformance<T>(
   operation: string,
   functionName: string,
-  asyncFn: () => Promise<T>
+  asyncFn: () => Promise<T>,
 ): Promise<T> {
   const startTime = Date.now();
 

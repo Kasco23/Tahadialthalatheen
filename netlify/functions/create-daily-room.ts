@@ -115,7 +115,11 @@ const createDailyRoomHandler = async (
 
     // If gameId is provided and user is authenticated, verify host permissions
     if (gameId && authContext.isAuthenticated) {
-      const isHost = await verifyGameHost(authContext.supabase, gameId, authContext.userId);
+      const isHost = await verifyGameHost(
+        authContext.supabase,
+        gameId,
+        authContext.userId,
+      );
       if (!isHost) {
         return {
           statusCode: 403,
@@ -158,7 +162,10 @@ const createDailyRoomHandler = async (
 
     // Check if room is already created in database to prevent duplicates
     console.log('Checking database for existing video room:', roomNameForDaily);
-    const roomStatus = await checkVideoRoomStatus(roomNameForDaily, authContext.supabase);
+    const roomStatus = await checkVideoRoomStatus(
+      roomNameForDaily,
+      authContext.supabase,
+    );
 
     if (roomStatus.alreadyCreated && roomStatus.roomUrl) {
       console.log('Room already exists in database, returning existing URL');

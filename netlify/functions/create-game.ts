@@ -100,7 +100,8 @@ const createGameHandler = async (
       console.error('Error creating game:', createError);
 
       // Handle specific error cases
-      if (createError.code === '23505') { // Unique constraint violation
+      if (createError.code === '23505') {
+        // Unique constraint violation
         return {
           statusCode: 409,
           headers: {
@@ -129,17 +130,15 @@ const createGameHandler = async (
     }
 
     // Log the game creation event
-    await authContext.supabase
-      .from('game_events')
-      .insert({
-        game_id: requestData.gameId,
-        event_type: 'game_created',
-        event_data: {
-          host_id: authContext.userId,
-          host_name: requestData.hostName,
-          segment_settings: requestData.segmentSettings,
-        },
-      });
+    await authContext.supabase.from('game_events').insert({
+      game_id: requestData.gameId,
+      event_type: 'game_created',
+      event_data: {
+        host_id: authContext.userId,
+        host_name: requestData.hostName,
+        segment_settings: requestData.segmentSettings,
+      },
+    });
 
     const response: CreateGameResponse = {
       success: true,

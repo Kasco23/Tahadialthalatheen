@@ -1,6 +1,10 @@
 import type { HandlerContext, HandlerEvent } from '@netlify/functions';
 import { getAuthContext, verifyGameHost, verifyGamePlayer } from './_auth.js';
-import { trackAuthEvent, trackDatabaseOperation, trackSecurityEvent } from './_authMonitoring.js';
+import {
+  trackAuthEvent,
+  trackDatabaseOperation,
+  trackSecurityEvent,
+} from './_authMonitoring.js';
 import { withSentry } from './_sentry.js';
 
 /**
@@ -144,7 +148,7 @@ const gameEventHandler = async (
       'video_room_deleted',
       'phase_changed',
       'quiz_started',
-      'quiz_ended'
+      'quiz_ended',
     ];
 
     if (restrictedEvents.includes(requestData.eventType)) {
@@ -171,7 +175,11 @@ const gameEventHandler = async (
       }
 
       // Verify host permissions for restricted events
-      const isHost = await verifyGameHost(authContext.supabase, requestData.gameId, authContext.userId || '');
+      const isHost = await verifyGameHost(
+        authContext.supabase,
+        requestData.gameId,
+        authContext.userId || '',
+      );
       if (!isHost) {
         trackSecurityEvent('unauthorized_host_access', {
           functionName: 'game-event',
@@ -205,7 +213,11 @@ const gameEventHandler = async (
 
     // For player-specific events, verify player access
     if (requestData.playerId && authContext.isAuthenticated) {
-      const isPlayer = await verifyGamePlayer(authContext.supabase, requestData.gameId, authContext.userId || '');
+      const isPlayer = await verifyGamePlayer(
+        authContext.supabase,
+        requestData.gameId,
+        authContext.userId || '',
+      );
       if (!isPlayer) {
         trackSecurityEvent('unauthorized_player_access', {
           functionName: 'game-event',

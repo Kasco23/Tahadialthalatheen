@@ -33,7 +33,7 @@ interface GameDatabaseInfo {
 // Daily.co integration diagnostics and analytics
 const dailyDiagnosticsHandler = async (
   event: HandlerEvent,
-  _context: HandlerContext
+  _context: HandlerContext,
 ) => {
   // Handle CORS preflight requests
   if (event.httpMethod === 'OPTIONS') {
@@ -115,7 +115,7 @@ const dailyDiagnosticsHandler = async (
       roomsData = data.data || [];
     }
 
-        // Test Supabase connectivity using authenticated context
+    // Test Supabase connectivity using authenticated context
     let supabaseHealthStatus = { accessible: false, game_count: 0 };
     let gamesData: GameDatabaseInfo[] = [];
 

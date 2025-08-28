@@ -1,5 +1,10 @@
 import type { HandlerContext, HandlerEvent } from '@netlify/functions';
-import { getAuthContext, requireAuth, verifyGameHost, verifyGamePlayer } from './_auth.js';
+import {
+  getAuthContext,
+  requireAuth,
+  verifyGameHost,
+  verifyGamePlayer,
+} from './_auth.js';
 import { withSentry } from './_sentry.js';
 
 interface GameEventRequest {
@@ -102,14 +107,18 @@ const gameEventHandler = async (
       'quiz_started',
       'quiz_ended',
       'game_settings_updated',
-      'video_room_created'
+      'video_room_created',
     ].includes(requestData.eventType);
 
     if (isRestrictedEvent) {
       // These events require authentication and host ownership
       requireAuth(authContext);
 
-      const isHost = await verifyGameHost(authContext.supabase, requestData.gameId, authContext.userId);
+      const isHost = await verifyGameHost(
+        authContext.supabase,
+        requestData.gameId,
+        authContext.userId,
+      );
       if (!isHost) {
         return {
           statusCode: 403,
@@ -123,11 +132,18 @@ const gameEventHandler = async (
           }),
         };
       }
-    } else if (requestData.eventType === 'score_updated' && requestData.playerId) {
+    } else if (
+      requestData.eventType === 'score_updated' &&
+      requestData.playerId
+    ) {
       // Score updates require authentication and player verification
       requireAuth(authContext);
 
-      const isPlayer = await verifyGamePlayer(authContext.supabase, requestData.gameId, authContext.userId);
+      const isPlayer = await verifyGamePlayer(
+        authContext.supabase,
+        requestData.gameId,
+        authContext.userId,
+      );
       if (!isPlayer) {
         return {
           statusCode: 403,
@@ -197,7 +213,7 @@ const gameEventHandler = async (
           .from('games')
           .update({
             phase: newPhase,
-            updated_at: new Date().toISOString()
+            updated_at: new Date().toISOString(),
           })
           .eq('id', requestData.gameId);
 
@@ -214,7 +230,7 @@ const gameEventHandler = async (
           .update({
             current_segment: requestData.eventData.segment as string,
             phase: 'QUIZ',
-            updated_at: new Date().toISOString()
+            updated_at: new Date().toISOString(),
           })
           .eq('id', requestData.gameId);
         break;
@@ -225,7 +241,7 @@ const gameEventHandler = async (
           .from('games')
           .update({
             phase: 'RESULTS',
-            updated_at: new Date().toISOString()
+            updated_at: new Date().toISOString(),
           })
           .eq('id', requestData.gameId);
         break;
@@ -237,7 +253,7 @@ const gameEventHandler = async (
             .from('players')
             .update({
               score: requestData.eventData.new_score as number,
-              last_active: new Date().toISOString()
+              last_active: new Date().toISOString(),
             })
             .eq('id', requestData.playerId)
             .eq('game_id', requestData.gameId)

@@ -10,7 +10,9 @@ export interface AuthContext {
   supabase: SupabaseClient;
 }
 
-export async function getAuthContext(event: HandlerEvent): Promise<AuthContext> {
+export async function getAuthContext(
+  event: HandlerEvent,
+): Promise<AuthContext> {
   if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
     throw new Error('Supabase configuration missing');
   }
@@ -21,7 +23,7 @@ export async function getAuthContext(event: HandlerEvent): Promise<AuthContext> 
   // Create Supabase client
   const supabase = createClient(
     process.env.SUPABASE_URL,
-    process.env.SUPABASE_ANON_KEY
+    process.env.SUPABASE_ANON_KEY,
   );
 
   if (authHeader && authHeader.startsWith('Bearer ')) {
@@ -29,7 +31,10 @@ export async function getAuthContext(event: HandlerEvent): Promise<AuthContext> 
 
     try {
       // Verify the JWT token and get user
-      const { data: { user }, error } = await supabase.auth.getUser(token);
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser(token);
 
       if (error || !user) {
         console.warn('Invalid or expired auth token:', error?.message);
@@ -46,13 +51,13 @@ export async function getAuthContext(event: HandlerEvent): Promise<AuthContext> 
               Authorization: `Bearer ${token}`,
             },
           },
-        }
+        },
       );
 
       return {
         userId: user.id,
         isAuthenticated: true,
-        supabase: authenticatedSupabase
+        supabase: authenticatedSupabase,
       };
     } catch (error) {
       console.warn('Auth token verification failed:', error);
@@ -67,7 +72,9 @@ export async function getAuthContext(event: HandlerEvent): Promise<AuthContext> 
 /**
  * Require authentication for protected endpoints
  */
-export function requireAuth(authContext: AuthContext): asserts authContext is AuthContext & { userId: string } {
+export function requireAuth(
+  authContext: AuthContext,
+): asserts authContext is AuthContext & { userId: string } {
   if (!authContext.isAuthenticated || !authContext.userId) {
     throw new Error('Authentication required');
   }
@@ -79,7 +86,7 @@ export function requireAuth(authContext: AuthContext): asserts authContext is Au
 export async function verifyGameHost(
   supabase: SupabaseClient,
   gameId: string,
-  userId: string
+  userId: string,
 ): Promise<boolean> {
   const { data, error } = await supabase
     .from('games')
@@ -100,7 +107,7 @@ export async function verifyGameHost(
 export async function verifyGamePlayer(
   supabase: SupabaseClient,
   gameId: string,
-  userId: string
+  userId: string,
 ): Promise<boolean> {
   const { data, error } = await supabase
     .from('players')
