@@ -50,6 +50,7 @@ export interface GameRecord {
   host_code: string; // Host code used for auth; non-unique
   host_name: string | null;
   host_is_connected: boolean; // Track host connection status
+  host_id: string | null; // NEW: UUID of authenticated host user
   phase: string; // 'CONFIG' | 'LOBBY' | 'PLAYING' | 'COMPLETED'
   current_segment: string | null;
   current_question_index: number;
@@ -58,6 +59,8 @@ export interface GameRecord {
   video_room_url: string | null;
   video_room_created: boolean;
   segment_settings: Record<string, number>;
+  status: string; // NEW: 'waiting' | 'active' | 'completed'
+  last_activity: string; // NEW: timestamp for cleanup
   created_at: string;
   updated_at: string;
 }
@@ -73,6 +76,9 @@ export interface PlayerRecord {
   strikes: number;
   is_connected: boolean;
   special_buttons: Record<string, boolean>;
+  user_id: string | null; // NEW: UUID of authenticated user
+  is_host: boolean; // NEW: whether this player is also the host
+  session_id: string | null; // NEW: for session tracking
   joined_at: string;
   last_active: string;
 }
@@ -117,12 +123,14 @@ export class GameDatabase {
    * @param hostCode      full host code e.g. ABC123-HOST
    * @param hostName      optional display name
    * @param segmentSettings  map of segment codes to question counts
+   * @param hostId        UUID of authenticated host user
    */
   static async createGame(
     gameId: string,
     hostCode: string,
     hostName: string | null = null,
     segmentSettings: Record<string, number> = {},
+    hostId: string | null = null,
   ): Promise<GameRecord | null> {
     // Development mode: use in-memory storage
     if (shouldUseDevelopmentMode()) {
@@ -137,6 +145,7 @@ export class GameDatabase {
         host_code: hostCode,
         host_name: hostName,
         host_is_connected: false,
+        host_id: hostId, // Set the authenticated host user ID
         phase: 'CONFIG',
         current_segment: null,
         current_question_index: 0,
@@ -147,6 +156,8 @@ export class GameDatabase {
         segment_settings: Object.keys(segmentSettings).length
           ? segmentSettings
           : FALLBACK_SEGMENT_SETTINGS,
+        status: 'waiting',
+        last_activity: new Date().toISOString(),
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
@@ -171,7 +182,10 @@ export class GameDatabase {
           id: gameId,
           host_code: hostCode,
           host_name: hostName,
+          host_id: hostId,
           phase: 'CONFIG',
+          status: 'waiting',
+          last_activity: new Date().toISOString(),
           segment_settings: Object.keys(segmentSettings).length
             ? segmentSettings
             : FALLBACK_SEGMENT_SETTINGS,
@@ -438,6 +452,9 @@ export class GameDatabase {
       flag?: string;
       club?: string;
       role?: string;
+      userId?: string; // NEW: authenticated user ID
+      isHost?: boolean; // NEW: whether this player is the host
+      sessionId?: string; // NEW: session tracking
     },
   ): Promise<PlayerRecord | null> {
     if (!this.isConfigured()) return null;
@@ -460,6 +477,9 @@ export class GameDatabase {
           flag: playerData.flag || null,
           club: playerData.club || null,
           role: playerData.role || 'playerA',
+          user_id: playerData.userId || null,
+          is_host: playerData.isHost || false,
+          session_id: playerData.sessionId || null,
           is_connected: true,
         })
         .select()

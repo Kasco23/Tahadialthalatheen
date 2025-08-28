@@ -1,4 +1,5 @@
 import type { HandlerContext, HandlerEvent } from '@netlify/functions';
+import { getAuthContext } from './_auth.js';
 import { withSentry } from './_sentry.js';
 
 /**
@@ -60,15 +61,11 @@ const supabaseHealthHandler = async (
   }
 
   try {
-    // Test Supabase connectivity
-    const { createClient } = await import('@supabase/supabase-js');
-    const supabase = createClient(
-      process.env.SUPABASE_URL,
-      process.env.SUPABASE_ANON_KEY,
-    );
+    // Get authentication context for secure database access
+    const authContext = await getAuthContext(event);
 
-    // Simple query to test connectivity
-    const { error, count } = await supabase
+    // Simple query to test connectivity using authenticated client
+    const { error, count } = await authContext.supabase
       .from('games')
       .select('id', { count: 'exact' })
       .limit(1);

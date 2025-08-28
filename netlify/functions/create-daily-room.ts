@@ -1,24 +1,14 @@
 import type { HandlerContext, HandlerEvent } from '@netlify/functions';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { getAuthContext, verifyGameHost } from './_auth.js';
 import { createApiResponse, withSentry } from './_sentry.js';
-
-// Import Supabase for database check
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
 
 // Function to check if video room is already being created
 async function checkVideoRoomStatus(
   gameId: string,
+  supabase: SupabaseClient,
 ): Promise<{ alreadyCreated: boolean; roomUrl?: string }> {
-  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-    console.log('Supabase not configured, skipping database check');
-    return { alreadyCreated: false };
-  }
-
   try {
-    // Use dynamic import to load Supabase only when needed
-    const { createClient } = await import('@supabase/supabase-js');
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
     const { data, error } = await supabase
       .from('games')
       .select('video_room_created, video_room_url')
@@ -92,6 +82,9 @@ const createDailyRoomHandler = async (
   }
 
   try {
+    // Get authentication context - room creation requires authentication
+    const authContext = await getAuthContext(event);
+
     let requestBody;
     try {
       requestBody = JSON.parse(event.body || '{}');
@@ -106,7 +99,7 @@ const createDailyRoomHandler = async (
       };
     }
 
-    const { roomName, properties = {} } = requestBody;
+    const { roomName, properties = {}, gameId } = requestBody;
 
     // Validate required parameters
     if (!roomName) {
@@ -118,6 +111,21 @@ const createDailyRoomHandler = async (
           code: 'MISSING_ROOM_NAME',
         }),
       };
+    }
+
+    // If gameId is provided and user is authenticated, verify host permissions
+    if (gameId && authContext.isAuthenticated) {
+      const isHost = await verifyGameHost(authContext.supabase, gameId, authContext.userId);
+      if (!isHost) {
+        return {
+          statusCode: 403,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            error: 'Only the game host can create video rooms',
+            code: 'INSUFFICIENT_PERMISSIONS',
+          }),
+        };
+      }
     }
 
     // Validate parameter types and constraints
@@ -150,7 +158,7 @@ const createDailyRoomHandler = async (
 
     // Check if room is already created in database to prevent duplicates
     console.log('Checking database for existing video room:', roomNameForDaily);
-    const roomStatus = await checkVideoRoomStatus(roomNameForDaily);
+    const roomStatus = await checkVideoRoomStatus(roomNameForDaily, authContext.supabase);
 
     if (roomStatus.alreadyCreated && roomStatus.roomUrl) {
       console.log('Room already exists in database, returning existing URL');

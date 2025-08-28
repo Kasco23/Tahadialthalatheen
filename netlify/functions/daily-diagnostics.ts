@@ -1,3 +1,5 @@
+import type { HandlerContext, HandlerEvent } from '@netlify/functions';
+import { getAuthContext } from './_auth.js';
 import { withSentry } from './_sentry.js';
 
 interface DailyRoomInfo {
@@ -29,7 +31,10 @@ interface GameDatabaseInfo {
 }
 
 // Daily.co integration diagnostics and analytics
-const dailyDiagnosticsHandler = async (event, _context) => {
+const dailyDiagnosticsHandler = async (
+  event: HandlerEvent,
+  _context: HandlerContext
+) => {
   // Handle CORS preflight requests
   if (event.httpMethod === 'OPTIONS') {
     return {
@@ -55,6 +60,9 @@ const dailyDiagnosticsHandler = async (event, _context) => {
       body: JSON.stringify({ error: 'Method not allowed' }),
     };
   }
+
+  // Get authentication context for database access
+  const authContext = await getAuthContext(event);
 
   // Check environment configuration
   const diagnostics = {
@@ -107,36 +115,32 @@ const dailyDiagnosticsHandler = async (event, _context) => {
       roomsData = data.data || [];
     }
 
-    // Test Supabase connectivity if configured
+        // Test Supabase connectivity using authenticated context
     let supabaseHealthStatus = { accessible: false, game_count: 0 };
     let gamesData: GameDatabaseInfo[] = [];
 
-    if (process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY) {
-      try {
-        const { createClient } = await import('@supabase/supabase-js');
-        const supabase = createClient(
-          process.env.SUPABASE_URL,
-          process.env.SUPABASE_ANON_KEY,
-        );
+    try {
+      const { data, error } = await authContext.supabase
+        .from('games')
+        .select(
+          'id, host_code, host_name, phase, video_room_created, video_room_url, created_at, updated_at',
+        )
+        .order('created_at', { ascending: false })
+        .limit(10);
 
-        const { data, error } = await supabase
-          .from('games')
-          .select(
-            'id, host_code, host_name, phase, video_room_created, video_room_url, created_at, updated_at',
-          )
-          .order('created_at', { ascending: false })
-          .limit(10);
-
-        if (!error && data) {
-          supabaseHealthStatus = {
-            accessible: true,
-            game_count: data.length,
-          };
-          gamesData = data;
-        }
-      } catch (error) {
-        console.warn('Supabase health check failed:', error);
+      if (error) {
+        console.error('Supabase query error:', error);
+        supabaseHealthStatus = { accessible: false, game_count: 0 };
+      } else {
+        gamesData = data || [];
+        supabaseHealthStatus = {
+          accessible: true,
+          game_count: gamesData.length,
+        };
       }
+    } catch (error) {
+      console.error('Supabase connection error:', error);
+      supabaseHealthStatus = { accessible: false, game_count: 0 };
     }
 
     // Analyze data consistency
