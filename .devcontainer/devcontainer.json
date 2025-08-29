@@ -59,7 +59,10 @@
       "version": "22.17.0"
     },
     "ghcr.io/devcontainers/features/github-cli:1": {},
-    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/supabase/cli:1": {
+      "version": "latest"
+    }
   },
 
   "forwardPorts": [5173, 3000, 8000, 8080],
@@ -80,7 +83,7 @@
 
   "userEnvProbe": "loginInteractiveShell",
   
-  "postCreateCommand": "corepack enable && corepack prepare pnpm@latest --activate && pnpm install",
+  "postCreateCommand": "corepack enable && corepack prepare pnpm@latest --activate && pnpm install && .devcontainer/setup-supabase.sh",
   
   "postStartCommand": "git config --global --add safe.directory ${containerWorkspaceFolder}",
 

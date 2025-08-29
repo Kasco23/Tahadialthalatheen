@@ -27,7 +27,7 @@ This repository is configured for seamless development using GitHub Codespaces w
 ### Container Features
 - **Base Image**: Microsoft's Node.js 22 container
 - **Package Manager**: pnpm (configured via corepack)
-- **Additional Tools**: GitHub CLI, Docker-in-Docker
+- **Additional Tools**: GitHub CLI, Docker-in-Docker, Supabase CLI
 - **User**: Non-root (node user) for security
 
 ### VS Code Integration
@@ -52,13 +52,34 @@ Automatic forwarding for development servers:
 corepack enable
 corepack prepare pnpm@latest --activate
 pnpm install
+.devcontainer/setup-supabase.sh  # Authenticates and links Supabase project
 git config --global --add safe.directory ${containerWorkspaceFolder}
 ```
 
-### Daily Development
+### Required Codespace Secrets
+Before creating your codespace, add these secrets to your GitHub repository:
+
+1. **Go to Settings** → **Codespaces** → **Repository secrets**
+2. **Add these secrets**:
+   - `SUPABASE_ACCESS_TOKEN`: Your Supabase access token ([get it here](https://supabase.com/dashboard/account/tokens))
+   - `SUPABASE_PROJECT_REF`: Your project reference ID (from project URL: `https://PROJECT_REF.supabase.co`)
+   - `SUPABASE_DB_PASSWORD`: Your database password (optional, for local development)
+
+3. **Additional environment variables** (add to `.env` file after container setup):
+   - `VITE_SUPABASE_ANON_KEY`: Your project's anon/public API key
+   - `DAILY_API_KEY`: Your Daily.co API key (for video functionality)
+   - `VITE_DAILY_DOMAIN`: Your Daily.co custom domain (optional)
+
+### Additional Daily Development
 ```bash
 # Start development
 pnpm dev
+
+# Start with Netlify functions (includes Supabase local)
+pnpm dev:netlify
+
+# Run Supabase locally (if needed)
+supabase start
 
 # Run tests
 pnpm test
@@ -72,6 +93,75 @@ pnpm lint
 # Building
 pnpm build
 ```
+
+### Supabase CLI Commands
+After automatic setup, these commands are available:
+
+```bash
+# Check project status and local services
+supabase status
+
+# Start local Supabase (includes database, auth, storage)
+supabase start
+
+# Stop local services
+supabase stop
+
+# Push local schema changes to remote
+supabase db push
+
+# Pull remote schema changes to local
+supabase db pull
+
+# Generate TypeScript types from database schema
+supabase gen types typescript --local > src/types/database.types.ts
+
+# View logs
+supabase logs
+```
+
+## Environment Variables and Secrets
+
+### Codespace Secrets (Required)
+Add these to **Settings** → **Codespaces** → **Repository secrets**:
+
+- **`SUPABASE_ACCESS_TOKEN`**: Your Supabase access token
+  - Get from: [Supabase Dashboard → Account → Access Tokens](https://supabase.com/dashboard/account/tokens)
+  - Used for: CLI authentication and project management
+
+- **`SUPABASE_PROJECT_REF`**: Your project reference ID
+  - Format: The subdomain part of your project URL (`https://PROJECT_REF.supabase.co`)
+  - Used for: Linking CLI to your specific project
+
+- **`SUPABASE_DB_PASSWORD`**: Your database password (optional)
+  - Used for: Local development and direct database connections
+
+### Environment Variables (.env file)
+The setup script will create a `.env` file based on `.env.example`. You'll need to add:
+
+```env
+# Auto-configured by setup script
+VITE_SUPABASE_URL=https://your-project-ref.supabase.co
+
+# You need to add these manually:
+VITE_SUPABASE_ANON_KEY=your-anon-key-here
+DAILY_API_KEY=your-daily-api-key
+VITE_DAILY_DOMAIN=your-custom.daily.co
+```
+
+### Getting Missing Keys
+1. **VITE_SUPABASE_ANON_KEY**: 
+   - Go to [Supabase Dashboard](https://supabase.com/dashboard) → Your Project → Settings → API
+   - Copy the "anon" key from the Project API keys section
+
+2. **DAILY_API_KEY**: 
+   - Go to [Daily.co Dashboard](https://dashboard.daily.co/developer)
+   - Create or copy your API key
+
+3. **Environment Variable Priority**:
+   1. **Codespace Secrets**: Used for CLI authentication and sensitive data
+   2. **Local `.env`**: For development configuration (auto-created by setup script)
+   3. **`.env.example`**: Template with placeholder values
 
 ### Available Tasks
 Access via **Terminal** → **Run Task** or `Ctrl+Shift+P` → "Tasks: Run Task":
@@ -112,18 +202,17 @@ For development with external services:
 
 1. **Repository Secrets**: Set in repository settings for shared variables
 2. **User Secrets**: Set in your Codespaces settings for personal tokens
-3. **Local `.env`**: For development overrides (never committed)
+3. **Local `.env`**: For development configuration (auto-created by setup script)
 
-Example `.env.local`:
+Example `.env` (auto-created by setup script):
 ```bash
-# PUBLIC (VITE_ prefix - sent to browser)
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your_anon_key
-VITE_DAILY_DOMAIN=your-team.daily.co
+# Project URL (auto-configured)
+VITE_SUPABASE_URL=https://your-project-ref.supabase.co
 
-# PRIVATE (server-side only)
-SUPABASE_SERVICE_ROLE_KEY=your_service_key
-DAILY_API_KEY=your_daily_key
+# You need to add these manually:
+VITE_SUPABASE_ANON_KEY=your-anon-key-here
+DAILY_API_KEY=your-daily-api-key
+VITE_DAILY_DOMAIN=your-custom.daily.co
 ```
 
 ## Troubleshooting
@@ -151,6 +240,31 @@ corepack prepare pnpm@latest --activate
 ```bash
 # Re-authenticate with GitHub
 gh auth login
+```
+
+**Supabase CLI issues**:
+```bash
+# Check if authenticated
+supabase status
+
+# Re-authenticate if needed
+supabase login --token $SUPABASE_ACCESS_TOKEN
+
+# Re-link project if needed
+supabase link --project-ref $SUPABASE_PROJECT_REF
+
+# Check local services
+supabase start
+```
+
+**Missing environment variables**:
+```bash
+# Check if .env file was created
+cat .env
+
+# If missing, manually create it
+cp .env.example .env
+# Edit .env file with your actual values
 ```
 
 ### Performance Tips
