@@ -89,6 +89,7 @@ This checklist ensures safe deployment of the Supabase authentication integratio
    - Update frontend to use secure endpoints gradually
 
 4. [ ] **Test Live Functions**
+
    ```bash
    # Test each function with curl or integration tests
    curl -X POST https://yoursite.netlify.app/.netlify/functions/create-game \
