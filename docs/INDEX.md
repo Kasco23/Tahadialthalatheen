@@ -115,6 +115,13 @@ This file provides a ## 🔐 Authentication & Security
 
 ## 🏗️ Setup & Configuration
 
+### [CODESPACES_SETUP.md](CODESPACES_SETUP.md)
+
+**Purpose**: GitHub Codespaces development environment setup and usage guide
+**Audience**: Developers using GitHub Codespaces
+**Contains**: Container configuration, user settings sync, development workflow, troubleshooting
+**Status**: Complete - Ready for use
+
 ### [SETUP_PRODUCTION.md](SETUP_PRODUCTION.md)
 
 **Purpose**: Production environment setup and testing instructions
