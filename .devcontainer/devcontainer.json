@@ -1,0 +1,92 @@
+{
+  "name": "Thirty Challenge Development",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-22-bullseye",
+  
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "typescript.preferences.npmPackageManager": "pnpm",
+        "typescript.preferences.includePackageJsonAutoImports": "auto",
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+          "source.fixAll.eslint": "explicit"
+        },
+        "emmet.includeLanguages": {
+          "javascript": "javascriptreact",
+          "typescript": "typescriptreact"
+        },
+        "tailwindCSS.experimental.classRegex": [
+          ["clsx\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"],
+          ["classnames\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"],
+          ["cn\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
+        ]
+      },
+      
+      "extensions": [
+        "ms-vscode.vscode-typescript-next",
+        "bradlc.vscode-tailwindcss",
+        "formulahendry.auto-rename-tag",
+        "dsznajder.es7-react-js-snippets",
+        "xabikos.JavaScriptSnippets",
+        "burkeholland.simple-react-snippets",
+        "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint",
+        "rangav.vscode-thunder-client",
+        "humao.rest-client",
+        "ritwickdey.LiveServer",
+        "Orta.vscode-jest",
+        "hbenl.vscode-test-explorer",
+        "eamodio.gitlens",
+        "github.vscode-pull-request-github",
+        "github.copilot",
+        "github.copilot-chat",
+        "alefragnani.bookmarks",
+        "gruntfuggly.todo-tree",
+        "christian-kohler.path-intellisense",
+        "mrmlnc.vscode-duplicate",
+        "Supabase.vscode-supabase-extension",
+        "yzhang.markdown-all-in-one",
+        "bierner.markdown-mermaid",
+        "davidanson.vscode-markdownlint"
+      ]
+    }
+  },
+
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "nodeGypDependencies": true,
+      "version": "22.17.0"
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+  },
+
+  "forwardPorts": [5173, 3000, 8000, 8080],
+  "portsAttributes": {
+    "5173": {
+      "label": "Vite Dev Server",
+      "protocol": "http"
+    },
+    "3000": {
+      "label": "Netlify Dev",
+      "protocol": "http"
+    },
+    "8000": {
+      "label": "Preview Server",
+      "protocol": "http"
+    }
+  },
+
+  "userEnvProbe": "loginInteractiveShell",
+  
+  "postCreateCommand": "corepack enable && corepack prepare pnpm@latest --activate && pnpm install",
+  
+  "postStartCommand": "git config --global --add safe.directory ${containerWorkspaceFolder}",
+
+  "remoteUser": "node",
+
+  "remoteEnv": {
+    "NODE_ENV": "development"
+  }
+}
