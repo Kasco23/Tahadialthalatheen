@@ -3,6 +3,7 @@
 This guide will help you configure Model Context Protocol (MCP) servers for GitHub Copilot web using your existing VS Code MCP configuration. GitHub Copilot web can leverage the same powerful MCP servers you use in VS Code, providing enhanced capabilities for coding assistance.
 
 ## Table of Contents
+
 1. [Prerequisites](#prerequisites)
 2. [Setting up GitHub Repository Configuration](#setting-up-github-repository-configuration)
 3. [Converting Your VS Code MCP Config](#converting-your-vs-code-mcp-config)
@@ -141,6 +142,7 @@ For each MCP server that requires API keys or tokens, you need to add secrets to
 Add these secrets with their corresponding values:
 
 #### Firecrawl API Key
+
 - **Secret Name**: `COPILOT_MCP_FIRECRAWL_API_KEY`
 - **Where to get it**: [Firecrawl Dashboard](https://www.firecrawl.dev/app/api-keys)
 - **Steps**:
@@ -150,6 +152,7 @@ Add these secrets with their corresponding values:
   4. Copy the key value
 
 #### Supabase Access Token
+
 - **Secret Name**: `COPILOT_MCP_SUPABASE_ACCESS_TOKEN`
 - **Where to get it**: [Supabase Dashboard](https://supabase.com/dashboard/account/tokens)
 - **Steps**:
@@ -161,6 +164,7 @@ Add these secrets with their corresponding values:
   6. Copy the token
 
 #### Optional: Custom GitHub Token (for broader access)
+
 - **Secret Name**: `COPILOT_MCP_GITHUB_PERSONAL_ACCESS_TOKEN`
 - **Where to get it**: GitHub Settings → Developer settings → Personal access tokens
 - **Steps**:
@@ -205,46 +209,55 @@ jobs:
 ### Individual Server Notes
 
 #### 1. GitHub Server
+
 - **Built-in**: Enabled by default
 - **Access**: Read-only to current repository
 - **Custom token**: Add `COPILOT_MCP_GITHUB_PERSONAL_ACCESS_TOKEN` for broader access
 
 #### 2. Playwright Server
+
 - **Purpose**: Browser automation and testing
 - **No secrets required**
 - **Tools**: Page navigation, screenshot, form filling
 
 #### 3. Microsoft Docs Server
+
 - **Purpose**: Search Microsoft documentation
 - **No secrets required**
 - **Tools**: Documentation search and retrieval
 
 #### 4. Sequential Thinking Server
+
 - **Purpose**: Complex problem-solving workflows
 - **No secrets required**
 - **Tools**: Multi-step reasoning, thought chains
 
 #### 5. Memory Server
+
 - **Purpose**: Persistent memory across conversations
 - **Storage**: Uses `/tmp/copilot-memory.json` in GitHub Actions runner
 - **No secrets required**
 
 #### 6. Firecrawl Server
+
 - **Purpose**: Web scraping and crawling
 - **Requires**: `COPILOT_MCP_FIRECRAWL_API_KEY`
 - **Tools**: Limited to crawl, scrape, search for safety
 
 #### 7. Human-in-the-Loop Server
+
 - **Purpose**: Interactive prompts and confirmations
 - **Requires**: `uv` installation (add to setup steps)
 - **No secrets required**
 
 #### 8. ReactBits Server
+
 - **Purpose**: React component library access
 - **No secrets required**
 - **Tools**: Component search and code generation
 
 #### 9. Supabase Server
+
 - **Purpose**: Database operations and queries
 - **Requires**: `COPILOT_MCP_SUPABASE_ACCESS_TOKEN`
 - **Mode**: Read-only for safety
@@ -288,19 +301,23 @@ Try prompts that would use your MCP servers:
 ### Common Issues
 
 #### 1. MCP Server Failed to Start
+
 - **Check**: Dependencies in `copilot-setup-steps.yml`
 - **Solution**: Add required installation steps
 
 #### 2. Authentication Errors
+
 - **Check**: Secret names start with `COPILOT_MCP_`
 - **Check**: Secrets are added to `copilot` environment
 - **Solution**: Verify secret values and permissions
 
 #### 3. Tools Not Available
+
 - **Check**: `tools` array in configuration
 - **Solution**: Use `["*"]` to enable all tools or specify exact tool names
 
 #### 4. JSON Syntax Errors
+
 - **Check**: Remove comments from configuration
 - **Check**: Proper JSON formatting
 - **Solution**: Validate JSON before saving

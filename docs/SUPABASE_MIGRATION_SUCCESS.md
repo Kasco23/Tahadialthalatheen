@@ -9,15 +9,17 @@
 ## What Was Accomplished
 
 ### ✅ Core Schema Transformation
+
 1. **Table Rename**: `games` → `sessions` with proper primary key (`session_id`)
 2. **Foreign Key Updates**: All references updated from `game_id` to `session_id`
-3. **Players Table Enhanced**: 
+3. **Players Table Enhanced**:
    - `id` → `player_id`
    - `strikes` → `strikes_legacy` (preserved data)
    - Added `slot` column for player position tracking
    - Added `controller_user_id` for enhanced RLS
 
 ### ✅ New Tables Created
+
 1. **lobbies**: Connection state management
    - `session_id` (PK, FK to sessions)
    - `host_connected`, `playera_connected`, `playerb_connected`
@@ -47,12 +49,14 @@
    - Optimized indexes for performance
 
 ### ✅ Security & Performance
+
 - **RLS Enabled**: All new tables have Row Level Security enabled
 - **Optimized Policies**: New policies implemented to address advisor warnings
 - **Enhanced Indexing**: Composite indexes for frequently queried columns
 - **Activity Tracking**: Triggers for automatic session activity updates
 
 ### ✅ Migrations Applied
+
 1. `20250830100000_schema_upgrade_part_1.sql` - Core schema changes
 2. `20250830110000_schema_upgrade_part_2.sql` - New tables
 3. `20250830120000_schema_upgrade_part_3.sql` - RLS policies
@@ -62,19 +66,21 @@
 ## Current Database State
 
 ### Tables Summary
-| Table | Type | Purpose | RLS |
-|-------|------|---------|-----|
-| sessions | Core (renamed) | Game session management | ✅ |
-| players | Core (enhanced) | Player data with slots | ✅ |
-| game_events | Legacy | Event history (FK updated) | ✅ |
-| lobbies | New | Connection state tracking | ✅ |
-| rooms | New | Video room management | ✅ |
-| session_segments | New | Segment-level game state | ✅ |
-| questions_pool | New | Master question repository | ✅ |
-| session_questions | New | Session question assignments | ✅ |
-| session_events | New | Enhanced event system | ✅ |
+
+| Table             | Type            | Purpose                      | RLS |
+| ----------------- | --------------- | ---------------------------- | --- |
+| sessions          | Core (renamed)  | Game session management      | ✅  |
+| players           | Core (enhanced) | Player data with slots       | ✅  |
+| game_events       | Legacy          | Event history (FK updated)   | ✅  |
+| lobbies           | New             | Connection state tracking    | ✅  |
+| rooms             | New             | Video room management        | ✅  |
+| session_segments  | New             | Segment-level game state     | ✅  |
+| questions_pool    | New             | Master question repository   | ✅  |
+| session_questions | New             | Session question assignments | ✅  |
+| session_events    | New             | Enhanced event system        | ✅  |
 
 ### Constraints & Relationships
+
 - **Primary Keys**: All tables have proper PKs (single or composite)
 - **Foreign Keys**: All relationships properly maintained with CASCADE deletes
 - **Check Constraints**: Status validation preserved on sessions table
@@ -83,11 +89,12 @@
 ## Remaining Tasks
 
 ### 🔶 Storage Buckets (Manual Creation Required)
+
 The storage migration was skipped due to permission limitations. Create these manually:
 
 1. **In Supabase Dashboard > Storage**:
    - `avatars` (public: true) - User profile pictures
-   - `question_media` (public: true) - Quiz question images  
+   - `question_media` (public: true) - Quiz question images
    - `recordings` (public: false) - Daily.co video recordings
 
 2. **Set Storage Policies** (via Dashboard or service_role):
@@ -96,12 +103,14 @@ The storage migration was skipped due to permission limitations. Create these ma
    - Service-role only access for `recordings`
 
 ### 🔶 Application Code Updates
+
 1. **TypeScript Types**: Regenerate with `npx supabase gen types typescript`
 2. **Frontend Code**: Update all references from `games` to `sessions`
 3. **API Functions**: Update Netlify functions for new schema
 4. **Realtime Subscriptions**: Update to use new table names
 
 ### 🔶 Data Migration (If Needed)
+
 - Move relevant data from `game_events` to `session_events`
 - Populate `session_segments` with current game segment data
 - Update any hardcoded table/column references
@@ -123,6 +132,7 @@ The storage migration was skipped due to permission limitations. Create these ma
 ## Rollback Information
 
 If rollback is needed:
+
 1. Migrations are reversible (drop new tables, rename sessions back to games)
 2. Data preservation: `game_events` and `players.strikes_legacy` retained
 3. Backup available: Original schema documented in `Supabase_30Aug.md`

@@ -2,8 +2,7 @@
 
 - This file only suggests new edits. Some improvements may change according to implementation details.
 
-
-## 1  Rename **games** → **sessions** & fix PK/FK names
+## 1 Rename **games** → **sessions** & fix PK/FK names
 
 ```sql
 -- 1-A  rename table
@@ -29,9 +28,9 @@ The original `games` definition is here for reference .
 
 ---
 
-## 2  New core tables
+## 2 New core tables
 
-### 2-A  **lobbies**
+### 2-A **lobbies**
 
 ```sql
 create table if not exists lobbies (
@@ -47,7 +46,7 @@ create table if not exists lobbies (
 alter publication supabase_realtime add table lobbies;
 ```
 
-### 2-B  **rooms**
+### 2-B **rooms**
 
 ```sql
 create table if not exists rooms (
@@ -66,7 +65,7 @@ create index if not exists rooms_session_idx on rooms(session_id);
 alter publication supabase_realtime add table rooms;
 ```
 
-### 2-C  **session\_segments**
+### 2-C **session_segments**
 
 ```sql
 create table if not exists session_segments (
@@ -81,7 +80,7 @@ create table if not exists session_segments (
 alter publication supabase_realtime add table session_segments;
 ```
 
-### 2-D  **questions\_pool** & **session\_questions**
+### 2-D **questions_pool** & **session_questions**
 
 ```sql
 create table if not exists questions_pool (
@@ -102,7 +101,7 @@ create table if not exists session_questions (
 );
 ```
 
-### 2-E  Partitioned **session\_events**
+### 2-E Partitioned **session_events**
 
 ```sql
 -- Enable partman if not already
@@ -124,7 +123,7 @@ alter publication supabase_realtime add table session_events;
 
 ---
 
-## 3  Update **players** table
+## 3 Update **players** table
 
 ```sql
 alter table players
@@ -140,7 +139,7 @@ alter table players
 
 ---
 
-## 4  Row-level security snippets (examples)
+## 4 Row-level security snippets (examples)
 
 ```sql
 -- sessions: owner can do anything
@@ -161,7 +160,7 @@ Adjust or copy this style to players, rooms, etc.
 
 ---
 
-## 5  Realtime publication refresh
+## 5 Realtime publication refresh
 
 You already have a publication with three tables.
 We added new tables above (`alter publication … add table …`).
@@ -173,13 +172,14 @@ create publication supabase_realtime
   for table sessions, lobbies, players, rooms,
       session_segments, session_events;
 ```
+
 Below is an **add-on migration** that finishes the picture by covering Storage buckets, policies, and a few feature toggles (cron, webhooks, wrappers) that complement the table work we did earlier.
 
 ---
 
-## 1  🗂 Buckets & Storage policies
+## 1 🗂 Buckets & Storage policies
 
-### 1-A  Create buckets
+### 1-A Create buckets
 
 ```sql
 -- Existing bucket “images” stays; we’ll just document policies.
@@ -189,7 +189,7 @@ select storage.create_bucket('question_media', public => true);
 select storage.create_bucket('recordings',    public => false);
 ```
 
-### 1-B  Row-level policies (Storage uses its own ACL table)
+### 1-B Row-level policies (Storage uses its own ACL table)
 
 ```sql
 -- 🔓 PUBLIC READ buckets
@@ -223,7 +223,7 @@ on conflict do nothing;
 
 ---
 
-## 2  ⏰ Cron & housekeeping
+## 2 ⏰ Cron & housekeeping
 
 ```sql
 -- nightly cleanup: mark finished sessions >2 days old & archive their events
@@ -243,23 +243,19 @@ select cron.schedule('nightly_session_cleanup',
                      $$call housekeeping_expired_sessions();$$);
 ```
 
-
 ---
 
 1. **Bucket uploads** –
-
-   * avatars → `supabase.storage.from('avatars').upload(...)`
-   * team-logos & UI icons stay in `images/team-logos` (public assets) – no code change.
+   - avatars → `supabase.storage.from('avatars').upload(...)`
+   - team-logos & UI icons stay in `images/team-logos` (public assets) – no code change.
 
 2. **Daily recording workflow** –
-
-   * After Daily webhook hits your Netlify function, move the file into `recordings` bucket with service-role key (`SUPABASE_SERVICE_ROLE_KEY`).
-   * Store the `recording_url` back into `rooms.recording_url`.
+   - After Daily webhook hits your Netlify function, move the file into `recordings` bucket with service-role key (`SUPABASE_SERVICE_ROLE_KEY`).
+   - Store the `recording_url` back into `rooms.recording_url`.
 
 3. **Front-end fetch** –
-
-   * Avatar `img src={supabase.storage.from('avatars').getPublicUrl(file).data.publicUrl}`
-   * Question images: same but from `question_media`.
+   - Avatar `img src={supabase.storage.from('avatars').getPublicUrl(file).data.publicUrl}`
+   - Question images: same but from `question_media`.
 
 4. **Environment vars** – no new vars; you already have `SUPABASE_SERVICE_ROLE_KEY` for serverless.
 
@@ -267,7 +263,6 @@ select cron.schedule('nightly_session_cleanup',
 
 Run the SQL blocks above in the editor, commit policy changes, then:
 
-*Refactor your Netlify functions and React code to point at the new buckets/files (VS Code Copilot can do the search-replace for bucket names).*
+_Refactor your Netlify functions and React code to point at the new buckets/files (VS Code Copilot can do the search-replace for bucket names)._
 
-When the schema + storage are both good, we can start deleting legacy code paths and slimming the repo.  Let me know when you’re ready to proceed or if you hit any SQL hurdles.
-
+When the schema + storage are both good, we can start deleting legacy code paths and slimming the repo. Let me know when you’re ready to proceed or if you hit any SQL hurdles.
