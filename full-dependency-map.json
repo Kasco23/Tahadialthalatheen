@@ -72,15 +72,21 @@
   "src/components/__tests__/HexGridBackground.test.tsx": [
     "src/components/HexGridBackground.tsx"
   ],
+  "src/components/reactbits/BlobCursor.tsx": [],
+  "src/components/reactbits/ClickSpark.tsx": [],
+  "src/components/reactbits/GridMotion.tsx": [],
   "src/components/reactbits/MetaBalls.tsx": [],
+  "src/components/reactbits/MetallicPaint.tsx": [],
   "src/components/reactbits/Ribbons.tsx": [],
   "src/components/reactbits/Shimmer.tsx": [],
+  "src/components/reactbits/StarBorder.tsx": [],
   "src/components/theme/ThemeSelector.tsx": [],
   "src/components/theme/index.ts": [
     "src/components/theme/ThemeSelector.tsx"
   ],
   "src/context/GameContext.tsx": [
     "src/context/GameContextDefinition.tsx",
+    "src/context/defaults.ts",
     "src/context/gameReducer.ts",
     "src/context/initialGameState.ts"
   ],
