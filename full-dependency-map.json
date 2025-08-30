@@ -72,6 +72,9 @@
   "src/components/__tests__/HexGridBackground.test.tsx": [
     "src/components/HexGridBackground.tsx"
   ],
+  "src/components/reactbits/MetaBalls.tsx": [],
+  "src/components/reactbits/Ribbons.tsx": [],
+  "src/components/reactbits/Shimmer.tsx": [],
   "src/components/theme/ThemeSelector.tsx": [],
   "src/components/theme/index.ts": [
     "src/components/theme/ThemeSelector.tsx"
@@ -139,6 +142,7 @@
   "src/pages/Scoreboard.tsx": [],
   "src/pages/SegmentIntro.tsx": [],
   "src/pages/TestJotai.tsx": [],
+  "src/pages/ThemeDemo.tsx": [],
   "src/segments/index.ts": [
     "src/segments/useBellSegment.ts",
     "src/segments/useRemoSegment.ts",
