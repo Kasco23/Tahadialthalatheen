@@ -12,8 +12,13 @@ on:
 jobs:
   copilot-setup-steps:
     runs-on: ubuntu-latest
+    environment: copilot
     permissions:
       contents: read
+      id-token: write
+      actions: read
+      models: read
+      
 
     steps:
       - name: Checkout repository
@@ -33,15 +38,6 @@ jobs:
 
       - name: Install JavaScript dependencies
         run: pnpm install
-
-      - name: Install Netlify CLI
-        run: pnpm add -g netlify-cli
-
-      - name: Install Supabase CLI as dev dependency
-        run: pnpm add -D supabase
-
-      - name: Verify Supabase CLI
-        run: pnpm exec supabase --version || true
 
       # --- Python & MCP tools setup ---
       - name: Set up Python
@@ -71,8 +67,6 @@ jobs:
       - name: Install ImageSorcery MCP
         run: pipx install imagesorcery-mcp
 
-      - name: Install Playwright browsers
-        run: npx -y playwright install --with-deps
 
       # --- Project validation (optional, allow failures) ---
       - name: Validate build (allow errors)
@@ -81,18 +75,4 @@ jobs:
 
       - name: Run lint and tests
         run: pnpm test || pnpm run lint
-        continue-on-error: true
-
-      # --- Debug MCP availability ---
-      - name: Test MCP server installations
-        run: |
-          echo "Testing MCP server availability..."
-          npx --version
-          echo "✓ NPX available for Node.js MCP servers"
-
-          imagesorcery-mcp --version || echo "⚠ ImageSorcery MCP not found"
-          npx -y @playwright/mcp@latest --help || echo "⚠ Playwright MCP not found"
-
-          uv --version || echo "⚠ UV not available"
-          pipx --version || echo "⚠ PIPX not available"
         continue-on-error: true
