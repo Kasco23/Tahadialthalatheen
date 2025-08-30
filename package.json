@@ -32,6 +32,7 @@
     "dompurify": "^3.2.6",
     "flag-icons": "^7.5.0",
     "framer-motion": "^12.23.12",
+    "gsap": "^3.13.0",
     "immer": "^10.1.1",
     "jotai": "^2.13.1",
     "netlify": "^23.4.0",
