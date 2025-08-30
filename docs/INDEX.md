@@ -33,6 +33,12 @@ Authoritative catalog of project documentation. Update this file whenever adding
 **Audience**: AI agents, developers leveraging tool automation
 **Contains**: Server purposes, key tools, usage examples, guidelines
 
+### [GITHUB_COPILOT_MCP_SETUP.md](GITHUB_COPILOT_MCP_SETUP.md)
+
+**Purpose**: Setup guide for MCP servers with GitHub Copilot web
+**Audience**: Repository administrators, developers
+**Contains**: Configuration conversion, environment secrets, server setup, troubleshooting
+
 ## 🔐 Deployment & Production
 
 ### [SETUP_PRODUCTION.md](SETUP_PRODUCTION.md)
