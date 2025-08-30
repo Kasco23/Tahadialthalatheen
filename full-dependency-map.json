@@ -1,4 +1,8 @@
 {
+  "netlify/functions/_auth.ts": [],
+  "netlify/functions/_authMonitoring.ts": [
+    "netlify/functions/_auth.ts"
+  ],
   "netlify/functions/_sentry.ts": [],
   "netlify/functions/batch-check-rooms.ts": [
     "netlify/functions/_sentry.ts"
@@ -7,24 +11,42 @@
     "netlify/functions/_sentry.ts"
   ],
   "netlify/functions/create-daily-room.ts": [
+    "netlify/functions/_auth.ts",
     "netlify/functions/_sentry.ts"
   ],
   "netlify/functions/create-daily-token.ts": [
     "netlify/functions/_sentry.ts"
   ],
+  "netlify/functions/create-game.ts": [
+    "netlify/functions/_auth.ts",
+    "netlify/functions/_sentry.ts"
+  ],
   "netlify/functions/daily-diagnostics.ts": [
+    "netlify/functions/_auth.ts",
     "netlify/functions/_sentry.ts"
   ],
   "netlify/functions/delete-daily-room.ts": [
     "netlify/functions/_sentry.ts"
   ],
+  "netlify/functions/game-event-deprecated.ts": [],
+  "netlify/functions/game-event-secure.ts": [
+    "netlify/functions/_auth.ts",
+    "netlify/functions/_sentry.ts"
+  ],
   "netlify/functions/game-event.ts": [
+    "netlify/functions/_auth.ts",
+    "netlify/functions/_authMonitoring.ts",
     "netlify/functions/_sentry.ts"
   ],
   "netlify/functions/get-room-presence.ts": [
     "netlify/functions/_sentry.ts"
   ],
+  "netlify/functions/join-game.ts": [
+    "netlify/functions/_auth.ts",
+    "netlify/functions/_sentry.ts"
+  ],
   "netlify/functions/supabase-health.ts": [
+    "netlify/functions/_auth.ts",
     "netlify/functions/_sentry.ts"
   ],
   "src/App.tsx": [],
@@ -85,6 +107,9 @@
   "src/lib/atomGameSync.ts": [],
   "src/lib/dailyConfig.ts": [],
   "src/lib/database.types.ts": [],
+  "src/lib/gameAuth.ts": [
+    "src/lib/gameDatabase.ts"
+  ],
   "src/lib/gameDatabase.ts": [
     "src/lib/supabaseLazy.ts"
   ],
@@ -254,6 +279,7 @@
   "src/theme/types.ts": [],
   "src/types/database.ts": [],
   "src/types/game.ts": [],
+  "src/types/supabase.ts": [],
   "src/utils/__tests__/debugLog.test.ts": [
     "src/utils/debugLog.ts"
   ],
