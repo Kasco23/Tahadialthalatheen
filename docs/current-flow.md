@@ -1,8 +1,5 @@
 ```mermaid
----
-config:
-  theme: neo-dark
----
+
 stateDiagram-v2
   direction TB
 

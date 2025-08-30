@@ -2,7 +2,7 @@
 
 > **Standardized changelog for tracking all project changes, edits, and updates**
 >
-> **Note for Copilot/AI Agents**: All project changes should be documented here with timestamps using the format below. Update both `docs/DocsGuide.md` and `docs/TODOs.md` when making changes.
+> **Note for Copilot/AI Agents**: All project changes should be documented here with timestamps (DD.MM.YY HH:MM) using the format below. Update both `docs/INDEX.md` and `docs/TODOs.md` when making changes.
 
 ## [Unreleased]
 
