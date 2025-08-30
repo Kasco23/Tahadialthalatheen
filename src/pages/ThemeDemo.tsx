@@ -9,6 +9,11 @@ import { useNavigate } from 'react-router-dom';
 import Ribbons from '@/components/reactbits/Ribbons';
 import MetaBalls from '@/components/reactbits/MetaBalls';
 import Shimmer from '@/components/reactbits/Shimmer';
+import MetallicPaint from '@/components/reactbits/MetallicPaint';
+import GridMotion from '@/components/reactbits/GridMotion';
+import BlobCursor from '@/components/reactbits/BlobCursor';
+import ClickSpark from '@/components/reactbits/ClickSpark';
+import StarBorder from '@/components/reactbits/StarBorder';
 
 // Team color palettes
 const TEAM_PALETTES = {
@@ -53,6 +58,36 @@ const DEMO_COMPONENTS = [
     description: 'Elegant shimmer effects with flowing particles',
     props: { speed: 1, intensity: 0.8, direction: 'diagonal' as const },
   },
+  {
+    name: 'Metallic Paint',
+    component: MetallicPaint,
+    description: 'WebGL2-powered metallic paint effect with liquid chrome animations',
+    props: { params: { speed: 0.3, refraction: 0.015 } },
+  },
+  {
+    name: 'Grid Motion',
+    component: GridMotion,
+    description: 'Interactive grid that responds to mouse movement with team-themed content',
+    props: {},
+  },
+  {
+    name: 'Blob Cursor',
+    component: BlobCursor,
+    description: 'Interactive blob cursor that follows mouse with smooth trails',
+    props: { trailCount: 3, sizes: [40, 80, 60] },
+  },
+  {
+    name: 'Click Spark',
+    component: ClickSpark,
+    description: 'Dynamic spark effects triggered by clicking with team colors',
+    props: { sparkCount: 12, sparkRadius: 25 },
+  },
+  {
+    name: 'Star Border',
+    component: StarBorder,
+    description: 'Animated star border effects with team color integration',
+    props: { speed: '4s', children: 'Interactive Element' },
+  },
 ];
 
 export default function ThemeDemo() {
@@ -62,7 +97,67 @@ export default function ThemeDemo() {
   const [selectedComponent, setSelectedComponent] = useState(0);
 
   const currentPalette = TEAM_PALETTES[selectedPalette];
-  const CurrentComponent = DEMO_COMPONENTS[selectedComponent].component;
+  const currentComponentData = DEMO_COMPONENTS[selectedComponent];
+
+  // Render the selected component with appropriate props
+  const renderCurrentComponent = () => {
+    const baseProps = {
+      colors: currentPalette.colors,
+      teamColors: currentPalette.colors,
+      teamColor: currentPalette.colors[0],
+    };
+
+    switch (selectedComponent) {
+      case 0: // Ribbons
+        return <Ribbons 
+          colors={currentPalette.colors} 
+          animated={true} 
+          speed={1} 
+        />;
+      case 1: // Meta Balls
+        return <MetaBalls 
+          colors={currentPalette.colors} 
+          enableMouseInteraction={true}
+          ballCount={8}
+          ballSize={60}
+        />;
+      case 2: // Shimmer
+        return <Shimmer 
+          colors={currentPalette.colors} 
+          speed={1}
+          intensity={0.8}
+          direction="diagonal"
+        />;
+      case 3: // Metallic Paint
+        return <MetallicPaint 
+          teamColor={currentPalette.colors[0]} 
+          params={{ speed: 0.3, refraction: 0.015 }}
+        />;
+      case 4: // Grid Motion
+        return <GridMotion teamColors={currentPalette.colors} />;
+      case 5: // Blob Cursor
+        return <BlobCursor 
+          teamColors={currentPalette.colors} 
+          trailCount={3}
+          sizes={[40, 80, 60]}
+        />;
+      case 6: // Click Spark
+        return <ClickSpark 
+          teamColors={currentPalette.colors} 
+          sparkCount={12}
+          sparkRadius={25}
+        />;
+      case 7: // Star Border
+        return <StarBorder 
+          teamColors={currentPalette.colors} 
+          speed="4s"
+        >
+          Interactive Element
+        </StarBorder>;
+      default:
+        return <Ribbons colors={currentPalette.colors} animated={true} speed={1} />;
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
@@ -184,7 +279,7 @@ export default function ThemeDemo() {
                 </div>
                 <div>
                   <span className="text-white">Component:</span>{' '}
-                  {DEMO_COMPONENTS[selectedComponent].name}
+                  {currentComponentData.name}
                 </div>
                 <div className="flex items-center space-x-2">
                   <span className="text-white">Colors:</span>
@@ -211,19 +306,16 @@ export default function ThemeDemo() {
             <div className="bg-black/30 backdrop-blur-sm rounded-xl border border-white/10 overflow-hidden">
               <div className="p-4 border-b border-white/10">
                 <h3 className="text-xl font-semibold text-white">
-                  {DEMO_COMPONENTS[selectedComponent].name} -{' '}
+                  {currentComponentData.name} -{' '}
                   {currentPalette.name}
                 </h3>
                 <p className="text-white/70 text-sm">
-                  {DEMO_COMPONENTS[selectedComponent].description}
+                  {currentComponentData.description}
                 </p>
               </div>
 
               <div className="relative h-96 bg-gradient-to-br from-gray-800 to-gray-900">
-                <CurrentComponent
-                  colors={currentPalette.colors}
-                  {...DEMO_COMPONENTS[selectedComponent].props}
-                />
+                {renderCurrentComponent()}
 
                 {/* Interactive hint */}
                 <div className="absolute bottom-4 left-4 text-white/50 text-xs">
@@ -248,15 +340,45 @@ export default function ThemeDemo() {
                     <li>• Smooth animations</li>
                     <li>• Customizable colors</li>
                     <li>• Responsive design</li>
+                    {selectedComponent === 3 && <li>• WebGL2 shader effects</li>}
+                    {selectedComponent === 4 && <li>• GSAP animations</li>}
+                    {selectedComponent === 5 && <li>• Trail physics</li>}
+                    {selectedComponent === 6 && <li>• Click interactions</li>}
+                    {selectedComponent === 7 && <li>• CSS keyframe animations</li>}
                   </ul>
                 </div>
                 <div>
                   <div className="text-white/70 mb-2">Technologies:</div>
                   <ul className="space-y-1 text-white/60">
-                    <li>• Framer Motion</li>
-                    <li>• React Hooks</li>
-                    <li>• Tailwind CSS</li>
-                    <li>• TypeScript</li>
+                    {selectedComponent <= 2 ? (
+                      <>
+                        <li>• Framer Motion</li>
+                        <li>• React Hooks</li>
+                        <li>• Tailwind CSS</li>
+                        <li>• TypeScript</li>
+                      </>
+                    ) : selectedComponent === 3 ? (
+                      <>
+                        <li>• WebGL2 Shaders</li>
+                        <li>• Fragment Shaders</li>
+                        <li>• Canvas API</li>
+                        <li>• TypeScript</li>
+                      </>
+                    ) : selectedComponent === 4 ? (
+                      <>
+                        <li>• GSAP Animation</li>
+                        <li>• React Hooks</li>
+                        <li>• CSS Grid</li>
+                        <li>• TypeScript</li>
+                      </>
+                    ) : (
+                      <>
+                        <li>• GSAP Animation</li>
+                        <li>• Canvas 2D</li>
+                        <li>• React Hooks</li>
+                        <li>• TypeScript</li>
+                      </>
+                    )}
                   </ul>
                 </div>
               </div>
