@@ -244,6 +244,52 @@ export default function Landing() {
                 {t('joinSession')}
               </span>
             </motion.button>
+
+            {/* Theme Demo Button */}
+            <motion.button
+              onClick={() => navigate('/theme-demo')}
+              className={`group relative w-full px-6 py-3 text-lg rounded-xl font-bold transition-all overflow-hidden border-2 border-purple-500/50 ${
+                isArabic ? 'font-arabic' : ''
+              }`}
+              whileHover={{ scale: 1.02, y: -1 }}
+              whileTap={{ scale: 0.98 }}
+              initial={{ x: -50, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 1.6, duration: 0.5 }}
+            >
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-blue-500/20"
+                whileHover={{
+                  background:
+                    'linear-gradient(90deg, rgba(147, 51, 234, 0.3), rgba(59, 130, 246, 0.3))',
+                }}
+              />
+              <motion.div
+                className="absolute inset-0 opacity-0"
+                whileHover={{ opacity: 1 }}
+                animate={{
+                  background: [
+                    'linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent)',
+                    'linear-gradient(225deg, transparent, rgba(255, 255, 255, 0.1), transparent)',
+                  ],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                }}
+              />
+              <span className="relative z-10 text-purple-200 group-hover:text-white flex items-center justify-center space-x-2">
+                <span>🎨</span>
+                <span>Theme Demo</span>
+                <motion.span
+                  animate={{ rotate: [0, 360] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                >
+                  ✨
+                </motion.span>
+              </span>
+            </motion.button>
           </motion.div>
 
           {/* Footer Info with fade-in animation */}

@@ -24,6 +24,7 @@ const NotFound = lazy(() => import('@/pages/NotFound'));
 
 // Development-only components
 const HexGridDemo = lazy(() => import('@/pages/HexGridDemo'));
+const ThemeDemo = lazy(() => import('@/pages/ThemeDemo'));
 
 // Loading component for suspense fallback
 function PageLoader() {
@@ -71,6 +72,7 @@ export default function App() {
                   {import.meta.env.DEV && (
                     <Route path="/hex-demo" element={<HexGridDemo />} />
                   )}
+                  <Route path="/theme-demo" element={<ThemeDemo />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>
