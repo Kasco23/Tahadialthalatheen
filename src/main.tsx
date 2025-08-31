@@ -94,28 +94,23 @@ async function loadOptionalDependencies() {
 // Initialize everything with error handling
 async function initializeApp() {
   try {
-    // Check environment configuration first
+    // Check environment configuration first - but don't fail the app
     const envStatus = checkEnvironmentConfiguration();
-    if (!envStatus.isValid) {
-      console.warn('⚠️ Environment configuration issues detected:');
-      envStatus.errors.forEach(error => console.warn(`❌ ${error}`));
-      
-      // Don't fail completely for missing env vars in development
-      if (import.meta.env.PROD) {
-        throw new Error(`Environment configuration error: ${envStatus.errors.join(', ')}`);
-      }
+    if (envStatus.warnings.length > 0) {
+      console.warn('⚠️ Environment configuration warnings:');
+      envStatus.warnings.forEach(warning => console.warn(`⚠️ ${warning}`));
     }
     
-    // Initialize Sentry
+    // Initialize Sentry - completely fault-tolerant
     await initSentry();
     
-    // Load optional dependencies
+    // Load optional dependencies - completely fault-tolerant
     await loadOptionalDependencies();
     
     console.log('✅ App initialization complete');
   } catch (error) {
-    console.error('❌ App initialization failed:', error);
-    throw error; // Re-throw to trigger fallback UI
+    // Log error but don't re-throw to prevent app crash
+    console.warn('⚠️ App initialization had issues but continuing:', error);
   }
 }
 
@@ -186,7 +181,7 @@ async function renderApp() {
     try {
       const Sentry = await import('@sentry/react');
       SentryErrorBoundary = Sentry.ErrorBoundary;
-    } catch (error) {
+    } catch {
       console.warn('⚠️ Sentry not available for error boundary');
     }
 

@@ -22,9 +22,14 @@ export default defineConfig({
         // React ecosystem chunks
         { name: 'assets/vendor-react-dom-*.js', limit: '300 kB' },
         { name: 'assets/vendor-react-*.js', limit: '200 kB' },
-        // Large vendor libraries
+        // Large vendor libraries (individual limits)
         { name: 'assets/vendor-framer-*.js', limit: '200 kB' },
-        { name: 'assets/vendor-misc-*.js', limit: '400 kB' },
+        { name: 'assets/vendor-gsap-*.js', limit: '150 kB' },
+        { name: 'assets/vendor-sentry-*.js', limit: '250 kB' },
+        { name: 'assets/vendor-netlify-*.js', limit: '300 kB' },
+        { name: 'assets/vendor-daily-*.js', limit: '100 kB' },
+        { name: 'assets/vendor-image-*.js', limit: '50 kB' },
+        { name: 'assets/vendor-misc-*.js', limit: '200 kB' }, // Much smaller now
         { name: 'assets/vendor-state-*.js', limit: '100 kB' },
         // Supabase
         { name: 'assets/supabase-*.js', limit: '50 kB' },
@@ -73,15 +78,30 @@ export default defineConfig({
           // Supabase - large and independent
           if (id.includes('@supabase/supabase-js')) return 'supabase';
 
-          // Split large vendor libraries
+          // Split large vendor libraries more granularly
           if (id.includes('node_modules')) {
             // Framer Motion is very large, separate it
             if (id.includes('framer-motion')) return 'vendor-framer';
 
-            // State management libraries
-            if (id.includes('jotai')) return 'vendor-state';
+            // GSAP is large, separate it
+            if (id.includes('gsap')) return 'vendor-gsap';
 
-            // Everything else goes to vendor-misc
+            // Sentry packages are large
+            if (id.includes('@sentry/')) return 'vendor-sentry';
+
+            // Netlify CLI is huge, separate it
+            if (id.includes('netlify') && !id.includes('@netlify/functions')) return 'vendor-netlify';
+
+            // Daily.co packages
+            if (id.includes('@daily-co/')) return 'vendor-daily';
+
+            // Image processing libraries
+            if (id.includes('node-vibrant') || id.includes('@vibrant/')) return 'vendor-image';
+
+            // State management libraries
+            if (id.includes('jotai') || id.includes('immer')) return 'vendor-state';
+
+            // Everything else goes to vendor-misc (now much smaller)
             return 'vendor-misc';
           }
 

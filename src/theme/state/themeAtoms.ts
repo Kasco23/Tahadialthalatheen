@@ -5,6 +5,7 @@
 import { atom } from 'jotai';
 import { atomWithStorage } from 'jotai/utils';
 import { DEFAULT_TOKENS } from '../core/defaultTokens';
+import { getTeamColorPalette } from '../data/teams';
 import {
   loadSelectedTeam,
   loadTextureType,
@@ -126,8 +127,6 @@ export const setSelectedTeamAtom = atom(
 
       // Automatically load the team's hardcoded color palette
       try {
-        // Dynamic import to avoid circular dependencies
-        const { getTeamColorPalette } = await import('../data/teams');
         const palette = getTeamColorPalette(team.id);
         set(extractedPaletteAtom, palette);
       } catch (error) {
