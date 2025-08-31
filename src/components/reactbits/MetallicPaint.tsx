@@ -2,6 +2,7 @@
  * MetallicPaint Component
  * WebGL2-based metallic paint effect inspired by ReactBits
  * Features liquid chrome animations with team color integration
+ * Includes iOS fallback support
  */
 
 import React, { useEffect, useRef, useState } from "react";
@@ -22,6 +23,30 @@ const defaultParams: ShaderParams = {
   patternBlur: 0.005,
   liquid: 0.07,
   speed: 0.3,
+};
+
+// iOS detection
+const isIOS = () => {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+         (navigator.userAgent.includes('Mac') && 'ontouchend' in document);
+};
+
+// WebGL2 support detection
+const hasWebGL2Support = () => {
+  if (isIOS()) {
+    // iOS has limited WebGL2 support
+    console.log('iOS detected - using fallback display for MetallicPaint');
+    return false;
+  }
+  
+  try {
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('webgl2', { failIfMajorPerformanceCaveat: true });
+    return !!context;
+  } catch (error) {
+    console.warn('WebGL2 not supported:', error);
+    return false;
+  }
 };
 
 const vertexShaderSource = `#version 300 es
@@ -150,6 +175,44 @@ interface MetallicPaintProps {
   className?: string;
 }
 
+// CSS-based fallback for iOS and unsupported browsers
+function MetallicFallback({ teamColor, className }: { teamColor: string; className: string }) {
+  const rgbColor = teamColor.startsWith('#') ? teamColor : '#FEBE10';
+  
+  return (
+    <div className={`relative w-full h-full overflow-hidden ${className}`}>
+      <div 
+        className="absolute inset-0 animate-pulse metallic-fallback-bg"
+        style={{
+          background: `linear-gradient(45deg, 
+            ${rgbColor}20, 
+            ${rgbColor}40, 
+            ${rgbColor}20, 
+            transparent, 
+            ${rgbColor}30, 
+            ${rgbColor}50, 
+            ${rgbColor}20
+          )`,
+          backgroundSize: '200% 200%',
+          animation: 'gradient-shift 3s ease-in-out infinite'
+        }}
+      />
+      <div 
+        className="absolute inset-0 opacity-80"
+        style={{
+          background: `radial-gradient(circle at 30% 70%, ${rgbColor}60, transparent 70%)`
+        }}
+      />
+      <div className="absolute inset-0 flex items-center justify-center text-white/70 text-sm">
+        <div className="text-center">
+          <div className="mb-2">🎨 Metallic Paint Effect</div>
+          <div className="text-xs opacity-60">Optimized for your device</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function MetallicPaint({
   teamColor = '#FEBE10',
   params = {},
@@ -158,10 +221,22 @@ export default function MetallicPaint({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [gl, setGl] = useState<WebGL2RenderingContext | null>(null);
   const [uniforms, setUniforms] = useState<Record<string, WebGLUniformLocation>>({});
+  const [webglSupported, setWebglSupported] = useState<boolean | null>(null);
   const totalAnimationTime = useRef(0);
   const lastRenderTime = useRef(0);
   
   const finalParams = { ...defaultParams, ...params };
+
+  // Check WebGL2 support on mount
+  useEffect(() => {
+    const supported = hasWebGL2Support();
+    setWebglSupported(supported);
+    
+    if (!supported) {
+      console.log('Using CSS fallback for MetallicPaint component');
+      return;
+    }
+  }, []);
 
   // Convert hex color to RGB
   const hexToRgb = (hex: string): [number, number, number] => {
@@ -176,16 +251,22 @@ export default function MetallicPaint({
   };
 
   useEffect(() => {
+    if (webglSupported === false) return;
+
     function initShader() {
-      const canvas = canvasRef.current;
-      const gl = canvas?.getContext("webgl2", {
-        antialias: true,
-        alpha: true,
-      });
-      if (!canvas || !gl) {
-        console.warn('WebGL2 not supported, falling back to basic display');
-        return;
-      }
+      try {
+        const canvas = canvasRef.current;
+        const gl = canvas?.getContext("webgl2", {
+          antialias: true,
+          alpha: true,
+          failIfMajorPerformanceCaveat: true
+        });
+        
+        if (!canvas || !gl) {
+          console.warn('WebGL2 context creation failed, using fallback');
+          setWebglSupported(false);
+          return;
+        }
 
       function createShader(
         gl: WebGL2RenderingContext,
@@ -215,6 +296,7 @@ export default function MetallicPaint({
       
       if (!program || !vertexShader || !fragmentShader) {
         console.error('Failed to create shader program');
+        setWebglSupported(false);
         return;
       }
 
@@ -224,6 +306,7 @@ export default function MetallicPaint({
 
       if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
         console.error("Shader link error: " + gl.getProgramInfoLog(program));
+        setWebglSupported(false);
         return;
       }
 
@@ -257,45 +340,58 @@ export default function MetallicPaint({
       gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
 
       setGl(gl);
+      console.log('✅ WebGL2 MetallicPaint initialized successfully');
+    } catch (error) {
+      console.error('❌ WebGL2 initialization failed:', error);
+      setWebglSupported(false);
     }
+  }
 
-    initShader();
-  }, []);
+  initShader();
+}, [webglSupported]);
 
   // Update uniforms when params or team color changes
   useEffect(() => {
-    if (!gl || !uniforms) return;
+    if (!gl || !uniforms || webglSupported === false) return;
 
-    const [r, g, b] = hexToRgb(teamColor);
-    
-    if (uniforms.u_edge) gl.uniform1f(uniforms.u_edge, finalParams.edge);
-    if (uniforms.u_patternBlur) gl.uniform1f(uniforms.u_patternBlur, finalParams.patternBlur);
-    if (uniforms.u_patternScale) gl.uniform1f(uniforms.u_patternScale, finalParams.patternScale);
-    if (uniforms.u_refraction) gl.uniform1f(uniforms.u_refraction, finalParams.refraction);
-    if (uniforms.u_liquid) gl.uniform1f(uniforms.u_liquid, finalParams.liquid);
-    if (uniforms.u_teamColor) gl.uniform3f(uniforms.u_teamColor, r, g, b);
-  }, [gl, uniforms, teamColor, finalParams]);
+    try {
+      const [r, g, b] = hexToRgb(teamColor);
+      
+      if (uniforms.u_edge) gl.uniform1f(uniforms.u_edge, finalParams.edge);
+      if (uniforms.u_patternBlur) gl.uniform1f(uniforms.u_patternBlur, finalParams.patternBlur);
+      if (uniforms.u_patternScale) gl.uniform1f(uniforms.u_patternScale, finalParams.patternScale);
+      if (uniforms.u_refraction) gl.uniform1f(uniforms.u_refraction, finalParams.refraction);
+      if (uniforms.u_liquid) gl.uniform1f(uniforms.u_liquid, finalParams.liquid);
+      if (uniforms.u_teamColor) gl.uniform3f(uniforms.u_teamColor, r, g, b);
+    } catch (error) {
+      console.warn('Failed to update uniforms:', error);
+    }
+  }, [gl, uniforms, teamColor, finalParams, webglSupported]);
 
   // Animation loop
   useEffect(() => {
-    if (!gl || !uniforms) return;
+    if (!gl || !uniforms || webglSupported === false) return;
 
     let renderId: number;
 
     function render(currentTime: number) {
       if (!gl || !uniforms) return;
       
-      const deltaTime = currentTime - lastRenderTime.current;
-      lastRenderTime.current = currentTime;
+      try {
+        const deltaTime = currentTime - lastRenderTime.current;
+        lastRenderTime.current = currentTime;
 
-      totalAnimationTime.current += deltaTime * finalParams.speed;
-      
-      if (uniforms.u_time) {
-        gl.uniform1f(uniforms.u_time, totalAnimationTime.current);
+        totalAnimationTime.current += deltaTime * finalParams.speed;
+        
+        if (uniforms.u_time) {
+          gl.uniform1f(uniforms.u_time, totalAnimationTime.current);
+        }
+        
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        renderId = requestAnimationFrame(render);
+      } catch (error) {
+        console.warn('Render error:', error);
       }
-      
-      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-      renderId = requestAnimationFrame(render);
     }
 
     lastRenderTime.current = performance.now();
@@ -304,27 +400,31 @@ export default function MetallicPaint({
     return () => {
       cancelAnimationFrame(renderId);
     };
-  }, [gl, uniforms, finalParams.speed]);
+  }, [gl, uniforms, finalParams.speed, webglSupported]);
 
   // Handle canvas resize
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas || !gl || !uniforms) return;
+    if (!canvas || !gl || !uniforms || webglSupported === false) return;
 
     function resizeCanvas() {
       if (!canvas || !gl || !uniforms) return;
       
-      const rect = canvas.getBoundingClientRect();
-      const dpr = window.devicePixelRatio || 1;
-      
-      canvas.width = rect.width * dpr;
-      canvas.height = rect.height * dpr;
-      
-      gl.viewport(0, 0, canvas.width, canvas.height);
-      
-      const ratio = canvas.width / canvas.height;
-      if (uniforms.u_ratio) {
-        gl.uniform1f(uniforms.u_ratio, ratio);
+      try {
+        const rect = canvas.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
+        
+        gl.viewport(0, 0, canvas.width, canvas.height);
+        
+        const ratio = canvas.width / canvas.height;
+        if (uniforms.u_ratio) {
+          gl.uniform1f(uniforms.u_ratio, ratio);
+        }
+      } catch (error) {
+        console.warn('Resize error:', error);
       }
     }
 
@@ -334,7 +434,12 @@ export default function MetallicPaint({
     return () => {
       window.removeEventListener("resize", resizeCanvas);
     };
-  }, [gl, uniforms]);
+  }, [gl, uniforms, webglSupported]);
+
+  // Return fallback for unsupported devices
+  if (webglSupported === false) {
+    return <MetallicFallback teamColor={teamColor} className={className} />;
+  }
 
   return (
     <div className={`relative w-full h-full overflow-hidden ${className}`}>
@@ -346,11 +451,12 @@ export default function MetallicPaint({
           filter: 'contrast(1.1) saturate(1.2)'
         }}
       />
-      {!gl && (
+      {!gl && webglSupported === null && (
         <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900 text-white">
           <div className="text-center">
-            <div className="text-lg font-semibold mb-2">WebGL2 Not Supported</div>
-            <div className="text-sm opacity-70">Showing fallback display</div>
+            <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <div className="text-lg font-semibold mb-2">Loading WebGL2...</div>
+            <div className="text-sm opacity-70">Initializing graphics</div>
           </div>
         </div>
       )}

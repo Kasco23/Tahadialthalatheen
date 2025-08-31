@@ -66,6 +66,20 @@ body {
   }
 }
 
+/* ReactBits component animations */
+@keyframes gradient-shift {
+  0%, 100% { 
+    background-position: 0% 50%; 
+  }
+  50% { 
+    background-position: 100% 50%; 
+  }
+}
+
+.metallic-fallback-bg {
+  animation: gradient-shift 3s ease-in-out infinite;
+}
+
 /* Carbon fiber texture pattern using CSS gradients */
 .carbon-fiber-texture {
   background-image: 

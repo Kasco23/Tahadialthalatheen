@@ -6,6 +6,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import ReactBitsErrorBoundary from '@/components/ReactBitsErrorBoundary';
 import Ribbons from '@/components/reactbits/Ribbons';
 import MetaBalls from '@/components/reactbits/MetaBalls';
 import Shimmer from '@/components/reactbits/Shimmer';
@@ -99,64 +100,71 @@ export default function ThemeDemo() {
   const currentPalette = TEAM_PALETTES[selectedPalette];
   const currentComponentData = DEMO_COMPONENTS[selectedComponent];
 
-  // Render the selected component with appropriate props
+  // Render the selected component with appropriate props and error boundary
   const renderCurrentComponent = () => {
-    const baseProps = {
-      colors: currentPalette.colors,
-      teamColors: currentPalette.colors,
-      teamColor: currentPalette.colors[0],
-    };
+    const currentComponent = DEMO_COMPONENTS[selectedComponent];
+    
+    const componentElement = (() => {
+      switch (selectedComponent) {
+        case 0: // Ribbons
+          return <Ribbons 
+            colors={currentPalette.colors} 
+            animated={true} 
+            speed={1} 
+          />;
+        case 1: // Meta Balls
+          return <MetaBalls 
+            colors={currentPalette.colors} 
+            enableMouseInteraction={true}
+            ballCount={8}
+            ballSize={60}
+          />;
+        case 2: // Shimmer
+          return <Shimmer 
+            colors={currentPalette.colors} 
+            speed={1}
+            intensity={0.8}
+            direction="diagonal"
+          />;
+        case 3: // Metallic Paint
+          return <MetallicPaint 
+            teamColor={currentPalette.colors[0]} 
+            params={{ speed: 0.3, refraction: 0.015 }}
+          />;
+        case 4: // Grid Motion
+          return <GridMotion teamColors={currentPalette.colors} />;
+        case 5: // Blob Cursor
+          return <BlobCursor 
+            teamColors={currentPalette.colors} 
+            trailCount={3}
+            sizes={[40, 80, 60]}
+          />;
+        case 6: // Click Spark
+          return <ClickSpark 
+            teamColors={currentPalette.colors} 
+            sparkCount={12}
+            sparkRadius={25}
+          />;
+        case 7: // Star Border
+          return <StarBorder 
+            teamColors={currentPalette.colors} 
+            speed="4s"
+          >
+            Interactive Element
+          </StarBorder>;
+        default:
+          return <Ribbons colors={currentPalette.colors} animated={true} speed={1} />;
+      }
+    })();
 
-    switch (selectedComponent) {
-      case 0: // Ribbons
-        return <Ribbons 
-          colors={currentPalette.colors} 
-          animated={true} 
-          speed={1} 
-        />;
-      case 1: // Meta Balls
-        return <MetaBalls 
-          colors={currentPalette.colors} 
-          enableMouseInteraction={true}
-          ballCount={8}
-          ballSize={60}
-        />;
-      case 2: // Shimmer
-        return <Shimmer 
-          colors={currentPalette.colors} 
-          speed={1}
-          intensity={0.8}
-          direction="diagonal"
-        />;
-      case 3: // Metallic Paint
-        return <MetallicPaint 
-          teamColor={currentPalette.colors[0]} 
-          params={{ speed: 0.3, refraction: 0.015 }}
-        />;
-      case 4: // Grid Motion
-        return <GridMotion teamColors={currentPalette.colors} />;
-      case 5: // Blob Cursor
-        return <BlobCursor 
-          teamColors={currentPalette.colors} 
-          trailCount={3}
-          sizes={[40, 80, 60]}
-        />;
-      case 6: // Click Spark
-        return <ClickSpark 
-          teamColors={currentPalette.colors} 
-          sparkCount={12}
-          sparkRadius={25}
-        />;
-      case 7: // Star Border
-        return <StarBorder 
-          teamColors={currentPalette.colors} 
-          speed="4s"
-        >
-          Interactive Element
-        </StarBorder>;
-      default:
-        return <Ribbons colors={currentPalette.colors} animated={true} speed={1} />;
-    }
+    return (
+      <ReactBitsErrorBoundary 
+        componentName={currentComponent.name} 
+        teamColors={currentPalette.colors}
+      >
+        {componentElement}
+      </ReactBitsErrorBoundary>
+    );
   };
 
   return (
