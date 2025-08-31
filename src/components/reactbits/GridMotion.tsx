@@ -6,13 +6,7 @@
  */
 
 import { useEffect, useRef, FC, useState } from "react";
-
-// iOS detection
-const isIOS = () => {
-  return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
-         (navigator.userAgent.includes('Mac') && 'ontouchend' in document);
-};
-
+import { isIOS } from "../../utils/device";
 // Lazy load GSAP with error handling
 const loadGSAP = async () => {
   try {
