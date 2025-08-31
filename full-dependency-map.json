@@ -75,7 +75,9 @@
   ],
   "src/components/reactbits/BlobCursor.tsx": [],
   "src/components/reactbits/ClickSpark.tsx": [],
-  "src/components/reactbits/GridMotion.tsx": [],
+  "src/components/reactbits/GridMotion.tsx": [
+    "src/utils/device.ts"
+  ],
   "src/components/reactbits/MetaBalls.tsx": [],
   "src/components/reactbits/MetallicPaint.tsx": [],
   "src/components/reactbits/Ribbons.tsx": [],
@@ -297,6 +299,7 @@
   ],
   "src/utils/debugLog.ts": [],
   "src/utils/debugNetworkRequests.ts": [],
+  "src/utils/device.ts": [],
   "src/utils/environmentCheck.ts": [],
   "src/utils/heartbeat.ts": [
     "src/utils/debugLog.ts"
