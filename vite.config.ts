@@ -1,4 +1,3 @@
-import { sentryVitePlugin } from '@sentry/vite-plugin';
 import react from '@vitejs/plugin-react';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
@@ -14,7 +13,7 @@ const appVersion = `${version}-${gitCommit.slice(0, 7)}`;
 
 export default defineConfig({
   plugins: [
-    react(), // Only add Sentry plugin if auth token is available
+    react(),
     bundlesize({
       limits: [
         // Main entry bundle should stay small
@@ -25,12 +24,14 @@ export default defineConfig({
         // Large vendor libraries (individual limits)
         { name: 'assets/vendor-framer-*.js', limit: '200 kB' },
         { name: 'assets/vendor-gsap-*.js', limit: '150 kB' },
-        { name: 'assets/vendor-sentry-*.js', limit: '250 kB' },
         { name: 'assets/vendor-netlify-*.js', limit: '300 kB' },
         { name: 'assets/vendor-daily-*.js', limit: '100 kB' },
         { name: 'assets/vendor-image-*.js', limit: '50 kB' },
-        { name: 'assets/vendor-misc-*.js', limit: '200 kB' }, // Much smaller now
+        { name: 'assets/vendor-misc-*.js', limit: '400 kB' }, // Increased for Netlify without Sentry
         { name: 'assets/vendor-state-*.js', limit: '100 kB' },
+        // Additional vendor libraries
+        { name: 'assets/vendor-utils-*.js', limit: '100 kB' },
+        { name: 'assets/vendor-ui-*.js', limit: '100 kB' },
         // Supabase
         { name: 'assets/supabase-*.js', limit: '50 kB' },
         // Application chunks
@@ -39,23 +40,6 @@ export default defineConfig({
         { name: 'assets/*-*.js', limit: '100 kB' },
       ],
     }),
-    ...(process.env.SENTRY_AUTH_TOKEN
-      ? [
-          sentryVitePlugin({
-            org: 'kasco-ul',
-            project: 'tahadialthalatheen',
-            authToken: process.env.SENTRY_AUTH_TOKEN,
-            release: {
-              name: appVersion,
-            },
-            sourcemaps: {
-              assets: './dist/**',
-              ignore: ['node_modules'],
-            },
-            telemetry: false,
-          }),
-        ]
-      : []),
   ],
   base: '/',
   resolve: {
@@ -86,22 +70,23 @@ export default defineConfig({
             // GSAP is large, separate it
             if (id.includes('gsap')) return 'vendor-gsap';
 
-            // Sentry packages are large
-            if (id.includes('@sentry/')) return 'vendor-sentry';
-
-            // Netlify CLI is huge, separate it
+            // Netlify packages (already large, keep separate)
             if (id.includes('netlify') && !id.includes('@netlify/functions')) return 'vendor-netlify';
 
             // Daily.co packages
             if (id.includes('@daily-co/')) return 'vendor-daily';
 
-            // Image processing libraries
+            // Image processing libraries  
             if (id.includes('node-vibrant') || id.includes('@vibrant/')) return 'vendor-image';
 
             // State management libraries
             if (id.includes('jotai') || id.includes('immer')) return 'vendor-state';
 
-            // Everything else goes to vendor-misc (now much smaller)
+            // Split more vendor libraries to reduce misc chunk size
+            if (id.includes('flag-icons') || id.includes('dompurify') || id.includes('dayjs')) return 'vendor-utils';
+            if (id.includes('svgson') || id.includes('react-window')) return 'vendor-ui';
+
+            // Everything else goes to vendor-misc (now smaller without Sentry)
             return 'vendor-misc';
           }
 

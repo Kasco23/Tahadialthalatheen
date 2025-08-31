@@ -6,13 +6,6 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 
-// Initialize Sentry with complete isolation to prevent bundling issues
-async function initSentry() {
-  // Temporarily disable Sentry to fix bundling issues
-  console.warn('Sentry temporarily disabled to fix production deployment');
-  return null;
-}
-
 // Load optional dependencies with error handling
 async function loadOptionalDependencies() {
   try {
@@ -45,14 +38,11 @@ async function initializeApp() {
       envStatus.warnings.forEach(warning => console.warn(`⚠️ ${warning}`));
     }
     
-    // Initialize Sentry - completely fault-tolerant
-    const sentryModule = await initSentry();
-    
     // Load optional dependencies - completely fault-tolerant
     await loadOptionalDependencies();
     
     console.log('✅ App initialization complete');
-    return sentryModule;
+    return null;
   } catch (error) {
     // Log error but don't re-throw to prevent app crash
     console.warn('⚠️ App initialization had issues but continuing:', error);
@@ -121,60 +111,16 @@ async function renderApp() {
 
   try {
     // Initialize app dependencies
-    const sentryModule = await initializeApp();
-
-    // Safe error boundary setup
-    let ErrorBoundaryComponent: React.ComponentType<any> = React.Fragment;
-    let errorBoundaryProps: any = {};
-
-    // Only use Sentry error boundary if initialization was successful and module exists
-    if (sentryModule && typeof sentryModule === 'object' && 'ErrorBoundary' in sentryModule) {
-      try {
-        const sentryErrorBoundary = (sentryModule as any).ErrorBoundary;
-        ErrorBoundaryComponent = sentryErrorBoundary as React.ComponentType<any>;
-        errorBoundaryProps = {
-          fallback: ({ error, resetError }: { error: Error; resetError: () => void }) => (
-            <div className="min-h-screen flex items-center justify-center bg-red-50">
-              <div className="text-center p-8 bg-white rounded-lg shadow-lg border border-red-200 max-w-md mx-4">
-                <h2 className="text-2xl font-bold text-red-600 mb-4">
-                  شيء ما حدث خطأ!
-                </h2>
-                <p className="text-gray-600 mb-4 text-sm">
-                  {error instanceof Error ? error.message : 'حدث خطأ غير متوقع'}
-                </p>
-                <div className="space-y-2">
-                  <button
-                    onClick={resetError}
-                    className="w-full px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
-                  >
-                    المحاولة مرة أخرى
-                  </button>
-                  <button
-                    onClick={() => window.location.reload()}
-                    className="w-full px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
-                  >
-                    إعادة تحميل الصفحة
-                  </button>
-                </div>
-              </div>
-            </div>
-          )
-        };
-      } catch (sentryError) {
-        console.warn('⚠️ Failed to set up Sentry error boundary:', sentryError);
-      }
-    }
+    const initResult = await initializeApp();
 
     // Render the app with safe error boundaries
     ReactDOM.createRoot(container).render(
       <React.StrictMode>
-        <ErrorBoundaryComponent {...errorBoundaryProps}>
-          <ErrorBoundary>
-            <BrowserRouter>
-              <App />
-            </BrowserRouter>
-          </ErrorBoundary>
-        </ErrorBoundaryComponent>
+        <ErrorBoundary>
+          <BrowserRouter>
+            <App />
+          </BrowserRouter>
+        </ErrorBoundary>
       </React.StrictMode>
     );
 

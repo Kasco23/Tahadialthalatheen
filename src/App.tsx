@@ -60,8 +60,8 @@ export default function App() {
               <SimpleThemeControls />
               <Suspense fallback={<PageLoader />}>
                 <Routes>
-                  <Route path="/" element={<BasicLanding />} />
-                  <Route path="/landing" element={<Landing />} />
+                  <Route path="/" element={<Landing />} />
+                  <Route path="/basic" element={<BasicLanding />} />
                   <Route path="/create-session" element={<CreateSession />} />
                   <Route path="/control-room" element={<ControlRoom />} />
                   <Route path="/join" element={<Join />} />
