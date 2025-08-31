@@ -11,6 +11,7 @@ import { lazy, Suspense } from 'react';
 import { Route, Routes } from 'react-router-dom';
 
 // Lazy load page components to reduce initial bundle size
+const BasicLanding = lazy(() => import('@/pages/BasicLanding'));
 const Landing = lazy(() => import('@/pages/Landing'));
 const CreateSession = lazy(() => import('@/pages/CreateSession'));
 const Join = lazy(() => import('@/pages/Join'));
@@ -59,7 +60,8 @@ export default function App() {
               <SimpleThemeControls />
               <Suspense fallback={<PageLoader />}>
                 <Routes>
-                  <Route path="/" element={<Landing />} />
+                  <Route path="/" element={<BasicLanding />} />
+                  <Route path="/landing" element={<Landing />} />
                   <Route path="/create-session" element={<CreateSession />} />
                   <Route path="/control-room" element={<ControlRoom />} />
                   <Route path="/join" element={<Join />} />

@@ -6,67 +6,11 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 
-// Initialize Sentry with error handling
+// Initialize Sentry with complete isolation to prevent bundling issues
 async function initSentry() {
-  try {
-    const dsn = import.meta.env.VITE_SENTRY_DSN;
-
-    if (!dsn) {
-      console.warn('VITE_SENTRY_DSN not found - monitoring disabled');
-      return;
-    }
-
-    const Sentry = await import('@sentry/react');
-
-    Sentry.init({
-      dsn,
-      sendDefaultPii: true,
-      environment: import.meta.env.MODE,
-      debug: import.meta.env.DEV,
-
-      // Performance Monitoring
-      tracesSampleRate: import.meta.env.DEV ? 1.0 : 0.1,
-      tracePropagationTargets: [
-        'localhost',
-        /^https:\/\/thirtyquiz\.tyshub\.xyz/,
-        /^https:\/\/.*\.netlify\.app/,
-        /^https:\/\/.*\.supabase\.co/,
-        /^https:\/\/.*\.daily\.co/,
-      ],
-
-      // Profiling
-      profilesSampleRate: import.meta.env.DEV ? 1.0 : 0.05,
-
-      // Release tracking
-      release: import.meta.env.VITE_APP_VERSION || 'development',
-
-      // User feedback
-      beforeSend(event) {
-        // In development, log events for debugging
-        if (import.meta.env.DEV) {
-          console.log('Sentry event (dev mode):', event);
-        }
-        return event;
-      },
-
-      // Additional integrations
-      integrations: [
-        Sentry.browserTracingIntegration(),
-        Sentry.replayIntegration({
-          maskAllText: false,
-          blockAllMedia: false,
-        }),
-      ],
-
-      // Session Replay
-      replaysSessionSampleRate: import.meta.env.DEV ? 1.0 : 0.1,
-      replaysOnErrorSampleRate: 1.0,
-    });
-
-    console.log('✅ Sentry initialized with DSN from environment');
-  } catch (error) {
-    console.warn('⚠️ Failed to initialize Sentry:', error);
-  }
+  // Temporarily disable Sentry to fix bundling issues
+  console.warn('Sentry temporarily disabled to fix production deployment');
+  return null;
 }
 
 // Load optional dependencies with error handling
@@ -102,15 +46,17 @@ async function initializeApp() {
     }
     
     // Initialize Sentry - completely fault-tolerant
-    await initSentry();
+    const sentryModule = await initSentry();
     
     // Load optional dependencies - completely fault-tolerant
     await loadOptionalDependencies();
     
     console.log('✅ App initialization complete');
+    return sentryModule;
   } catch (error) {
     // Log error but don't re-throw to prevent app crash
     console.warn('⚠️ App initialization had issues but continuing:', error);
+    return null;
   }
 }
 
@@ -167,54 +113,59 @@ function AppFallback({ error }: { error?: Error }) {
 
 // Render app with comprehensive error handling
 async function renderApp() {
+  const container = document.getElementById('root');
+  if (!container) {
+    console.error('❌ Failed to find the root element');
+    return;
+  }
+
   try {
-    const container = document.getElementById('root');
-    if (!container) {
-      throw new Error('Failed to find the root element');
-    }
-
     // Initialize app dependencies
-    await initializeApp();
+    const sentryModule = await initializeApp();
 
-    // Try to load Sentry for enhanced error boundary
-    let SentryErrorBoundary: React.ComponentType<any> | null = null;
-    try {
-      const Sentry = await import('@sentry/react');
-      SentryErrorBoundary = Sentry.ErrorBoundary;
-    } catch {
-      console.warn('⚠️ Sentry not available for error boundary');
+    // Safe error boundary setup
+    let ErrorBoundaryComponent: React.ComponentType<any> = React.Fragment;
+    let errorBoundaryProps: any = {};
+
+    // Only use Sentry error boundary if initialization was successful and module exists
+    if (sentryModule && typeof sentryModule === 'object' && 'ErrorBoundary' in sentryModule) {
+      try {
+        const sentryErrorBoundary = (sentryModule as any).ErrorBoundary;
+        ErrorBoundaryComponent = sentryErrorBoundary as React.ComponentType<any>;
+        errorBoundaryProps = {
+          fallback: ({ error, resetError }: { error: Error; resetError: () => void }) => (
+            <div className="min-h-screen flex items-center justify-center bg-red-50">
+              <div className="text-center p-8 bg-white rounded-lg shadow-lg border border-red-200 max-w-md mx-4">
+                <h2 className="text-2xl font-bold text-red-600 mb-4">
+                  شيء ما حدث خطأ!
+                </h2>
+                <p className="text-gray-600 mb-4 text-sm">
+                  {error instanceof Error ? error.message : 'حدث خطأ غير متوقع'}
+                </p>
+                <div className="space-y-2">
+                  <button
+                    onClick={resetError}
+                    className="w-full px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                  >
+                    المحاولة مرة أخرى
+                  </button>
+                  <button
+                    onClick={() => window.location.reload()}
+                    className="w-full px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
+                  >
+                    إعادة تحميل الصفحة
+                  </button>
+                </div>
+              </div>
+            </div>
+          )
+        };
+      } catch (sentryError) {
+        console.warn('⚠️ Failed to set up Sentry error boundary:', sentryError);
+      }
     }
 
-    const ErrorBoundaryComponent = SentryErrorBoundary || React.Fragment;
-    const errorBoundaryProps = SentryErrorBoundary ? {
-      fallback: ({ error, resetError }: { error: Error; resetError: () => void }) => (
-        <div className="min-h-screen flex items-center justify-center bg-red-50">
-          <div className="text-center p-8 bg-white rounded-lg shadow-lg border border-red-200 max-w-md mx-4">
-            <h2 className="text-2xl font-bold text-red-600 mb-4">
-              شيء ما حدث خطأ!
-            </h2>
-            <p className="text-gray-600 mb-4 text-sm">
-              {error instanceof Error ? error.message : 'حدث خطأ غير متوقع'}
-            </p>
-            <div className="space-y-2">
-              <button
-                onClick={resetError}
-                className="w-full px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
-              >
-                المحاولة مرة أخرى
-              </button>
-              <button
-                onClick={() => window.location.reload()}
-                className="w-full px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
-              >
-                إعادة تحميل الصفحة
-              </button>
-            </div>
-          </div>
-        </div>
-      )
-    } : {};
-
+    // Render the app with safe error boundaries
     ReactDOM.createRoot(container).render(
       <React.StrictMode>
         <ErrorBoundaryComponent {...errorBoundaryProps}>
@@ -231,12 +182,25 @@ async function renderApp() {
   } catch (error) {
     console.error('❌ Failed to render app:', error);
     
-    // Show basic fallback UI
-    const container = document.getElementById('root');
-    if (container) {
+    // Show basic fallback UI if everything fails
+    try {
       ReactDOM.createRoot(container).render(
         <AppFallback error={error instanceof Error ? error : undefined} />
       );
+    } catch (fallbackError) {
+      console.error('❌ Even fallback failed:', fallbackError);
+      // Last resort: show basic HTML
+      container.innerHTML = `
+        <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #f8fafc; font-family: system-ui;">
+          <div style="text-align: center; padding: 32px; background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <h2 style="color: #dc2626; margin-bottom: 16px;">تحدي الثلاثين</h2>
+            <p style="color: #666; margin-bottom: 16px;">حدث خطأ في التطبيق</p>
+            <button onclick="window.location.reload()" style="background: #3b82f6; color: white; padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer;">
+              إعادة تحميل الصفحة
+            </button>
+          </div>
+        </div>
+      `;
     }
   }
 }

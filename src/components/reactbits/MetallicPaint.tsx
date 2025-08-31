@@ -5,7 +5,7 @@
  * Includes iOS fallback support
  */
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useMemo } from "react";
 
 type ShaderParams = {
   patternScale: number;
@@ -225,7 +225,7 @@ export default function MetallicPaint({
   const totalAnimationTime = useRef(0);
   const lastRenderTime = useRef(0);
   
-  const finalParams = { ...defaultParams, ...params };
+  const finalParams = useMemo(() => ({ ...defaultParams, ...params }), [params]);
 
   // Check WebGL2 support on mount
   useEffect(() => {

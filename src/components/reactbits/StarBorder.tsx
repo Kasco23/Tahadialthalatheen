@@ -35,10 +35,10 @@ const StarBorder = <T extends React.ElementType = "button">({
   return (
     <Component 
       className={`relative inline-block overflow-hidden rounded-[20px] group transition-all duration-300 hover:scale-105 ${className}`} 
-      {...(rest as any)}
+      {...(rest as Record<string, unknown>)}
       style={{
         padding: `${thickness}px`,
-        ...(rest as any).style,
+        ...((rest as Record<string, unknown>).style as React.CSSProperties || {}),
       }}
     >
       {/* Top star movement */}
