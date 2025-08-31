@@ -137,6 +137,7 @@
     "src/App.tsx"
   ],
   "src/pages/ApiStatus.tsx": [],
+  "src/pages/BasicLanding.tsx": [],
   "src/pages/ControlRoom.tsx": [],
   "src/pages/CreateSession.tsx": [],
   "src/pages/FinalScores.tsx": [],
