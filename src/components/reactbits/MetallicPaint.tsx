@@ -27,8 +27,10 @@ const defaultParams: ShaderParams = {
 
 // iOS detection
 const isIOS = () => {
-  return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
-         (navigator.userAgent.includes('Mac') && 'ontouchend' in document);
+  return (
+    /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+  );
 };
 
 // WebGL2 support detection
