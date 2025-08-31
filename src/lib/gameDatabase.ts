@@ -31,8 +31,8 @@ const shouldUseDevelopmentMode = () => {
 
 // In-memory storage for development mode
 const developmentStorage = {
-  games: new Map<string, GameRecord>(),
-  players: new Map<string, PlayerRecord[]>(),
+  sessions: new Map<string, GameRecord>(), // Was games
+  players: new Map<string, PlayerRecord[]>(), // Still keyed by session_id
   atomicLocks: new Map<string, boolean>(), // Track atomic locks
 };
 
@@ -46,11 +46,11 @@ const FALLBACK_SEGMENT_SETTINGS: Record<string, number> = {
 };
 
 export interface GameRecord {
-  id: string;
+  session_id: string; // Primary key (was id)
   host_code: string; // Host code used for auth; non-unique
   host_name: string | null;
   host_is_connected: boolean; // Track host connection status
-  host_id: string | null; // NEW: UUID of authenticated host user
+  host_id: string | null; // UUID of authenticated host user
   phase: string; // 'CONFIG' | 'LOBBY' | 'PLAYING' | 'COMPLETED'
   current_segment: string | null;
   current_question_index: number;
@@ -59,26 +59,27 @@ export interface GameRecord {
   video_room_url: string | null;
   video_room_created: boolean;
   segment_settings: Record<string, number>;
-  status: string; // NEW: 'waiting' | 'active' | 'completed'
-  last_activity: string; // NEW: timestamp for cleanup
+  status: string; // 'waiting' | 'active' | 'completed'
+  last_activity: string; // timestamp for cleanup
   created_at: string;
   updated_at: string;
+  controller_user_id: string | null; // New field from schema
 }
 
 export interface PlayerRecord {
-  id: string;
-  game_id: string;
+  player_id: string; // Primary key (was id)
+  session_id: string | null; // Foreign key to sessions (was game_id)
   name: string;
   flag: string | null;
   club: string | null;
   role: string;
   score: number;
-  strikes: number;
+  strikes_legacy: number; // Was strikes
   is_connected: boolean;
   special_buttons: Record<string, boolean>;
-  user_id: string | null; // NEW: UUID of authenticated user
-  is_host: boolean; // NEW: whether this player is also the host
-  session_id: string | null; // NEW: for session tracking
+  user_id: string | null; // UUID of authenticated user
+  is_host: boolean; // whether this player is also the host
+  slot: string | null; // New field from schema
   joined_at: string;
   last_active: string;
 }
@@ -90,14 +91,14 @@ function isPlayerRecord(data: unknown): data is PlayerRecord {
   const record = data as Record<string, unknown>;
 
   return (
-    typeof record.id === 'string' &&
-    typeof record.game_id === 'string' &&
+    typeof record.player_id === 'string' &&
+    (record.session_id === null || typeof record.session_id === 'string') &&
     typeof record.name === 'string' &&
     (record.flag === null || typeof record.flag === 'string') &&
     (record.club === null || typeof record.club === 'string') &&
     typeof record.role === 'string' &&
     typeof record.score === 'number' &&
-    typeof record.strikes === 'number' &&
+    typeof record.strikes_legacy === 'number' &&
     typeof record.is_connected === 'boolean' &&
     typeof record.special_buttons === 'object' &&
     record.special_buttons !== null &&
@@ -119,14 +120,14 @@ export class GameDatabase {
   /**
    * Insert a new game in CONFIG phase.
    *
-   * @param gameId        six-char player join code
+   * @param sessionId     six-char player join code (was gameId)
    * @param hostCode      full host code e.g. ABC123-HOST
    * @param hostName      optional display name
    * @param segmentSettings  map of segment codes to question counts
    * @param hostId        UUID of authenticated host user
    */
   static async createGame(
-    gameId: string,
+    sessionId: string, // Was gameId
     hostCode: string,
     hostName: string | null = null,
     segmentSettings: Record<string, number> = {},
@@ -135,13 +136,13 @@ export class GameDatabase {
     // Development mode: use in-memory storage
     if (shouldUseDevelopmentMode()) {
       console.log('[DEV] Creating game in memory:', {
-        gameId,
+        sessionId,
         hostCode,
         hostName,
       });
 
       const gameRecord: GameRecord = {
-        id: gameId,
+        session_id: sessionId, // Was id
         host_code: hostCode,
         host_name: hostName,
         host_is_connected: false,
@@ -160,9 +161,10 @@ export class GameDatabase {
         last_activity: new Date().toISOString(),
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
+        controller_user_id: null,
       };
 
-      developmentStorage.games.set(gameId, gameRecord);
+      developmentStorage.sessions.set(sessionId, gameRecord); // Was games
       console.log('[DEV] Game created successfully in memory');
       return gameRecord;
     }
@@ -177,9 +179,9 @@ export class GameDatabase {
       // Use lazy supabase client
       const supabase = await getSupabase();
       const { data, error } = await supabase
-        .from('games')
+        .from('sessions') // Was games
         .insert({
-          id: gameId,
+          session_id: sessionId, // Was id
           host_code: hostCode,
           host_name: hostName,
           host_id: hostId,
@@ -206,19 +208,19 @@ export class GameDatabase {
   }
 
   /**
-   * Fetch a game by its ID.
-   * @param gameId The game ID to look up.
+   * Fetch a game by its session ID.
+   * @param sessionId The session ID to look up (was gameId).
    */
-  static async getGame(gameId: string): Promise<GameRecord | null> {
+  static async getGame(sessionId: string): Promise<GameRecord | null> {
     // Development mode: get from in-memory storage
     if (shouldUseDevelopmentMode()) {
-      console.log('[DEV] Getting game from memory:', gameId);
-      const game = developmentStorage.games.get(gameId);
+      console.log('[DEV] Getting game from memory:', sessionId);
+      const game = developmentStorage.sessions.get(sessionId); // Was games
       if (game) {
         console.log('[DEV] Game found in memory:', game);
         return game;
       } else {
-        console.log('[DEV] Game not found in memory:', gameId);
+        console.log('[DEV] Game not found in memory:', sessionId);
         return null;
       }
     }
@@ -230,9 +232,9 @@ export class GameDatabase {
       // Use lazy supabase client
       const supabase = await getSupabase();
       const { data, error } = await supabase
-        .from('games')
+        .from('sessions') // Was games
         .select('*') // selects all columns including host_code
-        .eq('id', gameId)
+        .eq('session_id', sessionId) // Was id
         .single();
 
       if (error) {
@@ -248,10 +250,10 @@ export class GameDatabase {
   }
 
   /**
-   * Look up a game using both its ID and host code to avoid collisions.
+   * Look up a game using both its session ID and host code to avoid collisions.
    */
   static async getGameByHostCode(
-    gameId: string,
+    sessionId: string, // Was gameId
     hostCode: string,
   ): Promise<GameRecord | null> {
     if (!this.isConfigured()) return null;
@@ -260,9 +262,9 @@ export class GameDatabase {
       // Use lazy supabase client
       const supabase = await getSupabase();
       const { data, error } = await supabase
-        .from('games')
+        .from('sessions') // Was games
         .select('*')
-        .eq('id', gameId)
+        .eq('session_id', sessionId) // Was id
         .eq('host_code', hostCode)
         .single();
 
@@ -282,12 +284,12 @@ export class GameDatabase {
    * Release the atomic lock for video room creation
    * This should be called after room creation completes (success or failure)
    */
-  static releaseVideoRoomLock(gameId: string): void {
+  static releaseVideoRoomLock(sessionId: string): void { // Was gameId
     // Development mode: release the atomic lock
     if (shouldUseDevelopmentMode()) {
-      const lockKey = `video_room_${gameId}`;
+      const lockKey = `video_room_${sessionId}`;
       developmentStorage.atomicLocks.delete(lockKey);
-      console.log('[DEV] Released video room atomic lock for:', gameId);
+      console.log('[DEV] Released video room atomic lock for:', sessionId);
     }
     // Production mode: no explicit lock release needed as DB transaction handles it
   }
@@ -296,18 +298,18 @@ export class GameDatabase {
    * Atomically set video_room_created flag to true if it's currently false.
    * This prevents race conditions during room creation.
    *
-   * @param gameId The game ID
+   * @param sessionId The session ID (was gameId)
    * @returns { success: true, data: GameRecord } if the flag was successfully set,
    *          { success: false } if the flag was already true (room already being created)
    */
   static async atomicSetVideoRoomCreating(
-    gameId: string,
+    sessionId: string, // Was gameId
   ): Promise<{ success: boolean; data?: GameRecord; error?: string }> {
     // Development mode: simulate atomic operation with in-memory storage
     if (shouldUseDevelopmentMode()) {
-      console.log('[DEV] Atomic set video room creating for:', gameId);
+      console.log('[DEV] Atomic set video room creating for:', sessionId);
 
-      const lockKey = `video_room_${gameId}`;
+      const lockKey = `video_room_${sessionId}`;
 
       // Check if another process is already creating the room
       if (developmentStorage.atomicLocks.has(lockKey)) {
@@ -317,7 +319,7 @@ export class GameDatabase {
         return { success: false, error: 'Video room already being created' };
       }
 
-      const existingGame = developmentStorage.games.get(gameId);
+      const existingGame = developmentStorage.sessions.get(sessionId); // Was games
       if (!existingGame) {
         return { success: false, error: 'Game not found' };
       }
@@ -337,7 +339,7 @@ export class GameDatabase {
         updated_at: new Date().toISOString(),
       };
 
-      developmentStorage.games.set(gameId, updatedGame);
+      developmentStorage.sessions.set(sessionId, updatedGame); // Was games
       console.log('[DEV] Video room creation flag set successfully');
       return { success: true, data: updatedGame };
     }
@@ -350,12 +352,12 @@ export class GameDatabase {
     try {
       const supabase = await getSupabase();
       const { data, error } = await supabase
-        .from('games')
+        .from('sessions') // Was games
         .update({
           video_room_created: true,
           updated_at: new Date().toISOString(),
         })
-        .eq('id', gameId)
+        .eq('session_id', sessionId) // Was id
         .eq('video_room_created', false) // Only update if flag is currently false
         .select()
         .single();
@@ -365,7 +367,7 @@ export class GameDatabase {
         if (error.code === 'PGRST116') {
           console.log(
             'Video room creation already in progress for game:',
-            gameId,
+            sessionId,
           );
           return { success: false, error: 'Video room already being created' };
         }
@@ -376,7 +378,7 @@ export class GameDatabase {
 
       console.log(
         'Successfully set video room creation flag for game:',
-        gameId,
+        sessionId,
       );
       return { success: true, data: data as GameRecord };
     } catch (error) {
@@ -391,16 +393,16 @@ export class GameDatabase {
    * Update a game record with the provided fields.
    */
   static async updateGame(
-    gameId: string,
+    sessionId: string, // Was gameId
     updates: Partial<GameRecord>,
   ): Promise<GameRecord | null> {
     // Development mode: update in-memory storage
     if (shouldUseDevelopmentMode()) {
-      console.log('[DEV] Updating game in memory:', { gameId, updates });
+      console.log('[DEV] Updating game in memory:', { sessionId, updates });
 
-      const existingGame = developmentStorage.games.get(gameId);
+      const existingGame = developmentStorage.sessions.get(sessionId); // Was games
       if (!existingGame) {
-        console.warn('[DEV] Game not found in memory:', gameId);
+        console.warn('[DEV] Game not found in memory:', sessionId);
         return null;
       }
 
@@ -410,7 +412,7 @@ export class GameDatabase {
         updated_at: new Date().toISOString(),
       };
 
-      developmentStorage.games.set(gameId, updatedGame);
+      developmentStorage.sessions.set(sessionId, updatedGame); // Was games
       console.log('[DEV] Game updated successfully in memory');
       return updatedGame;
     }
@@ -422,9 +424,9 @@ export class GameDatabase {
       // Use lazy supabase client
       const supabase = await getSupabase();
       const { data, error } = await supabase
-        .from('games')
+        .from('sessions') // Was games
         .update(updates)
-        .eq('id', gameId)
+        .eq('session_id', sessionId) // Was id
         .select()
         .single();
 
@@ -446,15 +448,15 @@ export class GameDatabase {
 
   static async addPlayer(
     playerId: string,
-    gameId: string,
+    sessionId: string, // Was gameId
     playerData: {
       name: string;
       flag?: string;
       club?: string;
       role?: string;
-      userId?: string; // NEW: authenticated user ID
-      isHost?: boolean; // NEW: whether this player is the host
-      sessionId?: string; // NEW: session tracking
+      userId?: string; // authenticated user ID
+      isHost?: boolean; // whether this player is the host
+      sessionId?: string; // session tracking (deprecated - using method param)
     },
   ): Promise<PlayerRecord | null> {
     if (!this.isConfigured()) return null;
@@ -465,21 +467,21 @@ export class GameDatabase {
 
       // First, remove the player from any existing games to avoid primary key conflicts
       // This allows players to switch between games
-      await supabase.from('players').delete().eq('id', playerId);
+      await supabase.from('players').delete().eq('player_id', playerId); // Was id
 
       // Now insert the player into the new game
       const { data, error } = await supabase
         .from('players')
         .insert({
-          id: playerId,
-          game_id: gameId,
+          player_id: playerId, // Was id
+          session_id: sessionId, // Was game_id
           name: playerData.name,
           flag: playerData.flag || null,
           club: playerData.club || null,
           role: playerData.role || 'playerA',
           user_id: playerData.userId || null,
           is_host: playerData.isHost || false,
-          session_id: playerData.sessionId || null,
+          // Note: slot field will be set to null (default)
           is_connected: true,
         })
         .select()
@@ -497,7 +499,7 @@ export class GameDatabase {
     }
   }
 
-  static async getGamePlayers(gameId: string): Promise<PlayerRecord[]> {
+  static async getGamePlayers(sessionId: string): Promise<PlayerRecord[]> { // Was gameId
     if (!this.isConfigured()) return [];
 
     try {
@@ -506,7 +508,7 @@ export class GameDatabase {
       const { data, error } = await supabase
         .from('players')
         .select('*')
-        .eq('game_id', gameId)
+        .eq('session_id', sessionId) // Was game_id
         .order('joined_at', { ascending: true });
 
       if (error) {
@@ -533,7 +535,7 @@ export class GameDatabase {
       const { data, error } = await supabase
         .from('players')
         .update(updates)
-        .eq('id', playerId)
+        .eq('player_id', playerId) // Was id
         .select()
         .limit(1)
         .single();
@@ -567,7 +569,7 @@ export class GameDatabase {
       const { data: existingPlayer, error: fetchError } = await supabase
         .from('players')
         .select('*')
-        .eq('id', playerId)
+        .eq('player_id', playerId) // Was id
         .limit(1);
 
       if (fetchError) {
@@ -590,7 +592,7 @@ export class GameDatabase {
       const { data, error } = await supabase
         .from('players')
         .update(updates)
-        .eq('id', playerId)
+        .eq('player_id', playerId) // Was id
         .select()
         .limit(1)
         .single();
@@ -620,7 +622,7 @@ export class GameDatabase {
     }
   }
   static async insertGameEvent(
-    gameId: string,
+    sessionId: string, // Was gameId
     event_type: string,
     event_data: Record<string, unknown> = {},
   ) {
@@ -629,7 +631,7 @@ export class GameDatabase {
     const supabase = await getSupabase();
     const { error } = await supabase
       .from('game_events')
-      .insert([{ game_id: gameId, event_type, event_data }]);
+      .insert([{ session_id: sessionId, event_type, event_data }]); // Was game_id
     if (error) console.error('insertGameEvent error:', error);
   }
 
@@ -642,7 +644,7 @@ export class GameDatabase {
       const { error } = await supabase
         .from('players')
         .delete()
-        .eq('id', playerId);
+        .eq('player_id', playerId); // Was id
 
       if (error) {
         console.error('Error removing player:', error);
@@ -659,7 +661,7 @@ export class GameDatabase {
   /**
    * Get all players for a specific game
    */
-  static async getPlayers(gameId: string): Promise<PlayerRecord[]> {
+  static async getPlayers(sessionId: string): Promise<PlayerRecord[]> { // Was gameId
     if (!this.isConfigured()) return [];
 
     try {
@@ -668,7 +670,7 @@ export class GameDatabase {
       const { data, error } = await supabase
         .from('players')
         .select('*')
-        .eq('game_id', gameId);
+        .eq('session_id', sessionId); // Was game_id
 
       if (error) {
         console.error('Error fetching players:', error);
@@ -687,7 +689,7 @@ export class GameDatabase {
   // =====================================
 
   static async subscribeToGame(
-    gameId: string,
+    sessionId: string, // Was gameId
     callbacks: {
       onGameUpdate?: (game: GameRecord) => void;
       onPlayerJoin?: (player: PlayerRecord) => void;
@@ -703,15 +705,15 @@ export class GameDatabase {
     // Subscribe to game updates
     // Use lazy supabase client
     const supabase = await getSupabase();
-    const gameChannel = supabase.channel(`game:${gameId}`);
+    const gameChannel = supabase.channel(`game:${sessionId}`);
 
     gameChannel.on(
       'postgres_changes',
       {
         event: '*',
         schema: 'public',
-        table: 'games',
-        filter: `id=eq.${gameId}`,
+        table: 'sessions', // Was games
+        filter: `session_id=eq.${sessionId}`, // Was id
       },
       (payload) => {
         console.log('Game update:', payload);
@@ -727,7 +729,7 @@ export class GameDatabase {
         event: '*',
         schema: 'public',
         table: 'players',
-        filter: `game_id=eq.${gameId}`,
+        filter: `session_id=eq.${sessionId}`, // Was game_id
       },
       (payload) => {
         console.log('Player update:', payload);
@@ -736,7 +738,7 @@ export class GameDatabase {
         } else if (payload.eventType === 'UPDATE' && callbacks.onPlayerUpdate) {
           callbacks.onPlayerUpdate(payload.new as PlayerRecord);
         } else if (payload.eventType === 'DELETE' && callbacks.onPlayerLeave) {
-          callbacks.onPlayerLeave(payload.old.id);
+          callbacks.onPlayerLeave(payload.old.player_id); // Was id
         }
       },
     );
@@ -755,14 +757,14 @@ export class GameDatabase {
    * Check if a game exists and is in a specific phase
    */
   static async checkGamePhase(
-    gameId: string,
+    sessionId: string, // Was gameId
   ): Promise<{ exists: boolean; phase?: string; game?: GameRecord }> {
     if (!this.isConfigured()) {
       return { exists: false };
     }
 
     try {
-      const game = await this.getGame(gameId);
+      const game = await this.getGame(sessionId);
       if (!game) {
         return { exists: false };
       }
@@ -781,7 +783,7 @@ export class GameDatabase {
   /**
    * Get game statistics for monitoring
    */
-  static async getGameStats(gameId: string): Promise<{
+  static async getGameStats(sessionId: string): Promise<{ // Was gameId
     playerCount: number;
     connectedPlayers: number;
     totalQuestions: number;
@@ -792,8 +794,8 @@ export class GameDatabase {
 
     try {
       const [game, players] = await Promise.all([
-        this.getGame(gameId),
-        this.getPlayers(gameId),
+        this.getGame(sessionId),
+        this.getPlayers(sessionId),
       ]);
 
       if (!game) return null;
@@ -834,10 +836,10 @@ export class GameDatabase {
       // Use lazy supabase client
       const supabase = await getSupabase();
       const { data, error } = await supabase
-        .from('games')
+        .from('sessions') // Was games
         .delete()
         .lt('created_at', cutoffTime.toISOString())
-        .select('id');
+        .select('session_id'); // Was id
 
       if (error) {
         console.error('Error cleaning up old games:', error);
@@ -854,11 +856,11 @@ export class GameDatabase {
   /**
    * Reset a game to CONFIG phase (for testing/development)
    */
-  static async resetGameToConfig(gameId: string): Promise<boolean> {
+  static async resetGameToConfig(sessionId: string): Promise<boolean> { // Was gameId
     if (!this.isConfigured()) return false;
 
     try {
-      const updated = await this.updateGame(gameId, {
+      const updated = await this.updateGame(sessionId, {
         phase: 'CONFIG',
         current_segment: null,
         current_question_index: 0,
@@ -883,7 +885,7 @@ export class GameDatabase {
       // Use lazy supabase client
       const supabase = await getSupabase();
       const { data, error } = await supabase
-        .from('games')
+        .from('sessions') // Was games
         .select('*')
         .order('created_at', { ascending: false })
         .limit(limit);
@@ -901,7 +903,7 @@ export class GameDatabase {
   }
 
   static async logGameEvent(
-    gameId: string,
+    sessionId: string, // Was gameId
     eventType: string,
     eventData: Record<string, unknown>,
   ): Promise<boolean> {
@@ -911,7 +913,7 @@ export class GameDatabase {
       // Use lazy supabase client
       const supabase = await getSupabase();
       const { error } = await supabase.from('game_events').insert({
-        game_id: gameId,
+        session_id: sessionId, // Was game_id
         event_type: eventType,
         event_data: eventData,
       });

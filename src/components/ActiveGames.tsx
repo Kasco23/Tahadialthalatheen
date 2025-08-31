@@ -45,7 +45,7 @@ export default function ActiveGames({ onJoinGame }: ActiveGamesProps) {
       }
 
       // Extract room names for batch checking
-      const roomNames = joinableGames.map((game) => game.id);
+      const roomNames = joinableGames.map((game) => game.session_id);
 
       // Batch check which rooms are active in Daily.co
       const roomCheckResponse = await fetch(
@@ -76,12 +76,12 @@ export default function ActiveGames({ onJoinGame }: ActiveGamesProps) {
           // Show LOBBY games if they have a video room (active or not)
           const roomExists = roomCheckData.results?.find(
             (r: { roomName: string; exists: boolean }) =>
-              r.roomName === game.id,
+              r.roomName === game.session_id,
           )?.exists;
           return roomExists || game.video_room_created;
         } else if (game.phase === 'CONFIG') {
           // Only show CONFIG games if they have active participants
-          return activeRoomNames.has(game.id);
+          return activeRoomNames.has(game.session_id);
         }
         return false;
       });
@@ -121,7 +121,7 @@ export default function ActiveGames({ onJoinGame }: ActiveGamesProps) {
 
     // Join the first available game
     const firstGame = games[0];
-    handleQuickJoin(firstGame.id);
+    handleQuickJoin(firstGame.session_id); // Was id
   };
 
   const formatTimeAgo = (dateString: string) => {
@@ -294,7 +294,7 @@ export default function ActiveGames({ onJoinGame }: ActiveGamesProps) {
         <div className="space-y-3 max-h-64 overflow-y-auto">
           {games.map((game) => (
             <motion.div
-              key={game.id}
+              key={game.session_id}
               className="bg-theme-surface/20 rounded-lg p-3 border border-theme-border hover:border-theme-primary/50 transition-all"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
@@ -327,10 +327,10 @@ export default function ActiveGames({ onJoinGame }: ActiveGamesProps) {
                 <div
                   className={`text-xs text-theme-text-muted ${isArabic ? 'font-arabic' : ''}`}
                 >
-                  ID: {game.id}
+                  ID: {game.session_id}
                 </div>
                 <button
-                  onClick={() => handleQuickJoin(game.id)}
+                  onClick={() => handleQuickJoin(game.session_id)}
                   className={`px-3 py-1 text-sm rounded-lg bg-theme-primary/20 hover:bg-theme-primary/30 text-theme-primary hover:text-theme-text transition-all border border-theme-primary/30 hover:border-theme-primary ${isArabic ? 'font-arabic' : ''}`}
                 >
                   {t('quickJoin')}

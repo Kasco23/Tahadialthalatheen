@@ -7,7 +7,7 @@ import { initialGameState } from './initialGameState';
 export function mapRecordToState(record: GameRecord): GameState {
   return {
     ...initialGameState,
-    gameId: record.id,
+    gameId: record.session_id, // Was id
     hostCode: record.host_code,
     hostName: record.host_name ?? null,
     phase: record.phase as GameState['phase'],

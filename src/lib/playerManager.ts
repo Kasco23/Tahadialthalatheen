@@ -10,7 +10,7 @@ export class PlayerManager {
    */
   static async ensurePlayerExists(
     playerId: PlayerId,
-    gameId: string,
+    sessionId: string, // Was gameId
     playerData: {
       name: string;
       flag?: string;
@@ -20,8 +20,8 @@ export class PlayerManager {
   ): Promise<{ success: boolean; data?: PlayerRecord; error?: string }> {
     try {
       // First, try to get the player
-      const existingPlayers = await GameDatabase.getGamePlayers(gameId);
-      const existingPlayer = existingPlayers.find((p) => p.id === playerId);
+      const existingPlayers = await GameDatabase.getGamePlayers(sessionId); // Was gameId
+      const existingPlayer = existingPlayers.find((p) => p.player_id === playerId); // Was id
 
       if (existingPlayer) {
         // Player exists, update with any new data
@@ -37,7 +37,7 @@ export class PlayerManager {
         return updatedPlayer;
       } else {
         // Player doesn't exist, create them
-        const newPlayer = await GameDatabase.addPlayer(playerId, gameId, {
+        const newPlayer = await GameDatabase.addPlayer(playerId, sessionId, { // Was gameId
           name: playerData.name,
           flag: playerData.flag,
           club: playerData.club,
@@ -63,7 +63,7 @@ export class PlayerManager {
    */
   static async updatePlayerConnection(
     playerId: PlayerId,
-    gameId: string,
+    sessionId: string, // Was gameId
     isConnected: boolean,
     playerData?: {
       name?: string;
@@ -74,7 +74,7 @@ export class PlayerManager {
     try {
       if (isConnected && playerData?.name) {
         // Ensure player exists when connecting
-        return await this.ensurePlayerExists(playerId, gameId, {
+        return await this.ensurePlayerExists(playerId, sessionId, { // Was gameId
           name: playerData.name,
           flag: playerData.flag,
           club: playerData.club,
@@ -222,7 +222,7 @@ export class PlayerManager {
         const lastActive = new Date(player.last_active);
         if (!player.is_connected && lastActive < cutoffTime) {
           // Remove player from database
-          await GameDatabase.updatePlayerById(player.id, {
+          await GameDatabase.updatePlayerById(player.player_id, { // Was id
             is_connected: false,
             // Mark for cleanup or actually remove based on requirements
           });

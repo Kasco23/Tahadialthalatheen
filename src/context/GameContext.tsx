@@ -54,7 +54,7 @@ export function useGame() {
 // Map GameRecord from database to GameState
 export function mapRecordToState(record: GameRecord): GameState {
   return {
-    gameId: record.id,
+    gameId: record.session_id, // Was id
     hostCode: record.host_code,
     hostName: record.host_name,
     hostIsConnected: record.host_is_connected,

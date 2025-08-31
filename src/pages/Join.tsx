@@ -78,13 +78,12 @@ export default function Join() {
       const code = hostCode.toUpperCase();
       const supabase = await getSupabase();
       const { data } = await supabase
-        .from('games')
-        .select('id')
-        .eq('id', sessionId)
+        .from('sessions') // Was games
+        .select('session_id') // Was id
+        .eq('session_id', sessionId) // Was id
         .eq('host_code', code)
-
         .single();
-      const foundId = data?.id;
+      const foundId = data?.session_id; // Was id
       if (!foundId) {
         setErrorMsg(t('gameNotFound'));
         return;
