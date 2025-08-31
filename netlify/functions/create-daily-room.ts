@@ -1,7 +1,7 @@
 import type { HandlerContext, HandlerEvent } from '@netlify/functions';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { getAuthContext, verifyGameHost } from './_auth.js';
-import { createApiResponse, withSentry } from './_sentry.js';
+import { createApiResponse, withErrorHandling } from "./_utils.js";
 
 // Function to check if video room is already being created
 async function checkVideoRoomStatus(
@@ -328,5 +328,5 @@ const createDailyRoomHandler = async (
   }
 };
 
-// Export with Sentry monitoring
-export const handler = withSentry('create-daily-room', createDailyRoomHandler);
+// Export with error handling
+export const handler = withErrorHandling('create-daily-room', createDailyRoomHandler);

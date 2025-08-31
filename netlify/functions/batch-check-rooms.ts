@@ -1,5 +1,5 @@
 import type { HandlerContext, HandlerEvent } from '@netlify/functions';
-import { withSentry } from './_sentry.js';
+import { withErrorHandling } from "./_utils.js";
 
 /**
  * Batch check multiple Daily.co rooms to see which ones are active
@@ -199,5 +199,5 @@ const batchCheckRoomsHandler = async (
   }
 };
 
-// Export with Sentry monitoring
-export const handler = withSentry('batch-check-rooms', batchCheckRoomsHandler);
+// Export with error handling
+export const handler = withErrorHandling('batch-check-rooms', batchCheckRoomsHandler);

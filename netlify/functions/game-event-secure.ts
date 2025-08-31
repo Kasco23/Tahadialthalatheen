@@ -5,7 +5,7 @@ import {
   verifyGameHost,
   verifyGamePlayer,
 } from './_auth.js';
-import { withSentry } from './_sentry.js';
+import { withErrorHandling } from "./_utils.js";
 
 interface GameEventRequest {
   gameId: string;
@@ -302,5 +302,5 @@ const gameEventHandler = async (
   }
 };
 
-// Export with Sentry monitoring
-export const handler = withSentry('game-event-secure', gameEventHandler);
+// Export with error handling
+export const handler = withErrorHandling('game-event-secure', gameEventHandler);

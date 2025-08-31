@@ -10,7 +10,7 @@
 
 - Comprehensive Supabase backend authentication integration
 - Secure authentication utilities (`_auth.ts`) for Netlify functions
-- Authentication monitoring system (`_authMonitoring.ts`) with Sentry integration
+- Authentication monitoring system (`_authMonitoring.ts`) with structured logging
 - Production deployment checklist with rollback procedures
 - Host and player permission verification for game operations
 - Authorization checks for restricted game event types (video_room_created, phase_changed, etc.)
@@ -39,6 +39,6 @@
 
 - Legacy authentication patterns replaced with secure context-based authentication
 - Database operations now properly tracked for monitoring and debugging
-- Comprehensive error handling with Sentry integration for production monitoring
+- Comprehensive error handling with structured logging for production monitoring
 
 ---

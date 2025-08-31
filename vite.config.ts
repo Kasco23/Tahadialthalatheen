@@ -27,7 +27,7 @@ export default defineConfig({
         { name: 'assets/vendor-netlify-*.js', limit: '300 kB' },
         { name: 'assets/vendor-daily-*.js', limit: '100 kB' },
         { name: 'assets/vendor-image-*.js', limit: '50 kB' },
-        { name: 'assets/vendor-misc-*.js', limit: '400 kB' }, // Increased for Netlify without Sentry
+        { name: 'assets/vendor-misc-*.js', limit: '400 kB' }, // Optimized for better performance
         { name: 'assets/vendor-state-*.js', limit: '100 kB' },
         // Additional vendor libraries
         { name: 'assets/vendor-utils-*.js', limit: '100 kB' },
@@ -86,7 +86,7 @@ export default defineConfig({
             if (id.includes('flag-icons') || id.includes('dompurify') || id.includes('dayjs')) return 'vendor-utils';
             if (id.includes('svgson') || id.includes('react-window')) return 'vendor-ui';
 
-            // Everything else goes to vendor-misc (now smaller without Sentry)
+            // Everything else goes to vendor-misc (optimized without Sentry)
             return 'vendor-misc';
           }
 

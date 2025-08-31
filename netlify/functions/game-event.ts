@@ -5,7 +5,7 @@ import {
   trackDatabaseOperation,
   trackSecurityEvent,
 } from './_authMonitoring.js';
-import { withSentry } from './_sentry.js';
+import { withErrorHandling } from './_utils.js';
 
 /**
  * SECURE GAME EVENT HANDLER - Authentication-enabled version
@@ -543,5 +543,5 @@ const gameEventHandler = async (
   }
 };
 
-// Export with Sentry monitoring
-export const handler = withSentry('game-event', gameEventHandler);
+// Export with error handling
+export const handler = withErrorHandling('game-event', gameEventHandler);

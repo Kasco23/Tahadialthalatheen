@@ -1,4 +1,4 @@
-import { withSentry } from './_sentry.js';
+import { withErrorHandling } from "./_utils.js";
 
 /**
  * Delete a Daily.co video room by name.
@@ -80,5 +80,5 @@ const deleteDailyRoomHandler = async (event, _context) => {
   }
 };
 
-// Export with Sentry monitoring
-export const handler = withSentry('delete-daily-room', deleteDailyRoomHandler);
+// Export with error handling
+export const handler = withErrorHandling('delete-daily-room', deleteDailyRoomHandler);

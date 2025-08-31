@@ -1,4 +1,4 @@
-import { withSentry } from './_sentry.js';
+import { withErrorHandling } from "./_utils.js";
 
 // Helper function to generate unique user IDs
 function generateUniqueUserId(role: string): string {
@@ -239,8 +239,8 @@ const createDailyTokenHandler = async (event, _context) => {
   }
 };
 
-// Export with Sentry monitoring
-export const handler = withSentry(
+// Export with error handling
+export const handler = withErrorHandling(
   'create-daily-token',
   createDailyTokenHandler,
 );

@@ -1,6 +1,6 @@
 import type { HandlerContext, HandlerEvent } from '@netlify/functions';
 import { getAuthContext } from './_auth.js';
-import { withSentry } from './_sentry.js';
+import { withErrorHandling } from "./_utils.js";
 
 interface DailyRoomInfo {
   id: string;
@@ -248,5 +248,5 @@ const dailyDiagnosticsHandler = async (
   }
 };
 
-// Export with Sentry monitoring
-export const handler = withSentry('daily-diagnostics', dailyDiagnosticsHandler);
+// Export with error handling
+export const handler = withErrorHandling('daily-diagnostics', dailyDiagnosticsHandler);

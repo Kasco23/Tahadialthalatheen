@@ -23,7 +23,6 @@ export function checkEnvironmentConfiguration(): EnvironmentStatus {
 
   // Optional environment variables
   const optionalVars = {
-    VITE_SENTRY_DSN: import.meta.env.VITE_SENTRY_DSN,
     VITE_DAILY_DOMAIN: import.meta.env.VITE_DAILY_DOMAIN,
     VITE_APP_VERSION: import.meta.env.VITE_APP_VERSION,
   };

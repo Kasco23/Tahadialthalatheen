@@ -1,4 +1,4 @@
-import { withSentry } from './_sentry.js';
+import { withErrorHandling } from "./_utils.js";
 
 /**
  * Get Daily.co room presence information to check if room is active
@@ -187,5 +187,5 @@ const getRoomPresenceHandler = async (event, _context) => {
   }
 };
 
-// Export with Sentry monitoring
-export const handler = withSentry('get-room-presence', getRoomPresenceHandler);
+// Export with error handling
+export const handler = withErrorHandling('get-room-presence', getRoomPresenceHandler);

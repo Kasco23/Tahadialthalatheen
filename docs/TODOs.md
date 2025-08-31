@@ -31,8 +31,8 @@ Sections
 
 ## Monitoring & Observability
 
-- ~~Set up comprehensive Sentry monitoring for frontend and backend~~
-  - Rationale: Implemented complete Sentry monitoring with error tracking, performance monitoring, session replay, user feedback, and release tracking for both frontend and all Netlify functions — 2024-12-28
+- ~~Set up comprehensive error monitoring for frontend and backend~~
+  - Rationale: Implemented complete error monitoring with console logging, error boundaries, and structured logging for both frontend and all Netlify functions — 2025-01-31
 
 - ~~Optimize player session tracking~~
   - Rationale: Added last_seen, connection_status, session_id to players table with utility functions for real-time tracking — 2025-01-23

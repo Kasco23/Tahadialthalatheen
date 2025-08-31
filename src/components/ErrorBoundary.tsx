@@ -23,40 +23,7 @@ export class ErrorBoundary extends React.Component<
     console.error('🚨 React Error Boundary caught an error:', error);
     console.error('Error Info:', errorInfo);
 
-    // Try to send to Sentry if available, but don't break if it's not
-    try {
-      import('@sentry/react').then((Sentry) => {
-        Sentry.withScope((scope) => {
-          scope.setTag('component', 'ErrorBoundary');
-          scope.setTag('errorBoundary', true);
-          scope.setLevel('error');
-
-          scope.setContext('errorBoundary', {
-            componentStack: errorInfo.componentStack,
-            errorBoundary: this.constructor.name,
-            timestamp: new Date().toISOString(),
-          });
-
-          scope.setContext('application', {
-            version: import.meta.env.VITE_APP_VERSION,
-            environment: import.meta.env.MODE,
-            url: window.location.href,
-            userAgent: navigator.userAgent,
-          });
-
-          Object.keys(errorInfo).forEach((key) => {
-            scope.setExtra(key, errorInfo[key as keyof React.ErrorInfo]);
-          });
-
-          Sentry.captureException(error);
-        });
-      }).catch((sentryError) => {
-        console.warn('Could not send error to Sentry:', sentryError);
-      });
-    } catch (sentryError) {
-      console.warn('Could not import Sentry for error reporting:', sentryError);
-    }
-
+    // Store error details for display
     this.setState({ error, errorInfo });
   }
 
@@ -90,29 +57,10 @@ export class ErrorBoundary extends React.Component<
                 إعادة تحميل الصفحة
               </button>
               <button
-                onClick={() => {
-                  // Attempt to report issue, but don't break if Sentry isn't available
-                  import('@sentry/react').then((Sentry) => {
-                    const eventId = Sentry.captureException(
-                      this.state.error || new Error('Unknown error'),
-                    );
-                    Sentry.showReportDialog({
-                      eventId,
-                      title: 'الإبلاغ عن مشكلة',
-                      subtitle: 'ساعدنا في إصلاح هذه المشكلة',
-                      labelName: 'اسمك (اختياري)',
-                      labelEmail: 'بريدك الإلكتروني (اختياري)',
-                      labelComments: 'ماذا كنت تفعل عندما حدثت هذه المشكلة؟',
-                      labelSubmit: 'إرسال التقرير',
-                      successMessage: 'شكراً لك على ملاحظاتك!',
-                    });
-                  }).catch(() => {
-                    alert('عذراً، لا يمكن إرسال التقرير حالياً. يرجى إعادة تحميل الصفحة.');
-                  });
-                }}
+                onClick={() => window.location.href = '/'}
                 className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors"
               >
-                الإبلاغ عن المشكلة
+                العودة للصفحة الرئيسية
               </button>
             </div>
           </div>

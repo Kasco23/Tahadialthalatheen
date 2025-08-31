@@ -1,8 +1,7 @@
-import * as Sentry from '@sentry/node';
 import type { AuthContext } from './_auth.js';
 
 /**
- * Enhanced Sentry monitoring for authentication-enabled functions
+ * Enhanced logging for authentication-enabled functions
  */
 
 /**
@@ -23,39 +22,12 @@ export function trackAuthEvent(
     error?: string;
   },
 ) {
-  Sentry.addBreadcrumb({
-    category: 'auth',
-    message: `Authentication event: ${event}`,
-    level: 'info',
-    data: {
-      event,
-      functionName: context.functionName,
-      isAuthenticated: context.isAuthenticated,
-      hasUserId: !!context.userId,
-      hasGameId: !!context.gameId,
-      error: context.error,
-    },
-  });
-
-  // Track as custom metric for monitoring
-  Sentry.withScope((scope) => {
-    scope.setTag('auth_event', event);
-    scope.setTag('function_name', context.functionName);
-    scope.setContext('auth_context', {
-      event,
-      isAuthenticated: context.isAuthenticated,
-      hasUserId: !!context.userId,
-      hasGameId: !!context.gameId,
-    });
-
-    if (event === 'auth_failed' && context.error) {
-      Sentry.captureMessage(
-        `Authentication failed: ${context.error}`,
-        'warning',
-      );
-    } else {
-      Sentry.captureMessage(`Auth event: ${event}`, 'info');
-    }
+  console.log(`[AUTH] ${event}`, {
+    functionName: context.functionName,
+    isAuthenticated: context.isAuthenticated,
+    hasUserId: !!context.userId,
+    hasGameId: !!context.gameId,
+    error: context.error,
   });
 }
 
@@ -73,38 +45,15 @@ export function trackDatabaseOperation(
     error?: string;
   },
 ) {
-  Sentry.addBreadcrumb({
-    category: 'database',
-    message: `Database ${operation} on ${table}`,
-    level: context.success ? 'info' : 'warning',
-    data: {
-      operation,
-      table,
-      functionName: context.functionName,
-      isAuthenticated: context.authContext.isAuthenticated,
-      hasUserId: !!context.authContext.userId,
-      success: context.success,
-      error: context.error,
-    },
+  const logLevel = context.success ? 'log' : 'warn';
+  console[logLevel](`[DB] ${operation} on ${table}`, {
+    functionName: context.functionName,
+    isAuthenticated: context.authContext.isAuthenticated,
+    hasUserId: !!context.authContext.userId,
+    success: context.success,
+    error: context.error,
+    recordId: context.recordId,
   });
-
-  if (!context.success && context.error) {
-    Sentry.withScope((scope) => {
-      scope.setTag('database_operation', operation);
-      scope.setTag('database_table', table);
-      scope.setTag('function_name', context.functionName);
-      scope.setContext('database_context', {
-        operation,
-        table,
-        isAuthenticated: context.authContext.isAuthenticated,
-        recordId: context.recordId,
-      });
-
-      Sentry.captureException(
-        new Error(`Database ${operation} failed: ${context.error}`),
-      );
-    });
-  }
 }
 
 /**
@@ -124,44 +73,17 @@ export function trackSecurityEvent(
     reason?: string;
   },
 ) {
-  const level =
+  const logLevel =
     event.startsWith('unauthorized') || event === 'rls_policy_block'
-      ? 'warning'
-      : 'info';
-
-  Sentry.addBreadcrumb({
-    category: 'security',
-    message: `Security event: ${event}`,
-    level,
-    data: {
-      event,
-      functionName: context.functionName,
-      gameId: context.gameId,
-      hasUserId: !!context.userId,
-      attemptedAction: context.attemptedAction,
-      reason: context.reason,
-    },
-  });
-
-  Sentry.withScope((scope) => {
-    scope.setTag('security_event', event);
-    scope.setTag('function_name', context.functionName);
-    scope.setTag('game_id', context.gameId);
-    scope.setContext('security_context', {
-      event,
-      gameId: context.gameId,
-      attemptedAction: context.attemptedAction,
-      reason: context.reason,
-    });
-
-    if (level === 'warning') {
-      Sentry.captureMessage(
-        `Security violation: ${event} in ${context.functionName}`,
-        'warning',
-      );
-    } else {
-      Sentry.captureMessage(`Security event: ${event}`, 'info');
-    }
+      ? 'warn'
+      : 'log';
+      
+  console[logLevel](`[SECURITY] ${event}`, {
+    functionName: context.functionName,
+    gameId: context.gameId,
+    hasUserId: !!context.userId,
+    attemptedAction: context.attemptedAction,
+    reason: context.reason,
   });
 }
 
@@ -177,30 +99,12 @@ export function captureAuthError(
     operation?: string;
   },
 ) {
-  Sentry.withScope((scope) => {
-    scope.setTag('error_type', 'authentication');
-    scope.setTag('function_name', context.functionName);
-
-    if (context.authContext) {
-      scope.setContext('auth_context', {
-        isAuthenticated: context.authContext.isAuthenticated,
-        hasUserId: !!context.authContext.userId,
-      });
-    }
-
-    if (context.gameId) {
-      scope.setTag('game_id', context.gameId);
-    }
-
-    if (context.operation) {
-      scope.setTag('operation', context.operation);
-    }
-
-    if (typeof error === 'string') {
-      Sentry.captureMessage(error, 'error');
-    } else {
-      Sentry.captureException(error);
-    }
+  console.error(`[AUTH_ERROR] ${context.functionName}`, {
+    error: typeof error === 'string' ? error : error.message,
+    isAuthenticated: context.authContext?.isAuthenticated,
+    hasUserId: !!context.authContext?.userId,
+    gameId: context.gameId,
+    operation: context.operation,
   });
 }
 
@@ -214,44 +118,27 @@ export async function measureAuthPerformance<T>(
 ): Promise<T> {
   const startTime = Date.now();
 
-  return Sentry.withScope(async (scope) => {
-    scope.setTag('operation', operation);
-    scope.setTag('function_name', functionName);
+  try {
+    const result = await asyncFn();
+    const duration = Date.now() - startTime;
 
-    try {
-      const result = await asyncFn();
-      const duration = Date.now() - startTime;
+    console.log(`[PERF] Auth operation completed: ${operation}`, {
+      functionName,
+      duration: `${duration}ms`,
+      success: true,
+    });
 
-      Sentry.addBreadcrumb({
-        category: 'performance',
-        message: `Auth operation completed: ${operation}`,
-        level: 'info',
-        data: {
-          operation,
-          functionName,
-          duration: `${duration}ms`,
-          success: true,
-        },
-      });
+    return result;
+  } catch (error) {
+    const duration = Date.now() - startTime;
 
-      return result;
-    } catch (error) {
-      const duration = Date.now() - startTime;
+    console.warn(`[PERF] Auth operation failed: ${operation}`, {
+      functionName,
+      duration: `${duration}ms`,
+      success: false,
+    });
 
-      Sentry.addBreadcrumb({
-        category: 'performance',
-        message: `Auth operation failed: ${operation}`,
-        level: 'error',
-        data: {
-          operation,
-          functionName,
-          duration: `${duration}ms`,
-          success: false,
-        },
-      });
-
-      captureAuthError(error as Error, { functionName, operation });
-      throw error;
-    }
-  });
+    captureAuthError(error as Error, { functionName, operation });
+    throw error;
+  }
 }

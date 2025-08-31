@@ -1,6 +1,6 @@
 import type { HandlerContext, HandlerEvent } from '@netlify/functions';
 import { getAuthContext, requireAuth } from './_auth.js';
-import { withSentry } from './_sentry.js';
+import { withErrorHandling } from "./_utils.js";
 
 interface CreateGameRequest {
   gameId: string;
@@ -191,5 +191,5 @@ const createGameHandler = async (
   }
 };
 
-// Export with Sentry monitoring
-export const handler = withSentry('create-game', createGameHandler);
+// Export with error handling
+export const handler = withErrorHandling('create-game', createGameHandler);

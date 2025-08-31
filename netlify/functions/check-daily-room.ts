@@ -1,4 +1,4 @@
-import { withSentry } from './_sentry.js';
+import { withErrorHandling } from "./_utils.js";
 
 const checkDailyRoomHandler = async (event, _context) => {
   // Handle CORS preflight requests
@@ -103,5 +103,5 @@ const checkDailyRoomHandler = async (event, _context) => {
   }
 };
 
-// Export with Sentry monitoring
-export const handler = withSentry('check-daily-room', checkDailyRoomHandler);
+// Export with error handling
+export const handler = withErrorHandling('check-daily-room', checkDailyRoomHandler);
