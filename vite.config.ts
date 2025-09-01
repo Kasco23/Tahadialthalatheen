@@ -1,4 +1,3 @@
-import { sentryVitePlugin } from '@sentry/vite-plugin';
 import react from '@vitejs/plugin-react';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
@@ -34,23 +33,6 @@ export default defineConfig({
         { name: 'assets/*-*.js', limit: '100 kB' },
       ],
     }),
-    ...(process.env.SENTRY_AUTH_TOKEN
-      ? [
-          sentryVitePlugin({
-            org: 'kasco-ul',
-            project: 'tahadialthalatheen',
-            authToken: process.env.SENTRY_AUTH_TOKEN,
-            release: {
-              name: appVersion,
-            },
-            sourcemaps: {
-              assets: './dist/**',
-              ignore: ['node_modules'],
-            },
-            telemetry: false,
-          }),
-        ]
-      : []),
   ],
   base: '/',
   resolve: {
