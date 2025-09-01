@@ -1,13 +1,13 @@
 import type { HandlerContext, HandlerEvent } from '@netlify/functions';
-import type { AuthContext } from './_auth.js';
-import { getAuthContext, requireAuth, verifySessionHost } from './_auth.js';
+import type { AuthContext } from './_auth';
+import { getAuthContext, requireAuth, verifySessionHost } from './_auth';
 import { 
   handleCors, 
   createSuccessResponse, 
   createErrorResponse, 
   parseRequestBody,
   validateMethod 
-} from './_utils.js';
+} from './_utils';
 
 interface DailyRoomConfig {
   name: string;
@@ -89,7 +89,7 @@ async function callDailyAPI<T = unknown>(
   return response.json() as Promise<T>;
 }
 
-export const handler = async (
+const handler = async (
   event: HandlerEvent,
   _context: HandlerContext,
 ) => {
@@ -305,7 +305,7 @@ async function deleteRoom(event: HandlerEvent, authContext: AuthContext) {
   try {
     await callDailyAPI(`/rooms/${roomData.daily_room_name}`, 'DELETE');
   } catch (error) {
-    console.warn('Failed to delete room from Daily.co:', error);
+    console.error('Failed to delete room from Daily.co:', error);
   }
 
   // Update room in database
@@ -435,3 +435,5 @@ async function getRoomPresence(event: HandlerEvent, authContext: AuthContext) {
     throw error;
   }
 }
+
+export default handler;

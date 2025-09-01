@@ -1,5 +1,5 @@
 import type { HandlerContext, HandlerEvent } from '@netlify/functions';
-import { getAuthContext, verifySessionHost, verifySessionPlayer } from './_auth.js';
+import { getAuthContext, verifySessionHost, verifySessionPlayer } from './_auth';
 // Auth monitoring removed
 
 /**
@@ -539,4 +539,6 @@ const gameEventHandler = async (
 };
 
 // Export with Sentry monitoring
-export const handler = gameEventHandler;
+const handler = gameEventHandler;
+
+export default handler;

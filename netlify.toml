@@ -20,12 +20,80 @@
 # [[plugins]]
 #   package = "@netlify/plugin-vite"
 
-# [[plugins]]
-#   package = "@netlify/plugin-lighthouse"
+[[plugins]]
+  package = "@netlify/plugin-lighthouse"
 
-# [plugins.inputs.audits]
-#     output_path = "docs/lighthouse.html"
-#     preset = ["desktop", "mobile"]
+[plugins.inputs]
+  # Advanced Lighthouse configuration for comprehensive performance testing
+  
+  # Test multiple important pages with specific configurations
+  [[plugins.inputs.audits]]
+    url = "/"
+    output_path = "reports/lighthouse-landing-desktop.html"
+    preset = "desktop"
+    
+  [[plugins.inputs.audits]]
+    url = "/"
+    output_path = "reports/lighthouse-landing-mobile.html"
+    preset = "mobile"
+    
+  [[plugins.inputs.audits]]
+    url = "/join"
+    output_path = "reports/lighthouse-join-desktop.html"
+    preset = "desktop"
+    
+  [[plugins.inputs.audits]]
+    url = "/join"
+    output_path = "reports/lighthouse-join-mobile.html"
+    preset = "mobile"
+    
+  [[plugins.inputs.audits]]
+    url = "/create-session"
+    output_path = "reports/lighthouse-create-session-desktop.html"
+    preset = "desktop"
+    
+  [[plugins.inputs.audits]]
+    url = "/create-session"
+    output_path = "reports/lighthouse-create-session-mobile.html"
+    preset = "mobile"
+    
+  [[plugins.inputs.audits]]
+    url = "/api-status"
+    output_path = "reports/lighthouse-api-status.html"
+    preset = "desktop"
+  
+  # Performance-focused audits for critical pages
+  [[plugins.inputs.audits]]
+    url = "/"
+    output_path = "reports/lighthouse-landing-performance.html"
+    preset = "perf"
+    
+  [[plugins.inputs.audits]]
+    url = "/join"
+    output_path = "reports/lighthouse-join-performance.html"
+    preset = "perf"
+  
+  # Set performance thresholds - build will pass but report issues
+  thresholds = {
+    performance = 75,
+    accessibility = 85,
+    best-practices = 80,
+    seo = 85,
+    pwa = 70
+  }
+  
+  # Enable Chrome flags for better testing
+  chromeFlags = [
+    "--no-sandbox",
+    "--disable-dev-shm-usage",
+    "--disable-background-timer-throttling",
+    "--disable-backgrounding-occluded-windows",
+    "--disable-renderer-backgrounding"
+  ]
+  
+  # Save reports to deploy artifacts
+  saveReport = true
+  outputDir = "reports"
 
 [dev]
   framework = "vite"

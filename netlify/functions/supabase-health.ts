@@ -1,10 +1,10 @@
 import type { HandlerContext, HandlerEvent } from '@netlify/functions';
-import { getAuthContext } from './_auth.js';
+import { getAuthContext } from './_auth';
 import { 
   handleCors, 
   createSuccessResponse, 
   createErrorResponse 
-} from './_utils.js';
+} from './_utils';
 
 interface HealthCheckResult {
   status: 'healthy' | 'unhealthy' | 'misconfigured';
@@ -23,7 +23,7 @@ interface HealthCheckResult {
   supabase_error_code?: string;
 }
 
-export const handler = async (
+const handler = async (
   event: HandlerEvent,
   _context: HandlerContext,
 ) => {
@@ -88,3 +88,5 @@ export const handler = async (
     return createSuccessResponse(healthCheck, 503);
   }
 };
+
+export default handler;

@@ -1,12 +1,12 @@
 import type { HandlerContext, HandlerEvent } from '@netlify/functions';
-import { getAuthContext } from './_auth.js';
+import { getAuthContext } from './_auth';
 import { 
   handleCors, 
   createSuccessResponse, 
   createErrorResponse, 
   parseRequestBody,
   validateMethod 
-} from './_utils.js';
+} from './_utils';
 
 interface JoinSessionRequest {
   sessionId: string;
@@ -25,7 +25,7 @@ interface PlayerData {
   isAuthenticated: boolean;
 }
 
-export const handler = async (
+const handler = async (
   event: HandlerEvent,
   _context: HandlerContext,
 ) => {
@@ -157,3 +157,5 @@ export const handler = async (
     );
   }
 };
+
+export default handler;

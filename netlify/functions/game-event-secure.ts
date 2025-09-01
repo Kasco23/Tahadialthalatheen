@@ -4,13 +4,13 @@ import {
   requireAuth,
   verifySessionHost,
   verifySessionPlayer,
-} from './_auth.js';
+} from './_auth';
 import { 
   handleCors, 
   createSuccessResponse, 
   createErrorResponse, 
   parseRequestBody 
-} from './_utils.js';
+} from './_utils';
 
 interface GameEventRequest {
   sessionId: string;
@@ -123,7 +123,7 @@ const gameEventHandler = async (
       const isHost = await verifySessionHost(
         authContext.supabase,
         data.sessionId,
-        authContext.userId!,
+        authContext.userId || '',
       );
       if (!isHost) {
         return {
@@ -309,4 +309,6 @@ const gameEventHandler = async (
 };
 
 // Export with Sentry monitoring
-export const handler = gameEventHandler;
+const handler = gameEventHandler;
+
+export default handler;

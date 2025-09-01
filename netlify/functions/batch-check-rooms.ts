@@ -1,12 +1,12 @@
 import type { HandlerContext, HandlerEvent } from '@netlify/functions';
-import { getAuthContext, requireAuth } from './_auth.js';
+import { getAuthContext, requireAuth } from './_auth';
 import { 
   handleCors, 
   createSuccessResponse, 
   createErrorResponse, 
   parseRequestBody,
   validateMethod 
-} from './_utils.js';
+} from './_utils';
 
 /**
  * Batch check multiple Daily.co rooms to see which ones are active
@@ -191,4 +191,6 @@ const batchCheckRoomsHandler = async (
 };
 
 // Export with Sentry monitoring
-export const handler = batchCheckRoomsHandler;
+const handler = batchCheckRoomsHandler;
+
+export default handler;

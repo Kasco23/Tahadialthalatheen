@@ -6,6 +6,7 @@ onlyBuiltDependencies:
   - '@parcel/watcher'
   - '@sentry/cli'
   - esbuild
+  - inotify
   - netlify
   - sharp
   - supabase
