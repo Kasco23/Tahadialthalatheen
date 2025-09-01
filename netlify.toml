@@ -77,7 +77,7 @@
   thresholds = {
     performance = 75,
     accessibility = 85,
-    best-practices = 80,
+    "best-practices" = 80,
     seo = 85,
     pwa = 70
   }
