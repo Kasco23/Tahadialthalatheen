@@ -1,6 +1,6 @@
 [build]
   # How to build your Vite app
-  command    = "corepack enable && pnpm install --frozen-lockfile --include=dev && pnpm build"
+  command    = "corepack enable && pnpm install --include=dev && pnpm build"
   # Where Vite outputs the production files
   publish    = "dist"
   # Pin build environment to Node 20 as used locally
