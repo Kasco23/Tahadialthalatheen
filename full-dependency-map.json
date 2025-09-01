@@ -41,6 +41,7 @@
   "src/components/ConfirmationModal.tsx": [],
   "src/components/ConnectionBanner.tsx": [],
   "src/components/ErrorBoundary.tsx": [],
+  "src/components/ErrorBoundary_new.tsx": [],
   "src/components/HexGridBackground.tsx": [],
   "src/components/LanguageToggle.tsx": [],
   "src/components/LazyImage.tsx": [],
