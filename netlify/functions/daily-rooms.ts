@@ -99,7 +99,7 @@ const handler = async (
   }
 
   // Parse URL path to determine action
-  const path = event.path.split('/').pop();
+  const path = event.path?.split('/').pop();
   const action = event.queryStringParameters?.action || path;
 
   try {

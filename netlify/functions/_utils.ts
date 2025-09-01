@@ -1,5 +1,7 @@
 // Base response utilities for Netlify functions
-export interface ApiResponse {
+import type { HandlerResponse } from '@netlify/functions';
+
+export interface ApiResponse extends HandlerResponse {
   statusCode: number;
   headers: Record<string, string>;
   body: string;
