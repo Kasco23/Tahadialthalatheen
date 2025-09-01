@@ -29,6 +29,9 @@ Sections
 - ~~Implement game event logging improvements~~
   - Rationale: Enhanced game_events table with player attribution, sequence numbering, and metadata fields — 2025-01-23
 
+- ~~Upgrade frontend and backend to use new Supabase schema (games → sessions)~~
+  - Rationale: Completed full schema migration including TypeScript types, database layer, state management, routes, and all references updated from games/gameId to sessions/sessionId — 2025-09-01
+
 ## Monitoring & Observability
 
 - ~~Set up comprehensive Sentry monitoring for frontend and backend~~

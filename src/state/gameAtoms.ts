@@ -44,7 +44,7 @@ const defaultSegmentSettings: Record<SegmentCode, number> = {
 };
 
 // Core game identity atoms
-export const gameIdAtom = atom<string>('');
+export const sessionIdAtom = atom<string>(''); // Updated from gameIdAtom
 export const hostCodeAtom = atom<string>('');
 export const hostNameAtom = atom<string | null>(null);
 export const hostIsConnectedAtom = atom<boolean>(false);
@@ -75,7 +75,7 @@ export const scoreHistoryAtom = atom<GameState['scoreHistory']>([]);
 
 // Derived atom for complete game state
 export const gameStateAtom = atom<GameState>((get) => ({
-  gameId: get(gameIdAtom),
+  sessionId: get(sessionIdAtom), // Updated from gameId
   hostCode: get(hostCodeAtom),
   hostName: get(hostNameAtom),
   hostIsConnected: get(hostIsConnectedAtom),
@@ -95,7 +95,7 @@ export const gameStateAtom = atom<GameState>((get) => ({
 export const updateGameStateAtom = atom(
   null,
   (_get, set, update: Partial<GameState>) => {
-    if (update.gameId !== undefined) set(gameIdAtom, update.gameId);
+    if (update.sessionId !== undefined) set(sessionIdAtom, update.sessionId); // Updated from gameId
     if (update.hostCode !== undefined) set(hostCodeAtom, update.hostCode);
     if (update.hostName !== undefined) set(hostNameAtom, update.hostName);
     if (update.hostIsConnected !== undefined)
@@ -167,7 +167,7 @@ export const updateScoreAtom = atom(
 export const initializeGameAtom = atom(
   null,
   (_get, set, gameState: GameState) => {
-    set(gameIdAtom, gameState.gameId);
+    set(sessionIdAtom, gameState.sessionId); // Updated from gameId
     set(hostCodeAtom, gameState.hostCode);
     set(hostNameAtom, gameState.hostName);
     set(phaseAtom, gameState.phase);

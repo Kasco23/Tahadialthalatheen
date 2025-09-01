@@ -216,7 +216,7 @@ export interface Translations {
   failedCreateSession: string;
   failedLoadSessionData: string;
   loadingLobby: string;
-  noGameIdFound: string;
+  noSessionIdFound: string; // Updated from noGameIdFound
   loadingVideoComponents: string;
   preparingVideoConnection: string;
   failedInitVideoComponents: string;
@@ -457,7 +457,7 @@ export const translations: Record<Language, Translations> = {
     failedCreateSession: 'Failed to create session. Check URL validity.',
     failedLoadSessionData: 'Failed to load session data',
     loadingLobby: 'Loading lobby...',
-    noGameIdFound: 'No game ID found',
+    noSessionIdFound: 'No session ID found', // Updated from noGameIdFound
     loadingVideoComponents: 'Loading video components...',
     preparingVideoConnection: 'Preparing video connection...',
     failedInitVideoComponents: 'Failed to initialize video components',
@@ -693,7 +693,7 @@ export const translations: Record<Language, Translations> = {
     failedCreateSession: 'فشل في إنشاء جلسة جديدة. تحقق من صحة الرابط.',
     failedLoadSessionData: 'فشل في تحميل بيانات الجلسة',
     loadingLobby: 'جاري تحميل الصالة...',
-    noGameIdFound: 'لا يوجد معرف للعبة',
+    noSessionIdFound: 'لا يوجد معرف للجلسة', // Updated from noGameIdFound
     loadingVideoComponents: 'جاري تهيئة مكونات الفيديو...',
     preparingVideoConnection: 'جاري تحضير اتصال الفيديو...',
     failedInitVideoComponents: 'فشل في تهيئة مكونات الفيديو',

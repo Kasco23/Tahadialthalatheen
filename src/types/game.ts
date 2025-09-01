@@ -49,7 +49,7 @@ export interface ScoreEvent {
 
 export interface GameState {
   // identity
-  gameId: string;
+  sessionId: string; // Updated from gameId
   hostCode: string;
   hostName: string | null;
   hostIsConnected: boolean; // Track host connection status
@@ -81,7 +81,7 @@ export interface GameState {
 export interface StartGameAction {
   type: 'START_GAME';
   payload: {
-    gameId: string;
+    sessionId: string; // Updated from gameId
     hostCode: string;
   };
 }

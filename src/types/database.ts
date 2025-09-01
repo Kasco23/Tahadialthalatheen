@@ -5,50 +5,54 @@ export type GamePhase = 'CONFIG' | 'LOBBY' | 'QUIZ' | 'RESULTS' | 'ENDED';
 export type PlayerRole = 'playerA' | 'playerB' | 'host' | 'controller';
 
 // Database record types (matching SQL schema exactly)
-export interface DatabaseGameRecord {
-  id: string; // 6-character game code
+export interface DatabaseSessionRecord {
+  session_id: string; // 6-character session code
   host_code: string; // Full host code with HOST/CTRL suffix
   host_name: string | null;
   phase: GamePhase;
   segment_settings: Record<string, number>;
   video_room_created: boolean;
   video_room_url: string | null;
-  current_question: number | null;
+  current_question_index: number | null;
   current_segment: string | null;
-  start_time: string | null; // ISO timestamp
-  end_time: string | null; // ISO timestamp
+  status: string | null; // waiting, active, completed
+  controller_user_id: string | null;
+  last_activity: string | null; // ISO timestamp
   created_at: string; // ISO timestamp
   updated_at: string; // ISO timestamp
 }
 
 export interface DatabasePlayerRecord {
-  id: string; // Unique player identifier
-  game_id: string;
+  player_id: string; // Unique player identifier
+  session_id: string;
   name: string;
   flag: string | null; // Emoji flag or country code
   club: string | null;
   role: PlayerRole;
   score: number;
-  is_ready: boolean;
-  last_activity: string; // ISO timestamp
-  created_at: string; // ISO timestamp
-  updated_at: string; // ISO timestamp
+  strikes_legacy: number; // Legacy strikes field
+  is_connected: boolean;
+  slot: string | null; // Player slot assignment
+  special_buttons: Record<string, boolean>;
+  user_id: string | null;
+  is_host: boolean;
+  joined_at: string; // ISO timestamp
+  last_active: string; // ISO timestamp
 }
 
 export interface DatabaseGameEvent {
   id: string; // UUID
-  game_id: string;
+  session_id: string;
   event_type: string;
   event_data: Record<string, unknown>;
-  player_id: string | null;
   created_at: string; // ISO timestamp
 }
 
 // Legacy types for backward compatibility with existing code
-export interface GameRecord extends Omit<DatabaseGameRecord, 'phase'> {
+export interface GameRecord extends Omit<DatabaseSessionRecord, 'phase'> {
   phase: string; // Keep as string for backward compatibility
   host_is_connected: boolean; // Added for UI state
-  current_question_index: number; // Alias for current_question
+  current_question_index: number; // Alias for current_question_index
   timer: number; // UI timer state
   is_timer_running: boolean; // UI timer state
 }
@@ -56,19 +60,19 @@ export interface GameRecord extends Omit<DatabaseGameRecord, 'phase'> {
 export interface PlayerRecord
   extends Omit<
     DatabasePlayerRecord,
-    'last_activity' | 'created_at' | 'updated_at'
+    'last_active' | 'joined_at'
   > {
-  strikes: number; // UI state for quiz penalties
-  is_connected: boolean; // UI connection state
-  special_buttons: Record<string, boolean>; // UI button states
-  joined_at: string; // Alias for created_at
-  last_active: string; // Alias for last_activity
+  strikes: number; // UI state for quiz penalties, maps to strikes_legacy
+  is_connected: boolean; // UI connection state (already in DB)
+  special_buttons: Record<string, boolean>; // UI button states (already in DB)
+  joined_at: string; // Alias for joined_at
+  last_active: string; // Alias for last_active
 }
 
 // Event type definitions for type safety
 export type GameEventType =
-  | 'game_created'
-  | 'game_updated'
+  | 'session_created'
+  | 'session_updated'
   | 'player_joined'
   | 'player_left'
   | 'player_updated'
@@ -87,7 +91,7 @@ export type GameEventType =
   | 'timer_stopped';
 
 export interface GameEventData {
-  game_created: {
+  session_created: {
     host_name: string;
     segment_settings: Record<string, number>;
   };
@@ -157,15 +161,15 @@ export interface SupabaseConfig {
 }
 
 // Type guards
-export function isDatabaseGameRecord(
+export function isDatabaseSessionRecord(
   data: unknown,
-): data is DatabaseGameRecord {
+): data is DatabaseSessionRecord {
   if (!data || typeof data !== 'object') return false;
 
   const record = data as Record<string, unknown>;
 
   return (
-    typeof record.id === 'string' &&
+    typeof record.session_id === 'string' &&
     typeof record.host_code === 'string' &&
     (record.host_name === null || typeof record.host_name === 'string') &&
     typeof record.phase === 'string' &&
@@ -186,16 +190,15 @@ export function isDatabasePlayerRecord(
   const record = data as Record<string, unknown>;
 
   return (
-    typeof record.id === 'string' &&
-    typeof record.game_id === 'string' &&
+    typeof record.player_id === 'string' &&
+    typeof record.session_id === 'string' &&
     typeof record.name === 'string' &&
     (record.flag === null || typeof record.flag === 'string') &&
     (record.club === null || typeof record.club === 'string') &&
     typeof record.role === 'string' &&
     typeof record.score === 'number' &&
-    typeof record.is_ready === 'boolean' &&
-    typeof record.last_activity === 'string' &&
-    typeof record.created_at === 'string' &&
-    typeof record.updated_at === 'string'
+    typeof record.is_connected === 'boolean' &&
+    typeof record.last_active === 'string' &&
+    typeof record.joined_at === 'string'
   );
 }

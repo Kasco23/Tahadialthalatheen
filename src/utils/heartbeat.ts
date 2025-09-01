@@ -5,7 +5,7 @@ import { debugError, debugLog, debugWarn } from './debugLog';
 
 export interface HeartbeatConfig {
   playerId: string;
-  gameId: string;
+  sessionId: string; // Updated from gameId
   intervalMs?: number; // Default: 60000 (60s)
   playerData?: {
     name?: string;
@@ -81,7 +81,7 @@ export class HeartbeatManager {
       // Use PlayerManager to ensure player exists before updating
       const result = await PlayerManager.updatePlayerConnection(
         this.config.playerId as PlayerId,
-        this.config.gameId,
+        this.config.sessionId, // Updated from gameId
         true,
         {
           name: this.config.playerData?.name || this.config.playerId,
@@ -123,7 +123,7 @@ export class HeartbeatManager {
     try {
       const result = await PlayerManager.updatePlayerConnection(
         this.config.playerId as PlayerId,
-        this.config.gameId,
+        this.config.sessionId, // Updated from gameId
         false,
       );
 
@@ -160,7 +160,7 @@ export class MultiPlayerHeartbeat {
    */
   startForPlayer(
     playerId: string,
-    gameId: string,
+    sessionId: string, // Updated from gameId
     onError?: (_err: Error) => void,
   ): void {
     if (this.heartbeats.has(playerId)) {
@@ -172,7 +172,7 @@ export class MultiPlayerHeartbeat {
 
     const heartbeat = new HeartbeatManager({
       playerId,
-      gameId,
+      sessionId, // Updated from gameId
       onError,
     });
 

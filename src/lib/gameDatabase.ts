@@ -177,9 +177,9 @@ export class GameDatabase {
       // Use lazy supabase client
       const supabase = await getSupabase();
       const { data, error } = await supabase
-        .from('games')
+        .from('sessions') // Updated from 'games'
         .insert({
-          id: gameId,
+          session_id: gameId, // Updated from 'id'
           host_code: hostCode,
           host_name: hostName,
           host_id: hostId,
@@ -230,9 +230,9 @@ export class GameDatabase {
       // Use lazy supabase client
       const supabase = await getSupabase();
       const { data, error } = await supabase
-        .from('games')
+        .from('sessions') // Updated from 'games'
         .select('*') // selects all columns including host_code
-        .eq('id', gameId)
+        .eq('session_id', gameId) // Updated from 'id'
         .single();
 
       if (error) {
@@ -260,9 +260,9 @@ export class GameDatabase {
       // Use lazy supabase client
       const supabase = await getSupabase();
       const { data, error } = await supabase
-        .from('games')
+        .from('sessions') // Updated from 'games'
         .select('*')
-        .eq('id', gameId)
+        .eq('session_id', gameId) // Updated from 'id'
         .eq('host_code', hostCode)
         .single();
 
@@ -350,12 +350,12 @@ export class GameDatabase {
     try {
       const supabase = await getSupabase();
       const { data, error } = await supabase
-        .from('games')
+        .from('sessions') // Updated from 'games'
         .update({
           video_room_created: true,
           updated_at: new Date().toISOString(),
         })
-        .eq('id', gameId)
+        .eq('session_id', gameId) // Updated from 'id'
         .eq('video_room_created', false) // Only update if flag is currently false
         .select()
         .single();
@@ -422,9 +422,9 @@ export class GameDatabase {
       // Use lazy supabase client
       const supabase = await getSupabase();
       const { data, error } = await supabase
-        .from('games')
+        .from('sessions') // Updated from 'games'
         .update(updates)
-        .eq('id', gameId)
+        .eq('session_id', gameId) // Updated from 'id'
         .select()
         .single();
 
@@ -465,21 +465,20 @@ export class GameDatabase {
 
       // First, remove the player from any existing games to avoid primary key conflicts
       // This allows players to switch between games
-      await supabase.from('players').delete().eq('id', playerId);
+      await supabase.from('players').delete().eq('player_id', playerId); // Updated from 'id'
 
       // Now insert the player into the new game
       const { data, error } = await supabase
         .from('players')
         .insert({
-          id: playerId,
-          game_id: gameId,
+          player_id: playerId, // Updated from 'id'
+          session_id: gameId, // Updated from 'game_id'
           name: playerData.name,
           flag: playerData.flag || null,
           club: playerData.club || null,
           role: playerData.role || 'playerA',
           user_id: playerData.userId || null,
           is_host: playerData.isHost || false,
-          session_id: playerData.sessionId || null,
           is_connected: true,
         })
         .select()
@@ -506,7 +505,7 @@ export class GameDatabase {
       const { data, error } = await supabase
         .from('players')
         .select('*')
-        .eq('game_id', gameId)
+        .eq('session_id', gameId) // Updated from 'game_id'
         .order('joined_at', { ascending: true });
 
       if (error) {
@@ -533,7 +532,7 @@ export class GameDatabase {
       const { data, error } = await supabase
         .from('players')
         .update(updates)
-        .eq('id', playerId)
+        .eq('player_id', playerId) // Updated from 'id'
         .select()
         .limit(1)
         .single();
@@ -567,7 +566,7 @@ export class GameDatabase {
       const { data: existingPlayer, error: fetchError } = await supabase
         .from('players')
         .select('*')
-        .eq('id', playerId)
+        .eq('player_id', playerId) // Updated from 'id'
         .limit(1);
 
       if (fetchError) {
@@ -590,7 +589,7 @@ export class GameDatabase {
       const { data, error } = await supabase
         .from('players')
         .update(updates)
-        .eq('id', playerId)
+        .eq('player_id', playerId) // Updated from 'id'
         .select()
         .limit(1)
         .single();
@@ -629,7 +628,7 @@ export class GameDatabase {
     const supabase = await getSupabase();
     const { error } = await supabase
       .from('game_events')
-      .insert([{ game_id: gameId, event_type, event_data }]);
+      .insert([{ session_id: gameId, event_type, event_data }]); // Updated from 'game_id'
     if (error) console.error('insertGameEvent error:', error);
   }
 
@@ -642,7 +641,7 @@ export class GameDatabase {
       const { error } = await supabase
         .from('players')
         .delete()
-        .eq('id', playerId);
+        .eq('player_id', playerId); // Updated from 'id'
 
       if (error) {
         console.error('Error removing player:', error);
@@ -668,7 +667,7 @@ export class GameDatabase {
       const { data, error } = await supabase
         .from('players')
         .select('*')
-        .eq('game_id', gameId);
+        .eq('session_id', gameId); // Updated from 'game_id'
 
       if (error) {
         console.error('Error fetching players:', error);
@@ -834,10 +833,10 @@ export class GameDatabase {
       // Use lazy supabase client
       const supabase = await getSupabase();
       const { data, error } = await supabase
-        .from('games')
+        .from('sessions') // Updated from 'games'
         .delete()
         .lt('created_at', cutoffTime.toISOString())
-        .select('id');
+        .select('session_id'); // Updated from 'id'
 
       if (error) {
         console.error('Error cleaning up old games:', error);
@@ -883,7 +882,7 @@ export class GameDatabase {
       // Use lazy supabase client
       const supabase = await getSupabase();
       const { data, error } = await supabase
-        .from('games')
+        .from('sessions') // Updated from 'games'
         .select('*')
         .order('created_at', { ascending: false })
         .limit(limit);
@@ -911,7 +910,7 @@ export class GameDatabase {
       // Use lazy supabase client
       const supabase = await getSupabase();
       const { error } = await supabase.from('game_events').insert({
-        game_id: gameId,
+        session_id: gameId, // Updated from 'game_id'
         event_type: eventType,
         event_data: eventData,
       });
