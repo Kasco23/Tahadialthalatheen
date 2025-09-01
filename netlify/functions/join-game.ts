@@ -3,20 +3,19 @@ import { getAuthContext } from './_auth.js';
 import { withSentry } from './_sentry.js';
 
 interface JoinGameRequest {
-  gameId: string;
+  sessionId: string;
   playerId: string;
   playerName: string;
   flag?: string;
   club?: string;
   role?: string;
-  sessionId?: string;
 }
 
 interface JoinGameResponse {
   success: boolean;
   player?: {
     id: string;
-    gameId: string;
+    sessionId: string;
     name: string;
     userId?: string;
     isAuthenticated: boolean;
@@ -24,7 +23,7 @@ interface JoinGameResponse {
   error?: string;
 }
 
-// Join a game as a player (supports both authenticated and anonymous users)
+// Join a session as a player (supports both authenticated and anonymous users)
 const joinGameHandler = async (
   event: HandlerEvent,
   _context: HandlerContext,
@@ -63,7 +62,7 @@ const joinGameHandler = async (
 
     // Validate request data
     if (
-      !requestData.gameId ||
+      !requestData.sessionId ||
       !requestData.playerId ||
       !requestData.playerName
     ) {
@@ -74,20 +73,20 @@ const joinGameHandler = async (
           'Access-Control-Allow-Origin': '*',
         },
         body: JSON.stringify({
-          error: 'Missing required fields: gameId, playerId, and playerName',
+          error: 'Missing required fields: sessionId, playerId, and playerName',
           code: 'INVALID_REQUEST',
         }),
       };
     }
 
-    // Verify the game exists and is joinable
-    const { data: gameData, error: gameError } = await authContext.supabase
-      .from('games')
-      .select('id, phase, status')
-      .eq('id', requestData.gameId)
+    // Verify the session exists and is joinable
+    const { data: sessionData, error: sessionError } = await authContext.supabase
+      .from('sessions')
+      .select('session_id, phase, status')
+      .eq('session_id', requestData.sessionId)
       .single();
 
-    if (gameError || !gameData) {
+    if (sessionError || !sessionData) {
       return {
         statusCode: 404,
         headers: {
@@ -95,14 +94,14 @@ const joinGameHandler = async (
           'Access-Control-Allow-Origin': '*',
         },
         body: JSON.stringify({
-          error: 'Game not found',
-          code: 'GAME_NOT_FOUND',
+          error: 'Session not found',
+          code: 'SESSION_NOT_FOUND',
         }),
       };
     }
 
-    // Check if game is in a joinable state
-    if (gameData.status === 'completed') {
+    // Check if session is in a joinable state
+    if (sessionData.status === 'completed') {
       return {
         statusCode: 400,
         headers: {
@@ -116,28 +115,27 @@ const joinGameHandler = async (
       };
     }
 
-    // Remove any existing player with this ID from other games (allow switching)
+    // Remove any existing player with this ID from other sessions (allow switching)
     await authContext.supabase
       .from('players')
       .delete()
-      .eq('id', requestData.playerId);
+      .eq('player_id', requestData.playerId);
 
-    // Add the player to the game
+    // Add the player to the session
     const { data: playerData, error: joinError } = await authContext.supabase
       .from('players')
       .insert({
-        id: requestData.playerId,
-        game_id: requestData.gameId,
+        player_id: requestData.playerId,
+        session_id: requestData.sessionId,
         name: requestData.playerName,
         flag: requestData.flag || null,
         club: requestData.club || null,
         role: requestData.role || 'playerA',
         user_id: authContext.isAuthenticated ? authContext.userId : null,
         is_host: false, // Players joining via this endpoint are not hosts
-        session_id: requestData.sessionId || null,
         is_connected: true,
       })
-      .select('id, game_id, name, user_id')
+      .select('player_id, session_id, name, user_id')
       .single();
 
     if (joinError) {
@@ -166,7 +164,7 @@ const joinGameHandler = async (
           'Access-Control-Allow-Origin': '*',
         },
         body: JSON.stringify({
-          error: 'Failed to join game',
+          error: 'Failed to join session',
           code: 'JOIN_FAILED',
           details: joinError.message,
         }),
@@ -174,10 +172,10 @@ const joinGameHandler = async (
     }
 
     // Log the player join event
-    await authContext.supabase.from('game_events').insert({
-      game_id: requestData.gameId,
+    await authContext.supabase.from('session_events').insert({
+      session_id: requestData.sessionId,
       event_type: 'player_joined',
-      event_data: {
+      payload: {
         player_id: requestData.playerId,
         player_name: requestData.playerName,
         is_authenticated: authContext.isAuthenticated,
@@ -185,27 +183,27 @@ const joinGameHandler = async (
       },
     });
 
-    // Update game status to active if this is the first player
+    // Update session status to active if this is the first player
     const { count: playerCount } = await authContext.supabase
       .from('players')
       .select('*', { count: 'exact', head: true })
-      .eq('game_id', requestData.gameId);
+      .eq('session_id', requestData.sessionId);
 
-    if (playerCount === 1 && gameData.status === 'waiting') {
+    if (playerCount === 1 && sessionData.status === 'waiting') {
       await authContext.supabase
-        .from('games')
+        .from('sessions')
         .update({
           status: 'active',
           last_activity: new Date().toISOString(),
         })
-        .eq('id', requestData.gameId);
+        .eq('session_id', requestData.sessionId);
     }
 
     const response: JoinGameResponse = {
       success: true,
       player: {
-        id: playerData.id,
-        gameId: playerData.game_id,
+        id: playerData.player_id,
+        sessionId: playerData.session_id,
         name: playerData.name,
         userId: playerData.user_id || undefined,
         isAuthenticated: authContext.isAuthenticated,

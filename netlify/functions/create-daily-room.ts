@@ -5,14 +5,14 @@ import { createApiResponse, withSentry } from './_sentry.js';
 
 // Function to check if video room is already being created
 async function checkVideoRoomStatus(
-  gameId: string,
+  sessionId: string,
   supabase: SupabaseClient,
 ): Promise<{ alreadyCreated: boolean; roomUrl?: string }> {
   try {
     const { data, error } = await supabase
-      .from('games')
+      .from('sessions')
       .select('video_room_created, video_room_url')
-      .eq('id', gameId)
+      .eq('session_id', sessionId)
       .single();
 
     if (error) {
@@ -22,8 +22,8 @@ async function checkVideoRoomStatus(
 
     if (data?.video_room_created && data?.video_room_url) {
       console.log(
-        'Video room already exists for game:',
-        gameId,
+        'Video room already exists for session:',
+        sessionId,
         'URL:',
         data.video_room_url,
       );
@@ -99,7 +99,7 @@ const createDailyRoomHandler = async (
       };
     }
 
-    const { roomName, properties = {}, gameId } = requestBody;
+    const { roomName, properties = {}, sessionId } = requestBody;
 
     // Validate required parameters
     if (!roomName) {
@@ -113,11 +113,11 @@ const createDailyRoomHandler = async (
       };
     }
 
-    // If gameId is provided and user is authenticated, verify host permissions
-    if (gameId && authContext.isAuthenticated) {
+    // If sessionId is provided and user is authenticated, verify host permissions
+    if (sessionId && authContext.isAuthenticated && authContext.userId) {
       const isHost = await verifyGameHost(
         authContext.supabase,
-        gameId,
+        sessionId,
         authContext.userId,
       );
       if (!isHost) {
@@ -125,7 +125,7 @@ const createDailyRoomHandler = async (
           statusCode: 403,
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            error: 'Only the game host can create video rooms',
+            error: 'Only the session host can create video rooms',
             code: 'INSUFFICIENT_PERMISSIONS',
           }),
         };

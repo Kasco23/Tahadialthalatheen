@@ -15,7 +15,7 @@ function initSentryFunction() {
   Sentry.init({
     dsn,
     environment:
-      process.env.NODE_ENV || process.env.NETLIFY_ENV || 'development',
+      process.env.NETLIFY_ENV || process.env.NODE_ENV || 'development',
     debug: process.env.NODE_ENV === 'development',
 
     // Performance monitoring
@@ -25,8 +25,7 @@ function initSentryFunction() {
     serverName: 'netlify-functions',
 
     // Release tracking
-    release:
-      process.env.COMMIT_REF || process.env.VITE_APP_VERSION || 'unknown',
+    release: process.env.COMMIT_REF || 'unknown',
 
     // Enhanced error info
     beforeSend(event) {
@@ -38,7 +37,7 @@ function initSentryFunction() {
   });
 
   sentryInitialized = true;
-  console.log('✅ Sentry initialized for Netlify functions');
+  console.log('Sentry initialized for Netlify functions');
 }
 
 // Wrapper for Netlify functions to add Sentry monitoring
@@ -69,11 +68,6 @@ function withSentry(functionName, handler) {
   };
 }
 
-// Alternative export for compatibility
-function withSentry2(functionName, handler) {
-  return withSentry(functionName, handler);
-}
-
 // Helper for API responses with error tracking
 function createApiResponse(statusCode, body, headers = {}) {
   const defaultHeaders = {
@@ -91,10 +85,4 @@ function createApiResponse(statusCode, body, headers = {}) {
   };
 }
 
-module.exports = {
-  initSentryFunction,
-  withSentry,
-  withSentry2,
-  createApiResponse,
-  Sentry,
-};
+module.exports = { initSentryFunction, withSentry, createApiResponse, Sentry };

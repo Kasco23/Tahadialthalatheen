@@ -81,17 +81,17 @@ export function requireAuth(
 }
 
 /**
- * Check if user owns/hosts a specific game
+ * Check if user owns/hosts a specific session
  */
 export async function verifyGameHost(
   supabase: SupabaseClient,
-  gameId: string,
+  sessionId: string,
   userId: string,
 ): Promise<boolean> {
   const { data, error } = await supabase
-    .from('games')
+    .from('sessions')
     .select('host_id')
-    .eq('id', gameId)
+    .eq('session_id', sessionId)
     .single();
 
   if (error || !data) {
@@ -102,17 +102,17 @@ export async function verifyGameHost(
 }
 
 /**
- * Check if user is a player in a specific game
+ * Check if user is a player in a specific session
  */
 export async function verifyGamePlayer(
   supabase: SupabaseClient,
-  gameId: string,
+  sessionId: string,
   userId: string,
 ): Promise<boolean> {
   const { data, error } = await supabase
     .from('players')
     .select('user_id')
-    .eq('game_id', gameId)
+    .eq('session_id', sessionId)
     .eq('user_id', userId)
     .single();
 

@@ -66,8 +66,8 @@ const supabaseHealthHandler = async (
 
     // Simple query to test connectivity using authenticated client
     const { error, count } = await authContext.supabase
-      .from('games')
-      .select('id', { count: 'exact' })
+      .from('sessions')
+      .select('session_id', { count: 'exact' })
       .limit(1);
 
     if (error) {

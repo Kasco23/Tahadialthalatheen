@@ -3,7 +3,7 @@ import { getAuthContext, requireAuth } from './_auth.js';
 import { withSentry } from './_sentry.js';
 
 interface CreateGameRequest {
-  gameId: string;
+  sessionId: string;
   hostCode: string;
   hostName?: string;
   segmentSettings?: Record<string, number>;
@@ -11,7 +11,7 @@ interface CreateGameRequest {
 
 interface CreateGameResponse {
   success: boolean;
-  game?: {
+  session?: {
     id: string;
     hostCode: string;
     hostId: string;
@@ -21,7 +21,7 @@ interface CreateGameResponse {
   error?: string;
 }
 
-// Create a new authenticated game
+// Create a new authenticated session
 const createGameHandler = async (
   event: HandlerEvent,
   _context: HandlerContext,
@@ -60,7 +60,7 @@ const createGameHandler = async (
     const requestData: CreateGameRequest = JSON.parse(event.body || '{}');
 
     // Validate request data
-    if (!requestData.gameId || !requestData.hostCode) {
+    if (!requestData.sessionId || !requestData.hostCode) {
       return {
         statusCode: 400,
         headers: {
@@ -68,17 +68,17 @@ const createGameHandler = async (
           'Access-Control-Allow-Origin': '*',
         },
         body: JSON.stringify({
-          error: 'Missing required fields: gameId and hostCode',
+          error: 'Missing required fields: sessionId and hostCode',
           code: 'INVALID_REQUEST',
         }),
       };
     }
 
     // Create the game using authenticated Supabase client
-    const { data: gameData, error: createError } = await authContext.supabase
-      .from('games')
+    const { data: sessionData, error: createError } = await authContext.supabase
+      .from('sessions')
       .insert({
-        id: requestData.gameId,
+        session_id: requestData.sessionId,
         host_code: requestData.hostCode,
         host_name: requestData.hostName || null,
         host_id: authContext.userId, // Set the authenticated user as host
@@ -93,7 +93,7 @@ const createGameHandler = async (
           WSHA: 10,
         },
       })
-      .select('id, host_code, host_id, phase, status')
+      .select('session_id, host_code, host_id, phase, status')
       .single();
 
     if (createError) {
@@ -109,8 +109,8 @@ const createGameHandler = async (
             'Access-Control-Allow-Origin': '*',
           },
           body: JSON.stringify({
-            error: 'Game ID already exists',
-            code: 'GAME_EXISTS',
+            error: 'Session ID already exists',
+            code: 'SESSION_EXISTS',
           }),
         };
       }
@@ -122,18 +122,18 @@ const createGameHandler = async (
           'Access-Control-Allow-Origin': '*',
         },
         body: JSON.stringify({
-          error: 'Failed to create game',
+          error: 'Failed to create session',
           code: 'CREATE_FAILED',
           details: createError.message,
         }),
       };
     }
 
-    // Log the game creation event
-    await authContext.supabase.from('game_events').insert({
-      game_id: requestData.gameId,
-      event_type: 'game_created',
-      event_data: {
+    // Log the session creation event
+    await authContext.supabase.from('session_events').insert({
+      session_id: requestData.sessionId,
+      event_type: 'session_created',
+      payload: {
         host_id: authContext.userId,
         host_name: requestData.hostName,
         segment_settings: requestData.segmentSettings,
@@ -142,12 +142,12 @@ const createGameHandler = async (
 
     const response: CreateGameResponse = {
       success: true,
-      game: {
-        id: gameData.id,
-        hostCode: gameData.host_code,
-        hostId: gameData.host_id || authContext.userId,
-        phase: gameData.phase,
-        status: gameData.status,
+      session: {
+        id: sessionData.session_id,
+        hostCode: sessionData.host_code,
+        hostId: sessionData.host_id || authContext.userId,
+        phase: sessionData.phase,
+        status: sessionData.status,
       },
     };
 
@@ -171,7 +171,7 @@ const createGameHandler = async (
           'Access-Control-Allow-Origin': '*',
         },
         body: JSON.stringify({
-          error: 'Authentication required to create games',
+          error: 'Authentication required to create sessions',
           code: 'AUTH_REQUIRED',
         }),
       };

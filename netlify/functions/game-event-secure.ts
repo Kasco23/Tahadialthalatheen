@@ -8,7 +8,7 @@ import {
 import { withSentry } from './_sentry.js';
 
 interface GameEventRequest {
-  gameId: string;
+  sessionId: string;
   eventType: string;
   eventData: Record<string, unknown>;
   playerId?: string;
@@ -19,7 +19,7 @@ interface GameEventResponse {
   success: boolean;
   eventId?: string;
   error?: string;
-  gameState?: {
+  sessionState?: {
     id: string;
     phase: string;
     playerCount: number;
@@ -27,7 +27,7 @@ interface GameEventResponse {
   };
 }
 
-// Enhanced game event tracking and analytics endpoint with authentication
+// Enhanced session event tracking and analytics endpoint with authentication
 const gameEventHandler = async (
   event: HandlerEvent,
   _context: HandlerContext,
@@ -65,7 +65,7 @@ const gameEventHandler = async (
     const requestData: GameEventRequest = JSON.parse(event.body || '{}');
 
     // Validate request data
-    if (!requestData.gameId || !requestData.eventType) {
+    if (!requestData.sessionId || !requestData.eventType) {
       return {
         statusCode: 400,
         headers: {
@@ -73,20 +73,20 @@ const gameEventHandler = async (
           'Access-Control-Allow-Origin': '*',
         },
         body: JSON.stringify({
-          error: 'Missing required fields: gameId and eventType',
+          error: 'Missing required fields: sessionId and eventType',
           code: 'INVALID_REQUEST',
         }),
       };
     }
 
-    // Verify game exists and get basic info
-    const { data: gameData, error: gameError } = await authContext.supabase
-      .from('games')
-      .select('id, phase, video_room_created, host_id')
-      .eq('id', requestData.gameId)
+    // Verify session exists and get basic info
+    const { data: sessionData, error: sessionError } = await authContext.supabase
+      .from('sessions')
+      .select('session_id, phase, video_room_created, host_id')
+      .eq('session_id', requestData.sessionId)
       .single();
 
-    if (gameError || !gameData) {
+    if (sessionError || !sessionData) {
       return {
         statusCode: 404,
         headers: {
@@ -94,9 +94,9 @@ const gameEventHandler = async (
           'Access-Control-Allow-Origin': '*',
         },
         body: JSON.stringify({
-          error: 'Game not found',
-          code: 'GAME_NOT_FOUND',
-          gameId: requestData.gameId,
+          error: 'Session not found',
+          code: 'SESSION_NOT_FOUND',
+          sessionId: requestData.sessionId,
         }),
       };
     }
@@ -116,7 +116,7 @@ const gameEventHandler = async (
 
       const isHost = await verifyGameHost(
         authContext.supabase,
-        requestData.gameId,
+        requestData.sessionId,
         authContext.userId,
       );
       if (!isHost) {
@@ -127,7 +127,7 @@ const gameEventHandler = async (
             'Access-Control-Allow-Origin': '*',
           },
           body: JSON.stringify({
-            error: 'Only the game host can perform this action',
+            error: 'Only the session host can perform this action',
             code: 'HOST_ONLY_ACTION',
           }),
         };
@@ -141,7 +141,7 @@ const gameEventHandler = async (
 
       const isPlayer = await verifyGamePlayer(
         authContext.supabase,
-        requestData.gameId,
+        requestData.sessionId,
         authContext.userId,
       );
       if (!isPlayer) {
@@ -152,23 +152,23 @@ const gameEventHandler = async (
             'Access-Control-Allow-Origin': '*',
           },
           body: JSON.stringify({
-            error: 'Only players in the game can update scores',
+            error: 'Only players in the session can update scores',
             code: 'PLAYER_ONLY_ACTION',
           }),
         };
       }
     }
 
-    // Insert game event (now using authenticated client for proper RLS)
+    // Insert session event (now using authenticated client for proper RLS)
     const { data: eventData, error: eventError } = await authContext.supabase
-      .from('game_events')
+      .from('session_events')
       .insert({
-        game_id: requestData.gameId,
+        session_id: requestData.sessionId,
         event_type: requestData.eventType,
-        event_data: requestData.eventData || {},
+        payload: requestData.eventData || {},
         created_at: requestData.timestamp || new Date().toISOString(),
       })
-      .select('id')
+      .select('event_id')
       .single();
 
     if (eventError) {
@@ -180,7 +180,7 @@ const gameEventHandler = async (
           'Access-Control-Allow-Origin': '*',
         },
         body: JSON.stringify({
-          error: 'Failed to record game event',
+          error: 'Failed to record session event',
           code: 'EVENT_INSERTION_FAILED',
           details: eventError.message,
         }),
@@ -191,34 +191,34 @@ const gameEventHandler = async (
     const { count: playerCount } = await authContext.supabase
       .from('players')
       .select('*', { count: 'exact', head: true })
-      .eq('game_id', requestData.gameId);
+      .eq('session_id', requestData.sessionId);
 
     const response: GameEventResponse = {
       success: true,
-      eventId: eventData.id,
-      gameState: {
-        id: gameData.id,
-        phase: gameData.phase,
+      eventId: eventData.event_id,
+      sessionState: {
+        id: sessionData.session_id,
+        phase: sessionData.phase,
         playerCount: playerCount || 0,
-        videoRoomCreated: gameData.video_room_created,
+        videoRoomCreated: sessionData.video_room_created,
       },
     };
 
     // Handle special event types with database updates
     switch (requestData.eventType) {
       case 'phase_changed': {
-        // Update game phase (host-only action, already verified)
+        // Update session phase (host-only action, already verified)
         const newPhase = requestData.eventData.to as string;
         await authContext.supabase
-          .from('games')
+          .from('sessions')
           .update({
             phase: newPhase,
             updated_at: new Date().toISOString(),
           })
-          .eq('id', requestData.gameId);
+          .eq('session_id', requestData.sessionId);
 
-        if (response.gameState) {
-          response.gameState.phase = newPhase;
+        if (response.sessionState) {
+          response.sessionState.phase = newPhase;
         }
         break;
       }
@@ -226,24 +226,24 @@ const gameEventHandler = async (
       case 'quiz_started':
         // Mark quiz start time (host-only action)
         await authContext.supabase
-          .from('games')
+          .from('sessions')
           .update({
             current_segment: requestData.eventData.segment as string,
             phase: 'QUIZ',
             updated_at: new Date().toISOString(),
           })
-          .eq('id', requestData.gameId);
+          .eq('session_id', requestData.sessionId);
         break;
 
       case 'quiz_ended':
         // Mark quiz end (host-only action)
         await authContext.supabase
-          .from('games')
+          .from('sessions')
           .update({
             phase: 'RESULTS',
             updated_at: new Date().toISOString(),
           })
-          .eq('id', requestData.gameId);
+          .eq('session_id', requestData.sessionId);
         break;
 
       case 'score_updated':
@@ -255,8 +255,8 @@ const gameEventHandler = async (
               score: requestData.eventData.new_score as number,
               last_active: new Date().toISOString(),
             })
-            .eq('id', requestData.playerId)
-            .eq('game_id', requestData.gameId)
+            .eq('player_id', requestData.playerId)
+            .eq('session_id', requestData.sessionId)
             .eq('user_id', authContext.userId); // Additional security check
         }
         break;
@@ -271,7 +271,7 @@ const gameEventHandler = async (
       body: JSON.stringify(response),
     };
   } catch (error) {
-    console.error('Game event handler error:', error);
+    console.error('Session event handler error:', error);
 
     // Handle authentication errors specifically
     if (error instanceof Error && error.message === 'Authentication required') {

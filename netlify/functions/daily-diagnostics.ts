@@ -19,8 +19,8 @@ interface DailyRoomInfo {
   };
 }
 
-interface GameDatabaseInfo {
-  id: string;
+interface SessionDatabaseInfo {
+  session_id: string;
   host_code: string;
   host_name: string | null;
   phase: string;
@@ -117,13 +117,13 @@ const dailyDiagnosticsHandler = async (
 
     // Test Supabase connectivity using authenticated context
     let supabaseHealthStatus = { accessible: false, game_count: 0 };
-    let gamesData: GameDatabaseInfo[] = [];
+    let sessionsData: SessionDatabaseInfo[] = [];
 
     try {
       const { data, error } = await authContext.supabase
-        .from('games')
+        .from('sessions')
         .select(
-          'id, host_code, host_name, phase, video_room_created, video_room_url, created_at, updated_at',
+          'session_id, host_code, host_name, phase, video_room_created, video_room_url, created_at, updated_at',
         )
         .order('created_at', { ascending: false })
         .limit(10);
@@ -132,7 +132,7 @@ const dailyDiagnosticsHandler = async (
         console.error('Supabase query error:', error);
         supabaseHealthStatus = { accessible: false, game_count: 0 };
       } else {
-        gamesData = data || [];
+        sessionsData = data || [];
         supabaseHealthStatus = {
           accessible: true,
           game_count: gamesData.length,
