@@ -83,7 +83,7 @@ describe('Daily Rooms Function', () => {
     
     const eventWithUndefinedPath: HandlerEvent = {
       ...mockEvent,
-      path: undefined as any, // Simulate undefined path
+      path: undefined as string | undefined, // Simulate undefined path
       httpMethod: 'OPTIONS', // Use OPTIONS to test CORS handling without auth
     };
 
@@ -93,5 +93,63 @@ describe('Daily Rooms Function', () => {
     expect(response).toHaveProperty('statusCode');
     expect(response).toHaveProperty('headers');
     expect(response).toHaveProperty('body');
+  });
+});
+
+describe('Production Function Tests', () => {
+  test('supabase-health function returns valid response for CORS', async () => {
+    const { default: handler } = await import('../netlify/functions/supabase-health');
+    
+    const corsEvent: HandlerEvent = {
+      ...mockEvent,
+      httpMethod: 'OPTIONS',
+    };
+
+    const response = await handler(corsEvent, mockContext);
+    
+    expect(response).toHaveProperty('statusCode', 200);
+    expect(response).toHaveProperty('headers');
+    expect(response).toHaveProperty('body');
+    expect(response.headers).toHaveProperty('Access-Control-Allow-Origin', '*');
+  });
+
+  test('session-events function returns valid response for CORS', async () => {
+    const { default: handler } = await import('../netlify/functions/session-events');
+    
+    const corsEvent: HandlerEvent = {
+      ...mockEvent,
+      httpMethod: 'OPTIONS',
+    };
+
+    const response = await handler(corsEvent, mockContext);
+    
+    expect(response).toHaveProperty('statusCode', 200);
+    expect(response).toHaveProperty('headers');
+    expect(response).toHaveProperty('body');
+    expect(response.headers).toHaveProperty('Access-Control-Allow-Origin', '*');
+  });
+
+  test('all functions handle method validation consistently', async () => {
+    const supabaseHealth = await import('../netlify/functions/supabase-health');
+    const sessionEvents = await import('../netlify/functions/session-events');
+    
+    const invalidMethodEvent: HandlerEvent = {
+      ...mockEvent,
+      httpMethod: 'PATCH', // Unsupported method
+    };
+
+    // Test that both functions handle invalid methods gracefully
+    const responses = await Promise.all([
+      supabaseHealth.default(invalidMethodEvent, mockContext),
+      sessionEvents.default(invalidMethodEvent, mockContext),
+    ]);
+
+    responses.forEach((response, index) => {
+      expect(response).toHaveProperty('statusCode');
+      expect(response).toHaveProperty('headers');
+      expect(response).toHaveProperty('body');
+      // Should return error for invalid method
+      expect([400, 405]).toContain(response.statusCode);
+    });
   });
 });
