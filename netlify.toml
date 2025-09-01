@@ -1,103 +1,111 @@
 [build]
-  # How to build your Vite app
-  command    = "corepack enable && pnpm install --include=dev && pnpm build"
-  # Where Vite outputs the production files
-  publish    = "dist"
-  # Pin build environment to Node 20 as used locally
-  environment = { NODE_VERSION = "20", PNPM_VERSION = "10", NPM_FLAGS = "--include=dev" }
+  command = "pnpm install && pnpm build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+  PNPM_VERSION = "10"
+  NPM_FLAGS = "--include=dev"
 
 [functions]
-  # Functions are located in ./netlify/functions relative to this file
-  directory    = "netlify/functions"
+  directory = "netlify/functions"
   node_bundler = "esbuild"
 
 [[redirects]]
-  # Single‑page app fallback — serves index.html for all non‑function URLs
-  from   = "/*"
-  to     = "/index.html"
+  from = "/*"
+  to = "/index.html"
   status = 200
-
-# [[plugins]]
-#   package = "@netlify/plugin-vite"
 
 [[plugins]]
   package = "@netlify/plugin-lighthouse"
 
-[plugins.inputs]
-  # Advanced Lighthouse configuration for comprehensive performance testing
-  
-  # Test multiple important pages with specific configurations
-  [[plugins.inputs.audits]]
-    url = "/"
-    output_path = "reports/lighthouse-landing-desktop.html"
-    preset = "desktop"
-    
-  [[plugins.inputs.audits]]
-    url = "/"
-    output_path = "reports/lighthouse-landing-mobile.html"
-    preset = "mobile"
-    
-  [[plugins.inputs.audits]]
-    url = "/join"
-    output_path = "reports/lighthouse-join-desktop.html"
-    preset = "desktop"
-    
-  [[plugins.inputs.audits]]
-    url = "/join"
-    output_path = "reports/lighthouse-join-mobile.html"
-    preset = "mobile"
-    
-  [[plugins.inputs.audits]]
-    url = "/create-session"
-    output_path = "reports/lighthouse-create-session-desktop.html"
-    preset = "desktop"
-    
-  [[plugins.inputs.audits]]
-    url = "/create-session"
-    output_path = "reports/lighthouse-create-session-mobile.html"
-    preset = "mobile"
-    
-  [[plugins.inputs.audits]]
-    url = "/api-status"
-    output_path = "reports/lighthouse-api-status.html"
-    preset = "desktop"
-  
-  # Performance-focused audits for critical pages
-  [[plugins.inputs.audits]]
-    url = "/"
-    output_path = "reports/lighthouse-landing-performance.html"
-    preset = "perf"
-    
-  [[plugins.inputs.audits]]
-    url = "/join"
-    output_path = "reports/lighthouse-join-performance.html"
-    preset = "perf"
-  
-  # Set performance thresholds - build will pass but report issues
-  thresholds = {
-    performance = 75,
-    accessibility = 85,
-    "best-practices" = 80,
-    seo = 85,
-    pwa = 70
-  }
-  
-  # Enable Chrome flags for better testing
-  chromeFlags = [
-    "--no-sandbox",
-    "--disable-dev-shm-usage",
-    "--disable-background-timer-throttling",
-    "--disable-backgrounding-occluded-windows",
-    "--disable-renderer-backgrounding"
-  ]
-  
-  # Save reports to deploy artifacts
-  saveReport = true
-  outputDir = "reports"
+  [plugins.inputs]
+    thresholds = { performance = 75, accessibility = 85, "best-practices" = 80, seo = 85, pwa = 70 }
+    chromeFlags = [
+      "--no-sandbox",
+      "--disable-dev-shm-usage",
+      "--disable-background-timer-throttling",
+      "--disable-backgrounding-occluded-windows",
+      "--disable-renderer-backgrounding"
+    ]
+    saveReport = true
+    outputDir = "reports"
+
+    [[plugins.inputs.audits]]
+      url = "/"
+      output_path = "reports/lighthouse-landing-desktop.html"
+      preset = "desktop"
+
+    [[plugins.inputs.audits]]
+      url = "/"
+      output_path = "reports/lighthouse-landing-mobile.html"
+      preset = "mobile"
+
+    [[plugins.inputs.audits]]
+      url = "/join"
+      output_path = "reports/lighthouse-join-desktop.html"
+      preset = "desktop"
+
+    [[plugins.inputs.audits]]
+      url = "/join"
+      output_path = "reports/lighthouse-join-mobile.html"
+      preset = "mobile"
+
+    [[plugins.inputs.audits]]
+      url = "/create-session"
+      output_path = "reports/lighthouse-create-session-desktop.html"
+      preset = "desktop"
+
+    [[plugins.inputs.audits]]
+      url = "/create-session"
+      output_path = "reports/lighthouse-create-session-mobile.html"
+      preset = "mobile"
+
+    [[plugins.inputs.audits]]
+      url = "/api-status"
+      output_path = "reports/lighthouse-api-status.html"
+      preset = "desktop"
+
+    [[plugins.inputs.audits]]
+      url = "/"
+      output_path = "reports/lighthouse-landing-performance.html"
+      preset = "perf"
+
+    [[plugins.inputs.audits]]
+      url = "/join"
+      output_path = "reports/lighthouse-join-performance.html"
+      preset = "perf"
+
+# Run after successful build
+[[build.lifecycle]]
+  onSuccess = """
+  echo '=== Lighthouse Reports Summary ==='
+  for report in reports/*.html; do
+    # Convert HTML to JSON using lighthouse-cli (if available in the build image)
+    json_report="${report%.html}.json"
+    if command -v lighthouse >/dev/null 2>&1; then
+      lighthouse "file://$PWD/dist/index.html" \
+        --output=json --output-path="$json_report" --quiet --chrome-flags="--headless --no-sandbox" || true
+      if [ -f "$json_report" ]; then
+        perf=$(jq '.categories.performance.score * 100' "$json_report")
+        acc=$(jq '.categories.accessibility.score * 100' "$json_report")
+        bp=$(jq '.categories."best-practices".score * 100' "$json_report")
+        seo=$(jq '.categories.seo.score * 100' "$json_report")
+        pwa=$(jq '.categories.pwa.score * 100' "$json_report" || echo "N/A")
+        echo "$(basename "$report"): Perf=$perf, Acc=$acc, BP=$bp, SEO=$seo, PWA=$pwa"
+      fi
+    fi
+  done
+  echo 'Reports saved in /reports — check Deploy artifacts in Netlify UI'
+  """
+
+[context.production]
+  publish = "dist"
+  artifactPath = ["dist", "reports"]
 
 [dev]
   framework = "vite"
-  command    = "pnpm run dev"
-  port       = 3000        # Netlify's public port
-  targetPort = 5173        # where Vite actually listens
+  command = "pnpm run dev"
+  port = 3000
+  targetPort = 5173
   autoLaunch = false
