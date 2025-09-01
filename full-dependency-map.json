@@ -1,53 +1,36 @@
 {
   "netlify/functions/_auth.ts": [],
-  "netlify/functions/_authMonitoring.ts": [
-    "netlify/functions/_auth.ts"
-  ],
-  "netlify/functions/_sentry.ts": [],
+  "netlify/functions/_utils.ts": [],
   "netlify/functions/batch-check-rooms.ts": [
-    "netlify/functions/_sentry.ts"
-  ],
-  "netlify/functions/check-daily-room.ts": [
-    "netlify/functions/_sentry.ts"
-  ],
-  "netlify/functions/create-daily-room.ts": [
     "netlify/functions/_auth.ts",
-    "netlify/functions/_sentry.ts"
+    "netlify/functions/_utils.ts"
   ],
-  "netlify/functions/create-daily-token.ts": [
-    "netlify/functions/_sentry.ts"
-  ],
-  "netlify/functions/create-game.ts": [
+  "netlify/functions/create-session.ts": [
     "netlify/functions/_auth.ts",
-    "netlify/functions/_sentry.ts"
+    "netlify/functions/_utils.ts"
   ],
-  "netlify/functions/daily-diagnostics.ts": [
+  "netlify/functions/daily-rooms.ts": [
     "netlify/functions/_auth.ts",
-    "netlify/functions/_sentry.ts"
+    "netlify/functions/_utils.ts"
   ],
-  "netlify/functions/delete-daily-room.ts": [
-    "netlify/functions/_sentry.ts"
-  ],
-  "netlify/functions/game-event-deprecated.ts": [],
   "netlify/functions/game-event-secure.ts": [
     "netlify/functions/_auth.ts",
-    "netlify/functions/_sentry.ts"
+    "netlify/functions/_utils.ts"
   ],
   "netlify/functions/game-event.ts": [
-    "netlify/functions/_auth.ts",
-    "netlify/functions/_authMonitoring.ts",
-    "netlify/functions/_sentry.ts"
+    "netlify/functions/_auth.ts"
   ],
-  "netlify/functions/get-room-presence.ts": [
-    "netlify/functions/_sentry.ts"
-  ],
-  "netlify/functions/join-game.ts": [
+  "netlify/functions/join-session.ts": [
     "netlify/functions/_auth.ts",
-    "netlify/functions/_sentry.ts"
+    "netlify/functions/_utils.ts"
+  ],
+  "netlify/functions/session-events.ts": [
+    "netlify/functions/_auth.ts",
+    "netlify/functions/_utils.ts"
   ],
   "netlify/functions/supabase-health.ts": [
     "netlify/functions/_auth.ts",
-    "netlify/functions/_sentry.ts"
+    "netlify/functions/_utils.ts"
   ],
   "src/App.tsx": [],
   "src/components/ActiveGames.tsx": [],
