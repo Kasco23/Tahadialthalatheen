@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { mapRecordToState } from '@/context/GameContext';
+import { mapRecordToState } from '@/context/gameUtils';
 import type { GameAction } from '@/context/gameReducer';
 import type { Dispatch } from 'react';
 import type { GameState, Player, PlayerId } from '../types/game';

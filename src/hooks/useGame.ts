@@ -1,1 +1,1 @@
-export { useGame } from '@/context/GameContext';
+export { useGame } from '@/context/useGame';

@@ -18,7 +18,9 @@ export type GameAction =
   | { type: 'UPDATE_TIMER'; timer: number; isRunning: boolean }
   | { type: 'PUSH_SCORE_EVENT'; event: ScoreEvent }
   | { type: 'RESET_STRIKES' }
-  | { type: 'COMPLETE_GAME' };
+  | { type: 'COMPLETE_GAME' }
+  | { type: 'SET_VIDEO_ROOM_URL'; url: string | undefined }
+  | { type: 'SET_VIDEO_ROOM_CREATED'; created: boolean };
 
 export function gameReducer(state: GameState, action: GameAction) {
   return produce<GameState>(state, (draft: Draft<GameState>) => {
@@ -73,6 +75,14 @@ export function gameReducer(state: GameState, action: GameAction) {
       case 'COMPLETE_GAME':
         draft.phase = 'COMPLETED';
         draft.isTimerRunning = false;
+        return;
+
+      case 'SET_VIDEO_ROOM_URL':
+        draft.videoRoomUrl = action.url;
+        return;
+
+      case 'SET_VIDEO_ROOM_CREATED':
+        draft.videoRoomCreated = action.created;
         return;
     }
   });
