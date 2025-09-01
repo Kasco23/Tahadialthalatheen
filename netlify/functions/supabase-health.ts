@@ -1,42 +1,45 @@
 import type { HandlerContext, HandlerEvent } from '@netlify/functions';
 import { getAuthContext } from './_auth.js';
-import { withSentry } from './_sentry.js';
+import { 
+  handleCors, 
+  createSuccessResponse, 
+  createErrorResponse 
+} from './_utils.js';
 
-/**
- * Simple Supabase health check endpoint
- */
-const supabaseHealthHandler = async (
+interface HealthCheckResult {
+  status: 'healthy' | 'unhealthy' | 'misconfigured';
+  timestamp: string;
+  environment: {
+    supabase_url_configured: boolean;
+    supabase_anon_key_configured: boolean;
+    supabase_service_role_configured: boolean;
+  };
+  database?: {
+    accessible: boolean;
+    total_sessions: number;
+    test_query_successful: boolean;
+  };
+  error?: string;
+  supabase_error_code?: string;
+}
+
+export const handler = async (
   event: HandlerEvent,
   _context: HandlerContext,
 ) => {
   // Handle CORS preflight requests
   if (event.httpMethod === 'OPTIONS') {
-    return {
-      statusCode: 200,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-        'Access-Control-Max-Age': '86400',
-      },
-      body: '',
-    };
+    return handleCors();
   }
 
   // Allow GET and POST requests
   if (!['GET', 'POST'].includes(event.httpMethod || '')) {
-    return {
-      statusCode: 405,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-      },
-      body: JSON.stringify({ error: 'Method not allowed' }),
-    };
+    return createErrorResponse('Method not allowed', 'METHOD_NOT_ALLOWED', 405);
   }
 
   // Check environment configuration
-  const healthCheck = {
+  const healthCheck: HealthCheckResult = {
+    status: 'healthy',
     timestamp: new Date().toISOString(),
     environment: {
       supabase_url_configured: !!process.env.SUPABASE_URL,
@@ -46,18 +49,9 @@ const supabaseHealthHandler = async (
   };
 
   if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
-    return {
-      statusCode: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-      },
-      body: JSON.stringify({
-        ...healthCheck,
-        status: 'misconfigured',
-        error: 'Supabase environment variables not configured',
-      }),
-    };
+    healthCheck.status = 'misconfigured';
+    healthCheck.error = 'Supabase environment variables not configured';
+    return createSuccessResponse(healthCheck, 200);
   }
 
   try {
@@ -71,54 +65,26 @@ const supabaseHealthHandler = async (
       .limit(1);
 
     if (error) {
-      return {
-        statusCode: 200,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-        },
-        body: JSON.stringify({
-          ...healthCheck,
-          status: 'error',
-          error: error.message,
-          supabase_error_code: error.code,
-        }),
-      };
+      healthCheck.status = 'unhealthy';
+      healthCheck.error = error.message;
+      healthCheck.supabase_error_code = error.code;
+      return createSuccessResponse(healthCheck, 200);
     }
 
-    return {
-      statusCode: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-      },
-      body: JSON.stringify({
-        ...healthCheck,
-        status: 'healthy',
-        database: {
-          accessible: true,
-          total_games: count || 0,
-          test_query_successful: true,
-        },
-      }),
+    healthCheck.database = {
+      accessible: true,
+      total_sessions: count || 0,
+      test_query_successful: true,
     };
+
+    return createSuccessResponse(healthCheck, 200);
+
   } catch (error) {
     console.error('Supabase health check error:', error);
 
-    return {
-      statusCode: 500,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-      },
-      body: JSON.stringify({
-        ...healthCheck,
-        status: 'error',
-        error: error instanceof Error ? error.message : 'Unknown error',
-      }),
-    };
+    healthCheck.status = 'unhealthy';
+    healthCheck.error = error instanceof Error ? error.message : 'Unknown error';
+
+    return createSuccessResponse(healthCheck, 503);
   }
 };
-
-// Export with Sentry monitoring
-export const handler = withSentry('supabase-health', supabaseHealthHandler);

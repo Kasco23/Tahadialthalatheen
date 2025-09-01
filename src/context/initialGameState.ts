@@ -2,7 +2,7 @@ import type { GameState } from '@/types/game';
 import { defaultPlayers } from './defaults';
 
 export const initialGameState: GameState = {
-  gameId: '',
+  sessionId: '',
   hostCode: '',
   hostName: '',
   hostIsConnected: false,

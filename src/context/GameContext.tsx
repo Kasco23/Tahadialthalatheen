@@ -6,32 +6,22 @@ import { initialGameState } from './initialGameState';
 
 export function GameProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(gameReducer, initialGameState);
+  
   useEffect(() => {
-    if (!state.gameId) return;
+    if (!state.sessionId) return;
 
-    let detachFn: (() => void) | null = null;
-    const isActive = { current: true };
-
-    // Setup async attachment
-    attachGameSync(state.gameId, dispatch)
-      .then((detach) => {
-        if (isActive.current) {
-          detachFn = detach;
-        } else {
-          // If effect already cleaned up, call detach immediately
-          detach();
-        }
-      })
-      .catch(console.error);
-
-    // Cleanup function
+    let cleanup: (() => void) | undefined;
+    
+    // Call attachGameSync with sessionId and dispatch
+    attachGameSync(state.sessionId, dispatch).then((cleanupFn) => {
+      cleanup = cleanupFn;
+    }).catch(console.error);
+    
     return () => {
-      isActive.current = false;
-      if (detachFn) {
-        detachFn();
-      }
+      cleanup?.();
     };
-  }, [state.gameId]);
+  }, [state.sessionId]);
+
   return (
     <GameContext.Provider value={{ state, dispatch }}>
       {children}

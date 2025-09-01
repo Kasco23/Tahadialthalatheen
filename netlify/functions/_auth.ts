@@ -83,7 +83,7 @@ export function requireAuth(
 /**
  * Check if user owns/hosts a specific session
  */
-export async function verifyGameHost(
+export async function verifySessionHost(
   supabase: SupabaseClient,
   sessionId: string,
   userId: string,
@@ -104,7 +104,7 @@ export async function verifyGameHost(
 /**
  * Check if user is a player in a specific session
  */
-export async function verifyGamePlayer(
+export async function verifySessionPlayer(
   supabase: SupabaseClient,
   sessionId: string,
   userId: string,

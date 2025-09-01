@@ -27,12 +27,12 @@ export default function QuizRoom() {
 
   // Initialize game if needed
   useState(() => {
-    if (gameId && gameId !== state.gameId) {
+    if (gameId && gameId !== state.sessionId) {
       startGame();
     }
   });
 
-  const currentGameId = gameId || state.gameId;
+  const currentGameId = gameId || state.sessionId;
   const questions = getQuestionsForSegment(state.currentSegment as SegmentCode);
 
   const handleNextQuestion = () => {

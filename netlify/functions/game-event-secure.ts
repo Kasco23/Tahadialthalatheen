@@ -2,10 +2,15 @@ import type { HandlerContext, HandlerEvent } from '@netlify/functions';
 import {
   getAuthContext,
   requireAuth,
-  verifyGameHost,
-  verifyGamePlayer,
+  verifySessionHost,
+  verifySessionPlayer,
 } from './_auth.js';
-import { withSentry } from './_sentry.js';
+import { 
+  handleCors, 
+  createSuccessResponse, 
+  createErrorResponse, 
+  parseRequestBody 
+} from './_utils.js';
 
 interface GameEventRequest {
   sessionId: string;
@@ -114,10 +119,11 @@ const gameEventHandler = async (
       // These events require authentication and host ownership
       requireAuth(authContext);
 
-      const isHost = await verifyGameHost(
+      // Verify host permission for session
+      const isHost = await verifySessionHost(
         authContext.supabase,
-        requestData.sessionId,
-        authContext.userId,
+        data.sessionId,
+        authContext.userId!,
       );
       if (!isHost) {
         return {
@@ -303,4 +309,4 @@ const gameEventHandler = async (
 };
 
 // Export with Sentry monitoring
-export const handler = withSentry('game-event-secure', gameEventHandler);
+export const handler = gameEventHandler;

@@ -38,7 +38,7 @@ export function useGame() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           method: 'POST',
-          endpoint: `/rooms/${state.gameId}`,
+          endpoint: `/rooms/${state.sessionId}`,
           body: { name, ...payload },
         }),
       });

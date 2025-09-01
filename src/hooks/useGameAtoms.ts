@@ -5,7 +5,7 @@ import { PlayerManager } from '@/lib/playerManager';
 import {
   addPlayerAtom,
   currentQuestionIndexAtom,
-  gameIdAtom,
+  sessionIdAtom,
   gameStateAtom,
   gameSyncInstanceAtom,
   initializeGameAtom,
@@ -68,7 +68,7 @@ export function useGameActions() {
 
         if (record) {
           const gameState = {
-            gameId: record.id,
+            sessionId: record.id,
             hostCode: record.host_code,
             hostName: record.host_name ?? null,
             hostIsConnected: record.host_is_connected ?? false,
@@ -173,7 +173,7 @@ export function useGameActions() {
   );
 
   const startGame = useCallback(async () => {
-    const currentGameId = store.get(gameIdAtom);
+    const currentGameId = store.get(sessionIdAtom);
     if (!currentGameId) return;
 
     try {
@@ -221,7 +221,7 @@ export function useGameActions() {
     const currentGameSync = store.get(
       gameSyncInstanceAtom,
     ) as AtomGameSync | null;
-    const currentGameId = store.get(gameIdAtom);
+    const currentGameId = store.get(sessionIdAtom);
 
     if (!currentGameSync || !currentGameId) return;
 
@@ -319,10 +319,10 @@ export function useGameActions() {
         }
 
         // Production mode: use real Daily.co API
-        const result = await fetch(`/.netlify/functions/create-daily-room`, {
+        const result = await fetch(`/.netlify/functions/daily-rooms?action=create`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ roomName: gameId }),
+          body: JSON.stringify({ sessionId: gameId, roomName: gameId }),
         });
 
         const data = (await result.json()) as { url?: string; error?: string };
@@ -435,10 +435,10 @@ export function useGameActions() {
         }
 
         // Production mode: use real Daily.co API
-        await fetch(`/.netlify/functions/delete-daily-room`, {
+        await fetch(`/.netlify/functions/daily-rooms?action=delete`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ roomName: gameId }),
+          body: JSON.stringify({ sessionId: gameId, roomName: gameId }),
         });
 
         // Update database first
@@ -504,7 +504,7 @@ export function useGameActions() {
         */
 
       // Production mode: use real Daily.co API
-      const result = await fetch(`/.netlify/functions/check-daily-room`, {
+      const result = await fetch(`/.netlify/functions/daily-rooms?action=check`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ roomName }),
@@ -591,7 +591,7 @@ export function useGameActions() {
 
   const setHostConnected = useCallback(
     async (isConnected: boolean) => {
-      const currentGameId = store.get(gameIdAtom);
+      const currentGameId = store.get(sessionIdAtom);
       if (!currentGameId) return { success: false, error: 'No game ID' };
 
       try {
@@ -637,7 +637,7 @@ export function useGameActions() {
 
         // Convert to game state format
         const gameState = {
-          gameId: gameRecord.id,
+          sessionId: gameRecord.id,
           hostCode: gameRecord.host_code,
           hostName: gameRecord.host_name ?? null,
           hostIsConnected: gameRecord.host_is_connected ?? false,
@@ -705,7 +705,7 @@ export function useGameActions() {
 
   const updateVideoRoomState = useCallback(
     async (videoRoomUrl: string, videoRoomCreated: boolean = true) => {
-      const currentGameId = store.get(gameIdAtom);
+      const currentGameId = store.get(sessionIdAtom);
       if (!currentGameId) {
         return { success: false, error: 'No game ID' };
       }
@@ -777,7 +777,7 @@ export function usePlayerActions() {
   const gameSyncInstance = useAtomValue(
     gameSyncInstanceAtom,
   ) as AtomGameSync | null;
-  const gameId = useAtomValue(gameIdAtom);
+  const gameId = useAtomValue(sessionIdAtom);
 
   const joinGame = useCallback(
     async (playerId: PlayerId, playerData: Partial<Player>) => {
@@ -985,7 +985,7 @@ export function useLobbyActions() {
 // Hook to initialize game sync when game ID changes
 export function useGameSync() {
   const store = useStore();
-  const gameId = useAtomValue(gameIdAtom);
+  const gameId = useAtomValue(sessionIdAtom);
   const gameSyncInstance = useAtomValue(
     gameSyncInstanceAtom,
   ) as AtomGameSync | null;

@@ -1,5 +1,12 @@
 import type { HandlerContext, HandlerEvent } from '@netlify/functions';
-import { withSentry } from './_sentry.js';
+import { getAuthContext, requireAuth } from './_auth.js';
+import { 
+  handleCors, 
+  createSuccessResponse, 
+  createErrorResponse, 
+  parseRequestBody,
+  validateMethod 
+} from './_utils.js';
 
 /**
  * Batch check multiple Daily.co rooms to see which ones are active
@@ -11,27 +18,11 @@ const batchCheckRoomsHandler = async (
 ) => {
   // Handle CORS preflight requests
   if (event.httpMethod === 'OPTIONS') {
-    return {
-      statusCode: 200,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Max-Age': '86400',
-      },
-      body: '',
-    };
+    return handleCors();
   }
 
-  if (event.httpMethod !== 'POST') {
-    return {
-      statusCode: 405,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-      },
-      body: JSON.stringify({ error: 'Method not allowed' }),
-    };
+  if (!validateMethod(event.httpMethod, ['POST'])) {
+    return createErrorResponse('Method not allowed', 'METHOD_NOT_ALLOWED', 405);
   }
 
   if (!process.env.DAILY_API_KEY) {
@@ -200,4 +191,4 @@ const batchCheckRoomsHandler = async (
 };
 
 // Export with Sentry monitoring
-export const handler = withSentry('batch-check-rooms', batchCheckRoomsHandler);
+export const handler = batchCheckRoomsHandler;

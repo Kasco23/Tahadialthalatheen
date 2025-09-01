@@ -156,17 +156,17 @@ export default function ControlRoom() {
           setError('خطأ في تحميل بيانات الجلسة');
         })
         .finally(() => setIsLoading(false));
-    } else if (state.gameId) {
+    } else if (state.sessionId) {
       setHostConnected(true);
       navigate(
-        `/lobby/${state.gameId}?role=host&hostName=${encodeURIComponent(state.hostName || (language === 'ar' ? 'المقدم' : 'Host'))}`,
+        `/lobby/${state.sessionId}?role=host&hostName=${encodeURIComponent(state.hostName || (language === 'ar' ? 'المقدم' : 'Host'))}`,
       );
     } else {
       navigate('/');
     }
   }, [
     location.state,
-    state.gameId,
+    state.sessionId,
     state.hostName,
     loadGameState,
     setHostConnected,
@@ -177,18 +177,18 @@ export default function ControlRoom() {
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (state.gameId) {
+      if (state.sessionId) {
         setHostConnected(false);
       }
     };
-  }, [state.gameId, setHostConnected]);
+  }, [state.sessionId, setHostConnected]);
 
   const handleStartGame = () => {
     startGame();
   };
 
   const handleCloseSession = async () => {
-    if (!state.gameId) return;
+    if (!state.sessionId) return;
 
     const confirmed = window.confirm(
       language === 'ar'
@@ -198,7 +198,7 @@ export default function ControlRoom() {
 
     if (confirmed) {
       try {
-        await endVideoRoom(state.gameId);
+        await endVideoRoom(state.sessionId);
         navigate('/');
       } catch (error) {
         console.error('Failed to close session:', error);
@@ -341,7 +341,7 @@ export default function ControlRoom() {
                 Session ID
               </h3>
               <p className="text-3xl font-mono text-football-green font-bold">
-                {state.gameId}
+                {state.sessionId}
               </p>
               <p
                 className={`text-xs text-slate-400 mt-2 ${language === 'ar' ? 'font-arabic' : ''}`}
@@ -493,7 +493,7 @@ export default function ControlRoom() {
             <button
               onClick={() =>
                 navigate(
-                  `/lobby/${state.gameId}?role=host&hostName=${encodeURIComponent(state.hostName || 'Host')}`,
+                  `/lobby/${state.sessionId}?role=host&hostName=${encodeURIComponent(state.hostName || 'Host')}`,
                 )
               }
               className={`p-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white transition-all duration-300 transform hover:scale-105 shadow-lg ${language === 'ar' ? 'font-arabic' : ''}`}

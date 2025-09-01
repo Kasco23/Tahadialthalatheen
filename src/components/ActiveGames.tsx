@@ -44,18 +44,14 @@ export default function ActiveGames({ onJoinGame }: ActiveGamesProps) {
         return;
       }
 
-      // Extract room names for batch checking
-      const roomNames = joinableGames.map((game) => game.id);
-
-      // Batch check which rooms are active in Daily.co
+      // Check which rooms are active in Daily.co
       const roomCheckResponse = await fetch(
-        '/.netlify/functions/batch-check-rooms',
+        '/.netlify/functions/daily-rooms?action=list',
         {
-          method: 'POST',
+          method: 'GET',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ roomNames }),
         },
       );
 

@@ -119,7 +119,7 @@ export default function Lobby() {
     }
 
     const initializeGame = async () => {
-      if (state.gameId === gameId) {
+      if (state.sessionId === gameId) {
         console.log('[LobbyImproved] Game already loaded');
         initializationRef.current.hasInitialized = true;
         return;
@@ -168,7 +168,7 @@ export default function Lobby() {
     };
   }, [
     gameId,
-    state.gameId,
+    state.sessionId,
     loadGameState,
     startSession,
     searchParamsObj,

@@ -4,7 +4,7 @@
   # Where Vite outputs the production files
   publish    = "dist"
   # Pin build environment to Node 20 as used locally
-  environment = { NODE_VERSION = "20", PNPM_VERSION = "10", SECRETS_SCAN_OMIT_KEYS = "VITE_SENTRY_DSN" }
+  environment = { NODE_VERSION = "20", PNPM_VERSION = "10" }
 
 [functions]
   # Functions are located in ./netlify/functions relative to this file

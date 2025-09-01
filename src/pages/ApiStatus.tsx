@@ -38,55 +38,55 @@ const API_TESTS: ApiTest[] = [
   },
   {
     name: 'Create Daily Room',
-    endpoint: '/.netlify/functions/create-daily-room',
+    endpoint: '/.netlify/functions/daily-rooms?action=create',
     method: 'POST',
-    body: { roomName: 'TEST_' + Date.now() },
+    body: { sessionId: 'TEST_' + Date.now(), roomName: 'TEST_' + Date.now() },
     description: 'Creates a test Daily.co video room',
   },
   {
     name: 'Check Daily Room',
-    endpoint: '/.netlify/functions/check-daily-room',
+    endpoint: '/.netlify/functions/daily-rooms?action=check',
     method: 'POST',
     body: { roomName: 'test-room' },
     description: 'Checks if a Daily.co room exists',
   },
   {
     name: 'Get Room Presence',
-    endpoint: '/.netlify/functions/get-room-presence',
+    endpoint: '/.netlify/functions/daily-rooms?action=presence',
     method: 'POST',
     body: { roomName: 'test-room' },
     description: 'Gets presence information for a Daily.co room',
   },
   {
     name: 'Delete Daily Room',
-    endpoint: '/.netlify/functions/delete-daily-room',
+    endpoint: '/.netlify/functions/daily-rooms?action=delete',
     method: 'POST',
-    body: { roomName: 'test-room' },
+    body: { sessionId: 'test-session', roomName: 'test-room' },
     description: 'Deletes a Daily.co video room',
   },
   {
     name: 'Daily Diagnostics',
-    endpoint: '/.netlify/functions/daily-diagnostics',
+    endpoint: '/.netlify/functions/daily-rooms?action=list',
     method: 'GET',
-    description: 'Gets comprehensive Daily.co and database diagnostics',
+    description: 'Gets list of Daily.co rooms',
   },
   {
-    name: 'Batch Check Rooms',
-    endpoint: '/.netlify/functions/batch-check-rooms',
+    name: 'Create Daily Token',
+    endpoint: '/.netlify/functions/daily-rooms?action=token',
     method: 'POST',
-    body: { roomNames: ['test-room-1', 'test-room-2'] },
-    description: 'Checks multiple Daily.co rooms at once',
+    body: { roomName: 'test-room', userName: 'test-user' },
+    description: 'Creates a Daily.co room access token',
   },
   {
-    name: 'Game Event Test (will fail without valid game)',
-    endpoint: '/.netlify/functions/game-event',
+    name: 'Session Event Test',
+    endpoint: '/.netlify/functions/session-events',
     method: 'POST',
     body: {
-      gameId: 'TEST123',
+      sessionId: 'TEST123',
       eventType: 'test',
       eventData: { message: 'API test' },
     },
-    description: 'Sends a test game event (expects 404 for non-existent game)',
+    description: 'Sends a test session event',
   },
 ];
 
@@ -114,14 +114,14 @@ export default function ApiStatus() {
 
         // Determine HTTP method and body based on endpoint
         if (
-          api.endpoint.includes('check-daily-room') ||
-          api.endpoint.includes('batch-check-rooms')
+          api.endpoint.includes('daily-rooms') &&
+          (api.endpoint.includes('action=check') || api.endpoint.includes('action=presence'))
         ) {
           // These endpoints require POST with body
           response = await fetch(api.endpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ roomNames: ['test-room'] }),
+            body: JSON.stringify({ roomName: 'test-room' }),
           });
         } else {
           // Use GET for other endpoints
@@ -170,24 +170,19 @@ export default function ApiStatus() {
         endpoint: '/.netlify/functions/supabase-health',
       },
       {
-        name: 'Daily.co Diagnostics',
+        name: 'Daily.co Room List',
         status: 'checking',
-        endpoint: '/.netlify/functions/daily-diagnostics',
+        endpoint: '/.netlify/functions/daily-rooms?action=list',
       },
       {
         name: 'Room Presence Check',
         status: 'checking',
-        endpoint: '/.netlify/functions/get-room-presence?roomName=test-room',
+        endpoint: '/.netlify/functions/daily-rooms?action=presence',
       },
       {
         name: 'Check Daily Room',
         status: 'checking',
-        endpoint: '/.netlify/functions/check-daily-room',
-      },
-      {
-        name: 'Batch Room Check',
-        status: 'checking',
-        endpoint: '/.netlify/functions/batch-check-rooms',
+        endpoint: '/.netlify/functions/daily-rooms?action=check',
       },
     ];
 

@@ -34,7 +34,7 @@ function mapPlayerRecord(record: PlayerRecord): Player {
 
 function mapRecordToState(record: GameRecord): Partial<GameState> {
   return {
-    gameId: record.id,
+    sessionId: record.id,
     hostCode: record.host_code,
     hostName: record.host_name ?? null,
     hostIsConnected: record.host_is_connected ?? false,
