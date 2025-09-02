@@ -12,13 +12,8 @@ on:
 jobs:
   copilot-setup-steps:
     runs-on: ubuntu-latest
-    environment: copilot
     permissions:
       contents: read
-      id-token: write
-      actions: read
-      models: read
-      
 
     steps:
       - name: Checkout repository
@@ -26,53 +21,17 @@ jobs:
         with:
           submodules: recursive
 
-      # --- Node & pnpm setup ---
       - name: Install pnpm
         uses: pnpm/action-setup@v4
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '20'
           cache: 'pnpm'
 
       - name: Install JavaScript dependencies
         run: pnpm install
 
-      # --- Python & MCP tools setup ---
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-
-      # Cache Python package installs
-      - name: Cache pipx environment
-        uses: actions/cache@v4
-        with:
-          path: ~/.local/pipx
-          key: ${{ runner.os }}-pipx-${{ hashFiles('.github/workflows/copilot-setup-steps.yml') }}
-
-      - name: Cache uv packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/uv
-          key: ${{ runner.os }}-uv-${{ hashFiles('.github/workflows/copilot-setup-steps.yml') }}
-
-      - name: Install uv (Python package manager)
-        run: pip install uv
-
-      - name: Install pipx
-        run: pip install pipx
-
-      - name: Install ImageSorcery MCP
-        run: pipx install imagesorcery-mcp
-
-
-      # --- Project validation (optional, allow failures) ---
-      - name: Validate build (allow errors)
-        run: pnpm run build
-        continue-on-error: true
-
-      - name: Run lint and tests
-        run: pnpm test || pnpm run lint
-        continue-on-error: true
+      - name: Install Netlify CLI (optional)
+        run: pnpm add -g netlify-cli
