@@ -257,22 +257,46 @@ function checkRateLimit(userId: string, action: string): boolean {
 // Main handler with comprehensive error handling
 const handler = async (event: HandlerEvent, context: HandlerContext) => {
   const requestId = context.awsRequestId || crypto.randomUUID();
-  console.log(`[${requestId}] Daily.co handler started`, {
-    method: event.httpMethod,
-    path: event.path,
-    action: event.queryStringParameters?.action,
-  });
-
   // Handle CORS
   if (event.httpMethod === 'OPTIONS') {
     return handleCors();
   }
 
-  // Parse action from query params or URL path
-  const action = event.queryStringParameters?.action || event.path?.split('/').pop();
+  // Parse action from query params (primary) or URL path (for REST-style calls)
+  let action: string | null = null;
+  
+  // Try to get action from query parameters first
+  if (event.queryStringParameters?.action) {
+    action = event.queryStringParameters.action;
+  }
+  // Fallback: try to parse from URL path
+  else if (event.path?.includes('/')) {
+    const pathParts = event.path.split('/');
+    const lastPart = pathParts[pathParts.length - 1];
+    if (lastPart && !['daily-rooms', 'function', ''].includes(lastPart)) {
+      action = lastPart;
+    }
+  }
+  
+  // Default action for basic health check if no action specified
+  if (!action && event.httpMethod === 'GET') {
+    action = 'health';
+  }
+  
+  console.log(`[${requestId}] Daily.co handler started`, {
+    method: event.httpMethod,
+    path: event.path,
+    queryParams: event.queryStringParameters,
+    parsedAction: action,
+    userAgent: event.headers?.['user-agent'] || 'unknown',
+  });
   
   if (!action) {
-    return createErrorResponse('Action parameter is required', 'MISSING_ACTION');
+    return createErrorResponse(
+      'Action parameter is required. Valid actions: create, delete, check, list, token, presence, health',
+      'MISSING_ACTION',
+      400
+    );
   }
 
   try {
@@ -314,7 +338,8 @@ const handler = async (event: HandlerEvent, context: HandlerContext) => {
       default:
         return createErrorResponse(
           `Invalid action: ${action}. Valid actions: create, delete, check, list, token, presence, health`,
-          'INVALID_ACTION'
+          'INVALID_ACTION',
+          400
         );
     }
   } catch (error) {
