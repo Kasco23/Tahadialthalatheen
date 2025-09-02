@@ -138,7 +138,7 @@ async function callDailyAPI<T = unknown>(
   const requestInit: RequestInit = {
     method,
     headers: {
-      'Authorization': `Bearer ${apiKey}`,
+      Authorization: `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
       'User-Agent': 'Tahadialthalatheen/1.0',
     },
@@ -150,26 +150,29 @@ async function callDailyAPI<T = unknown>(
   }
 
   const startTime = Date.now();
-  console.log(`[Daily API] ${method} ${endpoint}`, { 
-    attempt: retryCount + 1, 
-    body: body ? JSON.stringify(body) : undefined 
+  console.log(`[Daily API] ${method} ${endpoint}`, {
+    attempt: retryCount + 1,
+    body: body ? JSON.stringify(body) : undefined,
   });
 
   try {
-    const response = await fetch(`https://api.daily.co/v1${endpoint}`, requestInit);
+    const response = await fetch(
+      `https://api.daily.co/v1${endpoint}`,
+      requestInit,
+    );
     clearTimeout(timeoutId); // Clear timeout on successful response
-    
+
     const responseTime = Date.now() - startTime;
-    
+
     console.log(`[Daily API] Response: ${response.status} (${responseTime}ms)`);
 
     // Handle rate limiting
     if (response.status === 429) {
       const retryAfter = parseInt(response.headers.get('Retry-After') || '60');
       console.warn(`[Daily API] Rate limited, retry after ${retryAfter}s`);
-      
+
       if (retryCount < maxRetries) {
-        await new Promise(resolve => setTimeout(resolve, retryAfter * 1000));
+        await new Promise((resolve) => setTimeout(resolve, retryAfter * 1000));
         return callDailyAPI<T>(endpoint, method, body, retryCount + 1);
       }
       throw new Error(DailyErrorCode.RATE_LIMIT_EXCEEDED);
@@ -178,57 +181,65 @@ async function callDailyAPI<T = unknown>(
     // Handle server errors with exponential backoff
     if (response.status >= 500 && retryCount < maxRetries) {
       const delay = baseDelay * Math.pow(2, retryCount);
-      console.warn(`[Daily API] Server error ${response.status}, retrying in ${delay}ms`);
-      await new Promise(resolve => setTimeout(resolve, delay));
+      console.warn(
+        `[Daily API] Server error ${response.status}, retrying in ${delay}ms`,
+      );
+      await new Promise((resolve) => setTimeout(resolve, delay));
       return callDailyAPI<T>(endpoint, method, body, retryCount + 1);
     }
 
     if (!response.ok) {
       const errorText = await response.text();
       console.error(`[Daily API] Error ${response.status}: ${errorText}`);
-      
+
       if (response.status === 404) {
         throw new Error(DailyErrorCode.ROOM_NOT_FOUND);
       }
-      
-      throw new Error(`${DailyErrorCode.API_REQUEST_FAILED}: ${response.status} ${errorText}`);
+
+      throw new Error(
+        `${DailyErrorCode.API_REQUEST_FAILED}: ${response.status} ${errorText}`,
+      );
     }
 
     const contentType = response.headers.get('content-type');
     if (contentType?.includes('application/json')) {
       return response.json() as Promise<T>;
     }
-    
-    return response.text() as Promise<T>;
 
+    return response.text() as Promise<T>;
   } catch (error) {
     clearTimeout(timeoutId); // Clear timeout on error
-    
-    if (error instanceof Error && Object.values(DailyErrorCode).includes(error.message as DailyErrorCode)) {
+
+    if (
+      error instanceof Error &&
+      Object.values(DailyErrorCode).includes(error.message as DailyErrorCode)
+    ) {
       throw error;
     }
-    
+
     // Handle timeout/abort errors
     if (error instanceof Error && error.name === 'AbortError') {
       console.error(`[Daily API] Request timeout after ${timeoutMs}ms`);
       if (retryCount < maxRetries) {
         const delay = baseDelay * Math.pow(2, retryCount);
         console.log(`[Daily API] Retrying after timeout in ${delay}ms...`);
-        await new Promise(resolve => setTimeout(resolve, delay));
+        await new Promise((resolve) => setTimeout(resolve, delay));
         return callDailyAPI<T>(endpoint, method, body, retryCount + 1);
       }
       throw new Error(`${DailyErrorCode.API_REQUEST_FAILED}: Request timeout`);
     }
-    
+
     console.error(`[Daily API] Request failed:`, error);
     if (retryCount < maxRetries) {
       const delay = baseDelay * Math.pow(2, retryCount);
       console.log(`[Daily API] Retrying in ${delay}ms...`);
-      await new Promise(resolve => setTimeout(resolve, delay));
+      await new Promise((resolve) => setTimeout(resolve, delay));
       return callDailyAPI<T>(endpoint, method, body, retryCount + 1);
     }
-    
-    throw new Error(`${DailyErrorCode.API_REQUEST_FAILED}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+
+    throw new Error(
+      `${DailyErrorCode.API_REQUEST_FAILED}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+    );
   }
 }
 
@@ -240,7 +251,7 @@ function checkRateLimit(userId: string, action: string): boolean {
   const maxRequests = action === 'create' ? 10 : 50; // More restrictive for room creation
 
   const current = rateLimitCache.get(key);
-  
+
   if (!current || now > current.resetTime) {
     rateLimitCache.set(key, { count: 1, resetTime: now + windowMs });
     return true;
@@ -264,7 +275,7 @@ const handler = async (event: HandlerEvent, context: HandlerContext) => {
 
   // Parse action from query params (primary) or URL path (for REST-style calls)
   let action: string | null = null;
-  
+
   // Try to get action from query parameters first
   if (event.queryStringParameters?.action) {
     action = event.queryStringParameters.action;
@@ -277,12 +288,12 @@ const handler = async (event: HandlerEvent, context: HandlerContext) => {
       action = lastPart;
     }
   }
-  
+
   // Default action for basic health check if no action specified
   if (!action && event.httpMethod === 'GET') {
     action = 'health';
   }
-  
+
   console.log(`[${requestId}] Daily.co handler started`, {
     method: event.httpMethod,
     path: event.path,
@@ -290,25 +301,25 @@ const handler = async (event: HandlerEvent, context: HandlerContext) => {
     parsedAction: action,
     userAgent: event.headers?.['user-agent'] || 'unknown',
   });
-  
+
   if (!action) {
     return createErrorResponse(
       'Action parameter is required. Valid actions: create, delete, check, list, token, presence, health',
       'MISSING_ACTION',
-      400
+      400,
     );
   }
 
   try {
     const authContext = await getAuthContext(event);
-    
+
     // Rate limiting for authenticated users
     if (authContext.userId) {
       if (!checkRateLimit(authContext.userId, action)) {
         return createErrorResponse(
           'Rate limit exceeded. Please try again later.',
           'RATE_LIMIT_EXCEEDED',
-          429
+          429,
         );
       }
     }
@@ -339,26 +350,36 @@ const handler = async (event: HandlerEvent, context: HandlerContext) => {
         return createErrorResponse(
           `Invalid action: ${action}. Valid actions: create, delete, check, list, token, presence, health`,
           'INVALID_ACTION',
-          400
+          400,
         );
     }
   } catch (error) {
     console.error(`[${requestId}] Handler error:`, error);
-    
+
     if (error instanceof Error) {
-      if (Object.values(DailyErrorCode).includes(error.message as DailyErrorCode)) {
+      if (
+        Object.values(DailyErrorCode).includes(error.message as DailyErrorCode)
+      ) {
         return createErrorResponse(error.message, error.message, 500);
       }
       return createErrorResponse(error.message, 'INTERNAL_ERROR', 500);
     }
-    
-    return createErrorResponse('An unexpected error occurred', 'INTERNAL_ERROR', 500);
+
+    return createErrorResponse(
+      'An unexpected error occurred',
+      'INTERNAL_ERROR',
+      500,
+    );
   }
 };
 
-async function createRoom(event: HandlerEvent, authContext: AuthContext, requestId: string) {
+async function createRoom(
+  event: HandlerEvent,
+  authContext: AuthContext,
+  requestId: string,
+) {
   console.log(`[${requestId}] Creating room`);
-  
+
   if (!validateMethod(event.httpMethod, ['POST'])) {
     return createErrorResponse('Method not allowed', 'METHOD_NOT_ALLOWED', 405);
   }
@@ -374,16 +395,18 @@ async function createRoom(event: HandlerEvent, authContext: AuthContext, request
   if (!requestData.sessionId || !requestData.roomName) {
     return createErrorResponse(
       'Missing required fields: sessionId and roomName',
-      'MISSING_FIELDS'
+      'MISSING_FIELDS',
     );
   }
 
   if (!validateRoomName(requestData.roomName)) {
     const sanitized = sanitizeRoomName(requestData.roomName);
-    console.warn(`[${requestId}] Invalid room name "${requestData.roomName}", suggesting "${sanitized}"`);
+    console.warn(
+      `[${requestId}] Invalid room name "${requestData.roomName}", suggesting "${sanitized}"`,
+    );
     return createErrorResponse(
       `Invalid room name. Room names must be alphanumeric with hyphens/underscores only. Suggestion: "${sanitized}"`,
-      DailyErrorCode.INVALID_ROOM_NAME
+      DailyErrorCode.INVALID_ROOM_NAME,
     );
   }
 
@@ -393,7 +416,7 @@ async function createRoom(event: HandlerEvent, authContext: AuthContext, request
     requestData.sessionId,
     authContext.userId,
   );
-  
+
   if (!isHost) {
     return createErrorResponse(
       'Only the session host can create video rooms',
@@ -429,7 +452,10 @@ async function createRoom(event: HandlerEvent, authContext: AuthContext, request
     properties: {
       start_video_off: false,
       start_audio_off: false,
-      max_participants: Math.min(requestData.properties?.max_participants || 10, 50), // Cap at 50
+      max_participants: Math.min(
+        requestData.properties?.max_participants || 10,
+        50,
+      ), // Cap at 50
       enable_screenshare: requestData.properties?.enable_screenshare ?? true,
       enable_chat: requestData.properties?.enable_chat ?? true,
       enable_recording: requestData.properties?.enable_recording ?? false,
@@ -438,14 +464,20 @@ async function createRoom(event: HandlerEvent, authContext: AuthContext, request
       lang: 'en',
       geo: 'us', // Default to US, could be configurable
       exp: Math.floor(Date.now() / 1000) + 24 * 60 * 60, // 24 hours
-      webhook_events: ['participant-joined', 'participant-left', 'recording-started'],
+      webhook_events: [
+        'participant-joined',
+        'participant-left',
+        'recording-started',
+      ],
       ...requestData.properties,
     },
   };
 
   try {
     // Create room via Daily.co API
-    console.log(`[${requestId}] Creating Daily.co room: ${requestData.roomName}`);
+    console.log(
+      `[${requestId}] Creating Daily.co room: ${requestData.roomName}`,
+    );
     const dailyRoom = await callDailyAPI<DailyRoomResponse>(
       '/rooms',
       'POST',
@@ -470,15 +502,20 @@ async function createRoom(event: HandlerEvent, authContext: AuthContext, request
 
     if (roomError) {
       console.error(`[${requestId}] Database error:`, roomError);
-      
+
       // Cleanup: Try to delete the Daily.co room
       try {
         await callDailyAPI(`/rooms/${dailyRoom.name}`, 'DELETE');
-        console.log(`[${requestId}] Cleaned up Daily.co room after database error`);
+        console.log(
+          `[${requestId}] Cleaned up Daily.co room after database error`,
+        );
       } catch (cleanupError) {
-        console.error(`[${requestId}] Failed to cleanup Daily.co room:`, cleanupError);
+        console.error(
+          `[${requestId}] Failed to cleanup Daily.co room:`,
+          cleanupError,
+        );
       }
-      
+
       return createErrorResponse(
         'Failed to store room data in database',
         'STORAGE_FAILED',
@@ -507,25 +544,28 @@ async function createRoom(event: HandlerEvent, authContext: AuthContext, request
 
     console.log(`[${requestId}] Room created successfully`);
     return createSuccessResponse(response, 201);
-
   } catch (error) {
     console.error(`[${requestId}] Room creation failed:`, error);
-    
+
     if (error instanceof Error && error.message.includes('already exists')) {
       return createErrorResponse(
         `Room name '${requestData.roomName}' already exists. Please choose a different name.`,
         DailyErrorCode.ROOM_ALREADY_EXISTS,
-        409
+        409,
       );
     }
-    
+
     throw error;
   }
 }
 
-async function deleteRoom(event: HandlerEvent, authContext: AuthContext, requestId: string) {
+async function deleteRoom(
+  event: HandlerEvent,
+  authContext: AuthContext,
+  requestId: string,
+) {
   console.log(`[${requestId}] Deleting room`);
-  
+
   if (!validateMethod(event.httpMethod, ['DELETE'])) {
     return createErrorResponse('Method not allowed', 'METHOD_NOT_ALLOWED', 405);
   }
@@ -558,13 +598,17 @@ async function deleteRoom(event: HandlerEvent, authContext: AuthContext, request
 
   if (findError || !roomData) {
     console.warn(`[${requestId}] Room not found:`, { roomName, sessionId });
-    return createErrorResponse('Room not found', DailyErrorCode.ROOM_NOT_FOUND, 404);
+    return createErrorResponse(
+      'Room not found',
+      DailyErrorCode.ROOM_NOT_FOUND,
+      404,
+    );
   }
 
   // Enhanced permission check
   const isHost = roomData.sessions?.host_id === authContext.userId;
   const isRoomCreator = roomData.created_by === authContext.userId;
-  
+
   if (!isHost && !isRoomCreator) {
     return createErrorResponse(
       'Only the session host or room creator can delete rooms',
@@ -576,7 +620,9 @@ async function deleteRoom(event: HandlerEvent, authContext: AuthContext, request
   try {
     // Delete from Daily.co
     await callDailyAPI(`/rooms/${roomData.daily_room_name}`, 'DELETE');
-    console.log(`[${requestId}] Daily.co room deleted: ${roomData.daily_room_name}`);
+    console.log(
+      `[${requestId}] Daily.co room deleted: ${roomData.daily_room_name}`,
+    );
 
     // Update database
     const { error: updateError } = await authContext.supabase
@@ -614,28 +660,34 @@ async function deleteRoom(event: HandlerEvent, authContext: AuthContext, request
       roomName: roomData.daily_room_name,
       sessionId: roomData.session_id,
     });
-
   } catch (error) {
     console.error(`[${requestId}] Room deletion failed:`, error);
-    
-    if (error instanceof Error && error.message.includes(DailyErrorCode.ROOM_NOT_FOUND)) {
+
+    if (
+      error instanceof Error &&
+      error.message.includes(DailyErrorCode.ROOM_NOT_FOUND)
+    ) {
       // Room doesn't exist in Daily.co, just update database
       await authContext.supabase
         .from('rooms')
         .update({ is_active: false, ended_at: new Date().toISOString() })
         .eq('room_id', roomData.room_id);
-        
+
       return createSuccessResponse({
         message: 'Room was already deleted from Daily.co, database updated',
         roomName: roomData.daily_room_name,
       });
     }
-    
+
     throw error;
   }
 }
 
-async function checkRoom(event: HandlerEvent, authContext: AuthContext, requestId: string) {
+async function checkRoom(
+  event: HandlerEvent,
+  authContext: AuthContext,
+  requestId: string,
+) {
   const roomName = event.queryStringParameters?.roomName;
 
   if (!roomName) {
@@ -648,7 +700,7 @@ async function checkRoom(event: HandlerEvent, authContext: AuthContext, requestI
   try {
     console.log(`[${requestId}] Checking room: ${roomName}`);
     const room = await callDailyAPI<DailyRoomResponse>(`/rooms/${roomName}`);
-    
+
     return createSuccessResponse({
       exists: true,
       room: {
@@ -661,19 +713,26 @@ async function checkRoom(event: HandlerEvent, authContext: AuthContext, requestI
       },
     });
   } catch (error) {
-    if (error instanceof Error && error.message.includes(DailyErrorCode.ROOM_NOT_FOUND)) {
+    if (
+      error instanceof Error &&
+      error.message.includes(DailyErrorCode.ROOM_NOT_FOUND)
+    ) {
       return createSuccessResponse({ exists: false });
     }
     throw error;
   }
 }
 
-async function listRooms(event: HandlerEvent, authContext: AuthContext, requestId: string) {
+async function listRooms(
+  event: HandlerEvent,
+  authContext: AuthContext,
+  requestId: string,
+) {
   console.log(`[${requestId}] Listing rooms`);
-  
+
   try {
     const rooms = await callDailyAPI<DailyRoomListResponse>('/rooms');
-    
+
     // Get room activity from database
     const { data: dbRooms } = await authContext.supabase
       .from('rooms')
@@ -681,13 +740,14 @@ async function listRooms(event: HandlerEvent, authContext: AuthContext, requestI
       .eq('is_active', true);
 
     const activeRoomNames = new Set(
-      dbRooms?.map(room => room.daily_room_name) || []
+      dbRooms?.map((room) => room.daily_room_name) || [],
     );
 
-    const enhancedRooms = rooms.data.map(room => ({
+    const enhancedRooms = rooms.data.map((room) => ({
       ...room,
       isTracked: activeRoomNames.has(room.name),
-      sessionId: dbRooms?.find(db => db.daily_room_name === room.name)?.session_id,
+      sessionId: dbRooms?.find((db) => db.daily_room_name === room.name)
+        ?.session_id,
     }));
 
     return createSuccessResponse({
@@ -701,9 +761,13 @@ async function listRooms(event: HandlerEvent, authContext: AuthContext, requestI
   }
 }
 
-async function createToken(event: HandlerEvent, authContext: AuthContext, requestId: string) {
+async function createToken(
+  event: HandlerEvent,
+  authContext: AuthContext,
+  requestId: string,
+) {
   console.log(`[${requestId}] Creating token`);
-  
+
   if (!validateMethod(event.httpMethod, ['POST'])) {
     return createErrorResponse('Method not allowed', 'METHOD_NOT_ALLOWED', 405);
   }
@@ -717,7 +781,7 @@ async function createToken(event: HandlerEvent, authContext: AuthContext, reques
   if (!validateRoomName(requestData.roomName)) {
     return createErrorResponse(
       'Invalid room name format',
-      DailyErrorCode.INVALID_ROOM_NAME
+      DailyErrorCode.INVALID_ROOM_NAME,
     );
   }
 
@@ -730,13 +794,16 @@ async function createToken(event: HandlerEvent, authContext: AuthContext, reques
       user_id: requestData.properties?.user_id || authContext.userId,
       enable_screenshare: requestData.properties?.enable_screenshare ?? true,
       enable_recording: requestData.properties?.enable_recording ?? false,
-      exp: requestData.properties?.exp || Math.floor(Date.now() / 1000) + 60 * 60, // 1 hour default
+      exp:
+        requestData.properties?.exp || Math.floor(Date.now() / 1000) + 60 * 60, // 1 hour default
       ...requestData.properties,
     },
   };
 
   try {
-    console.log(`[${requestId}] Creating token for room: ${requestData.roomName}`);
+    console.log(
+      `[${requestId}] Creating token for room: ${requestData.roomName}`,
+    );
     const tokenResponse = await callDailyAPI<DailyTokenResponse>(
       '/meeting-tokens',
       'POST',
@@ -755,14 +822,18 @@ async function createToken(event: HandlerEvent, authContext: AuthContext, reques
       return createErrorResponse(
         `Failed to create token: ${error.message}`,
         DailyErrorCode.TOKEN_GENERATION_FAILED,
-        500
+        500,
       );
     }
     throw error;
   }
 }
 
-async function getRoomPresence(event: HandlerEvent, authContext: AuthContext, requestId: string) {
+async function getRoomPresence(
+  event: HandlerEvent,
+  authContext: AuthContext,
+  requestId: string,
+) {
   const roomName = event.queryStringParameters?.roomName;
 
   if (!roomName) {
@@ -774,8 +845,10 @@ async function getRoomPresence(event: HandlerEvent, authContext: AuthContext, re
 
   try {
     console.log(`[${requestId}] Getting presence for room: ${roomName}`);
-    const presence = await callDailyAPI<DailyPresenceResponse>(`/rooms/${roomName}/presence`);
-    
+    const presence = await callDailyAPI<DailyPresenceResponse>(
+      `/rooms/${roomName}/presence`,
+    );
+
     return createSuccessResponse({
       roomName,
       totalParticipants: presence.total_count,
@@ -783,7 +856,10 @@ async function getRoomPresence(event: HandlerEvent, authContext: AuthContext, re
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    if (error instanceof Error && error.message.includes(DailyErrorCode.ROOM_NOT_FOUND)) {
+    if (
+      error instanceof Error &&
+      error.message.includes(DailyErrorCode.ROOM_NOT_FOUND)
+    ) {
       return createSuccessResponse({
         roomName,
         totalParticipants: 0,
@@ -797,13 +873,13 @@ async function getRoomPresence(event: HandlerEvent, authContext: AuthContext, re
 
 async function healthCheck(requestId: string) {
   console.log(`[${requestId}] Health check`);
-  
+
   try {
     // Test Daily.co API connectivity
     const startTime = Date.now();
     await callDailyAPI('/rooms?limit=1');
     const responseTime = Date.now() - startTime;
-    
+
     return createSuccessResponse({
       status: 'healthy',
       service: 'daily-rooms',
@@ -819,7 +895,7 @@ async function healthCheck(requestId: string) {
     return createErrorResponse(
       'Daily.co API connectivity issues',
       'HEALTH_CHECK_FAILED',
-      503
+      503,
     );
   }
 }

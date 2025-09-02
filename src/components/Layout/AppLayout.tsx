@@ -45,18 +45,18 @@ export const AppLayout: React.FC = () => {
     <div className="min-h-screen relative flex">
       {/* Sidebar */}
       <SideNav isOpen={isOpen} onToggle={toggle} />
-      
+
       {/* Main content area */}
       <div className="flex-1 flex flex-col min-h-screen lg:ml-0">
         {/* Mobile sidebar toggle */}
         <SidebarToggle onClick={toggle} />
-        
+
         {/* App content */}
         <div className="flex-1 relative">
           <ConnectionBanner />
           <LanguageToggle />
           <SimpleThemeControls />
-          
+
           <main className="p-4 lg:p-6">
             <Suspense fallback={<PageLoader />}>
               <Routes>

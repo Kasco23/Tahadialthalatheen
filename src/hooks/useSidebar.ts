@@ -4,7 +4,7 @@ export const useSidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   const toggle = useCallback(() => {
-    setIsOpen(prev => !prev);
+    setIsOpen((prev) => !prev);
   }, []);
 
   const open = useCallback(() => {

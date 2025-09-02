@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Navigate } from 'react-router-dom';
 import Magnet from '@/components/ReactBits/Magnet';
-import { 
-  UserIcon, 
-  EnvelopeIcon, 
+import {
+  UserIcon,
+  EnvelopeIcon,
   LockClosedIcon,
   EyeIcon,
-  EyeSlashIcon 
+  EyeSlashIcon,
 } from '@heroicons/react/24/outline';
 
 const AuthPage: React.FC = () => {
@@ -57,7 +57,9 @@ const AuthPage: React.FC = () => {
         }
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
+      setError(
+        err instanceof Error ? err.message : 'An unexpected error occurred',
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -90,10 +92,9 @@ const AuthPage: React.FC = () => {
                 {isLogin ? 'Welcome Back' : 'Create Account'}
               </h1>
               <p className="text-theme-text/60">
-                {isLogin 
-                  ? 'Sign in to your account to continue' 
-                  : 'Join Tahadialthalatheen today'
-                }
+                {isLogin
+                  ? 'Sign in to your account to continue'
+                  : 'Join Tahadialthalatheen today'}
               </p>
             </div>
 
@@ -115,7 +116,10 @@ const AuthPage: React.FC = () => {
               {/* Full Name (Sign Up Only) */}
               {!isLogin && (
                 <div>
-                  <label htmlFor="fullName" className="block text-sm font-medium text-theme-text mb-2">
+                  <label
+                    htmlFor="fullName"
+                    className="block text-sm font-medium text-theme-text mb-2"
+                  >
                     Full Name
                   </label>
                   <div className="relative">
@@ -135,7 +139,10 @@ const AuthPage: React.FC = () => {
 
               {/* Email */}
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-theme-text mb-2">
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-medium text-theme-text mb-2"
+                >
                   Email
                 </label>
                 <div className="relative">
@@ -154,7 +161,10 @@ const AuthPage: React.FC = () => {
 
               {/* Password */}
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-theme-text mb-2">
+                <label
+                  htmlFor="password"
+                  className="block text-sm font-medium text-theme-text mb-2"
+                >
                   Password
                 </label>
                 <div className="relative">
@@ -186,7 +196,10 @@ const AuthPage: React.FC = () => {
               {/* Confirm Password (Sign Up Only) */}
               {!isLogin && (
                 <div>
-                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-theme-text mb-2">
+                  <label
+                    htmlFor="confirmPassword"
+                    className="block text-sm font-medium text-theme-text mb-2"
+                  >
                     Confirm Password
                   </label>
                   <div className="relative">
@@ -203,7 +216,9 @@ const AuthPage: React.FC = () => {
                     />
                     <button
                       type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
                       className="absolute right-3 top-1/2 transform -translate-y-1/2 text-theme-text/40 hover:text-theme-text transition-colors"
                     >
                       {showConfirmPassword ? (
@@ -228,8 +243,10 @@ const AuthPage: React.FC = () => {
                       <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
                       {isLogin ? 'Signing In...' : 'Creating Account...'}
                     </div>
+                  ) : isLogin ? (
+                    'Sign In'
                   ) : (
-                    isLogin ? 'Sign In' : 'Create Account'
+                    'Create Account'
                   )}
                 </button>
               </Magnet>
@@ -238,7 +255,9 @@ const AuthPage: React.FC = () => {
             {/* Toggle Mode */}
             <div className="mt-8 text-center">
               <p className="text-theme-text/60">
-                {isLogin ? "Don't have an account?" : "Already have an account?"}
+                {isLogin
+                  ? "Don't have an account?"
+                  : 'Already have an account?'}
               </p>
               <Magnet magnetStrength={2} padding={30}>
                 <button

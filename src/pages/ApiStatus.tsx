@@ -59,137 +59,148 @@ export default function ApiStatus() {
   });
 
   // Configurable API tests with proper method/parameter combinations
-  const createApiTests = useCallback((inputs: TestInputs): ApiTest[] => [
-    // Supabase Tests
-    {
-      name: 'Supabase Health Check',
-      endpoint: '/.netlify/functions/supabase-health',
-      method: 'GET',
-      description: 'Tests Supabase database connectivity and configuration',
-      category: 'supabase',
-    },
-    
-    // Daily.co Tests with correct methods and parameters
-    {
-      name: 'List Daily Rooms',
-      endpoint: '/.netlify/functions/daily-rooms',
-      method: 'GET',
-      queryParams: { action: 'list' },
-      description: 'Gets list of active Daily.co rooms',
-      category: 'daily',
-    },
-    {
-      name: 'Check Daily Room Exists',
-      endpoint: '/.netlify/functions/daily-rooms',
-      method: 'GET',
-      queryParams: { action: 'check', roomName: inputs.roomName },
-      description: 'Checks if a specific Daily.co room exists',
-      category: 'daily',
-    },
-    {
-      name: 'Get Room Presence',
-      endpoint: '/.netlify/functions/daily-rooms',
-      method: 'GET',
-      queryParams: { action: 'presence', roomName: inputs.roomName },
-      description: 'Gets presence information for a Daily.co room',
-      category: 'daily',
-    },
-    {
-      name: 'Create Daily Room',
-      endpoint: '/.netlify/functions/daily-rooms',
-      method: 'POST',
-      queryParams: { action: 'create' },
-      requiresAuth: true,
-      body: { 
-        sessionId: inputs.sessionId, 
-        roomName: `test-${Date.now()}`,
-        properties: {
-          max_participants: 10,
-          enable_screenshare: true,
-          enable_chat: true,
-        }
+  const createApiTests = useCallback(
+    (inputs: TestInputs): ApiTest[] => [
+      // Supabase Tests
+      {
+        name: 'Supabase Health Check',
+        endpoint: '/.netlify/functions/supabase-health',
+        method: 'GET',
+        description: 'Tests Supabase database connectivity and configuration',
+        category: 'supabase',
       },
-      description: 'Creates a test Daily.co video room',
-      category: 'daily',
-    },
-    {
-      name: 'Create Daily Token',
-      endpoint: '/.netlify/functions/daily-rooms',
-      method: 'POST',
-      queryParams: { action: 'token' },
-      requiresAuth: true,
-      body: { 
-        roomName: inputs.roomName,
-        properties: {
-          user_name: inputs.userName,
-          is_owner: false,
-        }
+
+      // Daily.co Tests with correct methods and parameters
+      {
+        name: 'List Daily Rooms',
+        endpoint: '/.netlify/functions/daily-rooms',
+        method: 'GET',
+        queryParams: { action: 'list' },
+        description: 'Gets list of active Daily.co rooms',
+        category: 'daily',
       },
-      description: 'Creates a Daily.co room access token',
-      category: 'daily',
-    },
-    {
-      name: 'Delete Daily Room',
-      endpoint: '/.netlify/functions/daily-rooms',
-      method: 'DELETE',
-      queryParams: { 
-        action: 'delete',
-        roomName: inputs.roomName,
-        sessionId: inputs.sessionId
+      {
+        name: 'Check Daily Room Exists',
+        endpoint: '/.netlify/functions/daily-rooms',
+        method: 'GET',
+        queryParams: { action: 'check', roomName: inputs.roomName },
+        description: 'Checks if a specific Daily.co room exists',
+        category: 'daily',
       },
-      requiresAuth: true,
-      description: 'Deletes a Daily.co video room',
-      category: 'daily',
-    },
-    
-    // Session Event Tests
-    {
-      name: 'Session Event Test',
-      endpoint: '/.netlify/functions/session-events',
-      method: 'POST',
-      requiresAuth: true,
-      body: {
-        sessionId: inputs.sessionId,
-        eventType: 'test',
-        eventData: { message: 'API test', timestamp: new Date().toISOString() },
+      {
+        name: 'Get Room Presence',
+        endpoint: '/.netlify/functions/daily-rooms',
+        method: 'GET',
+        queryParams: { action: 'presence', roomName: inputs.roomName },
+        description: 'Gets presence information for a Daily.co room',
+        category: 'daily',
       },
-      description: 'Sends a test session event',
-      category: 'session',
-    },
-  ], []);
+      {
+        name: 'Create Daily Room',
+        endpoint: '/.netlify/functions/daily-rooms',
+        method: 'POST',
+        queryParams: { action: 'create' },
+        requiresAuth: true,
+        body: {
+          sessionId: inputs.sessionId,
+          roomName: `test-${Date.now()}`,
+          properties: {
+            max_participants: 10,
+            enable_screenshare: true,
+            enable_chat: true,
+          },
+        },
+        description: 'Creates a test Daily.co video room',
+        category: 'daily',
+      },
+      {
+        name: 'Create Daily Token',
+        endpoint: '/.netlify/functions/daily-rooms',
+        method: 'POST',
+        queryParams: { action: 'token' },
+        requiresAuth: true,
+        body: {
+          roomName: inputs.roomName,
+          properties: {
+            user_name: inputs.userName,
+            is_owner: false,
+          },
+        },
+        description: 'Creates a Daily.co room access token',
+        category: 'daily',
+      },
+      {
+        name: 'Delete Daily Room',
+        endpoint: '/.netlify/functions/daily-rooms',
+        method: 'DELETE',
+        queryParams: {
+          action: 'delete',
+          roomName: inputs.roomName,
+          sessionId: inputs.sessionId,
+        },
+        requiresAuth: true,
+        description: 'Deletes a Daily.co video room',
+        category: 'daily',
+      },
+
+      // Session Event Tests
+      {
+        name: 'Session Event Test',
+        endpoint: '/.netlify/functions/session-events',
+        method: 'POST',
+        requiresAuth: true,
+        body: {
+          sessionId: inputs.sessionId,
+          eventType: 'test',
+          eventData: {
+            message: 'API test',
+            timestamp: new Date().toISOString(),
+          },
+        },
+        description: 'Sends a test session event',
+        category: 'session',
+      },
+    ],
+    [],
+  );
 
   // Get authentication context
-  const getAuthHeaders = useCallback(async (): Promise<Record<string, string>> => {
+  const getAuthHeaders = useCallback(async (): Promise<
+    Record<string, string>
+  > => {
     try {
       // Try to get auth token from local storage or context
       const token = localStorage.getItem('auth_token');
       if (token) {
         return {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         };
       }
     } catch (error) {
       console.warn('Could not get auth token:', error);
     }
-    
+
     return {
       'Content-Type': 'application/json',
     };
   }, []);
 
-  const buildUrl = useCallback((endpoint: string, queryParams?: Record<string, string>): string => {
-    if (!queryParams || Object.keys(queryParams).length === 0) {
-      return endpoint;
-    }
-    
-    const url = new URL(endpoint, window.location.origin);
-    Object.entries(queryParams).forEach(([key, value]) => {
-      url.searchParams.set(key, value);
-    });
-    
-    return url.pathname + url.search;
-  }, []);
+  const buildUrl = useCallback(
+    (endpoint: string, queryParams?: Record<string, string>): string => {
+      if (!queryParams || Object.keys(queryParams).length === 0) {
+        return endpoint;
+      }
+
+      const url = new URL(endpoint, window.location.origin);
+      Object.entries(queryParams).forEach(([key, value]) => {
+        url.searchParams.set(key, value);
+      });
+
+      return url.pathname + url.search;
+    },
+    [],
+  );
 
   const checkApiStatus = useCallback(
     async (api: ApiStatus): Promise<ApiStatus> => {
@@ -280,10 +291,10 @@ export default function ApiStatus() {
     try {
       const startTime = Date.now();
       const headers = await getAuthHeaders();
-      
+
       // Build URL with query parameters
       const url = buildUrl(test.endpoint, test.queryParams);
-      
+
       const requestInit: RequestInit = {
         method: test.method,
         headers,
@@ -295,12 +306,12 @@ export default function ApiStatus() {
 
       const response = await fetch(url, requestInit);
       const responseTime = Date.now() - startTime;
-      
+
       let data: string | Record<string, unknown> | unknown[] | undefined;
       const contentType = response.headers.get('content-type');
-      
+
       if (contentType?.includes('application/json')) {
-        data = await response.json() as Record<string, unknown> | unknown[];
+        data = (await response.json()) as Record<string, unknown> | unknown[];
       } else {
         data = await response.text();
       }
@@ -363,7 +374,9 @@ export default function ApiStatus() {
     }
   };
 
-  const formatData = (data: string | Record<string, unknown> | unknown[] | undefined): string => {
+  const formatData = (
+    data: string | Record<string, unknown> | unknown[] | undefined,
+  ): string => {
     if (typeof data === 'string') {
       try {
         return JSON.stringify(JSON.parse(data), null, 2);
@@ -384,7 +397,9 @@ export default function ApiStatus() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <h1 className={`text-3xl font-bold text-white mb-8 ${isArabic ? 'font-arabic text-right' : ''}`}>
+        <h1
+          className={`text-3xl font-bold text-white mb-8 ${isArabic ? 'font-arabic text-right' : ''}`}
+        >
           {isArabic ? 'حالة واجهة برمجة التطبيقات' : 'API Status Dashboard'}
         </h1>
 
@@ -395,10 +410,12 @@ export default function ApiStatus() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
-          <h2 className={`text-xl font-semibold text-white mb-4 ${isArabic ? 'font-arabic text-right' : ''}`}>
+          <h2
+            className={`text-xl font-semibold text-white mb-4 ${isArabic ? 'font-arabic text-right' : ''}`}
+          >
             {isArabic ? 'إعداد الاختبار' : 'Test Configuration'}
           </h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <label className="block text-sm font-medium text-theme-text-muted mb-2">
@@ -407,12 +424,17 @@ export default function ApiStatus() {
               <input
                 type="text"
                 value={testInputs.sessionId}
-                onChange={(e) => setTestInputs(prev => ({ ...prev, sessionId: e.target.value }))}
+                onChange={(e) =>
+                  setTestInputs((prev) => ({
+                    ...prev,
+                    sessionId: e.target.value,
+                  }))
+                }
                 className="w-full px-3 py-2 bg-theme-surface/30 border border-theme-border rounded-lg text-white placeholder-theme-text-muted focus:ring-2 focus:ring-theme-primary focus:border-transparent"
                 placeholder="TEST_123456"
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-theme-text-muted mb-2">
                 {isArabic ? 'اسم الغرفة' : 'Room Name'}
@@ -420,12 +442,17 @@ export default function ApiStatus() {
               <input
                 type="text"
                 value={testInputs.roomName}
-                onChange={(e) => setTestInputs(prev => ({ ...prev, roomName: e.target.value }))}
+                onChange={(e) =>
+                  setTestInputs((prev) => ({
+                    ...prev,
+                    roomName: e.target.value,
+                  }))
+                }
                 className="w-full px-3 py-2 bg-theme-surface/30 border border-theme-border rounded-lg text-white placeholder-theme-text-muted focus:ring-2 focus:ring-theme-primary focus:border-transparent"
                 placeholder="test-room-123"
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-theme-text-muted mb-2">
                 {isArabic ? 'اسم المستخدم' : 'User Name'}
@@ -433,12 +460,17 @@ export default function ApiStatus() {
               <input
                 type="text"
                 value={testInputs.userName}
-                onChange={(e) => setTestInputs(prev => ({ ...prev, userName: e.target.value }))}
+                onChange={(e) =>
+                  setTestInputs((prev) => ({
+                    ...prev,
+                    userName: e.target.value,
+                  }))
+                }
                 className="w-full px-3 py-2 bg-theme-surface/30 border border-theme-border rounded-lg text-white placeholder-theme-text-muted focus:ring-2 focus:ring-theme-primary focus:border-transparent"
                 placeholder="test-user"
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-theme-text-muted mb-2">
                 {isArabic ? 'معرف اللعبة' : 'Game ID'}
@@ -446,7 +478,9 @@ export default function ApiStatus() {
               <input
                 type="text"
                 value={testInputs.gameId}
-                onChange={(e) => setTestInputs(prev => ({ ...prev, gameId: e.target.value }))}
+                onChange={(e) =>
+                  setTestInputs((prev) => ({ ...prev, gameId: e.target.value }))
+                }
                 className="w-full px-3 py-2 bg-theme-surface/30 border border-theme-border rounded-lg text-white placeholder-theme-text-muted focus:ring-2 focus:ring-theme-primary focus:border-transparent"
                 placeholder="game_123456"
               />
@@ -462,7 +496,9 @@ export default function ApiStatus() {
           transition={{ delay: 0.2 }}
         >
           <div className="flex justify-between items-center mb-4">
-            <h2 className={`text-xl font-semibold text-white ${isArabic ? 'font-arabic' : ''}`}>
+            <h2
+              className={`text-xl font-semibold text-white ${isArabic ? 'font-arabic' : ''}`}
+            >
               {isArabic ? 'نظرة عامة على حالة الواجهة' : 'API Status Overview'}
             </h2>
             <button
@@ -472,7 +508,7 @@ export default function ApiStatus() {
               {isArabic ? 'تحديث' : 'Refresh'}
             </button>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {apiStatuses.map((api, index) => (
               <div
@@ -485,9 +521,7 @@ export default function ApiStatus() {
                 </div>
                 <div className="text-sm opacity-75">
                   <div>{api.status.toUpperCase()}</div>
-                  {api.responseTime && (
-                    <div>{api.responseTime}ms</div>
-                  )}
+                  {api.responseTime && <div>{api.responseTime}ms</div>}
                   {api.error && (
                     <div className="text-xs mt-1 truncate" title={api.error}>
                       {api.error}
@@ -508,50 +542,57 @@ export default function ApiStatus() {
         >
           {/* Test Selection */}
           <div className="bg-theme-surface/20 rounded-xl p-6 border border-theme-border backdrop-blur-sm">
-            <h3 className={`text-lg font-semibold text-white mb-4 ${isArabic ? 'font-arabic' : ''}`}>
+            <h3
+              className={`text-lg font-semibold text-white mb-4 ${isArabic ? 'font-arabic' : ''}`}
+            >
               {isArabic ? 'اختبارات الواجهة' : 'API Tests'}
             </h3>
-            
+
             {/* Group tests by category */}
-            {['supabase', 'daily', 'session'].map(category => (
+            {['supabase', 'daily', 'session'].map((category) => (
               <div key={category} className="mb-6">
                 <h4 className="text-md font-medium text-theme-text-muted mb-3 capitalize">
                   {category} APIs
                 </h4>
                 <div className="space-y-2">
                   {apiTests
-                    .filter(test => test.category === category)
+                    .filter((test) => test.category === category)
                     .map((test, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setSelectedTest(test)}
-                      className={`w-full text-left p-3 rounded-lg border transition-all ${
-                        selectedTest === test
-                          ? 'bg-theme-primary/20 border-theme-primary/50 text-theme-primary'
-                          : 'bg-theme-surface/10 border-theme-border hover:bg-theme-surface/20 text-white'
-                      }`}
-                    >
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <div className="font-medium">{test.name}</div>
-                          <div className="text-sm opacity-75 mt-1">
-                            {test.method} {test.endpoint}
-                            {test.queryParams && (
-                              <span className="text-theme-primary">
-                                ?{new URLSearchParams(test.queryParams).toString()}
-                              </span>
-                            )}
+                      <button
+                        key={index}
+                        onClick={() => setSelectedTest(test)}
+                        className={`w-full text-left p-3 rounded-lg border transition-all ${
+                          selectedTest === test
+                            ? 'bg-theme-primary/20 border-theme-primary/50 text-theme-primary'
+                            : 'bg-theme-surface/10 border-theme-border hover:bg-theme-surface/20 text-white'
+                        }`}
+                      >
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <div className="font-medium">{test.name}</div>
+                            <div className="text-sm opacity-75 mt-1">
+                              {test.method} {test.endpoint}
+                              {test.queryParams && (
+                                <span className="text-theme-primary">
+                                  ?
+                                  {new URLSearchParams(
+                                    test.queryParams,
+                                  ).toString()}
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-xs opacity-60 mt-1">
+                              {test.description}
+                            </div>
                           </div>
-                          <div className="text-xs opacity-60 mt-1">{test.description}</div>
+                          {test.requiresAuth && (
+                            <span className="px-2 py-1 text-xs bg-yellow-400/20 text-yellow-400 rounded">
+                              Auth
+                            </span>
+                          )}
                         </div>
-                        {test.requiresAuth && (
-                          <span className="px-2 py-1 text-xs bg-yellow-400/20 text-yellow-400 rounded">
-                            Auth
-                          </span>
-                        )}
-                      </div>
-                    </button>
-                  ))}
+                      </button>
+                    ))}
                 </div>
               </div>
             ))}
@@ -560,7 +601,9 @@ export default function ApiStatus() {
           {/* Test Results */}
           <div className="bg-theme-surface/20 rounded-xl p-6 border border-theme-border backdrop-blur-sm">
             <div className="flex justify-between items-center mb-4">
-              <h3 className={`text-lg font-semibold text-white ${isArabic ? 'font-arabic' : ''}`}>
+              <h3
+                className={`text-lg font-semibold text-white ${isArabic ? 'font-arabic' : ''}`}
+              >
                 {isArabic ? 'نتائج الاختبار' : 'Test Results'}
               </h3>
               {selectedTest && (
@@ -569,59 +612,70 @@ export default function ApiStatus() {
                   disabled={isTestRunning}
                   className="px-4 py-2 bg-theme-primary hover:bg-theme-primary/80 disabled:bg-theme-primary/50 text-white rounded-lg transition-colors"
                 >
-                  {isTestRunning ? (
-                    isArabic ? 'جاري التشغيل...' : 'Running...'
-                  ) : (
-                    isArabic ? 'تشغيل الاختبار' : 'Run Test'
-                  )}
+                  {isTestRunning
+                    ? isArabic
+                      ? 'جاري التشغيل...'
+                      : 'Running...'
+                    : isArabic
+                      ? 'تشغيل الاختبار'
+                      : 'Run Test'}
                 </button>
               )}
             </div>
-            
+
             {!selectedTest && (
               <div className="text-center text-theme-text-muted py-8">
                 {isArabic ? 'اختر اختبارًا لتشغيله' : 'Select a test to run'}
               </div>
             )}
-            
+
             {selectedTest && !testResult && !isTestRunning && (
               <div className="text-center text-theme-text-muted py-8">
-                {isArabic ? 'انقر على "تشغيل الاختبار" لبدء الاختبار' : 'Click "Run Test" to start testing'}
+                {isArabic
+                  ? 'انقر على "تشغيل الاختبار" لبدء الاختبار'
+                  : 'Click "Run Test" to start testing'}
               </div>
             )}
-            
+
             {isTestRunning && (
               <div className="text-center text-theme-text-muted py-8">
                 <div className="animate-spin inline-block w-6 h-6 border-2 border-theme-primary border-t-transparent rounded-full mb-2"></div>
-                <div>{isArabic ? 'جاري تشغيل الاختبار...' : 'Running test...'}</div>
+                <div>
+                  {isArabic ? 'جاري تشغيل الاختبار...' : 'Running test...'}
+                </div>
               </div>
             )}
-            
+
             {testResult && (
               <div className="space-y-4">
-                <div className={`p-4 rounded-lg border ${
-                  testResult.success 
-                    ? 'bg-green-400/10 border-green-400/30 text-green-400'
-                    : 'bg-red-400/10 border-red-400/30 text-red-400'
-                }`}>
+                <div
+                  className={`p-4 rounded-lg border ${
+                    testResult.success
+                      ? 'bg-green-400/10 border-green-400/30 text-green-400'
+                      : 'bg-red-400/10 border-red-400/30 text-red-400'
+                  }`}
+                >
                   <div className="flex justify-between items-center mb-2">
                     <span className="font-medium">
-                      {testResult.success ? (
-                        isArabic ? 'نجح الاختبار' : 'Test Passed'
-                      ) : (
-                        isArabic ? 'فشل الاختبار' : 'Test Failed'
-                      )}
+                      {testResult.success
+                        ? isArabic
+                          ? 'نجح الاختبار'
+                          : 'Test Passed'
+                        : isArabic
+                          ? 'فشل الاختبار'
+                          : 'Test Failed'}
                     </span>
                     <span className="text-sm">
                       {testResult.status && `HTTP ${testResult.status}`}
-                      {testResult.responseTime && ` • ${testResult.responseTime}ms`}
+                      {testResult.responseTime &&
+                        ` • ${testResult.responseTime}ms`}
                     </span>
                   </div>
                   {testResult.error && (
                     <div className="text-sm opacity-75">{testResult.error}</div>
                   )}
                 </div>
-                
+
                 {/* Request Details */}
                 {testResult.requestDetails && (
                   <div className="bg-theme-surface/30 rounded-lg p-4">
@@ -629,13 +683,13 @@ export default function ApiStatus() {
                       {isArabic ? 'تفاصيل الطلب' : 'Request Details'}
                     </h4>
                     <pre className="text-sm text-theme-text-muted whitespace-pre-wrap overflow-auto max-h-40">
-{`Method: ${testResult.requestDetails.method}
+                      {`Method: ${testResult.requestDetails.method}
 Endpoint: ${testResult.requestDetails.endpoint}
 Headers: ${JSON.stringify(testResult.requestDetails.headers, null, 2)}${testResult.requestDetails.body ? `\nBody: ${testResult.requestDetails.body}` : ''}`}
                     </pre>
                   </div>
                 )}
-                
+
                 {/* Response Data */}
                 {testResult.data && (
                   <div className="bg-theme-surface/30 rounded-lg p-4">

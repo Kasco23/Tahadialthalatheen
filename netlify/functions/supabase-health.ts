@@ -25,14 +25,14 @@ interface HealthCheckResult {
 
 const handler = async (event: HandlerEvent, context: HandlerContext) => {
   const requestId = context.awsRequestId || crypto.randomUUID();
-  
+
   console.log(`[${requestId}] Supabase health check started`, {
     method: event.httpMethod,
     path: event.path,
     userAgent: event.headers?.['user-agent'] || 'unknown',
     origin: event.headers?.['origin'] || 'unknown',
   });
-  
+
   // Handle CORS preflight requests
   if (event.httpMethod === 'OPTIONS') {
     return handleCors();
@@ -67,10 +67,12 @@ const handler = async (event: HandlerEvent, context: HandlerContext) => {
 
   try {
     console.log(`[${requestId}] Testing database connectivity...`);
-    
+
     // Get authentication context for secure database access
     const authContext = await getAuthContext(event);
-    console.log(`[${requestId}] Auth context obtained, user: ${authContext.userId || 'anonymous'}`);
+    console.log(
+      `[${requestId}] Auth context obtained, user: ${authContext.userId || 'anonymous'}`,
+    );
 
     // Simple query to test connectivity using authenticated client
     const startTime = Date.now();
@@ -78,7 +80,7 @@ const handler = async (event: HandlerEvent, context: HandlerContext) => {
       .from('sessions')
       .select('session_id', { count: 'exact' })
       .limit(1);
-    
+
     const queryTime = Date.now() - startTime;
     console.log(`[${requestId}] Database query completed in ${queryTime}ms`);
 

@@ -1,5 +1,10 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import type { User, Session, AuthError, AuthChangeEvent } from '@supabase/supabase-js';
+import type {
+  User,
+  Session,
+  AuthError,
+  AuthChangeEvent,
+} from '@supabase/supabase-js';
 import { getSupabase } from '@/lib/supabaseLazy';
 
 interface AuthContextType {
@@ -7,8 +12,15 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signOut: () => Promise<void>;
-  signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
-  signUp: (email: string, password: string, metadata?: Record<string, unknown>) => Promise<{ error: AuthError | null }>;
+  signIn: (
+    email: string,
+    password: string,
+  ) => Promise<{ error: AuthError | null }>;
+  signUp: (
+    email: string,
+    password: string,
+    metadata?: Record<string, unknown>,
+  ) => Promise<{ error: AuthError | null }>;
   isAuthenticated: boolean;
 }
 
@@ -34,9 +46,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const initAuth = async () => {
       const supabase = await getSupabase();
-      
+
       // Get initial session
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
@@ -44,11 +58,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Listen for auth changes
       const {
         data: { subscription },
-      } = supabase.auth.onAuthStateChange((_event: AuthChangeEvent, session: Session | null) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
-      });
+      } = supabase.auth.onAuthStateChange(
+        (_event: AuthChangeEvent, session: Session | null) => {
+          setSession(session);
+          setUser(session?.user ?? null);
+          setLoading(false);
+        },
+      );
 
       return () => subscription.unsubscribe();
     };
@@ -65,7 +81,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return { error };
   };
 
-  const signUp = async (email: string, password: string, metadata: Record<string, unknown> = {}) => {
+  const signUp = async (
+    email: string,
+    password: string,
+    metadata: Record<string, unknown> = {},
+  ) => {
     const supabase = await getSupabase();
     const { error } = await supabase.auth.signUp({
       email,
@@ -92,9 +112,5 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isAuthenticated: !!user,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

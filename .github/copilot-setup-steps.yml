@@ -6,17 +6,17 @@ runs:
       uses: pnpm/action-setup@v2
       with:
         version: 'latest'
-    
+
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '20'
         cache: 'pnpm'
-    
+
     - name: Install dependencies
       run: pnpm install --frozen-lockfile
       shell: bash
-    
+
     - name: Setup Netlify CLI authentication
       run: |
         npm install -g netlify-cli
@@ -31,7 +31,7 @@ runs:
       shell: bash
       env:
         NETLIFY_AUTH_TOKEN: ${{ env.NETLIFY_AUTH_TOKEN }}
-    
+
     - name: Link Netlify project
       run: |
         if [ -n "$NETLIFY_PROJECT_ID" ]; then
@@ -44,44 +44,44 @@ runs:
       env:
         NETLIFY_AUTH_TOKEN: ${{ env.NETLIFY_AUTH_TOKEN }}
         NETLIFY_PROJECT_ID: ${{ env.NETLIFY_PROJECT_ID }}
-    
+
     - name: Verify environment variables
       run: |
         echo "Checking required environment variables..."
-        
+
         # Supabase variables
         if [ -n "$VITE_SUPABASE_URL" ]; then
           echo "✅ VITE_SUPABASE_URL is set"
         else
           echo "❌ VITE_SUPABASE_URL is missing"
         fi
-        
+
         if [ -n "$VITE_SUPABASE_ANON_KEY" ]; then
           echo "✅ VITE_SUPABASE_ANON_KEY is set"
         else
           echo "❌ VITE_SUPABASE_ANON_KEY is missing"
         fi
-        
+
         # Daily.co variables
         if [ -n "$DAILY_API_KEY" ]; then
           echo "✅ DAILY_API_KEY is set"
         else
           echo "❌ DAILY_API_KEY is missing"
         fi
-        
+
         if [ -n "$VITE_DAILY_DOMAIN" ]; then
           echo "✅ VITE_DAILY_DOMAIN is set"
         else
           echo "❌ VITE_DAILY_DOMAIN is missing"
         fi
-        
+
         # Netlify variables
         if [ -n "$NETLIFY_AUTH_TOKEN" ]; then
           echo "✅ NETLIFY_AUTH_TOKEN is set"
         else
           echo "❌ NETLIFY_AUTH_TOKEN is missing"
         fi
-        
+
         if [ -n "$NETLIFY_PROJECT_ID" ]; then
           echo "✅ NETLIFY_PROJECT_ID is set"
         else

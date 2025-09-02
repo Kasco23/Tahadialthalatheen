@@ -1,10 +1,7 @@
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { AppLayout } from '@/components/Layout/AppLayout';
 import { AuthProvider } from '@/context/AuthContext';
-import {
-  ConditionalBackground,
-  ThemeProvider,
-} from '@/theme';
+import { ConditionalBackground, ThemeProvider } from '@/theme';
 import { Provider as JotaiProvider } from 'jotai';
 
 /**

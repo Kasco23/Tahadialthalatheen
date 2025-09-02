@@ -21,7 +21,9 @@ export class PlayerManager {
     try {
       // First, try to get the player
       const existingPlayers = await GameDatabase.getGamePlayers(gameId);
-      const existingPlayer = existingPlayers.find((p) => p.player_id === playerId);
+      const existingPlayer = existingPlayers.find(
+        (p) => p.player_id === playerId,
+      );
 
       if (existingPlayer) {
         // Player exists, update with any new data

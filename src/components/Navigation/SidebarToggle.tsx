@@ -7,9 +7,9 @@ interface SidebarToggleProps {
   className?: string;
 }
 
-export const SidebarToggle: React.FC<SidebarToggleProps> = ({ 
-  onClick, 
-  className = '' 
+export const SidebarToggle: React.FC<SidebarToggleProps> = ({
+  onClick,
+  className = '',
 }) => {
   return (
     <Magnet magnetStrength={3} padding={30}>

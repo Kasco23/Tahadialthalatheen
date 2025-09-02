@@ -309,16 +309,22 @@ export default function ActiveGames({ onJoinGame }: ActiveGamesProps) {
                   </div>
                   {/* Game Info for debugging */}
                   <div className="flex flex-wrap gap-1 mt-1">
-                    <span className={`text-xs px-2 py-0.5 bg-theme-primary/10 text-theme-primary rounded border border-theme-primary/20 ${isArabic ? 'font-arabic' : ''}`}>
+                    <span
+                      className={`text-xs px-2 py-0.5 bg-theme-primary/10 text-theme-primary rounded border border-theme-primary/20 ${isArabic ? 'font-arabic' : ''}`}
+                    >
                       ID: {game.session_id?.slice(-8) || 'N/A'}
                     </span>
                     {game.video_room_created && (
-                      <span className={`text-xs px-2 py-0.5 bg-theme-success/10 text-theme-success rounded border border-theme-success/20 ${isArabic ? 'font-arabic' : ''}`}>
+                      <span
+                        className={`text-xs px-2 py-0.5 bg-theme-success/10 text-theme-success rounded border border-theme-success/20 ${isArabic ? 'font-arabic' : ''}`}
+                      >
                         📹 Video Room
                       </span>
                     )}
                     {game.status && (
-                      <span className={`text-xs px-2 py-0.5 bg-theme-secondary/10 text-theme-secondary rounded border border-theme-secondary/20 ${isArabic ? 'font-arabic' : ''}`}>
+                      <span
+                        className={`text-xs px-2 py-0.5 bg-theme-secondary/10 text-theme-secondary rounded border border-theme-secondary/20 ${isArabic ? 'font-arabic' : ''}`}
+                      >
                         {game.status}
                       </span>
                     )}
@@ -339,7 +345,9 @@ export default function ActiveGames({ onJoinGame }: ActiveGamesProps) {
                 <div
                   className={`text-xs text-theme-text-muted ${isArabic ? 'font-arabic' : ''}`}
                 >
-                  {game.host_is_connected ? '🟢 Host online' : '🔴 Host offline'}
+                  {game.host_is_connected
+                    ? '🟢 Host online'
+                    : '🔴 Host offline'}
                 </div>
                 <button
                   onClick={() => handleQuickJoin(game.session_id)}

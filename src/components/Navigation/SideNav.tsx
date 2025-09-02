@@ -24,15 +24,15 @@ interface SideNavProps {
   onToggle?: () => void;
 }
 
-export const SideNav: React.FC<SideNavProps> = ({ 
-  isOpen = false, 
-  onToggle 
+export const SideNav: React.FC<SideNavProps> = ({
+  isOpen = false,
+  onToggle,
 }) => {
   const { user, isAuthenticated, signOut } = useAuth();
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
   const [isDark, setIsDark] = useState(
-    document.documentElement.classList.contains('dark')
+    document.documentElement.classList.contains('dark'),
   );
 
   // Auto-hide sidebar on mobile when route changes
@@ -72,16 +72,20 @@ export const SideNav: React.FC<SideNavProps> = ({
 
   const getUserDisplayName = () => {
     if (!user) return 'Guest';
-    return user.user_metadata?.full_name || 
-           user.user_metadata?.name || 
-           user.email?.split('@')[0] || 
-           'User';
+    return (
+      user.user_metadata?.full_name ||
+      user.user_metadata?.name ||
+      user.email?.split('@')[0] ||
+      'User'
+    );
   };
 
   const getUserAvatar = () => {
-    return user?.user_metadata?.avatar_url || 
-           user?.user_metadata?.picture ||
-           `https://api.dicebear.com/7.x/initials/svg?seed=${getUserDisplayName()}`;
+    return (
+      user?.user_metadata?.avatar_url ||
+      user?.user_metadata?.picture ||
+      `https://api.dicebear.com/7.x/initials/svg?seed=${getUserDisplayName()}`
+    );
   };
 
   return (
@@ -89,7 +93,7 @@ export const SideNav: React.FC<SideNavProps> = ({
       {/* Mobile overlay with blur */}
       <AnimatePresence>
         {isOpen && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -101,33 +105,33 @@ export const SideNav: React.FC<SideNavProps> = ({
       </AnimatePresence>
 
       {/* Main Sidebar Container */}
-      <motion.div 
+      <motion.div
         className={`
           fixed top-0 left-0 h-full z-50 transition-transform duration-300 ease-in-out
           ${isOpen ? 'translate-x-0' : '-translate-x-full'}
           lg:translate-x-0 lg:static lg:z-auto
         `}
-        animate={{ 
-          width: collapsed ? '80px' : '320px'
+        animate={{
+          width: collapsed ? '80px' : '320px',
         }}
-        transition={{ 
-          duration: 0.4, 
-          ease: [0.04, 0.62, 0.23, 0.98]
+        transition={{
+          duration: 0.4,
+          ease: [0.04, 0.62, 0.23, 0.98],
         }}
       >
         {/* Glassmorphism Background Layers */}
         <div className="absolute inset-0 bg-gradient-to-br from-theme-surface/95 via-theme-surface/90 to-theme-surface/95 backdrop-blur-xl" />
         <div className="absolute inset-0 bg-gradient-to-br from-theme-primary/8 via-transparent to-theme-secondary/8" />
         <div className="absolute inset-0 border-r border-theme-border/30" />
-        
+
         {/* Content */}
         <div className="relative h-full flex flex-col z-10">
           {/* Header with modern toggle */}
-          <motion.div 
+          <motion.div
             className="p-6 border-b border-theme-border/30 backdrop-blur-sm"
-            animate={{ 
+            animate={{
               opacity: 1,
-              x: 0
+              x: 0,
             }}
             transition={{ duration: 0.3 }}
           >
@@ -148,13 +152,15 @@ export const SideNav: React.FC<SideNavProps> = ({
                       <h1 className="text-xl font-bold bg-gradient-to-r from-theme-primary to-theme-secondary bg-clip-text text-transparent">
                         Tahadialthalatheen
                       </h1>
-                      <p className="text-xs text-theme-text/60">Game Platform</p>
+                      <p className="text-xs text-theme-text/60">
+                        Game Platform
+                      </p>
                     </div>
                   </motion.div>
                 )}
               </AnimatePresence>
-              
-              <ClickSpark 
+
+              <ClickSpark
                 sparkColor="var(--theme-primary)"
                 sparkCount={8}
                 sparkRadius={15}
@@ -191,11 +197,11 @@ export const SideNav: React.FC<SideNavProps> = ({
 
           {/* User Profile Section with modern styling */}
           {isAuthenticated && (
-            <motion.div 
+            <motion.div
               className="p-6 border-b border-theme-border/30"
-              animate={{ 
+              animate={{
                 opacity: 1,
-                scale: 1
+                scale: 1,
               }}
               transition={{ duration: 0.3 }}
             >
@@ -226,7 +232,9 @@ export const SideNav: React.FC<SideNavProps> = ({
                         </p>
                         <div className="flex items-center mt-1 space-x-2">
                           <div className="w-2 h-2 bg-theme-success rounded-full animate-pulse" />
-                          <span className="text-xs text-theme-success">Online</span>
+                          <span className="text-xs text-theme-success">
+                            Online
+                          </span>
                         </div>
                       </motion.div>
                     )}
@@ -248,21 +256,33 @@ export const SideNav: React.FC<SideNavProps> = ({
                   <GlareHover
                     width="100%"
                     height="48px"
-                    background={isActiveRoute('/') ? 'var(--theme-primary)/20' : 'transparent'}
+                    background={
+                      isActiveRoute('/')
+                        ? 'var(--theme-primary)/20'
+                        : 'transparent'
+                    }
                     borderRadius="12px"
-                    borderColor={isActiveRoute('/') ? 'var(--theme-primary)' : 'transparent'}
+                    borderColor={
+                      isActiveRoute('/')
+                        ? 'var(--theme-primary)'
+                        : 'transparent'
+                    }
                     glareColor="var(--theme-primary)"
                     glareOpacity={0.3}
                     className={`transition-all duration-300 ${
-                      isActiveRoute('/') 
-                        ? '!border-theme-primary/50 !bg-theme-primary/20' 
+                      isActiveRoute('/')
+                        ? '!border-theme-primary/50 !bg-theme-primary/20'
                         : 'hover:!border-theme-border/30 hover:!bg-theme-surface/30'
                     }`}
                   >
                     <div className="w-full h-full flex items-center px-4 space-x-3">
-                      <HomeIcon className={`w-5 h-5 ${
-                        isActiveRoute('/') ? 'text-theme-primary' : 'text-theme-text'
-                      } transition-colors`} />
+                      <HomeIcon
+                        className={`w-5 h-5 ${
+                          isActiveRoute('/')
+                            ? 'text-theme-primary'
+                            : 'text-theme-text'
+                        } transition-colors`}
+                      />
                       <AnimatePresence mode="wait">
                         {!collapsed && (
                           <motion.span
@@ -271,7 +291,9 @@ export const SideNav: React.FC<SideNavProps> = ({
                             exit={{ opacity: 0, x: -10 }}
                             transition={{ duration: 0.2 }}
                             className={`font-medium ${
-                              isActiveRoute('/') ? 'text-theme-primary' : 'text-theme-text'
+                              isActiveRoute('/')
+                                ? 'text-theme-primary'
+                                : 'text-theme-text'
                             } transition-colors`}
                           >
                             Home
@@ -284,7 +306,7 @@ export const SideNav: React.FC<SideNavProps> = ({
               </motion.div>
 
               {/* Game Actions Section */}
-              <motion.div 
+              <motion.div
                 className="pt-4"
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.3 }}
@@ -304,32 +326,52 @@ export const SideNav: React.FC<SideNavProps> = ({
                     </motion.div>
                   )}
                 </AnimatePresence>
-                
+
                 <div className="space-y-1">
                   {[
-                    { path: '/create-session', icon: PlusIcon, label: 'Create Session' },
+                    {
+                      path: '/create-session',
+                      icon: PlusIcon,
+                      label: 'Create Session',
+                    },
                     { path: '/join', icon: UserGroupIcon, label: 'Join Game' },
-                    { path: '/control-room', icon: Cog6ToothIcon, label: 'Control Room' },
+                    {
+                      path: '/control-room',
+                      icon: Cog6ToothIcon,
+                      label: 'Control Room',
+                    },
                   ].map((item) => (
                     <Link key={item.path} to={item.path}>
                       <GlareHover
                         width="100%"
                         height="44px"
-                        background={isActiveRoute(item.path) ? 'var(--theme-primary)/15' : 'transparent'}
+                        background={
+                          isActiveRoute(item.path)
+                            ? 'var(--theme-primary)/15'
+                            : 'transparent'
+                        }
                         borderRadius="10px"
-                        borderColor={isActiveRoute(item.path) ? 'var(--theme-primary)' : 'transparent'}
+                        borderColor={
+                          isActiveRoute(item.path)
+                            ? 'var(--theme-primary)'
+                            : 'transparent'
+                        }
                         glareColor="var(--theme-primary)"
                         glareOpacity={0.25}
                         className={`transition-all duration-300 ${
-                          isActiveRoute(item.path) 
-                            ? '!border-theme-primary/40 !bg-theme-primary/15' 
+                          isActiveRoute(item.path)
+                            ? '!border-theme-primary/40 !bg-theme-primary/15'
                             : 'hover:!border-theme-border/20 hover:!bg-theme-surface/20'
                         }`}
                       >
                         <div className="w-full h-full flex items-center px-4 space-x-3">
-                          <item.icon className={`w-4 h-4 ${
-                            isActiveRoute(item.path) ? 'text-theme-primary' : 'text-theme-text/70'
-                          } transition-colors`} />
+                          <item.icon
+                            className={`w-4 h-4 ${
+                              isActiveRoute(item.path)
+                                ? 'text-theme-primary'
+                                : 'text-theme-text/70'
+                            } transition-colors`}
+                          />
                           <AnimatePresence mode="wait">
                             {!collapsed && (
                               <motion.span
@@ -338,7 +380,9 @@ export const SideNav: React.FC<SideNavProps> = ({
                                 exit={{ opacity: 0, x: -10 }}
                                 transition={{ duration: 0.2 }}
                                 className={`text-sm ${
-                                  isActiveRoute(item.path) ? 'text-theme-primary font-medium' : 'text-theme-text/70'
+                                  isActiveRoute(item.path)
+                                    ? 'text-theme-primary font-medium'
+                                    : 'text-theme-text/70'
                                 } transition-colors`}
                               >
                                 {item.label}
@@ -353,7 +397,7 @@ export const SideNav: React.FC<SideNavProps> = ({
               </motion.div>
 
               {/* Tools Section */}
-              <motion.div 
+              <motion.div
                 className="pt-4"
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.3 }}
@@ -373,27 +417,39 @@ export const SideNav: React.FC<SideNavProps> = ({
                     </motion.div>
                   )}
                 </AnimatePresence>
-                
+
                 <div className="space-y-1">
                   <Link to="/api-status">
                     <GlareHover
                       width="100%"
                       height="44px"
-                      background={isActiveRoute('/api-status') ? 'var(--theme-primary)/15' : 'transparent'}
+                      background={
+                        isActiveRoute('/api-status')
+                          ? 'var(--theme-primary)/15'
+                          : 'transparent'
+                      }
                       borderRadius="10px"
-                      borderColor={isActiveRoute('/api-status') ? 'var(--theme-primary)' : 'transparent'}
+                      borderColor={
+                        isActiveRoute('/api-status')
+                          ? 'var(--theme-primary)'
+                          : 'transparent'
+                      }
                       glareColor="var(--theme-primary)"
                       glareOpacity={0.25}
                       className={`transition-all duration-300 ${
-                        isActiveRoute('/api-status') 
-                          ? '!border-theme-primary/40 !bg-theme-primary/15' 
+                        isActiveRoute('/api-status')
+                          ? '!border-theme-primary/40 !bg-theme-primary/15'
                           : 'hover:!border-theme-border/20 hover:!bg-theme-surface/20'
                       }`}
                     >
                       <div className="w-full h-full flex items-center px-4 space-x-3">
-                        <ClipboardDocumentListIcon className={`w-4 h-4 ${
-                          isActiveRoute('/api-status') ? 'text-theme-primary' : 'text-theme-text/70'
-                        } transition-colors`} />
+                        <ClipboardDocumentListIcon
+                          className={`w-4 h-4 ${
+                            isActiveRoute('/api-status')
+                              ? 'text-theme-primary'
+                              : 'text-theme-text/70'
+                          } transition-colors`}
+                        />
                         <AnimatePresence mode="wait">
                           {!collapsed && (
                             <motion.span
@@ -402,7 +458,9 @@ export const SideNav: React.FC<SideNavProps> = ({
                               exit={{ opacity: 0, x: -10 }}
                               transition={{ duration: 0.2 }}
                               className={`text-sm ${
-                                isActiveRoute('/api-status') ? 'text-theme-primary font-medium' : 'text-theme-text/70'
+                                isActiveRoute('/api-status')
+                                  ? 'text-theme-primary font-medium'
+                                  : 'text-theme-text/70'
                               } transition-colors`}
                             >
                               API Status
@@ -418,13 +476,13 @@ export const SideNav: React.FC<SideNavProps> = ({
           </div>
 
           {/* Footer Actions with premium styling */}
-          <motion.div 
+          <motion.div
             className="p-4 border-t border-theme-border/30 space-y-3"
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
           >
             {/* Theme Toggle */}
-            <ClickSpark 
+            <ClickSpark
               sparkColor="var(--theme-secondary)"
               sparkCount={8}
               sparkRadius={15}
@@ -445,7 +503,11 @@ export const SideNav: React.FC<SideNavProps> = ({
                 >
                   <motion.div
                     animate={{ rotate: isDark ? 180 : 0 }}
-                    transition={{ duration: 0.4, type: 'spring', stiffness: 200 }}
+                    transition={{
+                      duration: 0.4,
+                      type: 'spring',
+                      stiffness: 200,
+                    }}
                   >
                     {isDark ? (
                       <SunIcon className="w-5 h-5 group-hover:scale-110 transition-transform" />
@@ -472,7 +534,7 @@ export const SideNav: React.FC<SideNavProps> = ({
 
             {/* Auth Actions */}
             {isAuthenticated ? (
-              <ClickSpark 
+              <ClickSpark
                 sparkColor="var(--theme-error)"
                 sparkCount={6}
                 sparkRadius={12}
@@ -509,7 +571,7 @@ export const SideNav: React.FC<SideNavProps> = ({
                 </GlareHover>
               </ClickSpark>
             ) : (
-              <ClickSpark 
+              <ClickSpark
                 sparkColor="var(--theme-success)"
                 sparkCount={6}
                 sparkRadius={12}
@@ -524,7 +586,7 @@ export const SideNav: React.FC<SideNavProps> = ({
                   glareOpacity={0.4}
                   className="!border-theme-success/30 hover:!border-theme-success/70 transition-all duration-300"
                 >
-                  <Link 
+                  <Link
                     to="/auth"
                     className="w-full h-full flex items-center justify-center space-x-3 text-theme-success hover:text-white transition-colors group"
                   >

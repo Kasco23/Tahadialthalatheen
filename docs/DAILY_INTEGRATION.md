@@ -7,12 +7,14 @@ This is an industry-grade Daily.co video conferencing integration optimized for 
 ## 🚀 Key Features
 
 ### Core Functionality
+
 - **Room Management**: Create, delete, check, and list video rooms
 - **Token Generation**: Secure access tokens with configurable permissions
 - **Presence Monitoring**: Real-time participant tracking
 - **Health Monitoring**: Built-in health checks and status monitoring
 
 ### Advanced Features
+
 - **Retry Logic**: Exponential backoff with up to 3 retries
 - **Rate Limiting**: Per-user rate limiting (10 creates/min, 50 others/min)
 - **Request Timeout**: 10-second timeout with abort handling
@@ -70,30 +72,39 @@ DAILY_WEBHOOK_URL=              # Webhook endpoint for events
 ## 🛠 API Endpoints
 
 ### Health Check
+
 ```http
 GET /.netlify/functions/daily-rooms?action=health
 ```
+
 Returns system health and API connectivity status.
 
 ### List Rooms
+
 ```http
 GET /.netlify/functions/daily-rooms?action=list
 ```
+
 Lists all active rooms with enhanced metadata.
 
 ### Check Room
+
 ```http
 GET /.netlify/functions/daily-rooms?action=check&roomName={name}
 ```
+
 Checks if a specific room exists and returns details.
 
 ### Room Presence
+
 ```http
 GET /.netlify/functions/daily-rooms?action=presence&roomName={name}
 ```
+
 Gets current participants in a room.
 
 ### Create Room
+
 ```http
 POST /.netlify/functions/daily-rooms?action=create
 Content-Type: application/json
@@ -110,6 +121,7 @@ Authorization: Bearer {token}
 ```
 
 ### Generate Token
+
 ```http
 POST /.netlify/functions/daily-rooms?action=token
 Content-Type: application/json
@@ -125,6 +137,7 @@ Content-Type: application/json
 ```
 
 ### Delete Room
+
 ```http
 DELETE /.netlify/functions/daily-rooms?action=delete&roomName={name}&sessionId={id}
 Authorization: Bearer {token}
@@ -133,6 +146,7 @@ Authorization: Bearer {token}
 ## 🔍 Error Handling
 
 ### Error Codes
+
 - `DAILY_API_KEY_MISSING`: API key not configured
 - `DAILY_API_REQUEST_FAILED`: API request failed
 - `DAILY_RATE_LIMIT_EXCEEDED`: Rate limit hit
@@ -142,6 +156,7 @@ Authorization: Bearer {token}
 - `DAILY_TOKEN_GENERATION_FAILED`: Token creation failed
 
 ### Response Format
+
 ```typescript
 // Success Response
 {
@@ -165,6 +180,7 @@ Authorization: Bearer {token}
 ## 🧪 Testing
 
 ### ApiStatus.tsx Dashboard
+
 - **Configurable Testing**: Input your own test data
 - **All Endpoints**: Test every API endpoint
 - **Request/Response**: View full request and response details
@@ -172,6 +188,7 @@ Authorization: Bearer {token}
 - **Authentication**: Automatic auth header handling
 
 ### Local Testing
+
 ```bash
 # Install dependencies
 npm install
@@ -184,6 +201,7 @@ curl "http://localhost:8888/.netlify/functions/daily-rooms?action=health"
 ```
 
 ### Deployment Testing
+
 ```bash
 # Run comprehensive deployment script
 ./scripts/deploy-daily-optimization.sh
@@ -192,12 +210,14 @@ curl "http://localhost:8888/.netlify/functions/daily-rooms?action=health"
 ## 📊 Monitoring
 
 ### Built-in Monitoring
+
 - **Request IDs**: Track requests across logs
 - **Response Times**: Monitor API performance
 - **Error Rates**: Track error patterns
 - **Rate Limiting**: Monitor usage patterns
 
 ### Logging Format
+
 ```
 [REQUEST_ID] Daily.co handler started { method, path, action }
 [REQUEST_ID] Daily.co API: GET /rooms (attempt 1)
@@ -206,6 +226,7 @@ curl "http://localhost:8888/.netlify/functions/daily-rooms?action=health"
 ```
 
 ### Health Check Response
+
 ```json
 {
   "status": "healthy",
@@ -222,16 +243,19 @@ curl "http://localhost:8888/.netlify/functions/daily-rooms?action=health"
 ## 🔒 Security Features
 
 ### Authentication
+
 - **Required Auth**: All write operations require authentication
 - **Session Verification**: Verify user is session host
 - **Permission Checks**: Multiple permission layers
 
 ### Input Validation
+
 - **Room Name Sanitization**: Auto-sanitize invalid characters
 - **Parameter Validation**: Type and format checking
 - **Rate Limiting**: Prevent abuse and DOS
 
 ### Data Protection
+
 - **Private Rooms**: All rooms are private by default
 - **Token Expiration**: Short-lived tokens (1 hour default)
 - **Secure Headers**: Proper security headers in responses
@@ -239,12 +263,14 @@ curl "http://localhost:8888/.netlify/functions/daily-rooms?action=health"
 ## 🚀 Performance Optimizations
 
 ### API Resilience
+
 - **Retry Logic**: Exponential backoff with jitter
 - **Timeout Handling**: 10-second request timeout
 - **Circuit Breaker**: Fail fast on consecutive errors
 - **Caching**: Room status caching (when applicable)
 
 ### Database Optimization
+
 - **Transaction Safety**: Database operations in transactions
 - **Error Recovery**: Cleanup on partial failures
 - **Connection Pooling**: Efficient database connections
@@ -252,12 +278,14 @@ curl "http://localhost:8888/.netlify/functions/daily-rooms?action=health"
 ## 🔄 Deployment
 
 ### Automatic Deployment
+
 ```bash
 # Run the complete deployment pipeline
 ./scripts/deploy-daily-optimization.sh
 ```
 
 ### Manual Deployment
+
 ```bash
 # Validate code
 npm run lint
@@ -271,6 +299,7 @@ netlify deploy --prod
 ```
 
 ### Post-Deployment Validation
+
 - Health check endpoint returns 200
 - List rooms endpoint accessible
 - Error responses properly formatted
@@ -279,12 +308,14 @@ netlify deploy --prod
 ## 📈 Performance Metrics
 
 ### Expected Performance
+
 - **API Response Time**: < 500ms (95th percentile)
 - **Room Creation**: < 2 seconds end-to-end
 - **Token Generation**: < 1 second
 - **Error Rate**: < 1% under normal load
 
 ### Monitoring Recommendations
+
 - Set up alerts for health check failures
 - Monitor API response times
 - Track error rates by error code
@@ -293,6 +324,7 @@ netlify deploy --prod
 ## 🤝 Contributing
 
 ### Code Quality Standards
+
 - TypeScript strict mode enabled
 - ESLint configuration enforced
 - Comprehensive error handling
@@ -300,6 +332,7 @@ netlify deploy --prod
 - Performance monitoring built-in
 
 ### Testing Requirements
+
 - Unit tests for critical functions
 - Integration tests for API endpoints
 - Load testing for production readiness
@@ -308,6 +341,7 @@ netlify deploy --prod
 ## 📞 Support
 
 ### Debugging Steps
+
 1. Check health endpoint: `?action=health`
 2. Verify API key configuration
 3. Review function logs in Netlify dashboard
@@ -315,6 +349,7 @@ netlify deploy --prod
 5. Check rate limiting logs
 
 ### Common Issues
+
 - **API Key Issues**: Verify DAILY_API_KEY is set correctly
 - **Room Name Errors**: Use alphanumeric + hyphens/underscores only
 - **Permission Errors**: Ensure user is authenticated and is session host
@@ -323,6 +358,7 @@ netlify deploy --prod
 ## 🆕 Version History
 
 ### v2.0.0 (Current)
+
 - Complete rewrite with industry-grade practices
 - Enhanced error handling and retry logic
 - Rate limiting and security improvements
@@ -331,6 +367,7 @@ netlify deploy --prod
 - Performance optimizations
 
 ### v1.0.0 (Legacy)
+
 - Basic Daily.co integration
 - Simple room creation and deletion
 - Minimal error handling

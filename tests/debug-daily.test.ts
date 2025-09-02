@@ -31,7 +31,9 @@ const mockContext: HandlerContext = {
 
 describe('Daily Rooms Function Debug', () => {
   test('should handle OPTIONS request correctly', async () => {
-    const { default: handler } = await import('../netlify/functions/daily-rooms');
+    const { default: handler } = await import(
+      '../netlify/functions/daily-rooms'
+    );
 
     const eventWithOptions: HandlerEvent = {
       ...mockEvent,
@@ -43,7 +45,7 @@ describe('Daily Rooms Function Debug', () => {
       const response = await handler(eventWithOptions, mockContext);
       console.log('✓ OPTIONS response status:', response.status);
       console.log('✓ OPTIONS response instance:', response instanceof Response);
-      
+
       expect(response).toBeInstanceOf(Response);
       expect(response.status).toBeGreaterThanOrEqual(200);
       expect(response.status).toBeLessThan(300);
@@ -54,7 +56,9 @@ describe('Daily Rooms Function Debug', () => {
   });
 
   test('should handle GET request with valid action', async () => {
-    const { default: handler } = await import('../netlify/functions/daily-rooms');
+    const { default: handler } = await import(
+      '../netlify/functions/daily-rooms'
+    );
 
     const eventWithListAction: HandlerEvent = {
       ...mockEvent,
@@ -66,10 +70,13 @@ describe('Daily Rooms Function Debug', () => {
     try {
       const response = await handler(eventWithListAction, mockContext);
       console.log('✓ GET action=list response status:', response.status);
-      
+
       const responseText = await response.text();
-      console.log('✓ GET action=list response body:', responseText.substring(0, 200));
-      
+      console.log(
+        '✓ GET action=list response body:',
+        responseText.substring(0, 200),
+      );
+
       expect(response).toBeInstanceOf(Response);
       // Response should be either success or proper error, not MISSING_ACTION
       expect(response.status).not.toBe(400); // The error from MISSING_ACTION
@@ -80,7 +87,9 @@ describe('Daily Rooms Function Debug', () => {
   });
 
   test('should return MISSING_ACTION for requests without action', async () => {
-    const { default: handler } = await import('../netlify/functions/daily-rooms');
+    const { default: handler } = await import(
+      '../netlify/functions/daily-rooms'
+    );
 
     const eventWithoutAction: HandlerEvent = {
       ...mockEvent,
@@ -92,13 +101,13 @@ describe('Daily Rooms Function Debug', () => {
     try {
       const response = await handler(eventWithoutAction, mockContext);
       console.log('✓ No action response status:', response.status);
-      
+
       const responseText = await response.text();
       console.log('✓ No action response body:', responseText);
-      
+
       expect(response).toBeInstanceOf(Response);
       expect(response.status).toBe(400); // Should be MISSING_ACTION error
-      
+
       const responseJson = JSON.parse(responseText);
       expect(responseJson.code).toBe('MISSING_ACTION');
     } catch (error) {
