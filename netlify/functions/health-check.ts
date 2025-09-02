@@ -8,17 +8,16 @@
  */
 
 export default async () => {
-  return {
-    statusCode: 200,
+  return new Response(JSON.stringify({ 
+    ok: true, 
+    runtime: process.version,
+    timestamp: new Date().toISOString(),
+    function: 'health-check'
+  }), {
+    status: 200,
     headers: { 
       'content-type': 'application/json',
       'Access-Control-Allow-Origin': '*'
-    },
-    body: JSON.stringify({ 
-      ok: true, 
-      runtime: process.version,
-      timestamp: new Date().toISOString(),
-      function: 'health-check'
-    })
-  };
+    }
+  });
 };

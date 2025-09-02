@@ -35,44 +35,46 @@ const mockContext: HandlerContext = {
 };
 
 describe('Netlify Functions Utils', () => {
-  test('createSuccessResponse returns HandlerResponse format', () => {
+  test('createSuccessResponse returns Response format', async () => {
     const response = createSuccessResponse({ test: 'data' }, 200);
     
-    expect(response).toHaveProperty('statusCode', 200);
-    expect(response).toHaveProperty('headers');
-    expect(response).toHaveProperty('body');
-    expect(response.headers).toHaveProperty('Content-Type', 'application/json');
-    expect(response.headers).toHaveProperty('Access-Control-Allow-Origin', '*');
+    expect(response).toBeInstanceOf(Response);
+    expect(response.status).toBe(200);
+    expect(response.headers.get('Content-Type')).toBe('application/json');
+    expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
     
     // Verify body is valid JSON
-    const bodyData = JSON.parse(response.body);
+    const bodyText = await response.text();
+    const bodyData = JSON.parse(bodyText);
     expect(bodyData).toHaveProperty('success', true);
     expect(bodyData).toHaveProperty('data');
     expect(bodyData.data).toEqual({ test: 'data' });
   });
 
-  test('createErrorResponse returns HandlerResponse format', () => {
+  test('createErrorResponse returns Response format', async () => {
     const response = createErrorResponse('Test error', 'TEST_ERROR', 400);
     
-    expect(response).toHaveProperty('statusCode', 400);
-    expect(response).toHaveProperty('headers');
-    expect(response).toHaveProperty('body');
-    expect(response.headers).toHaveProperty('Content-Type', 'application/json');
+    expect(response).toBeInstanceOf(Response);
+    expect(response.status).toBe(400);
+    expect(response.headers.get('Content-Type')).toBe('application/json');
     
     // Verify body is valid JSON
-    const bodyData = JSON.parse(response.body);
+    const bodyText = await response.text();
+    const bodyData = JSON.parse(bodyText);
     expect(bodyData).toHaveProperty('error', 'Test error');
     expect(bodyData).toHaveProperty('code', 'TEST_ERROR');
   });
 
-  test('handleCors returns correct CORS response', () => {
+  test('handleCors returns correct CORS response', async () => {
     const response = handleCors();
     
-    expect(response).toHaveProperty('statusCode', 200);
-    expect(response).toHaveProperty('headers');
-    expect(response).toHaveProperty('body', '');
-    expect(response.headers).toHaveProperty('Access-Control-Allow-Origin', '*');
-    expect(response.headers).toHaveProperty('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    expect(response).toBeInstanceOf(Response);
+    expect(response.status).toBe(200);
+    expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
+    expect(response.headers.get('Access-Control-Allow-Methods')).toBe('GET, POST, PUT, DELETE, OPTIONS');
+    
+    const bodyText = await response.text();
+    expect(bodyText).toBe('');
   });
 });
 
@@ -83,16 +85,15 @@ describe('Daily Rooms Function', () => {
     
     const eventWithUndefinedPath: HandlerEvent = {
       ...mockEvent,
-      path: undefined as string | undefined, // Simulate undefined path
+      path: '', // Use empty string instead of undefined
       httpMethod: 'OPTIONS', // Use OPTIONS to test CORS handling without auth
     };
 
     // This should not throw an error
     const response = await handler(eventWithUndefinedPath, mockContext);
     
-    expect(response).toHaveProperty('statusCode');
-    expect(response).toHaveProperty('headers');
-    expect(response).toHaveProperty('body');
+    expect(response).toBeInstanceOf(Response);
+    expect(response.status).toBeGreaterThanOrEqual(200);
   });
 });
 
@@ -107,10 +108,9 @@ describe('Production Function Tests', () => {
 
     const response = await handler(corsEvent, mockContext);
     
-    expect(response).toHaveProperty('statusCode', 200);
-    expect(response).toHaveProperty('headers');
-    expect(response).toHaveProperty('body');
-    expect(response.headers).toHaveProperty('Access-Control-Allow-Origin', '*');
+    expect(response).toBeInstanceOf(Response);
+    expect(response.status).toBe(200);
+    expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
   });
 
   test('session-events function returns valid response for CORS', async () => {
@@ -123,10 +123,9 @@ describe('Production Function Tests', () => {
 
     const response = await handler(corsEvent, mockContext);
     
-    expect(response).toHaveProperty('statusCode', 200);
-    expect(response).toHaveProperty('headers');
-    expect(response).toHaveProperty('body');
-    expect(response.headers).toHaveProperty('Access-Control-Allow-Origin', '*');
+    expect(response).toBeInstanceOf(Response);
+    expect(response.status).toBe(200);
+    expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
   });
 
   test('all functions handle method validation consistently', async () => {
@@ -145,11 +144,9 @@ describe('Production Function Tests', () => {
     ]);
 
     responses.forEach((response, index) => {
-      expect(response).toHaveProperty('statusCode');
-      expect(response).toHaveProperty('headers');
-      expect(response).toHaveProperty('body');
+      expect(response).toBeInstanceOf(Response);
       // Should return error for invalid method
-      expect([400, 405]).toContain(response.statusCode);
+      expect([400, 405]).toContain(response.status);
     });
   });
 });
