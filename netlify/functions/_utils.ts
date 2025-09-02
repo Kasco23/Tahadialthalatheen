@@ -66,7 +66,7 @@ export function createErrorResponse(
 // Validate JSON request body
 export function parseRequestBody<T>(body: string | null): T | null {
   if (!body) return null;
-  
+
   try {
     return JSON.parse(body) as T;
   } catch {

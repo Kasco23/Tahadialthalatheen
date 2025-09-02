@@ -3,7 +3,11 @@
  */
 
 import type { HandlerEvent, HandlerContext } from '@netlify/functions';
-import { createSuccessResponse, createErrorResponse, handleCors } from '../netlify/functions/_utils';
+import {
+  createSuccessResponse,
+  createErrorResponse,
+  handleCors,
+} from '../netlify/functions/_utils';
 
 // Mock environment variables
 process.env.SUPABASE_URL = 'https://test.supabase.co';
@@ -40,14 +44,16 @@ const mockContext: HandlerContext = {
 
 describe('Netlify Functions 2.0 Migration Tests', () => {
   test('health-check function returns Response object', async () => {
-    const { default: healthCheck } = await import('../netlify/functions/health-check');
+    const { default: healthCheck } = await import(
+      '../netlify/functions/health-check'
+    );
     const response = await healthCheck();
-    
+
     expect(response).toBeInstanceOf(Response);
     expect(response.status).toBe(200);
     expect(response.headers.get('content-type')).toBe('application/json');
     expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
-    
+
     const body = await response.text();
     const data = JSON.parse(body);
     expect(data).toHaveProperty('ok', true);
@@ -62,8 +68,10 @@ describe('Netlify Functions 2.0 Migration Tests', () => {
     expect(corsResponse).toBeInstanceOf(Response);
     expect(corsResponse.status).toBe(200);
     expect(corsResponse.headers.get('Access-Control-Allow-Origin')).toBe('*');
-    expect(corsResponse.headers.get('Access-Control-Allow-Methods')).toBe('GET, POST, PUT, DELETE, OPTIONS');
-    
+    expect(corsResponse.headers.get('Access-Control-Allow-Methods')).toBe(
+      'GET, POST, PUT, DELETE, OPTIONS',
+    );
+
     const corsBody = await corsResponse.text();
     expect(corsBody).toBe('');
 
@@ -71,13 +79,15 @@ describe('Netlify Functions 2.0 Migration Tests', () => {
     const successResponse = createSuccessResponse({ test: 'data' }, 200);
     expect(successResponse).toBeInstanceOf(Response);
     expect(successResponse.status).toBe(200);
-    expect(successResponse.headers.get('Content-Type')).toBe('application/json');
-    
+    expect(successResponse.headers.get('Content-Type')).toBe(
+      'application/json',
+    );
+
     const successBody = await successResponse.text();
     const successData = JSON.parse(successBody);
     expect(successData).toEqual({
       success: true,
-      data: { test: 'data' }
+      data: { test: 'data' },
     });
 
     // Test error response
@@ -85,12 +95,12 @@ describe('Netlify Functions 2.0 Migration Tests', () => {
     expect(errorResponse).toBeInstanceOf(Response);
     expect(errorResponse.status).toBe(400);
     expect(errorResponse.headers.get('Content-Type')).toBe('application/json');
-    
+
     const errorBody = await errorResponse.text();
     const errorData = JSON.parse(errorBody);
     expect(errorData).toEqual({
       error: 'Test error',
-      code: 'TEST_ERROR'
+      code: 'TEST_ERROR',
     });
   });
 
@@ -109,11 +119,11 @@ describe('Netlify Functions 2.0 Migration Tests', () => {
     for (const functionPath of functions) {
       const { default: handler } = await import(functionPath);
       const response = await handler(corsEvent, mockContext);
-      
+
       expect(response).toBeInstanceOf(Response);
       expect(response.status).toBe(200);
       expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
-      
+
       const body = await response.text();
       expect(body).toBe('');
     }
@@ -125,13 +135,15 @@ describe('Netlify Functions 2.0 Migration Tests', () => {
       httpMethod: 'PATCH', // Unsupported method
     };
 
-    const { default: supabaseHealth } = await import('../netlify/functions/supabase-health');
+    const { default: supabaseHealth } = await import(
+      '../netlify/functions/supabase-health'
+    );
     const response = await supabaseHealth(invalidMethodEvent, mockContext);
-    
+
     expect(response).toBeInstanceOf(Response);
     expect(response.status).toBe(405); // Method not allowed
     expect(response.headers.get('Content-Type')).toBe('application/json');
-    
+
     const body = await response.text();
     const data = JSON.parse(body);
     expect(data).toHaveProperty('error');
@@ -150,17 +162,19 @@ describe('Netlify Functions 2.0 Migration Tests', () => {
     process.env.DAILY_API_KEY = 'test-key';
 
     try {
-      const { default: batchCheckRooms } = await import('../netlify/functions/batch-check-rooms');
+      const { default: batchCheckRooms } = await import(
+        '../netlify/functions/batch-check-rooms'
+      );
       const response = await batchCheckRooms(postEvent, mockContext);
-      
+
       expect(response).toBeInstanceOf(Response);
       // Should be 200 or 500 depending on API availability
       expect([200, 500]).toContain(response.status);
       expect(response.headers.get('Content-Type')).toBe('application/json');
-      
+
       const body = await response.text();
       const data = JSON.parse(body);
-      
+
       if (response.status === 200) {
         expect(data).toHaveProperty('success', true);
       } else {

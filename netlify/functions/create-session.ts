@@ -1,11 +1,11 @@
 import type { HandlerContext, HandlerEvent } from '@netlify/functions';
 import { getAuthContext, requireAuth } from './_auth';
-import { 
-  handleCors, 
-  createSuccessResponse, 
-  createErrorResponse, 
+import {
+  handleCors,
+  createSuccessResponse,
+  createErrorResponse,
   parseRequestBody,
-  validateMethod 
+  validateMethod,
 } from './_utils';
 
 interface CreateSessionRequest {
@@ -24,10 +24,7 @@ interface SessionData {
   status: string;
 }
 
-const handler = async (
-  event: HandlerEvent,
-  _context: HandlerContext,
-) => {
+const handler = async (event: HandlerEvent, _context: HandlerContext) => {
   // Handle CORS
   if (event.httpMethod === 'OPTIONS') {
     return handleCors();
@@ -46,14 +43,17 @@ const handler = async (
     // Parse request body
     const requestData = parseRequestBody<CreateSessionRequest>(event.body);
     if (!requestData) {
-      return createErrorResponse('Invalid JSON in request body', 'INVALID_JSON');
+      return createErrorResponse(
+        'Invalid JSON in request body',
+        'INVALID_JSON',
+      );
     }
 
     // Validate required fields
     if (!requestData.sessionId || !requestData.hostCode) {
       return createErrorResponse(
         'Missing required fields: sessionId and hostCode',
-        'MISSING_FIELDS'
+        'MISSING_FIELDS',
       );
     }
 
@@ -87,7 +87,7 @@ const handler = async (
         return createErrorResponse(
           'Session ID already exists',
           'SESSION_EXISTS',
-          409
+          409,
         );
       }
 
@@ -95,7 +95,7 @@ const handler = async (
         'Failed to create session',
         'CREATE_FAILED',
         500,
-        createError.message
+        createError.message,
       );
     }
 
@@ -120,7 +120,6 @@ const handler = async (
     };
 
     return createSuccessResponse(response, 201);
-
   } catch (error) {
     console.error('Create session handler error:', error);
 
@@ -129,14 +128,14 @@ const handler = async (
       return createErrorResponse(
         'Authentication required to create sessions',
         'AUTH_REQUIRED',
-        401
+        401,
       );
     }
 
     return createErrorResponse(
       error instanceof Error ? error.message : 'Internal server error',
       'INTERNAL_ERROR',
-      500
+      500,
     );
   }
 };

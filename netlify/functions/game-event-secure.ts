@@ -5,12 +5,12 @@ import {
   verifySessionHost,
   verifySessionPlayer,
 } from './_auth';
-import { 
-  handleCors, 
-  createSuccessResponse, 
-  createErrorResponse, 
+import {
+  handleCors,
+  createSuccessResponse,
+  createErrorResponse,
   parseRequestBody,
-  validateMethod 
+  validateMethod,
 } from './_utils';
 
 interface GameEventRequest {
@@ -54,23 +54,27 @@ const gameEventHandler = async (
 
     const requestData = parseRequestBody<GameEventRequest>(event.body);
     if (!requestData) {
-      return createErrorResponse('Invalid JSON in request body', 'INVALID_JSON');
+      return createErrorResponse(
+        'Invalid JSON in request body',
+        'INVALID_JSON',
+      );
     }
 
     // Validate request data
     if (!requestData.sessionId || !requestData.eventType) {
       return createErrorResponse(
         'Missing required fields: sessionId and eventType',
-        'INVALID_REQUEST'
+        'INVALID_REQUEST',
       );
     }
 
     // Verify session exists and get basic info
-    const { data: sessionData, error: sessionError } = await authContext.supabase
-      .from('sessions')
-      .select('session_id, phase, video_room_created, host_id')
-      .eq('session_id', requestData.sessionId)
-      .single();
+    const { data: sessionData, error: sessionError } =
+      await authContext.supabase
+        .from('sessions')
+        .select('session_id, phase, video_room_created, host_id')
+        .eq('session_id', requestData.sessionId)
+        .single();
 
     if (sessionError || !sessionData) {
       return createErrorResponse('Session not found', 'SESSION_NOT_FOUND', 404);
@@ -99,7 +103,7 @@ const gameEventHandler = async (
         return createErrorResponse(
           'Only the session host can perform this action',
           'HOST_ONLY_ACTION',
-          403
+          403,
         );
       }
     } else if (
@@ -118,7 +122,7 @@ const gameEventHandler = async (
         return createErrorResponse(
           'Only players in the session can update scores',
           'PLAYER_ONLY_ACTION',
-          403
+          403,
         );
       }
     }
@@ -141,7 +145,7 @@ const gameEventHandler = async (
         'Failed to record session event',
         'EVENT_INSERTION_FAILED',
         500,
-        eventError.message
+        eventError.message,
       );
     }
 
@@ -226,13 +230,17 @@ const gameEventHandler = async (
 
     // Handle authentication errors specifically
     if (error instanceof Error && error.message === 'Authentication required') {
-      return createErrorResponse('Authentication required', 'AUTH_REQUIRED', 401);
+      return createErrorResponse(
+        'Authentication required',
+        'AUTH_REQUIRED',
+        401,
+      );
     }
 
     return createErrorResponse(
       error instanceof Error ? error.message : 'Internal server error',
       'INTERNAL_ERROR',
-      500
+      500,
     );
   }
 };

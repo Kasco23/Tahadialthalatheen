@@ -58,10 +58,7 @@ export interface GameRecord extends Omit<DatabaseSessionRecord, 'phase'> {
 }
 
 export interface PlayerRecord
-  extends Omit<
-    DatabasePlayerRecord,
-    'last_active' | 'joined_at'
-  > {
+  extends Omit<DatabasePlayerRecord, 'last_active' | 'joined_at'> {
   strikes: number; // UI state for quiz penalties, maps to strikes_legacy
   is_connected: boolean; // UI connection state (already in DB)
   special_buttons: Record<string, boolean>; // UI button states (already in DB)

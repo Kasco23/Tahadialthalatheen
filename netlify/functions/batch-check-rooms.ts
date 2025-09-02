@@ -1,11 +1,11 @@
 import type { HandlerContext, HandlerEvent } from '@netlify/functions';
 import { getAuthContext, requireAuth } from './_auth';
-import { 
-  handleCors, 
-  createSuccessResponse, 
-  createErrorResponse, 
+import {
+  handleCors,
+  createSuccessResponse,
+  createErrorResponse,
   parseRequestBody,
-  validateMethod 
+  validateMethod,
 } from './_utils';
 
 /**
@@ -27,7 +27,11 @@ const batchCheckRoomsHandler = async (
 
   if (!process.env.DAILY_API_KEY) {
     console.error('DAILY_API_KEY environment variable is missing');
-    return createErrorResponse('Daily API key not configured', 'MISSING_API_KEY', 500);
+    return createErrorResponse(
+      'Daily API key not configured',
+      'MISSING_API_KEY',
+      500,
+    );
   }
 
   try {
@@ -35,12 +39,20 @@ const batchCheckRoomsHandler = async (
     const { roomNames } = requestBody;
 
     if (!roomNames || !Array.isArray(roomNames)) {
-      return createErrorResponse('roomNames array is required', 'MISSING_ROOM_NAMES', 400);
+      return createErrorResponse(
+        'roomNames array is required',
+        'MISSING_ROOM_NAMES',
+        400,
+      );
     }
 
     // Limit batch size to prevent overwhelming the API
     if (roomNames.length > 20) {
-      return createErrorResponse('Too many rooms requested (max 20)', 'TOO_MANY_ROOMS', 400);
+      return createErrorResponse(
+        'Too many rooms requested (max 20)',
+        'TOO_MANY_ROOMS',
+        400,
+      );
     }
 
     // Check each room's presence concurrently
@@ -154,7 +166,7 @@ const batchCheckRoomsHandler = async (
       'Internal server error',
       'INTERNAL_ERROR',
       500,
-      error instanceof Error ? error.message : 'Unknown error'
+      error instanceof Error ? error.message : 'Unknown error',
     );
   }
 };

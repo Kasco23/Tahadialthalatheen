@@ -11,7 +11,7 @@ export default async (event, context) => {
   return {
     statusCode: 200,
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ message: 'Hello World' })
+    body: JSON.stringify({ message: 'Hello World' }),
   };
 };
 ```

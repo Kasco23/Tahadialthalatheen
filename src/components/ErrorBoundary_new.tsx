@@ -58,7 +58,7 @@ export class ErrorBoundary extends React.Component<
             <p className="text-gray-600 mb-6">
               We apologize for the inconvenience. An unexpected error occurred.
             </p>
-            
+
             {this.state.error && (
               <details className="mb-6 text-left bg-gray-100 p-4 rounded-lg">
                 <summary className="cursor-pointer font-medium text-gray-800 mb-2">

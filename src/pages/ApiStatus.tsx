@@ -115,7 +115,8 @@ export default function ApiStatus() {
         // Determine HTTP method and body based on endpoint
         if (
           api.endpoint.includes('daily-rooms') &&
-          (api.endpoint.includes('action=check') || api.endpoint.includes('action=presence'))
+          (api.endpoint.includes('action=check') ||
+            api.endpoint.includes('action=presence'))
         ) {
           // These endpoints require POST with body
           response = await fetch(api.endpoint, {

@@ -319,11 +319,14 @@ export function useGameActions() {
         }
 
         // Production mode: use real Daily.co API
-        const result = await fetch(`/.netlify/functions/daily-rooms?action=create`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ sessionId: gameId, roomName: gameId }),
-        });
+        const result = await fetch(
+          `/.netlify/functions/daily-rooms?action=create`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sessionId: gameId, roomName: gameId }),
+          },
+        );
 
         const data = (await result.json()) as { url?: string; error?: string };
 
@@ -504,11 +507,14 @@ export function useGameActions() {
         */
 
       // Production mode: use real Daily.co API
-      const result = await fetch(`/.netlify/functions/daily-rooms?action=check`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ roomName }),
-      });
+      const result = await fetch(
+        `/.netlify/functions/daily-rooms?action=check`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ roomName }),
+        },
+      );
 
       const data = (await result.json()) as {
         exists: boolean;

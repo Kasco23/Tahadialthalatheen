@@ -68,7 +68,9 @@ global.Headers = class MockHeaders {
     delete this._headers[name.toLowerCase()];
   }
 
-  forEach(callback: (value: string, key: string, parent: Headers) => void): void {
+  forEach(
+    callback: (value: string, key: string, parent: Headers) => void,
+  ): void {
     Object.entries(this._headers).forEach(([key, value]) => {
       callback(value, key, this as any);
     });

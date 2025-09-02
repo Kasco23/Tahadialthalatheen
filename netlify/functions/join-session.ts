@@ -1,11 +1,11 @@
 import type { HandlerContext, HandlerEvent } from '@netlify/functions';
 import { getAuthContext } from './_auth';
-import { 
-  handleCors, 
-  createSuccessResponse, 
-  createErrorResponse, 
+import {
+  handleCors,
+  createSuccessResponse,
+  createErrorResponse,
   parseRequestBody,
-  validateMethod 
+  validateMethod,
 } from './_utils';
 
 interface JoinSessionRequest {
@@ -25,10 +25,7 @@ interface PlayerData {
   isAuthenticated: boolean;
 }
 
-const handler = async (
-  event: HandlerEvent,
-  _context: HandlerContext,
-) => {
+const handler = async (event: HandlerEvent, _context: HandlerContext) => {
   // Handle CORS
   if (event.httpMethod === 'OPTIONS') {
     return handleCors();
@@ -46,23 +43,31 @@ const handler = async (
     // Parse request body
     const requestData = parseRequestBody<JoinSessionRequest>(event.body);
     if (!requestData) {
-      return createErrorResponse('Invalid JSON in request body', 'INVALID_JSON');
+      return createErrorResponse(
+        'Invalid JSON in request body',
+        'INVALID_JSON',
+      );
     }
 
     // Validate required fields
-    if (!requestData.sessionId || !requestData.playerId || !requestData.playerName) {
+    if (
+      !requestData.sessionId ||
+      !requestData.playerId ||
+      !requestData.playerName
+    ) {
       return createErrorResponse(
         'Missing required fields: sessionId, playerId, and playerName',
-        'MISSING_FIELDS'
+        'MISSING_FIELDS',
       );
     }
 
     // Verify the session exists and is joinable
-    const { data: sessionData, error: sessionError } = await authContext.supabase
-      .from('sessions')
-      .select('session_id, phase, status')
-      .eq('session_id', requestData.sessionId)
-      .single();
+    const { data: sessionData, error: sessionError } =
+      await authContext.supabase
+        .from('sessions')
+        .select('session_id, phase, status')
+        .eq('session_id', requestData.sessionId)
+        .single();
 
     if (sessionError || !sessionData) {
       return createErrorResponse('Session not found', 'SESSION_NOT_FOUND', 404);
@@ -73,7 +78,7 @@ const handler = async (
       return createErrorResponse(
         'Session is already completed',
         'SESSION_COMPLETED',
-        400
+        400,
       );
     }
 
@@ -106,7 +111,7 @@ const handler = async (
         'Failed to join session',
         'JOIN_FAILED',
         500,
-        joinError.message
+        joinError.message,
       );
     }
 
@@ -147,13 +152,12 @@ const handler = async (
     };
 
     return createSuccessResponse(response, 201);
-
   } catch (error) {
     console.error('Join session handler error:', error);
     return createErrorResponse(
       error instanceof Error ? error.message : 'Internal server error',
       'INTERNAL_ERROR',
-      500
+      500,
     );
   }
 };

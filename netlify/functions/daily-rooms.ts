@@ -1,12 +1,12 @@
 import type { HandlerContext, HandlerEvent } from '@netlify/functions';
 import type { AuthContext } from './_auth';
 import { getAuthContext, requireAuth, verifySessionHost } from './_auth';
-import { 
-  handleCors, 
-  createSuccessResponse, 
-  createErrorResponse, 
+import {
+  handleCors,
+  createSuccessResponse,
+  createErrorResponse,
   parseRequestBody,
-  validateMethod 
+  validateMethod,
 } from './_utils';
 
 interface DailyRoomConfig {
@@ -58,9 +58,9 @@ interface RoomData {
 
 // Helper function to call Daily.co API
 async function callDailyAPI<T = unknown>(
-  endpoint: string, 
-  method: 'GET' | 'POST' | 'DELETE' = 'GET', 
-  body?: Record<string, unknown>
+  endpoint: string,
+  method: 'GET' | 'POST' | 'DELETE' = 'GET',
+  body?: Record<string, unknown>,
 ): Promise<T> {
   const apiKey = process.env.DAILY_API_KEY;
   if (!apiKey) {
@@ -70,7 +70,7 @@ async function callDailyAPI<T = unknown>(
   const requestInit: RequestInit = {
     method,
     headers: {
-      'Authorization': `Bearer ${apiKey}`,
+      Authorization: `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
     },
   };
@@ -79,7 +79,10 @@ async function callDailyAPI<T = unknown>(
     requestInit.body = JSON.stringify(body);
   }
 
-  const response = await fetch(`https://api.daily.co/v1${endpoint}`, requestInit);
+  const response = await fetch(
+    `https://api.daily.co/v1${endpoint}`,
+    requestInit,
+  );
 
   if (!response.ok) {
     const errorText = await response.text();
@@ -89,10 +92,7 @@ async function callDailyAPI<T = unknown>(
   return response.json() as Promise<T>;
 }
 
-const handler = async (
-  event: HandlerEvent,
-  _context: HandlerContext,
-) => {
+const handler = async (event: HandlerEvent, _context: HandlerContext) => {
   // Handle CORS
   if (event.httpMethod === 'OPTIONS') {
     return handleCors();
@@ -108,32 +108,31 @@ const handler = async (
     switch (action) {
       case 'create':
         return await createRoom(event, authContext);
-      
+
       case 'delete':
         return await deleteRoom(event, authContext);
-      
+
       case 'check':
         return await checkRoom(event, authContext);
-      
+
       case 'list':
         return await listRooms(event, authContext);
-      
+
       case 'token':
         return await createToken(event, authContext);
-      
+
       case 'presence':
         return await getRoomPresence(event, authContext);
-      
+
       default:
         return createErrorResponse('Invalid action', 'INVALID_ACTION');
     }
-
   } catch (error) {
     console.error('Daily.co handler error:', error);
     return createErrorResponse(
       error instanceof Error ? error.message : 'Internal server error',
       'INTERNAL_ERROR',
-      500
+      500,
     );
   }
 };
@@ -153,7 +152,7 @@ async function createRoom(event: HandlerEvent, authContext: AuthContext) {
   if (!requestData.sessionId || !requestData.roomName) {
     return createErrorResponse(
       'Missing required fields: sessionId and roomName',
-      'MISSING_FIELDS'
+      'MISSING_FIELDS',
     );
   }
 
@@ -161,13 +160,13 @@ async function createRoom(event: HandlerEvent, authContext: AuthContext) {
   const isHost = await verifySessionHost(
     authContext.supabase,
     requestData.sessionId,
-    authContext.userId
+    authContext.userId,
   );
   if (!isHost) {
     return createErrorResponse(
       'Only the session host can create video rooms',
       'INSUFFICIENT_PERMISSIONS',
-      403
+      403,
     );
   }
 
@@ -200,12 +199,16 @@ async function createRoom(event: HandlerEvent, authContext: AuthContext) {
       enable_screenshare: true,
       enable_chat: true,
       enable_recording: false,
-      exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60), // 24 hours
+      exp: Math.floor(Date.now() / 1000) + 24 * 60 * 60, // 24 hours
       ...requestData.properties,
     },
   };
 
-  const dailyRoom: DailyRoomResponse = await callDailyAPI<DailyRoomResponse>('/rooms', 'POST', roomConfig as unknown as Record<string, unknown>);
+  const dailyRoom: DailyRoomResponse = await callDailyAPI<DailyRoomResponse>(
+    '/rooms',
+    'POST',
+    roomConfig as unknown as Record<string, unknown>,
+  );
 
   // Store room in database
   const { data: roomData, error: roomError } = await authContext.supabase
@@ -229,7 +232,11 @@ async function createRoom(event: HandlerEvent, authContext: AuthContext) {
     } catch (cleanupError) {
       console.error('Failed to cleanup Daily.co room:', cleanupError);
     }
-    return createErrorResponse('Failed to store room data', 'STORAGE_FAILED', 500);
+    return createErrorResponse(
+      'Failed to store room data',
+      'STORAGE_FAILED',
+      500,
+    );
   }
 
   // Update session with video room info
@@ -266,13 +273,13 @@ async function deleteRoom(event: HandlerEvent, authContext: AuthContext) {
   if (!roomName && !sessionId) {
     return createErrorResponse(
       'Either roomName or sessionId is required',
-      'MISSING_PARAMETERS'
+      'MISSING_PARAMETERS',
     );
   }
 
   // Find room in database
   let query = authContext.supabase.from('rooms').select('*');
-  
+
   if (roomName) {
     query = query.eq('daily_room_name', roomName);
   } else if (sessionId) {
@@ -290,13 +297,13 @@ async function deleteRoom(event: HandlerEvent, authContext: AuthContext) {
     const isHost = await verifySessionHost(
       authContext.supabase,
       sessionId,
-      authContext.userId
+      authContext.userId,
     );
     if (!isHost) {
       return createErrorResponse(
         'Only the session host can delete video rooms',
         'INSUFFICIENT_PERMISSIONS',
-        403
+        403,
       );
     }
   }
@@ -334,14 +341,17 @@ async function deleteRoom(event: HandlerEvent, authContext: AuthContext) {
 
 async function checkRoom(event: HandlerEvent, authContext: AuthContext) {
   const roomName = event.queryStringParameters?.roomName;
-  
+
   if (!roomName) {
-    return createErrorResponse('roomName parameter is required', 'MISSING_PARAMETERS');
+    return createErrorResponse(
+      'roomName parameter is required',
+      'MISSING_PARAMETERS',
+    );
   }
 
   try {
     const roomInfo = await callDailyAPI(`/rooms/${roomName}`);
-    
+
     // Also check our database
     const { data: dbRoom } = await authContext.supabase
       .from('rooms')
@@ -364,7 +374,7 @@ async function checkRoom(event: HandlerEvent, authContext: AuthContext) {
 
 async function listRooms(event: HandlerEvent, authContext: AuthContext) {
   const sessionId = event.queryStringParameters?.sessionId;
-  
+
   let query = authContext.supabase
     .from('rooms')
     .select('*')
@@ -405,12 +415,16 @@ async function createToken(event: HandlerEvent, authContext: AuthContext) {
     properties: {
       room_name: requestData.roomName,
       is_owner: false,
-      exp: Math.floor(Date.now() / 1000) + (60 * 60), // 1 hour
+      exp: Math.floor(Date.now() / 1000) + 60 * 60, // 1 hour
       ...requestData.properties,
     },
   };
 
-  const tokenResponse = await callDailyAPI<DailyTokenResponse>('/meeting-tokens', 'POST', tokenConfig);
+  const tokenResponse = await callDailyAPI<DailyTokenResponse>(
+    '/meeting-tokens',
+    'POST',
+    tokenConfig,
+  );
 
   return createSuccessResponse({
     token: tokenResponse.token,
@@ -420,9 +434,12 @@ async function createToken(event: HandlerEvent, authContext: AuthContext) {
 
 async function getRoomPresence(event: HandlerEvent, authContext: AuthContext) {
   const roomName = event.queryStringParameters?.roomName;
-  
+
   if (!roomName) {
-    return createErrorResponse('roomName parameter is required', 'MISSING_PARAMETERS');
+    return createErrorResponse(
+      'roomName parameter is required',
+      'MISSING_PARAMETERS',
+    );
   }
 
   try {

@@ -3,7 +3,11 @@
  */
 
 import type { HandlerEvent, HandlerContext } from '@netlify/functions';
-import { createSuccessResponse, createErrorResponse, handleCors } from '../netlify/functions/_utils';
+import {
+  createSuccessResponse,
+  createErrorResponse,
+  handleCors,
+} from '../netlify/functions/_utils';
 
 // Mock event for testing
 const mockEvent: HandlerEvent = {
@@ -37,12 +41,12 @@ const mockContext: HandlerContext = {
 describe('Netlify Functions Utils', () => {
   test('createSuccessResponse returns Response format', async () => {
     const response = createSuccessResponse({ test: 'data' }, 200);
-    
+
     expect(response).toBeInstanceOf(Response);
     expect(response.status).toBe(200);
     expect(response.headers.get('Content-Type')).toBe('application/json');
     expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
-    
+
     // Verify body is valid JSON
     const bodyText = await response.text();
     const bodyData = JSON.parse(bodyText);
@@ -53,11 +57,11 @@ describe('Netlify Functions Utils', () => {
 
   test('createErrorResponse returns Response format', async () => {
     const response = createErrorResponse('Test error', 'TEST_ERROR', 400);
-    
+
     expect(response).toBeInstanceOf(Response);
     expect(response.status).toBe(400);
     expect(response.headers.get('Content-Type')).toBe('application/json');
-    
+
     // Verify body is valid JSON
     const bodyText = await response.text();
     const bodyData = JSON.parse(bodyText);
@@ -67,12 +71,14 @@ describe('Netlify Functions Utils', () => {
 
   test('handleCors returns correct CORS response', async () => {
     const response = handleCors();
-    
+
     expect(response).toBeInstanceOf(Response);
     expect(response.status).toBe(200);
     expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
-    expect(response.headers.get('Access-Control-Allow-Methods')).toBe('GET, POST, PUT, DELETE, OPTIONS');
-    
+    expect(response.headers.get('Access-Control-Allow-Methods')).toBe(
+      'GET, POST, PUT, DELETE, OPTIONS',
+    );
+
     const bodyText = await response.text();
     expect(bodyText).toBe('');
   });
@@ -81,8 +87,10 @@ describe('Netlify Functions Utils', () => {
 describe('Daily Rooms Function', () => {
   // Test the specific issue with event.path being undefined
   test('handles undefined event.path gracefully', async () => {
-    const { default: handler } = await import('../netlify/functions/daily-rooms');
-    
+    const { default: handler } = await import(
+      '../netlify/functions/daily-rooms'
+    );
+
     const eventWithUndefinedPath: HandlerEvent = {
       ...mockEvent,
       path: '', // Use empty string instead of undefined
@@ -91,7 +99,7 @@ describe('Daily Rooms Function', () => {
 
     // This should not throw an error
     const response = await handler(eventWithUndefinedPath, mockContext);
-    
+
     expect(response).toBeInstanceOf(Response);
     expect(response.status).toBeGreaterThanOrEqual(200);
   });
@@ -99,30 +107,34 @@ describe('Daily Rooms Function', () => {
 
 describe('Production Function Tests', () => {
   test('supabase-health function returns valid response for CORS', async () => {
-    const { default: handler } = await import('../netlify/functions/supabase-health');
-    
+    const { default: handler } = await import(
+      '../netlify/functions/supabase-health'
+    );
+
     const corsEvent: HandlerEvent = {
       ...mockEvent,
       httpMethod: 'OPTIONS',
     };
 
     const response = await handler(corsEvent, mockContext);
-    
+
     expect(response).toBeInstanceOf(Response);
     expect(response.status).toBe(200);
     expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
   });
 
   test('session-events function returns valid response for CORS', async () => {
-    const { default: handler } = await import('../netlify/functions/session-events');
-    
+    const { default: handler } = await import(
+      '../netlify/functions/session-events'
+    );
+
     const corsEvent: HandlerEvent = {
       ...mockEvent,
       httpMethod: 'OPTIONS',
     };
 
     const response = await handler(corsEvent, mockContext);
-    
+
     expect(response).toBeInstanceOf(Response);
     expect(response.status).toBe(200);
     expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
@@ -131,7 +143,7 @@ describe('Production Function Tests', () => {
   test('all functions handle method validation consistently', async () => {
     const supabaseHealth = await import('../netlify/functions/supabase-health');
     const sessionEvents = await import('../netlify/functions/session-events');
-    
+
     const invalidMethodEvent: HandlerEvent = {
       ...mockEvent,
       httpMethod: 'PATCH', // Unsupported method

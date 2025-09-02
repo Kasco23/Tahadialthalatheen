@@ -1,9 +1,9 @@
 import type { HandlerContext, HandlerEvent } from '@netlify/functions';
 import { getAuthContext } from './_auth';
-import { 
-  handleCors, 
-  createSuccessResponse, 
-  createErrorResponse 
+import {
+  handleCors,
+  createSuccessResponse,
+  createErrorResponse,
 } from './_utils';
 
 interface HealthCheckResult {
@@ -23,10 +23,7 @@ interface HealthCheckResult {
   supabase_error_code?: string;
 }
 
-const handler = async (
-  event: HandlerEvent,
-  _context: HandlerContext,
-) => {
+const handler = async (event: HandlerEvent, _context: HandlerContext) => {
   // Handle CORS preflight requests
   if (event.httpMethod === 'OPTIONS') {
     return handleCors();
@@ -78,12 +75,12 @@ const handler = async (
     };
 
     return createSuccessResponse(healthCheck, 200);
-
   } catch (error) {
     console.error('Supabase health check error:', error);
 
     healthCheck.status = 'unhealthy';
-    healthCheck.error = error instanceof Error ? error.message : 'Unknown error';
+    healthCheck.error =
+      error instanceof Error ? error.message : 'Unknown error';
 
     return createSuccessResponse(healthCheck, 503);
   }

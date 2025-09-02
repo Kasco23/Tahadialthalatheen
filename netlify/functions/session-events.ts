@@ -1,12 +1,16 @@
 import type { HandlerContext, HandlerEvent } from '@netlify/functions';
 import type { AuthContext } from './_auth';
-import { getAuthContext, verifySessionHost, verifySessionPlayer } from './_auth';
-import { 
-  handleCors, 
-  createSuccessResponse, 
-  createErrorResponse, 
+import {
+  getAuthContext,
+  verifySessionHost,
+  verifySessionPlayer,
+} from './_auth';
+import {
+  handleCors,
+  createSuccessResponse,
+  createErrorResponse,
   parseRequestBody,
-  validateMethod 
+  validateMethod,
 } from './_utils';
 
 interface SessionEventRequest {
@@ -27,10 +31,7 @@ interface SessionEventResponse {
   };
 }
 
-const handler = async (
-  event: HandlerEvent,
-  _context: HandlerContext,
-) => {
+const handler = async (event: HandlerEvent, _context: HandlerContext) => {
   // Handle CORS
   if (event.httpMethod === 'OPTIONS') {
     return handleCors();
@@ -48,23 +49,27 @@ const handler = async (
     // Parse request body
     const requestData = parseRequestBody<SessionEventRequest>(event.body);
     if (!requestData) {
-      return createErrorResponse('Invalid JSON in request body', 'INVALID_JSON');
+      return createErrorResponse(
+        'Invalid JSON in request body',
+        'INVALID_JSON',
+      );
     }
 
     // Validate required fields
     if (!requestData.sessionId || !requestData.eventType) {
       return createErrorResponse(
         'Missing required fields: sessionId and eventType',
-        'MISSING_FIELDS'
+        'MISSING_FIELDS',
       );
     }
 
     // Verify session exists
-    const { data: sessionData, error: sessionError } = await authContext.supabase
-      .from('sessions')
-      .select('session_id, phase, video_room_created, host_id')
-      .eq('session_id', requestData.sessionId)
-      .single();
+    const { data: sessionData, error: sessionError } =
+      await authContext.supabase
+        .from('sessions')
+        .select('session_id, phase, video_room_created, host_id')
+        .eq('session_id', requestData.sessionId)
+        .single();
 
     if (sessionError || !sessionData) {
       return createErrorResponse('Session not found', 'SESSION_NOT_FOUND', 404);
@@ -73,7 +78,7 @@ const handler = async (
     // Check authorization based on event type
     const hostOnlyEvents = [
       'phase_changed',
-      'quiz_started', 
+      'quiz_started',
       'quiz_ended',
       'session_settings_updated',
       'video_room_created',
@@ -81,38 +86,49 @@ const handler = async (
 
     if (hostOnlyEvents.includes(requestData.eventType)) {
       if (!authContext.isAuthenticated || !authContext.userId) {
-        return createErrorResponse('Authentication required', 'AUTH_REQUIRED', 401);
+        return createErrorResponse(
+          'Authentication required',
+          'AUTH_REQUIRED',
+          401,
+        );
       }
 
       const isHost = await verifySessionHost(
         authContext.supabase,
         requestData.sessionId,
-        authContext.userId
+        authContext.userId,
       );
-      
+
       if (!isHost) {
         return createErrorResponse(
           'Only the session host can perform this action',
           'HOST_ONLY_ACTION',
-          403
+          403,
         );
       }
-    } else if (requestData.eventType === 'score_updated' && requestData.playerId) {
+    } else if (
+      requestData.eventType === 'score_updated' &&
+      requestData.playerId
+    ) {
       if (!authContext.isAuthenticated || !authContext.userId) {
-        return createErrorResponse('Authentication required', 'AUTH_REQUIRED', 401);
+        return createErrorResponse(
+          'Authentication required',
+          'AUTH_REQUIRED',
+          401,
+        );
       }
 
       const isPlayer = await verifySessionPlayer(
         authContext.supabase,
         requestData.sessionId,
-        authContext.userId
+        authContext.userId,
       );
-      
+
       if (!isPlayer) {
         return createErrorResponse(
           'Only players in the session can update scores',
           'PLAYER_ONLY_ACTION',
-          403
+          403,
         );
       }
     }
@@ -135,7 +151,7 @@ const handler = async (
         'Failed to record session event',
         'EVENT_INSERTION_FAILED',
         500,
-        eventError.message
+        eventError.message,
       );
     }
 
@@ -150,7 +166,7 @@ const handler = async (
             updated_at: new Date().toISOString(),
           })
           .eq('session_id', requestData.sessionId);
-        
+
         sessionData.phase = newPhase;
         break;
       }
@@ -208,18 +224,21 @@ const handler = async (
     };
 
     return createSuccessResponse(response);
-
   } catch (error) {
     console.error('Session event handler error:', error);
 
     if (error instanceof Error && error.message === 'Authentication required') {
-      return createErrorResponse('Authentication required', 'AUTH_REQUIRED', 401);
+      return createErrorResponse(
+        'Authentication required',
+        'AUTH_REQUIRED',
+        401,
+      );
     }
 
     return createErrorResponse(
       error instanceof Error ? error.message : 'Internal server error',
       'INTERNAL_ERROR',
-      500
+      500,
     );
   }
 };

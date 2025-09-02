@@ -1,11 +1,15 @@
 import type { HandlerContext, HandlerEvent } from '@netlify/functions';
-import { getAuthContext, verifySessionHost, verifySessionPlayer } from './_auth';
-import { 
-  handleCors, 
-  createSuccessResponse, 
-  createErrorResponse, 
+import {
+  getAuthContext,
+  verifySessionHost,
+  verifySessionPlayer,
+} from './_auth';
+import {
+  handleCors,
+  createSuccessResponse,
+  createErrorResponse,
   parseRequestBody,
-  validateMethod 
+  validateMethod,
 } from './_utils';
 
 /**
@@ -53,7 +57,11 @@ const gameEventHandler = async (
 
   // Validate environment configuration
   if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
-    return createErrorResponse('Database not configured', 'MISSING_DATABASE_CONFIG', 500);
+    return createErrorResponse(
+      'Database not configured',
+      'MISSING_DATABASE_CONFIG',
+      500,
+    );
   }
 
   try {
@@ -62,14 +70,17 @@ const gameEventHandler = async (
 
     const requestData = parseRequestBody<GameEventRequest>(event.body);
     if (!requestData) {
-      return createErrorResponse('Invalid JSON in request body', 'INVALID_JSON');
+      return createErrorResponse(
+        'Invalid JSON in request body',
+        'INVALID_JSON',
+      );
     }
 
     // Validate request data
     if (!requestData.gameId || !requestData.eventType) {
       return createErrorResponse(
         'Missing required fields: gameId and eventType',
-        'INVALID_REQUEST'
+        'INVALID_REQUEST',
       );
     }
 
@@ -87,7 +98,7 @@ const gameEventHandler = async (
         return createErrorResponse(
           'Authentication required for this event type',
           'AUTHENTICATION_REQUIRED',
-          401
+          401,
         );
       }
 
@@ -101,7 +112,7 @@ const gameEventHandler = async (
         return createErrorResponse(
           'Only the session host can perform this action',
           'INSUFFICIENT_PERMISSIONS',
-          403
+          403,
         );
       }
     }
@@ -117,17 +128,18 @@ const gameEventHandler = async (
         return createErrorResponse(
           'Player not authorized for this session',
           'PLAYER_NOT_IN_SESSION',
-          403
+          403,
         );
       }
     }
 
     // Verify session exists using authenticated client
-    const { data: sessionData, error: sessionError } = await authContext.supabase
-      .from('sessions')
-      .select('session_id, phase, video_room_created')
-      .eq('session_id', requestData.gameId)
-      .single();
+    const { data: sessionData, error: sessionError } =
+      await authContext.supabase
+        .from('sessions')
+        .select('session_id, phase, video_room_created')
+        .eq('session_id', requestData.gameId)
+        .single();
 
     if (sessionError || !sessionData) {
       return createErrorResponse('Session not found', 'SESSION_NOT_FOUND', 404);
@@ -150,7 +162,7 @@ const gameEventHandler = async (
         'Failed to create session event',
         'DATABASE_ERROR',
         500,
-        eventError?.message
+        eventError?.message,
       );
     }
 
@@ -203,7 +215,7 @@ const gameEventHandler = async (
         const newPhase = requestData.eventData.to as string;
         await authContext.supabase
           .from('sessions')
-          .update({ 
+          .update({
             phase: newPhase,
             updated_at: new Date().toISOString(),
           })
@@ -245,7 +257,7 @@ const gameEventHandler = async (
         if (requestData.playerId && requestData.eventData.new_score) {
           await authContext.supabase
             .from('players')
-            .update({ 
+            .update({
               score: requestData.eventData.new_score as number,
               last_active: new Date().toISOString(),
             })
@@ -257,13 +269,12 @@ const gameEventHandler = async (
     }
 
     return createSuccessResponse(response);
-
   } catch (error) {
     console.error('Game event handler error:', error);
     return createErrorResponse(
       error instanceof Error ? error.message : 'Internal server error',
       'INTERNAL_ERROR',
-      500
+      500,
     );
   }
 };
