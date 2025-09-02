@@ -257,21 +257,26 @@ function checkRateLimit(userId: string, action: string): boolean {
 // Main handler with comprehensive error handling
 const handler = async (event: HandlerEvent, context: HandlerContext) => {
   const requestId = context.awsRequestId || crypto.randomUUID();
-  console.log(`[${requestId}] Daily.co handler started`, {
-    method: event.httpMethod,
-    path: event.path,
-    action: event.queryStringParameters?.action,
-  });
-
   // Handle CORS
   if (event.httpMethod === 'OPTIONS') {
     return handleCors();
   }
 
-  // Parse action from query params or URL path
-  const action = event.queryStringParameters?.action || event.path?.split('/').pop();
+  // Parse action from query params (primary) or URL path (for REST-style calls)
+  const action = event.queryStringParameters?.action || 
+    (event.path?.includes('/') ? event.path.split('/').pop() : null);
   
-  if (!action) {
+  // Filter out common function names that aren't actions
+  const validAction = action && !['daily-rooms', 'function', ''].includes(action) ? action : null;
+  
+  console.log(`[${requestId}] Daily.co handler started`, {
+    method: event.httpMethod,
+    path: event.path,
+    action: event.queryStringParameters?.action,
+    validAction,
+  });
+  
+  if (!validAction) {
     return createErrorResponse('Action parameter is required', 'MISSING_ACTION');
   }
 
@@ -280,7 +285,7 @@ const handler = async (event: HandlerEvent, context: HandlerContext) => {
     
     // Rate limiting for authenticated users
     if (authContext.userId) {
-      if (!checkRateLimit(authContext.userId, action)) {
+      if (!checkRateLimit(authContext.userId, validAction)) {
         return createErrorResponse(
           'Rate limit exceeded. Please try again later.',
           'RATE_LIMIT_EXCEEDED',
@@ -289,7 +294,7 @@ const handler = async (event: HandlerEvent, context: HandlerContext) => {
       }
     }
 
-    switch (action) {
+    switch (validAction) {
       case 'create':
         return await createRoom(event, authContext, requestId);
 
@@ -313,7 +318,7 @@ const handler = async (event: HandlerEvent, context: HandlerContext) => {
 
       default:
         return createErrorResponse(
-          `Invalid action: ${action}. Valid actions: create, delete, check, list, token, presence, health`,
+          `Invalid action: ${validAction}. Valid actions: create, delete, check, list, token, presence, health`,
           'INVALID_ACTION'
         );
     }
