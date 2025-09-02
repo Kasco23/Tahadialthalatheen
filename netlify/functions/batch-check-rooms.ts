@@ -27,14 +27,7 @@ const batchCheckRoomsHandler = async (
 
   if (!process.env.DAILY_API_KEY) {
     console.error('DAILY_API_KEY environment variable is missing');
-    return {
-      statusCode: 500,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        error: 'Daily API key not configured',
-        code: 'MISSING_API_KEY',
-      }),
-    };
+    return createErrorResponse('Daily API key not configured', 'MISSING_API_KEY', 500);
   }
 
   try {
@@ -42,26 +35,12 @@ const batchCheckRoomsHandler = async (
     const { roomNames } = requestBody;
 
     if (!roomNames || !Array.isArray(roomNames)) {
-      return {
-        statusCode: 400,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          error: 'roomNames array is required',
-          code: 'MISSING_ROOM_NAMES',
-        }),
-      };
+      return createErrorResponse('roomNames array is required', 'MISSING_ROOM_NAMES', 400);
     }
 
     // Limit batch size to prevent overwhelming the API
     if (roomNames.length > 20) {
-      return {
-        statusCode: 400,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          error: 'Too many rooms requested (max 20)',
-          code: 'TOO_MANY_ROOMS',
-        }),
-      };
+      return createErrorResponse('Too many rooms requested (max 20)', 'TOO_MANY_ROOMS', 400);
     }
 
     // Check each room's presence concurrently
@@ -162,31 +141,21 @@ const batchCheckRoomsHandler = async (
     const totalChecked = results.length;
     const totalActive = activeRooms.length;
 
-    return {
-      statusCode: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-      },
-      body: JSON.stringify({
-        success: true,
-        totalChecked,
-        totalActive,
-        results,
-        activeRooms: activeRooms.map((room) => room.roomName),
-      }),
-    };
+    return createSuccessResponse({
+      success: true,
+      totalChecked,
+      totalActive,
+      results,
+      activeRooms: activeRooms.map((room) => room.roomName),
+    });
   } catch (error) {
     console.error('Function error:', error);
-    return {
-      statusCode: 500,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        error: 'Internal server error',
-        code: 'INTERNAL_ERROR',
-        message: error instanceof Error ? error.message : 'Unknown error',
-      }),
-    };
+    return createErrorResponse(
+      'Internal server error',
+      'INTERNAL_ERROR',
+      500,
+      error instanceof Error ? error.message : 'Unknown error'
+    );
   }
 };
 

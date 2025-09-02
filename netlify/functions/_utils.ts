@@ -1,11 +1,4 @@
 // Base response utilities for Netlify functions
-import type { HandlerResponse } from '@netlify/functions';
-
-export interface ApiResponse extends HandlerResponse {
-  statusCode: number;
-  headers: Record<string, string>;
-  body: string;
-}
 
 export interface ApiError {
   error: string;
@@ -28,29 +21,27 @@ export const corsHeaders = {
 };
 
 // Handle CORS preflight requests
-export function handleCors(): ApiResponse {
-  return {
-    statusCode: 200,
+export function handleCors(): Response {
+  return new Response('', {
+    status: 200,
     headers: corsHeaders,
-    body: '',
-  };
+  });
 }
 
 // Create success response
 export function createSuccessResponse<T>(
   data: T,
   statusCode: number = 200,
-): ApiResponse {
+): Response {
   const response: ApiSuccess<T> = {
     success: true,
     data,
   };
 
-  return {
-    statusCode,
+  return new Response(JSON.stringify(response), {
+    status: statusCode,
     headers: corsHeaders,
-    body: JSON.stringify(response),
-  };
+  });
 }
 
 // Create error response
@@ -59,18 +50,17 @@ export function createErrorResponse(
   code: string,
   statusCode: number = 400,
   details?: string,
-): ApiResponse {
+): Response {
   const response: ApiError = {
     error,
     code,
     ...(details && { details }),
   };
 
-  return {
-    statusCode,
+  return new Response(JSON.stringify(response), {
+    status: statusCode,
     headers: corsHeaders,
-    body: JSON.stringify(response),
-  };
+  });
 }
 
 // Validate JSON request body

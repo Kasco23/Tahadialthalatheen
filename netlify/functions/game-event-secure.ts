@@ -9,7 +9,8 @@ import {
   handleCors, 
   createSuccessResponse, 
   createErrorResponse, 
-  parseRequestBody 
+  parseRequestBody,
+  validateMethod 
 } from './_utils';
 
 interface GameEventRequest {
@@ -39,49 +40,29 @@ const gameEventHandler = async (
 ) => {
   // Handle CORS preflight requests
   if (event.httpMethod === 'OPTIONS') {
-    return {
-      statusCode: 200,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-        'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
-        'Access-Control-Max-Age': '86400',
-      },
-      body: '',
-    };
+    return handleCors();
   }
 
   // Only allow POST requests for event recording
-  if (event.httpMethod !== 'POST') {
-    return {
-      statusCode: 405,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-      },
-      body: JSON.stringify({ error: 'Method not allowed' }),
-    };
+  if (!validateMethod(event.httpMethod, ['POST'])) {
+    return createErrorResponse('Method not allowed', 'METHOD_NOT_ALLOWED', 405);
   }
 
   try {
     // Get authentication context
     const authContext = await getAuthContext(event);
 
-    const requestData: GameEventRequest = JSON.parse(event.body || '{}');
+    const requestData = parseRequestBody<GameEventRequest>(event.body);
+    if (!requestData) {
+      return createErrorResponse('Invalid JSON in request body', 'INVALID_JSON');
+    }
 
     // Validate request data
     if (!requestData.sessionId || !requestData.eventType) {
-      return {
-        statusCode: 400,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-        },
-        body: JSON.stringify({
-          error: 'Missing required fields: sessionId and eventType',
-          code: 'INVALID_REQUEST',
-        }),
-      };
+      return createErrorResponse(
+        'Missing required fields: sessionId and eventType',
+        'INVALID_REQUEST'
+      );
     }
 
     // Verify session exists and get basic info
@@ -92,18 +73,7 @@ const gameEventHandler = async (
       .single();
 
     if (sessionError || !sessionData) {
-      return {
-        statusCode: 404,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-        },
-        body: JSON.stringify({
-          error: 'Session not found',
-          code: 'SESSION_NOT_FOUND',
-          sessionId: requestData.sessionId,
-        }),
-      };
+      return createErrorResponse('Session not found', 'SESSION_NOT_FOUND', 404);
     }
 
     // Check authorization based on event type
@@ -122,21 +92,15 @@ const gameEventHandler = async (
       // Verify host permission for session
       const isHost = await verifySessionHost(
         authContext.supabase,
-        data.sessionId,
+        requestData.sessionId,
         authContext.userId || '',
       );
       if (!isHost) {
-        return {
-          statusCode: 403,
-          headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
-          },
-          body: JSON.stringify({
-            error: 'Only the session host can perform this action',
-            code: 'HOST_ONLY_ACTION',
-          }),
-        };
+        return createErrorResponse(
+          'Only the session host can perform this action',
+          'HOST_ONLY_ACTION',
+          403
+        );
       }
     } else if (
       requestData.eventType === 'score_updated' &&
@@ -145,23 +109,17 @@ const gameEventHandler = async (
       // Score updates require authentication and player verification
       requireAuth(authContext);
 
-      const isPlayer = await verifyGamePlayer(
+      const isPlayer = await verifySessionPlayer(
         authContext.supabase,
         requestData.sessionId,
         authContext.userId,
       );
       if (!isPlayer) {
-        return {
-          statusCode: 403,
-          headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
-          },
-          body: JSON.stringify({
-            error: 'Only players in the session can update scores',
-            code: 'PLAYER_ONLY_ACTION',
-          }),
-        };
+        return createErrorResponse(
+          'Only players in the session can update scores',
+          'PLAYER_ONLY_ACTION',
+          403
+        );
       }
     }
 
@@ -179,18 +137,12 @@ const gameEventHandler = async (
 
     if (eventError) {
       console.error('Error inserting game event:', eventError);
-      return {
-        statusCode: 500,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-        },
-        body: JSON.stringify({
-          error: 'Failed to record session event',
-          code: 'EVENT_INSERTION_FAILED',
-          details: eventError.message,
-        }),
-      };
+      return createErrorResponse(
+        'Failed to record session event',
+        'EVENT_INSERTION_FAILED',
+        500,
+        eventError.message
+      );
     }
 
     // Get player count for response
@@ -268,43 +220,20 @@ const gameEventHandler = async (
         break;
     }
 
-    return {
-      statusCode: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-      },
-      body: JSON.stringify(response),
-    };
+    return createSuccessResponse(response);
   } catch (error) {
     console.error('Session event handler error:', error);
 
     // Handle authentication errors specifically
     if (error instanceof Error && error.message === 'Authentication required') {
-      return {
-        statusCode: 401,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-        },
-        body: JSON.stringify({
-          error: 'Authentication required',
-          code: 'AUTH_REQUIRED',
-        }),
-      };
+      return createErrorResponse('Authentication required', 'AUTH_REQUIRED', 401);
     }
 
-    return {
-      statusCode: 500,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-      },
-      body: JSON.stringify({
-        error: error instanceof Error ? error.message : 'Internal server error',
-        code: 'INTERNAL_ERROR',
-      }),
-    };
+    return createErrorResponse(
+      error instanceof Error ? error.message : 'Internal server error',
+      'INTERNAL_ERROR',
+      500
+    );
   }
 };
 
