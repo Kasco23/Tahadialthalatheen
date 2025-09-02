@@ -27,11 +27,19 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'pnpm'
 
       - name: Install JavaScript dependencies
         run: pnpm install
 
-      - name: Install Netlify CLI (optional)
+      - name: Install Netlify CLI
         run: pnpm add -g netlify-cli
+
+      - name: Build (allow errors)
+        run: pnpm run build
+        continue-on-error: true
+
+      - name: Lint or Test (allow errors)
+        run: pnpm test || pnpm run lint
+        continue-on-error: true
