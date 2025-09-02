@@ -28,6 +28,7 @@
   "dependencies": {
     "@daily-co/daily-js": "^0.81.0",
     "@daily-co/daily-react": "^0.23.2",
+    "@heroicons/react": "^2.2.0",
     "@supabase/supabase-js": "^2.56.0",
     "@vitejs/plugin-react": "^4.7.0",
     "dayjs": "^1.11.14",
@@ -42,6 +43,7 @@
     "postcss": "^8.5.6",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
+    "react-pro-sidebar": "^1.1.0",
     "react-router-dom": "^7.8.2",
     "react-window": "^1.8.11",
     "svgson": "^5.3.1",

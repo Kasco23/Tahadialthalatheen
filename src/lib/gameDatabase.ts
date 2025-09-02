@@ -46,11 +46,11 @@ const FALLBACK_SEGMENT_SETTINGS: Record<string, number> = {
 };
 
 export interface GameRecord {
-  id: string;
+  session_id: string; // Changed from 'id' to match Supabase schema
   host_code: string; // Host code used for auth; non-unique
   host_name: string | null;
   host_is_connected: boolean; // Track host connection status
-  host_id: string | null; // NEW: UUID of authenticated host user
+  host_id: string | null; // UUID of authenticated host user
   phase: string; // 'CONFIG' | 'LOBBY' | 'PLAYING' | 'COMPLETED'
   current_segment: string | null;
   current_question_index: number;
@@ -59,28 +59,29 @@ export interface GameRecord {
   video_room_url: string | null;
   video_room_created: boolean;
   segment_settings: Record<string, number>;
-  status: string; // NEW: 'waiting' | 'active' | 'completed'
-  last_activity: string; // NEW: timestamp for cleanup
+  status: string; // 'waiting' | 'active' | 'completed'
+  last_activity: string; // timestamp for cleanup
   created_at: string;
   updated_at: string;
+  controller_user_id: string | null; // Added from schema
 }
 
 export interface PlayerRecord {
-  id: string;
-  game_id: string;
+  player_id: string; // Changed from 'id' to match Supabase schema
+  session_id: string; // Changed from 'game_id' to match Supabase schema
   name: string;
   flag: string | null;
   club: string | null;
   role: string;
   score: number;
-  strikes: number;
+  strikes_legacy: number; // Changed from 'strikes' to match Supabase schema
   is_connected: boolean;
   special_buttons: Record<string, boolean>;
-  user_id: string | null; // NEW: UUID of authenticated user
-  is_host: boolean; // NEW: whether this player is also the host
-  session_id: string | null; // NEW: for session tracking
+  user_id: string | null; // UUID of authenticated user
+  is_host: boolean; // whether this player is also the host
   joined_at: string;
   last_active: string;
+  slot: string | null; // Added from schema
 }
 
 // Type guard to validate PlayerRecord
@@ -90,14 +91,14 @@ function isPlayerRecord(data: unknown): data is PlayerRecord {
   const record = data as Record<string, unknown>;
 
   return (
-    typeof record.id === 'string' &&
-    typeof record.game_id === 'string' &&
+    typeof record.player_id === 'string' &&
+    typeof record.session_id === 'string' &&
     typeof record.name === 'string' &&
     (record.flag === null || typeof record.flag === 'string') &&
     (record.club === null || typeof record.club === 'string') &&
     typeof record.role === 'string' &&
     typeof record.score === 'number' &&
-    typeof record.strikes === 'number' &&
+    typeof record.strikes_legacy === 'number' &&
     typeof record.is_connected === 'boolean' &&
     typeof record.special_buttons === 'object' &&
     record.special_buttons !== null &&
@@ -141,7 +142,7 @@ export class GameDatabase {
       });
 
       const gameRecord: GameRecord = {
-        id: gameId,
+        session_id: gameId,
         host_code: hostCode,
         host_name: hostName,
         host_is_connected: false,
@@ -160,6 +161,7 @@ export class GameDatabase {
         last_activity: new Date().toISOString(),
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
+        controller_user_id: null, // Add the missing field
       };
 
       developmentStorage.games.set(gameId, gameRecord);

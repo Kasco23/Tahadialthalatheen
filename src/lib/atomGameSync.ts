@@ -20,13 +20,13 @@ type Store = ReturnType<typeof createStore>;
 
 function mapPlayerRecord(record: PlayerRecord): Player {
   return {
-    id: record.id as PlayerId,
+    id: record.player_id as PlayerId,
     name: record.name,
     flag: record.flag ?? undefined,
     club: record.club ?? undefined,
     role: record.role,
     score: record.score,
-    strikes: record.strikes,
+    strikes: record.strikes_legacy,
     isConnected: record.is_connected,
     specialButtons: record.special_buttons as Player['specialButtons'],
   };
@@ -34,7 +34,7 @@ function mapPlayerRecord(record: PlayerRecord): Player {
 
 function mapRecordToState(record: GameRecord): Partial<GameState> {
   return {
-    sessionId: record.id,
+    sessionId: record.session_id,
     hostCode: record.host_code,
     hostName: record.host_name ?? null,
     hostIsConnected: record.host_is_connected ?? false,
@@ -179,7 +179,7 @@ export class AtomGameSync {
         (payload) => {
           const pl = payload.new as PlayerRecord;
           this.store.set(updatePlayerAtom, {
-            playerId: pl.id as PlayerId,
+            playerId: pl.player_id as PlayerId,
             update: mapPlayerRecord(pl),
           });
         },

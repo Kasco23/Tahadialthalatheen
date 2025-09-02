@@ -21,7 +21,7 @@ export class PlayerManager {
     try {
       // First, try to get the player
       const existingPlayers = await GameDatabase.getGamePlayers(gameId);
-      const existingPlayer = existingPlayers.find((p) => p.id === playerId);
+      const existingPlayer = existingPlayers.find((p) => p.player_id === playerId);
 
       if (existingPlayer) {
         // Player exists, update with any new data
@@ -222,7 +222,7 @@ export class PlayerManager {
         const lastActive = new Date(player.last_active);
         if (!player.is_connected && lastActive < cutoffTime) {
           // Remove player from database
-          await GameDatabase.updatePlayerById(player.id, {
+          await GameDatabase.updatePlayerById(player.player_id, {
             is_connected: false,
             // Mark for cleanup or actually remove based on requirements
           });
