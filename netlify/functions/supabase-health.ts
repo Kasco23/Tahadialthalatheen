@@ -39,13 +39,13 @@ const handler = async (event: HandlerEvent, _context: HandlerContext) => {
     status: 'healthy',
     timestamp: new Date().toISOString(),
     environment: {
-      supabase_url_configured: !!process.env.SUPABASE_URL,
-      supabase_anon_key_configured: !!process.env.SUPABASE_ANON_KEY,
+      supabase_url_configured: !!process.env.VITE_SUPABASE_URL,
+      supabase_anon_key_configured: !!process.env.VITE_SUPABASE_ANON_KEY,
       supabase_service_role_configured: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
     },
   };
 
-  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
+  if (!process.env.VITE_SUPABASE_URL || !process.env.VITE_SUPABASE_ANON_KEY) {
     healthCheck.status = 'misconfigured';
     healthCheck.error = 'Supabase environment variables not configured';
     return createSuccessResponse(healthCheck, 200);

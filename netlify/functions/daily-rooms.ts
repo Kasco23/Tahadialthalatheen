@@ -64,6 +64,7 @@ async function callDailyAPI<T = unknown>(
 ): Promise<T> {
   const apiKey = process.env.DAILY_API_KEY;
   if (!apiKey) {
+    console.error('Daily.co API key not configured');
     throw new Error('Daily.co API key not configured');
   }
 
@@ -79,6 +80,8 @@ async function callDailyAPI<T = unknown>(
     requestInit.body = JSON.stringify(body);
   }
 
+  console.log(`Calling Daily.co API: ${method} ${endpoint}`);
+
   const response = await fetch(
     `https://api.daily.co/v1${endpoint}`,
     requestInit,
@@ -86,6 +89,7 @@ async function callDailyAPI<T = unknown>(
 
   if (!response.ok) {
     const errorText = await response.text();
+    console.error(`Daily.co API error: ${response.status} ${errorText}`);
     throw new Error(`Daily.co API error: ${response.status} ${errorText}`);
   }
 

@@ -13,7 +13,7 @@ export interface AuthContext {
 export async function getAuthContext(
   event: HandlerEvent,
 ): Promise<AuthContext> {
-  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
+  if (!process.env.VITE_SUPABASE_URL || !process.env.VITE_SUPABASE_ANON_KEY) {
     throw new Error('Supabase configuration missing');
   }
 
@@ -22,8 +22,8 @@ export async function getAuthContext(
 
   // Create Supabase client
   const supabase = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_ANON_KEY,
+    process.env.VITE_SUPABASE_URL,
+    process.env.VITE_SUPABASE_ANON_KEY,
   );
 
   if (authHeader && authHeader.startsWith('Bearer ')) {
@@ -43,8 +43,8 @@ export async function getAuthContext(
 
       // Create authenticated client with the token
       const authenticatedSupabase = createClient(
-        process.env.SUPABASE_URL,
-        process.env.SUPABASE_ANON_KEY,
+        process.env.VITE_SUPABASE_URL,
+        process.env.VITE_SUPABASE_ANON_KEY,
         {
           global: {
             headers: {
