@@ -38,6 +38,7 @@
     "jotai": "^2.13.1",
     "netlify": "^23.4.0",
     "node-vibrant": "^4.0.3",
+    "pipx": "^1.0.1",
     "postcss": "^8.5.6",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",

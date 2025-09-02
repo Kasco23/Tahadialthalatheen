@@ -44,6 +44,9 @@ importers:
       node-vibrant:
         specifier: ^4.0.3
         version: 4.0.3
+      pipx:
+        specifier: ^1.0.1
+        version: 1.0.1
       postcss:
         specifier: ^8.5.6
         version: 8.5.6
@@ -5461,6 +5464,9 @@ packages:
   pino@9.9.0:
     resolution: {integrity: sha512-zxsRIQG9HzG+jEljmvmZupOMDUQ0Jpj0yAgE28jQvvrdYTlEaiGwelJpdndMl/MBuRr70heIj83QyqJUWaU8mQ==}
     hasBin: true
+
+  pipx@1.0.1:
+    resolution: {integrity: sha512-mp9BRGzPtW1fENFrt4rxVkdpd/oaIyOJRq7UiK9Ftuv4McvEae5gSB13W1JzsozpQdMYC3api+X0XmUL3hZziw==}
 
   pirates@4.0.7:
     resolution: {integrity: sha512-TfySrs/5nm8fQJDcBDuUng3VOUKsd7S+zqvbOTiGXHfxX4wK31ard+hoNuvkicM/2YFzlpDgABOevKSsB4G/FA==}
@@ -13261,6 +13267,8 @@ snapshots:
       safe-stable-stringify: 2.5.0
       sonic-boom: 4.2.0
       thread-stream: 3.1.0
+
+  pipx@1.0.1: {}
 
   pirates@4.0.7: {}
 
