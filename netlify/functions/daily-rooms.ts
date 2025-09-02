@@ -263,21 +263,40 @@ const handler = async (event: HandlerEvent, context: HandlerContext) => {
   }
 
   // Parse action from query params (primary) or URL path (for REST-style calls)
-  const action = event.queryStringParameters?.action || 
-    (event.path?.includes('/') ? event.path.split('/').pop() : null);
+  let action: string | null = null;
   
-  // Filter out common function names that aren't actions
-  const validAction = action && !['daily-rooms', 'function', ''].includes(action) ? action : null;
+  // Try to get action from query parameters first
+  if (event.queryStringParameters?.action) {
+    action = event.queryStringParameters.action;
+  }
+  // Fallback: try to parse from URL path
+  else if (event.path?.includes('/')) {
+    const pathParts = event.path.split('/');
+    const lastPart = pathParts[pathParts.length - 1];
+    if (lastPart && !['daily-rooms', 'function', ''].includes(lastPart)) {
+      action = lastPart;
+    }
+  }
+  
+  // Default action for basic health check if no action specified
+  if (!action && event.httpMethod === 'GET') {
+    action = 'health';
+  }
   
   console.log(`[${requestId}] Daily.co handler started`, {
     method: event.httpMethod,
     path: event.path,
-    action: event.queryStringParameters?.action,
-    validAction,
+    queryParams: event.queryStringParameters,
+    parsedAction: action,
+    userAgent: event.headers?.['user-agent'] || 'unknown',
   });
   
-  if (!validAction) {
-    return createErrorResponse('Action parameter is required', 'MISSING_ACTION');
+  if (!action) {
+    return createErrorResponse(
+      'Action parameter is required. Valid actions: create, delete, check, list, token, presence, health',
+      'MISSING_ACTION',
+      400
+    );
   }
 
   try {
@@ -285,7 +304,7 @@ const handler = async (event: HandlerEvent, context: HandlerContext) => {
     
     // Rate limiting for authenticated users
     if (authContext.userId) {
-      if (!checkRateLimit(authContext.userId, validAction)) {
+      if (!checkRateLimit(authContext.userId, action)) {
         return createErrorResponse(
           'Rate limit exceeded. Please try again later.',
           'RATE_LIMIT_EXCEEDED',
@@ -294,7 +313,7 @@ const handler = async (event: HandlerEvent, context: HandlerContext) => {
       }
     }
 
-    switch (validAction) {
+    switch (action) {
       case 'create':
         return await createRoom(event, authContext, requestId);
 
@@ -318,8 +337,9 @@ const handler = async (event: HandlerEvent, context: HandlerContext) => {
 
       default:
         return createErrorResponse(
-          `Invalid action: ${validAction}. Valid actions: create, delete, check, list, token, presence, health`,
-          'INVALID_ACTION'
+          `Invalid action: ${action}. Valid actions: create, delete, check, list, token, presence, health`,
+          'INVALID_ACTION',
+          400
         );
     }
   } catch (error) {
