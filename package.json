@@ -26,7 +26,7 @@
     "docs:index:write": "node scripts/update-docs-index.mjs --write"
   },
   "dependencies": {
-    "@daily-co/daily-js": "^0.81.0",
+    "@daily-co/daily-js": "^0.83.1",
     "@daily-co/daily-react": "^0.23.2",
     "@supabase/supabase-js": "^2.56.1",
     "@heroicons/react": "^2.2.0",
