@@ -72,12 +72,12 @@ export default function ActiveGames({ onJoinGame }: ActiveGamesProps) {
           // Show LOBBY games if they have a video room (active or not)
           const roomExists = roomCheckData.results?.find(
             (r: { roomName: string; exists: boolean }) =>
-              r.roomName === game.id,
+              r.roomName === game.session_id,
           )?.exists;
           return roomExists || game.video_room_created;
         } else if (game.phase === 'CONFIG') {
           // Only show CONFIG games if they have active participants
-          return activeRoomNames.has(game.id);
+          return activeRoomNames.has(game.session_id);
         }
         return false;
       });
@@ -117,7 +117,7 @@ export default function ActiveGames({ onJoinGame }: ActiveGamesProps) {
 
     // Join the first available game
     const firstGame = games[0];
-    handleQuickJoin(firstGame.id);
+    handleQuickJoin(firstGame.session_id);
   };
 
   const formatTimeAgo = (dateString: string) => {
@@ -290,7 +290,7 @@ export default function ActiveGames({ onJoinGame }: ActiveGamesProps) {
         <div className="space-y-3 max-h-64 overflow-y-auto">
           {games.map((game) => (
             <motion.div
-              key={game.id}
+              key={game.session_id}
               className="bg-theme-surface/20 rounded-lg p-3 border border-theme-border hover:border-theme-primary/50 transition-all"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
@@ -306,6 +306,28 @@ export default function ActiveGames({ onJoinGame }: ActiveGamesProps) {
                     className={`text-xs text-theme-text-muted ${isArabic ? 'font-arabic' : ''}`}
                   >
                     {t('created')} {formatTimeAgo(game.created_at)}
+                  </div>
+                  {/* Game Info for debugging */}
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    <span
+                      className={`text-xs px-2 py-0.5 bg-theme-primary/10 text-theme-primary rounded border border-theme-primary/20 ${isArabic ? 'font-arabic' : ''}`}
+                    >
+                      ID: {game.session_id?.slice(-8) || 'N/A'}
+                    </span>
+                    {game.video_room_created && (
+                      <span
+                        className={`text-xs px-2 py-0.5 bg-theme-success/10 text-theme-success rounded border border-theme-success/20 ${isArabic ? 'font-arabic' : ''}`}
+                      >
+                        📹 Video Room
+                      </span>
+                    )}
+                    {game.status && (
+                      <span
+                        className={`text-xs px-2 py-0.5 bg-theme-secondary/10 text-theme-secondary rounded border border-theme-secondary/20 ${isArabic ? 'font-arabic' : ''}`}
+                      >
+                        {game.status}
+                      </span>
+                    )}
                   </div>
                 </div>
                 <div
@@ -323,11 +345,14 @@ export default function ActiveGames({ onJoinGame }: ActiveGamesProps) {
                 <div
                   className={`text-xs text-theme-text-muted ${isArabic ? 'font-arabic' : ''}`}
                 >
-                  ID: {game.id}
+                  {game.host_is_connected
+                    ? '🟢 Host online'
+                    : '🔴 Host offline'}
                 </div>
                 <button
-                  onClick={() => handleQuickJoin(game.id)}
-                  className={`px-3 py-1 text-sm rounded-lg bg-theme-primary/20 hover:bg-theme-primary/30 text-theme-primary hover:text-theme-text transition-all border border-theme-primary/30 hover:border-theme-primary ${isArabic ? 'font-arabic' : ''}`}
+                  onClick={() => handleQuickJoin(game.session_id)}
+                  disabled={!game.session_id}
+                  className={`px-3 py-1 text-sm rounded-lg bg-theme-primary/20 hover:bg-theme-primary/30 text-theme-primary hover:text-theme-text transition-all border border-theme-primary/30 hover:border-theme-primary disabled:opacity-50 disabled:cursor-not-allowed ${isArabic ? 'font-arabic' : ''}`}
                 >
                   {t('quickJoin')}
                 </button>

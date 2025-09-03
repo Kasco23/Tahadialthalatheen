@@ -1,4 +1,8 @@
-
+--
+-- Current Schema for Tahadialthalatheen Project
+-- Generated from recent migrations (2025-08-30)
+-- Description: Complete schema reflecting all applied migrations
+--
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -11,791 +15,321 @@ SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
-
+-- Extensions
 CREATE EXTENSION IF NOT EXISTS "pg_cron" WITH SCHEMA "pg_catalog";
-
-
-
-
-
+CREATE EXTENSION IF NOT EXISTS "pg_graphql" WITH SCHEMA "graphql";
+CREATE EXTENSION IF NOT EXISTS "pg_stat_statements" WITH SCHEMA "extensions";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto" WITH SCHEMA "extensions";
+CREATE EXTENSION IF NOT EXISTS "supabase_vault" WITH SCHEMA "vault";
 
 COMMENT ON SCHEMA "public" IS 'standard public schema';
 
+-- Core Tables
 
+-- Sessions table (renamed from games)
+CREATE TABLE IF NOT EXISTS "public"."sessions" (
+    "session_id" text PRIMARY KEY,
+    "host_name" text,
+    "host_id" text,
+    "controller_user_id" UUID REFERENCES auth.users(id),
+    "phase" text NOT NULL DEFAULT 'CONFIG',
+    "current_segment" text DEFAULT '',
+    "current_question_index" integer DEFAULT 0,
+    "timer" integer DEFAULT 0,
+    "is_timer_running" boolean DEFAULT false,
+    "video_room_url" text,
+    "video_room_created" boolean DEFAULT false,
+    "segment_settings" jsonb DEFAULT '{"AUCT": 8, "BELL": 12, "REMO": 5, "SING": 6, "WSHA": 10}',
+    "created_at" timestamptz DEFAULT now(),
+    "updated_at" timestamptz DEFAULT now(),
+    "last_activity" timestamptz DEFAULT now(),
+    "host_code" text NOT NULL DEFAULT '',
+    "host_is_connected" boolean
+);
 
-CREATE EXTENSION IF NOT EXISTS "pg_graphql" WITH SCHEMA "graphql";
+ALTER TABLE "public"."sessions" ENABLE ROW LEVEL SECURITY;
 
+-- Players table (updated structure)
+CREATE TABLE IF NOT EXISTS "public"."players" (
+    "player_id" text PRIMARY KEY,
+    "session_id" text REFERENCES sessions(session_id) ON DELETE CASCADE,
+    "user_id" UUID REFERENCES auth.users(id),
+    "name" text NOT NULL,
+    "flag" text,
+    "club" text,
+    "role" text NOT NULL DEFAULT 'playerA',
+    "slot" text DEFAULT NULL, -- playerA / playerB / host
+    "score" integer DEFAULT 0,
+    "strikes_legacy" integer DEFAULT 0, -- old strikes column
+    "is_host" boolean DEFAULT false,
+    "is_connected" boolean DEFAULT true,
+    "special_buttons" jsonb DEFAULT '{"PIT_BUTTON": true, "LOCK_BUTTON": true, "TRAVELER_BUTTON": true}',
+    "joined_at" timestamptz DEFAULT now(),
+    "last_active" timestamptz DEFAULT now()
+);
 
+ALTER TABLE "public"."players" ENABLE ROW LEVEL SECURITY;
 
+-- Lobbies table
+CREATE TABLE IF NOT EXISTS "public"."lobbies" (
+    "session_id" text PRIMARY KEY REFERENCES sessions(session_id) ON DELETE CASCADE,
+    "host_connected" boolean NOT NULL DEFAULT false,
+    "playerA_connected" boolean NOT NULL DEFAULT false,
+    "playerB_connected" boolean NOT NULL DEFAULT false,
+    "room_state" text DEFAULT 'not_created',
+    "updated_at" timestamptz DEFAULT now()
+);
 
+ALTER TABLE "public"."lobbies" ENABLE ROW LEVEL SECURITY;
 
+-- Rooms table
+CREATE TABLE IF NOT EXISTS "public"."rooms" (
+    "room_id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    "session_id" text REFERENCES sessions(session_id) ON DELETE CASCADE,
+    "daily_room_name" text NOT NULL,
+    "url" text NOT NULL,
+    "started_at" timestamptz DEFAULT now(),
+    "ended_at" timestamptz,
+    "participant_count" integer DEFAULT 0,
+    "recording_url" text,
+    "is_active" boolean DEFAULT true,
+    "created_by" UUID REFERENCES auth.users(id),
+    "config" jsonb
+);
 
-CREATE EXTENSION IF NOT EXISTS "pg_stat_statements" WITH SCHEMA "extensions";
+ALTER TABLE "public"."rooms" ENABLE ROW LEVEL SECURITY;
 
+-- Session segments table
+CREATE TABLE IF NOT EXISTS "public"."session_segments" (
+    "session_id" text REFERENCES sessions(session_id) ON DELETE CASCADE,
+    "segment_code" text,
+    "current_question" integer DEFAULT 0,
+    "questions_total" integer NOT NULL,
+    "playerA_strikes" integer DEFAULT 0,
+    "playerB_strikes" integer DEFAULT 0,
+    PRIMARY KEY (session_id, segment_code)
+);
 
+ALTER TABLE "public"."session_segments" ENABLE ROW LEVEL SECURITY;
 
+-- Questions pool table
+CREATE TABLE IF NOT EXISTS "public"."questions_pool" (
+    "question_id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    "segment_code" text NOT NULL,
+    "prompt" text NOT NULL,
+    "choices" jsonb,
+    "answer" integer,
+    "media_url" text
+);
 
+ALTER TABLE "public"."questions_pool" ENABLE ROW LEVEL SECURITY;
 
+-- Session questions table
+CREATE TABLE IF NOT EXISTS "public"."session_questions" (
+    "session_id" text REFERENCES sessions(session_id) ON DELETE CASCADE,
+    "question_id" UUID REFERENCES questions_pool(question_id) ON DELETE CASCADE,
+    "segment_code" text NOT NULL,
+    "sequence" integer,
+    PRIMARY KEY (session_id, question_id)
+);
 
-CREATE EXTENSION IF NOT EXISTS "pgcrypto" WITH SCHEMA "extensions";
+ALTER TABLE "public"."session_questions" ENABLE ROW LEVEL SECURITY;
 
+-- Session events table (replacing game_events)
+CREATE TABLE IF NOT EXISTS "public"."session_events" (
+    "event_id" bigserial PRIMARY KEY,
+    "session_id" text REFERENCES sessions(session_id) ON DELETE CASCADE,
+    "event_type" text,
+    "payload" jsonb,
+    "created_at" timestamptz DEFAULT now()
+);
 
+ALTER TABLE "public"."session_events" ENABLE ROW LEVEL SECURITY;
 
+-- Indexes
+CREATE INDEX IF NOT EXISTS idx_sessions_host_id ON sessions(host_id);
+CREATE INDEX IF NOT EXISTS idx_sessions_status ON sessions(phase);
+CREATE INDEX IF NOT EXISTS idx_players_session_id ON players(session_id);
+CREATE INDEX IF NOT EXISTS rooms_session_idx ON rooms(session_id);
+CREATE INDEX IF NOT EXISTS session_events_session_idx ON session_events(session_id);
+CREATE INDEX IF NOT EXISTS session_events_created_at_idx ON session_events(created_at);
+CREATE INDEX IF NOT EXISTS session_events_type_idx ON session_events(event_type);
 
-
-
-CREATE EXTENSION IF NOT EXISTS "supabase_vault" WITH SCHEMA "vault";
-
-
-
-
-
-
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA "extensions";
-
-
-
-
-
-
-CREATE EXTENSION IF NOT EXISTS "wrappers" WITH SCHEMA "extensions";
-
-
-
-
-
-
-CREATE OR REPLACE FUNCTION "public"."update_last_active"() RETURNS "trigger"
-    LANGUAGE "plpgsql"
-    AS $$
+-- Functions
+CREATE OR REPLACE FUNCTION update_last_active()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
 BEGIN
   NEW.last_active = NOW();
   RETURN NEW;
 END;
 $$;
 
-
-ALTER FUNCTION "public"."update_last_active"() OWNER TO "postgres";
-
-
-CREATE OR REPLACE FUNCTION "public"."update_updated_at_column"() RETURNS "trigger"
-    LANGUAGE "plpgsql"
-    AS $$
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
 BEGIN
   NEW.updated_at = NOW();
   RETURN NEW;
 END;
 $$;
 
-
-ALTER FUNCTION "public"."update_updated_at_column"() OWNER TO "postgres";
-
-
-CREATE OR REPLACE FUNCTION "public"."validate_security_upgrade"() RETURNS json
-    LANGUAGE "plpgsql" SECURITY DEFINER
-    AS $$
-DECLARE
-  results json;
-  insecure_policies integer := 0;
-  total_policies integer := 0;
+CREATE OR REPLACE FUNCTION update_session_activity()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
 BEGIN
-  -- Count total policies
-  SELECT count(*) INTO total_policies
-  FROM pg_policies
-  WHERE schemaname = 'public';
-  
-  -- Count potentially insecure policies
-  SELECT count(*) INTO insecure_policies
-  FROM pg_policies
-  WHERE schemaname = 'public'
-  AND (qual LIKE '%true%' AND qual NOT LIKE '%auth.uid()%');
-  
-  SELECT json_build_object(
-    'timestamp', now(),
-    'security_status', CASE 
-      WHEN insecure_policies = 0 THEN 'SECURE'
-      ELSE 'INSECURE'
-    END,
-    'total_policies', total_policies,
-    'potentially_insecure', insecure_policies,
-    'has_auth_columns', json_build_object(
-      'games_host_id', EXISTS (
-        SELECT 1 FROM information_schema.columns 
-        WHERE table_name = 'games' AND column_name = 'host_id'
-      ),
-      'players_user_id', EXISTS (
-        SELECT 1 FROM information_schema.columns 
-        WHERE table_name = 'players' AND column_name = 'user_id'
-      )
-    )
-  ) INTO results;
-  
-  RETURN results;
-END;
-$$;
-
-
-ALTER FUNCTION "public"."validate_security_upgrade"() OWNER TO "postgres";
-
-
-COMMENT ON FUNCTION "public"."validate_security_upgrade"() IS 'Validates that the security upgrade was successful and no insecure policies remain';
-
-
-SET default_tablespace = '';
-
-SET default_table_access_method = "heap";
-
-
-CREATE TABLE IF NOT EXISTS "public"."game_events" (
-    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
-    "game_id" "text",
-    "event_type" "text" NOT NULL,
-    "event_data" "jsonb",
-    "created_at" timestamp with time zone DEFAULT "now"()
-);
-
-ALTER TABLE ONLY "public"."game_events" REPLICA IDENTITY FULL;
-
-
-ALTER TABLE "public"."game_events" OWNER TO "anon";
-
-
-CREATE TABLE IF NOT EXISTS "public"."games" (
-    "id" "text" NOT NULL,
-    "host_name" "text",
-    "phase" "text" DEFAULT '''CONFIG''::text'::"text" NOT NULL,
-    "current_segment" "text" DEFAULT ''::"text",
-    "current_question_index" integer DEFAULT 0,
-    "timer" integer DEFAULT 0,
-    "is_timer_running" boolean DEFAULT false,
-    "video_room_url" "text",
-    "video_room_created" boolean DEFAULT false,
-    "segment_settings" "jsonb" DEFAULT '{"AUCT": 8, "BELL": 12, "REMO": 5, "SING": 6, "WSHA": 10}'::"jsonb",
-    "created_at" timestamp with time zone DEFAULT "now"(),
-    "updated_at" timestamp with time zone DEFAULT "now"(),
-    "host_code" "text" DEFAULT ''::"text" NOT NULL,
-    "host_is_connected" boolean,
-    "host_id" "uuid",
-    "status" "text" DEFAULT 'waiting'::"text",
-    "last_activity" timestamp with time zone DEFAULT "now"(),
-    CONSTRAINT "games_status_check" CHECK (("status" = ANY (ARRAY['waiting'::"text", 'active'::"text", 'completed'::"text"])))
-);
-
-ALTER TABLE ONLY "public"."games" REPLICA IDENTITY FULL;
-
-
-ALTER TABLE "public"."games" OWNER TO "anon";
-
-
-CREATE TABLE IF NOT EXISTS "public"."players" (
-    "id" "text" NOT NULL,
-    "game_id" "text",
-    "name" "text" NOT NULL,
-    "flag" "text",
-    "club" "text",
-    "role" "text" DEFAULT 'playerA'::"text" NOT NULL,
-    "score" integer DEFAULT 0,
-    "strikes" integer DEFAULT 0,
-    "is_connected" boolean DEFAULT true,
-    "special_buttons" "jsonb" DEFAULT '{"PIT_BUTTON": true, "LOCK_BUTTON": true, "TRAVELER_BUTTON": true}'::"jsonb",
-    "joined_at" timestamp with time zone DEFAULT "now"(),
-    "last_active" timestamp with time zone DEFAULT "now"(),
-    "user_id" "uuid",
-    "is_host" boolean DEFAULT false,
-    "session_id" "text"
-);
-
-ALTER TABLE ONLY "public"."players" REPLICA IDENTITY FULL;
-
-
-ALTER TABLE "public"."players" OWNER TO "anon";
-
-
-ALTER TABLE ONLY "public"."game_events"
-    ADD CONSTRAINT "game_events_pkey" PRIMARY KEY ("id");
-
-
-
-ALTER TABLE ONLY "public"."games"
-    ADD CONSTRAINT "games_pkey" PRIMARY KEY ("id");
-
-
-
-ALTER TABLE ONLY "public"."players"
-    ADD CONSTRAINT "players_pkey" PRIMARY KEY ("id");
-
-
-
-CREATE INDEX "idx_game_events_game_id" ON "public"."game_events" USING "btree" ("game_id");
-
-
-
-CREATE INDEX "idx_games_created_at" ON "public"."games" USING "btree" ("created_at");
-
-
-
-CREATE INDEX "idx_games_host_id" ON "public"."games" USING "btree" ("host_id");
-
-
-
-CREATE INDEX "idx_games_status" ON "public"."games" USING "btree" ("status");
-
-
-
-CREATE INDEX "idx_players_game_id" ON "public"."players" USING "btree" ("game_id");
-
-
-
-CREATE INDEX "idx_players_game_user" ON "public"."players" USING "btree" ("game_id", "user_id");
-
-
-
-CREATE INDEX "idx_players_user_id" ON "public"."players" USING "btree" ("user_id");
-
-
-
-CREATE OR REPLACE TRIGGER "update_games_updated_at" BEFORE UPDATE ON "public"."games" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
-
-
-
-CREATE OR REPLACE TRIGGER "update_players_last_active" BEFORE UPDATE ON "public"."players" FOR EACH ROW EXECUTE FUNCTION "public"."update_last_active"();
-
-
-
-ALTER TABLE ONLY "public"."game_events"
-    ADD CONSTRAINT "game_events_game_id_fkey" FOREIGN KEY ("game_id") REFERENCES "public"."games"("id") ON DELETE CASCADE;
-
-
-
-ALTER TABLE ONLY "public"."games"
-    ADD CONSTRAINT "games_host_id_fkey" FOREIGN KEY ("host_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
-
-
-
-ALTER TABLE ONLY "public"."players"
-    ADD CONSTRAINT "players_game_id_fkey" FOREIGN KEY ("game_id") REFERENCES "public"."games"("id") ON DELETE CASCADE;
-
-
-
-ALTER TABLE ONLY "public"."players"
-    ADD CONSTRAINT "players_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
-
-
-
-ALTER TABLE "public"."game_events" ENABLE ROW LEVEL SECURITY;
-
-
-CREATE POLICY "game_events_delete_secure" ON "public"."game_events" FOR DELETE TO "authenticated" USING ((EXISTS ( SELECT 1
-   FROM "public"."games" "g"
-  WHERE (("g"."id" = "game_events"."game_id") AND ("g"."host_id" = "auth"."uid"())))));
-
-
-
-CREATE POLICY "game_events_insert_secure" ON "public"."game_events" FOR INSERT TO "authenticated" WITH CHECK (((EXISTS ( SELECT 1
-   FROM "public"."players" "p"
-  WHERE (("p"."game_id" = "game_events"."game_id") AND ("p"."user_id" = "auth"."uid"())))) OR (EXISTS ( SELECT 1
-   FROM "public"."games" "g"
-  WHERE (("g"."id" = "game_events"."game_id") AND ("g"."host_id" = "auth"."uid"()))))));
-
-
-
-CREATE POLICY "game_events_select_secure" ON "public"."game_events" FOR SELECT TO "authenticated", "anon" USING (((EXISTS ( SELECT 1
-   FROM "public"."players" "p"
-  WHERE (("p"."game_id" = "game_events"."game_id") AND ("p"."user_id" = "auth"."uid"())))) OR (EXISTS ( SELECT 1
-   FROM "public"."games" "g"
-  WHERE (("g"."id" = "game_events"."game_id") AND ("g"."host_id" = "auth"."uid"()))))));
-
-
-
-ALTER TABLE "public"."games" ENABLE ROW LEVEL SECURITY;
-
-
-CREATE POLICY "games_delete_secure" ON "public"."games" FOR DELETE TO "authenticated" USING (("host_id" = "auth"."uid"()));
-
-
-
-CREATE POLICY "games_insert_secure" ON "public"."games" FOR INSERT TO "authenticated" WITH CHECK (("host_id" = "auth"."uid"()));
-
-
-
-CREATE POLICY "games_select_secure" ON "public"."games" FOR SELECT TO "authenticated", "anon" USING ((("status" = 'waiting'::"text") OR ("host_id" = "auth"."uid"()) OR (EXISTS ( SELECT 1
-   FROM "public"."players"
-  WHERE (("players"."game_id" = "games"."id") AND ("players"."user_id" = "auth"."uid"()))))));
-
-
-
-CREATE POLICY "games_update_secure" ON "public"."games" FOR UPDATE TO "authenticated" USING (("host_id" = "auth"."uid"())) WITH CHECK (("host_id" = "auth"."uid"()));
-
-
-
-ALTER TABLE "public"."players" ENABLE ROW LEVEL SECURITY;
-
-
-CREATE POLICY "players_delete_secure" ON "public"."players" FOR DELETE TO "authenticated" USING ((("user_id" = "auth"."uid"()) OR (EXISTS ( SELECT 1
-   FROM "public"."games" "g"
-  WHERE (("g"."id" = "players"."game_id") AND ("g"."host_id" = "auth"."uid"()))))));
-
-
-
-CREATE POLICY "players_insert_secure" ON "public"."players" FOR INSERT TO "authenticated" WITH CHECK ((("user_id" = "auth"."uid"()) AND (EXISTS ( SELECT 1
-   FROM "public"."games"
-  WHERE (("games"."id" = "players"."game_id") AND ("games"."status" = 'waiting'::"text"))))));
-
-
-
-CREATE POLICY "players_select_secure" ON "public"."players" FOR SELECT TO "authenticated", "anon" USING (((EXISTS ( SELECT 1
-   FROM "public"."players" "p2"
-  WHERE (("p2"."game_id" = "players"."game_id") AND ("p2"."user_id" = "auth"."uid"())))) OR (EXISTS ( SELECT 1
-   FROM "public"."games" "g"
-  WHERE (("g"."id" = "players"."game_id") AND ("g"."host_id" = "auth"."uid"()))))));
-
-
-
-CREATE POLICY "players_update_secure" ON "public"."players" FOR UPDATE TO "authenticated" USING ((("user_id" = "auth"."uid"()) OR (EXISTS ( SELECT 1
-   FROM "public"."games" "g"
-  WHERE (("g"."id" = "players"."game_id") AND ("g"."host_id" = "auth"."uid"())))))) WITH CHECK ((("user_id" = "auth"."uid"()) OR (EXISTS ( SELECT 1
-   FROM "public"."games" "g"
-  WHERE (("g"."id" = "players"."game_id") AND ("g"."host_id" = "auth"."uid"()))))));
-
-
-
-
-
-ALTER PUBLICATION "supabase_realtime" OWNER TO "postgres";
-
-
-
-
-
-
-ALTER PUBLICATION "supabase_realtime" ADD TABLE ONLY "public"."game_events";
-
-
-
-ALTER PUBLICATION "supabase_realtime" ADD TABLE ONLY "public"."games";
-
-
-
-ALTER PUBLICATION "supabase_realtime" ADD TABLE ONLY "public"."players";
-
-
-
-
-
-
-GRANT ALL ON SCHEMA "public" TO "postgres";
-GRANT ALL ON SCHEMA "public" TO "anon";
-GRANT ALL ON SCHEMA "public" TO "authenticated";
-GRANT USAGE ON SCHEMA "public" TO "service_role";
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-GRANT ALL ON FUNCTION "public"."update_last_active"() TO "anon";
-GRANT ALL ON FUNCTION "public"."update_last_active"() TO "authenticated";
-GRANT ALL ON FUNCTION "public"."update_last_active"() TO "service_role";
-
-
-
-GRANT ALL ON FUNCTION "public"."update_updated_at_column"() TO "anon";
-GRANT ALL ON FUNCTION "public"."update_updated_at_column"() TO "authenticated";
-GRANT ALL ON FUNCTION "public"."update_updated_at_column"() TO "service_role";
-
-
-
-GRANT ALL ON FUNCTION "public"."validate_security_upgrade"() TO "anon";
-GRANT ALL ON FUNCTION "public"."validate_security_upgrade"() TO "authenticated";
-GRANT ALL ON FUNCTION "public"."validate_security_upgrade"() TO "service_role";
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON SEQUENCES TO "postgres";
-ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON SEQUENCES TO "anon";
-ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON SEQUENCES TO "authenticated";
-ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON SEQUENCES TO "service_role";
-
-
-
-
-
-
-ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON FUNCTIONS TO "postgres";
-ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON FUNCTIONS TO "anon";
-ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON FUNCTIONS TO "authenticated";
-ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON FUNCTIONS TO "service_role";
-
-
-
-
-
-
-ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TABLES TO "postgres";
-ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TABLES TO "anon";
-ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TABLES TO "authenticated";
-ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TABLES TO "service_role";
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-RESET ALL;
+  UPDATE sessions 
+  SET last_activity = now()
+  WHERE session_id = NEW.session_id;
+  RETURN NEW;
+END $$;
+
+CREATE OR REPLACE FUNCTION housekeeping_expired_sessions() 
+RETURNS VOID 
+LANGUAGE plpgsql 
+SECURITY DEFINER
+AS $$
+BEGIN
+  -- Mark sessions completed if older than 48h and still in LOBBY/PLAYING
+  UPDATE sessions
+  SET phase = 'COMPLETED'
+  WHERE phase IN ('LOBBY','PLAYING')
+    AND created_at < now() - INTERVAL '48 hours';
+
+  -- Mark rooms as inactive for completed sessions
+  UPDATE rooms
+  SET is_active = false, ended_at = now()
+  WHERE session_id IN (
+    SELECT session_id FROM sessions WHERE phase = 'COMPLETED'
+  ) AND is_active = true;
+
+  -- Log the cleanup
+  INSERT INTO session_events (session_id, event_type, payload)
+  SELECT session_id, 'SYSTEM_CLEANUP', 
+         jsonb_build_object('action', 'expired_session_cleanup', 'timestamp', now())
+  FROM sessions 
+  WHERE phase = 'COMPLETED' 
+    AND updated_at > now() - INTERVAL '1 hour'; -- Only log recent cleanups
+END $$;
+
+-- Triggers
+CREATE TRIGGER update_sessions_updated_at
+  BEFORE UPDATE ON sessions
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_players_last_active
+  BEFORE UPDATE ON players
+  FOR EACH ROW
+  EXECUTE FUNCTION update_last_active();
+
+CREATE TRIGGER update_activity_on_player_change
+  AFTER INSERT OR UPDATE ON players
+  FOR EACH ROW
+  EXECUTE FUNCTION update_session_activity();
+
+CREATE TRIGGER update_activity_on_event
+  AFTER INSERT ON session_events
+  FOR EACH ROW
+  EXECUTE FUNCTION update_session_activity();
+
+-- Row Level Security Policies
+
+-- Sessions: owner (controller) can do anything
+CREATE POLICY "controller_rw" ON sessions
+  FOR ALL
+  USING (auth.uid() = controller_user_id);
+
+-- Lobbies: visible to anyone linked to that session
+CREATE POLICY "lobby_read" ON lobbies
+  FOR SELECT
+  USING (
+    auth.uid() = (SELECT controller_user_id FROM sessions s WHERE s.session_id = lobbies.session_id)
+    OR auth.uid() IN (SELECT user_id FROM players p WHERE p.session_id = lobbies.session_id)
+  );
+
+CREATE POLICY "lobby_write" ON lobbies
+  FOR ALL
+  USING (
+    auth.uid() = (SELECT controller_user_id FROM sessions s WHERE s.session_id = lobbies.session_id)
+  );
+
+-- Rooms: visible to session participants
+CREATE POLICY "rooms_read" ON rooms
+  FOR SELECT
+  USING (
+    auth.uid() = (SELECT controller_user_id FROM sessions s WHERE s.session_id = rooms.session_id)
+    OR auth.uid() IN (SELECT user_id FROM players p WHERE p.session_id = rooms.session_id)
+  );
+
+CREATE POLICY "rooms_write" ON rooms
+  FOR ALL
+  USING (
+    auth.uid() = (SELECT controller_user_id FROM sessions s WHERE s.session_id = rooms.session_id)
+  );
+
+-- Session segments: readable by participants, writable by controller
+CREATE POLICY "session_segments_read" ON session_segments
+  FOR SELECT
+  USING (
+    auth.uid() = (SELECT controller_user_id FROM sessions s WHERE s.session_id = session_segments.session_id)
+    OR auth.uid() IN (SELECT user_id FROM players p WHERE p.session_id = session_segments.session_id)
+  );
+
+CREATE POLICY "session_segments_write" ON session_segments
+  FOR ALL
+  USING (
+    auth.uid() = (SELECT controller_user_id FROM sessions s WHERE s.session_id = session_segments.session_id)
+  );
+
+-- Questions pool: public read for now (can be restricted later)
+CREATE POLICY "questions_pool_read" ON questions_pool
+  FOR SELECT
+  TO authenticated
+  USING (true);
+
+-- Session questions: readable by participants
+CREATE POLICY "session_questions_read" ON session_questions
+  FOR SELECT
+  USING (
+    auth.uid() = (SELECT controller_user_id FROM sessions s WHERE s.session_id = session_questions.session_id)
+    OR auth.uid() IN (SELECT user_id FROM players p WHERE p.session_id = session_questions.session_id)
+  );
+
+CREATE POLICY "session_questions_write" ON session_questions
+  FOR ALL
+  USING (
+    auth.uid() = (SELECT controller_user_id FROM sessions s WHERE s.session_id = session_questions.session_id)
+  );
+
+-- Session events: readable by participants, writable by controller and players
+CREATE POLICY "session_events_read" ON session_events
+  FOR SELECT
+  USING (
+    auth.uid() = (SELECT controller_user_id FROM sessions s WHERE s.session_id = session_events.session_id)
+    OR auth.uid() IN (SELECT user_id FROM players p WHERE p.session_id = session_events.session_id)
+  );
+
+CREATE POLICY "session_events_write" ON session_events
+  FOR INSERT
+  WITH CHECK (
+    auth.uid() = (SELECT controller_user_id FROM sessions s WHERE s.session_id = session_events.session_id)
+    OR auth.uid() IN (SELECT user_id FROM players p WHERE p.session_id = session_events.session_id)
+  );
+
+-- Realtime publication
+ALTER PUBLICATION supabase_realtime ADD TABLE sessions;
+ALTER PUBLICATION supabase_realtime ADD TABLE lobbies;
+ALTER PUBLICATION supabase_realtime ADD TABLE rooms;
+ALTER PUBLICATION supabase_realtime ADD TABLE session_segments;
+ALTER PUBLICATION supabase_realtime ADD TABLE session_events;
+
+-- Grant permissions
+GRANT USAGE ON SCHEMA public TO anon, authenticated;
+GRANT ALL ON ALL TABLES IN SCHEMA public TO anon, authenticated;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated;
+GRANT ALL ON ALL FUNCTIONS IN SCHEMA public TO anon, authenticated;
