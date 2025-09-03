@@ -28,7 +28,7 @@
   "dependencies": {
     "@daily-co/daily-js": "^0.81.0",
     "@daily-co/daily-react": "^0.23.2",
-    "@supabase/supabase-js": "^2.56.0",
+    "@supabase/supabase-js": "^2.56.1",
     "@vitejs/plugin-react": "^4.7.0",
     "dayjs": "^1.11.14",
     "dompurify": "^3.2.6",
