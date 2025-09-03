@@ -1,2 +1,0 @@
--- This migration was already applied on the remote database
--- Created as placeholder to align migration history
