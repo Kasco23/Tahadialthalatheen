@@ -43,10 +43,15 @@
   "src/components/ConfirmationModal.tsx": [],
   "src/components/ConnectionBanner.tsx": [],
   "src/components/ErrorBoundary.tsx": [],
-  "src/components/ErrorBoundary_new.tsx": [],
   "src/components/HexGridBackground.tsx": [],
   "src/components/LanguageToggle.tsx": [],
+  "src/components/Layout/AppLayout.tsx": [],
   "src/components/LazyImage.tsx": [],
+  "src/components/Navigation/SideNav.tsx": [],
+  "src/components/Navigation/SidebarToggle.tsx": [],
+  "src/components/ReactBits/ClickSpark.tsx": [],
+  "src/components/ReactBits/GlareHover.tsx": [],
+  "src/components/ReactBits/Magnet.tsx": [],
   "src/components/Scoreboard.tsx": [],
   "src/components/Timer.tsx": [],
   "src/components/VideoRoom.tsx": [
@@ -62,6 +67,7 @@
   "src/components/theme/index.ts": [
     "src/components/theme/ThemeSelector.tsx"
   ],
+  "src/context/AuthContext.tsx": [],
   "src/context/GameContext.tsx": [
     "src/context/GameContextDefinition.tsx",
     "src/context/gameReducer.ts",
@@ -88,7 +94,9 @@
   "src/hooks/useErrorLog.ts": [],
   "src/hooks/useGame.ts": [],
   "src/hooks/useGameAtoms.ts": [],
+  "src/hooks/useSidebar.ts": [],
   "src/hooks/useSupabaseFetch.ts": [],
+  "src/hooks/useTheme.ts": [],
   "src/hooks/useTranslation.ts": [],
   "src/lib/atomGameSync.ts": [],
   "src/lib/dailyConfig.ts": [],
@@ -113,6 +121,7 @@
     "src/App.tsx"
   ],
   "src/pages/ApiStatus.tsx": [],
+  "src/pages/Auth.tsx": [],
   "src/pages/ControlRoom.tsx": [],
   "src/pages/CreateSession.tsx": [],
   "src/pages/FinalScores.tsx": [],
@@ -124,7 +133,6 @@
   "src/pages/QuizRoom.tsx": [],
   "src/pages/Scoreboard.tsx": [],
   "src/pages/SegmentIntro.tsx": [],
-  "src/pages/TestJotai.tsx": [],
   "src/segments/index.ts": [
     "src/segments/useBellSegment.ts",
     "src/segments/useRemoSegment.ts",

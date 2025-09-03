@@ -1,41 +1,8 @@
-import ConnectionBanner from '@/components/ConnectionBanner';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
-import LanguageToggle from '@/components/LanguageToggle';
-import {
-  ConditionalBackground,
-  SimpleThemeControls,
-  ThemeProvider,
-} from '@/theme';
+import { AppLayout } from '@/components/Layout/AppLayout';
+import { AuthProvider } from '@/context/AuthContext';
+import { ConditionalBackground, ThemeProvider } from '@/theme';
 import { Provider as JotaiProvider } from 'jotai';
-import { lazy, Suspense } from 'react';
-import { Route, Routes } from 'react-router-dom';
-
-// Lazy load page components to reduce initial bundle size
-const Landing = lazy(() => import('@/pages/Landing'));
-const CreateSession = lazy(() => import('@/pages/CreateSession'));
-const Join = lazy(() => import('@/pages/Join'));
-const Lobby = lazy(() => import('@/pages/Lobby'));
-
-const QuizRoom = lazy(() => import('@/pages/QuizRoom'));
-const ControlRoom = lazy(() => import('@/pages/ControlRoom'));
-const FinalScores = lazy(() => import('@/pages/FinalScores'));
-const ApiStatus = lazy(() => import('@/pages/ApiStatus'));
-const NotFound = lazy(() => import('@/pages/NotFound'));
-
-// Development-only components
-const HexGridDemo = lazy(() => import('@/pages/HexGridDemo'));
-
-// Loading component for suspense fallback
-function PageLoader() {
-  return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="text-center">
-        <div className="w-8 h-8 border-2 border-theme-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-        <div className="text-theme-text opacity-70">Loading...</div>
-      </div>
-    </div>
-  );
-}
 
 /**
  * Root application component with lazy-loaded routes for optimal bundle splitting.
@@ -47,36 +14,17 @@ export default function App() {
     <ErrorBoundary>
       <JotaiProvider>
         <ThemeProvider>
-          <div className="min-h-screen relative">
-            {/* Dynamic theme-based background (conditional) */}
-            <ConditionalBackground />
+          <AuthProvider>
+            <div className="min-h-screen relative">
+              {/* Dynamic theme-based background (conditional) */}
+              <ConditionalBackground />
 
-            {/* Application content */}
-            <div className="relative z-20 min-h-screen">
-              <ConnectionBanner />
-              <LanguageToggle />
-              <SimpleThemeControls />
-              <Suspense fallback={<PageLoader />}>
-                <Routes>
-                  <Route path="/" element={<Landing />} />
-                  <Route path="/create-session" element={<CreateSession />} />
-                  <Route path="/control-room" element={<ControlRoom />} />
-                  <Route path="/join" element={<Join />} />
-                  <Route path="/lobby" element={<Lobby />} />
-                  <Route path="/lobby/:sessionId" element={<Lobby />} />{' '}
-                  {/* Updated from gameId */}
-                  <Route path="/quiz" element={<QuizRoom />} />
-                  <Route path="/scores" element={<FinalScores />} />
-                  <Route path="/api-status" element={<ApiStatus />} />
-                  {/* Development-only routes */}
-                  {import.meta.env.DEV && (
-                    <Route path="/hex-demo" element={<HexGridDemo />} />
-                  )}
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </Suspense>
+              {/* Application content with sidebar */}
+              <div className="relative z-20 min-h-screen">
+                <AppLayout />
+              </div>
             </div>
-          </div>
+          </AuthProvider>
         </ThemeProvider>
       </JotaiProvider>
     </ErrorBoundary>
