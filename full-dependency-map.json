@@ -1,5 +1,4 @@
 {
-  "netlify/functions/create-daily-room.ts": [],
   "netlify/functions/create-daily-token.ts": [],
   "src/lib/supabaseClient.ts": []
 }
