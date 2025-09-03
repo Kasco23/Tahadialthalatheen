@@ -1,0 +1,29 @@
+[build]
+  command = "corepack enable && pnpm i --frozen-lockfile && pnpm build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+  PNPM_VERSION = "10"
+  NPM_FLAGS = "--include=dev"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Optional post-build summary
+[context.production]
+  publish = "dist"
+  artifactPath = ["dist", "reports"]
+
+[dev]
+  framework = "vite"
+  command = "pnpm run dev"
+  port = 3000
+  targetPort = 5173
+  autoLaunch = false
