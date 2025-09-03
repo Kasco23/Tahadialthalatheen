@@ -1,4 +1,42 @@
 {
   "netlify/functions/create-daily-token.ts": [],
-  "src/lib/supabaseClient.ts": []
+  "netlify/functions/createDailyRoom.ts": [],
+  "src/App.tsx": [
+    "src/pages/GameSetup.tsx",
+    "src/pages/Homepage.tsx",
+    "src/pages/Join.tsx",
+    "src/pages/Lobby.tsx",
+    "src/pages/Quiz.tsx",
+    "src/pages/Results.tsx"
+  ],
+  "src/index.css": [],
+  "src/lib/mutations.ts": [],
+  "src/lib/presence.ts": [
+    "src/lib/supabaseClient.ts"
+  ],
+  "src/lib/sessionHooks.ts": [
+    "src/lib/supabaseClient.ts"
+  ],
+  "src/lib/supabaseClient.ts": [],
+  "src/main.tsx": [
+    "src/App.tsx",
+    "src/index.css"
+  ],
+  "src/pages/GameSetup.tsx": [],
+  "src/pages/Homepage.tsx": [],
+  "src/pages/Join.tsx": [
+    "src/lib/supabaseClient.ts"
+  ],
+  "src/pages/Lobby.tsx": [
+    "src/lib/sessionHooks.ts",
+    "src/lib/supabaseClient.ts"
+  ],
+  "src/pages/Quiz.tsx": [
+    "src/lib/sessionHooks.ts",
+    "src/lib/supabaseClient.ts"
+  ],
+  "src/pages/Results.tsx": [
+    "src/lib/sessionHooks.ts",
+    "src/lib/supabaseClient.ts"
+  ]
 }
