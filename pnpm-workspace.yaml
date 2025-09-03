@@ -1,3 +1,10 @@
 onlyBuiltDependencies:
-  - netlify-cli
+  - '@parcel/watcher'
+  - '@sentry/cli'
+  - esbuild
+  - inotify
+  - netlify
+  - sharp
   - supabase
+  - unix-dgram
+  - puppeteer
