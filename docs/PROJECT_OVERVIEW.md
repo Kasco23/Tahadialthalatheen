@@ -33,7 +33,7 @@ Help build and iterate on a replayable, club‑themed football quiz web app usin
 
 ## Deployment & CI
 
-- Hosted on Netlify: https://quiz.tyshub.xyz
+- Hosted on Netlify: <https://thirtyquiz.tyshub.xyz/>
 - Maintain full-dependency-map.json (madge)
 - PR checklist and bundle guard enforced in docs/AGENTS.md
 

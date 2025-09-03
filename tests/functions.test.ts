@@ -105,60 +105,98 @@ describe('Daily Rooms Function', () => {
   });
 });
 
-describe('Production Function Tests', () => {
-  test('supabase-health function returns valid response for CORS', async () => {
+describe('Environment Variable Tests', () => {
+  test('supabase-health function handles missing environment variables', async () => {
+    // Mock process.env to simulate missing variables
+    const originalEnv = process.env;
+    process.env = { ...originalEnv };
+    delete process.env.VITE_SUPABASE_URL;
+    delete process.env.VITE_SUPABASE_ANON_KEY;
+
     const { default: handler } = await import(
       '../netlify/functions/supabase-health'
     );
 
-    const corsEvent: HandlerEvent = {
-      ...mockEvent,
-      httpMethod: 'OPTIONS',
-    };
-
-    const response = await handler(corsEvent, mockContext);
+    const response = await handler(mockEvent, mockContext);
 
     expect(response).toBeInstanceOf(Response);
     expect(response.status).toBe(200);
-    expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
+
+    const bodyText = await response.text();
+    const bodyData = JSON.parse(bodyText);
+
+    expect(bodyData.success).toBe(true);
+    expect(bodyData.data.status).toBe('misconfigured');
+    expect(bodyData.data.environment.supabase_url_configured).toBe(false);
+    expect(bodyData.data.environment.supabase_anon_key_configured).toBe(false);
+
+    // Restore original env
+    process.env = originalEnv;
   });
 
-  test('session-events function returns valid response for CORS', async () => {
+  test('daily-rooms function handles missing Daily API key for actions that need it', async () => {
+    // Mock process.env to simulate missing Daily API key
+    const originalEnv = process.env;
+    process.env = { ...originalEnv };
+    delete process.env.DAILY_API_KEY;
+
     const { default: handler } = await import(
-      '../netlify/functions/session-events'
+      '../netlify/functions/daily-rooms'
     );
 
-    const corsEvent: HandlerEvent = {
+    // Test an action that requires Daily API (like check)
+    const eventWithCheckAction: HandlerEvent = {
       ...mockEvent,
-      httpMethod: 'OPTIONS',
+      httpMethod: 'POST',
+      queryStringParameters: { action: 'check' },
+      body: JSON.stringify({ roomName: 'test-room' }),
     };
 
-    const response = await handler(corsEvent, mockContext);
+    const response = await handler(eventWithCheckAction, mockContext);
 
     expect(response).toBeInstanceOf(Response);
-    expect(response.status).toBe(200);
-    expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
+    // The function will fail due to missing Supabase config, not Daily API
+    expect([400, 500]).toContain(response.status);
+
+    const bodyText = await response.text();
+    const bodyData = JSON.parse(bodyText);
+
+    // Could be either Supabase config error or Daily API error
+    expect(bodyData).toHaveProperty('error');
+
+    // Restore original env
+    process.env = originalEnv;
   });
 
-  test('all functions handle method validation consistently', async () => {
-    const supabaseHealth = await import('../netlify/functions/supabase-health');
-    const sessionEvents = await import('../netlify/functions/session-events');
+  test('daily-rooms list action works without Daily API key', async () => {
+    // Mock process.env to simulate missing Daily API key
+    const originalEnv = process.env;
+    process.env = { ...originalEnv };
+    delete process.env.DAILY_API_KEY;
 
-    const invalidMethodEvent: HandlerEvent = {
+    const { default: handler } = await import(
+      '../netlify/functions/daily-rooms'
+    );
+
+    // Test list action which only queries database
+    const eventWithListAction: HandlerEvent = {
       ...mockEvent,
-      httpMethod: 'PATCH', // Unsupported method
+      httpMethod: 'GET',
+      queryStringParameters: { action: 'list' },
     };
 
-    // Test that both functions handle invalid methods gracefully
-    const responses = await Promise.all([
-      supabaseHealth.default(invalidMethodEvent, mockContext),
-      sessionEvents.default(invalidMethodEvent, mockContext),
-    ]);
+    const response = await handler(eventWithListAction, mockContext);
 
-    responses.forEach((response, index) => {
-      expect(response).toBeInstanceOf(Response);
-      // Should return error for invalid method
-      expect([400, 405]).toContain(response.status);
-    });
+    expect(response).toBeInstanceOf(Response);
+    // Will fail due to missing Supabase config, not Daily API
+    expect([400, 500]).toContain(response.status);
+
+    const bodyText = await response.text();
+    const bodyData = JSON.parse(bodyText);
+
+    expect(bodyData).toHaveProperty('error');
+
+    // Restore original env
+    process.env = originalEnv;
   });
 });

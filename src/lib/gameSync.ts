@@ -8,12 +8,13 @@ import { getSupabase, isSupabaseConfigured } from './supabaseLazy';
 
 function mapPlayerRecord(record: PlayerRecord): Player {
   return {
-    id: record.id as PlayerId,
+    id: record.player_id as PlayerId,
     name: record.name,
     flag: record.flag ?? undefined,
     club: record.club ?? undefined,
+    role: record.role,
     score: record.score,
-    strikes: record.strikes,
+    strikes: record.strikes_legacy,
     isConnected: record.is_connected,
     specialButtons: record.special_buttons as Player['specialButtons'],
   };
@@ -319,7 +320,7 @@ export async function attachGameSync(
       const pl = payload.new as PlayerRecord;
       dispatch({
         type: 'UPDATE_PLAYER',
-        id: pl.id as any,
+        id: pl.player_id as any,
         partial: mapPlayerRecord(pl),
       });
     },

@@ -24,24 +24,24 @@ import { useCallback, useEffect } from 'react';
 
 // Helper function to map player records (copied from atomGameSync)
 function mapPlayerRecord(record: {
-  id: string;
+  player_id: string;
   name: string;
   flag?: string | null;
   club?: string | null;
   role: string;
   score: number;
-  strikes: number;
+  strikes_legacy: number;
   is_connected: boolean;
   special_buttons: Record<string, boolean>;
 }): Player {
   return {
-    id: record.id as PlayerId,
+    id: record.player_id as PlayerId,
     name: record.name,
     flag: record.flag ?? undefined,
     club: record.club ?? undefined,
     role: record.role,
     score: record.score,
-    strikes: record.strikes,
+    strikes: record.strikes_legacy,
     isConnected: record.is_connected,
     specialButtons: record.special_buttons as Player['specialButtons'],
   };
@@ -68,7 +68,7 @@ export function useGameActions() {
 
         if (record) {
           const gameState = {
-            sessionId: record.id,
+            sessionId: record.session_id,
             hostCode: record.host_code,
             hostName: record.host_name ?? null,
             hostIsConnected: record.host_is_connected ?? false,
@@ -643,7 +643,7 @@ export function useGameActions() {
 
         // Convert to game state format
         const gameState = {
-          sessionId: gameRecord.id,
+          sessionId: gameRecord.session_id,
           hostCode: gameRecord.host_code,
           hostName: gameRecord.host_name ?? null,
           hostIsConnected: gameRecord.host_is_connected ?? false,
