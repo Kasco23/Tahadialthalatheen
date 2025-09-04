@@ -9,6 +9,10 @@
     "src/pages/Quiz.tsx",
     "src/pages/Results.tsx"
   ],
+  "src/components/PasswordModal.test.tsx": [
+    "src/components/PasswordModal.tsx"
+  ],
+  "src/components/PasswordModal.tsx": [],
   "src/index.css": [],
   "src/lib/mutations.test.ts": [
     "src/lib/mutations.ts",
@@ -39,7 +43,10 @@
     "src/lib/mutations.ts",
     "src/lib/types.ts"
   ],
-  "src/pages/Homepage.tsx": [],
+  "src/pages/Homepage.tsx": [
+    "src/components/PasswordModal.tsx",
+    "src/lib/mutations.ts"
+  ],
   "src/pages/Join.tsx": [
     "src/lib/supabaseClient.ts"
   ],
