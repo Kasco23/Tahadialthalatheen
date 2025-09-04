@@ -30,7 +30,7 @@
     "@daily-co/daily-react": "^0.23.2",
     "@heroicons/react": "^2.2.0",
     "@supabase/supabase-js": "^2.56.1",
-    "@vitejs/plugin-react": "^4.7.0",
+    "@vitejs/plugin-react": "^5.0.2",
     "dayjs": "^1.11.18",
     "dompurify": "^3.2.6",
     "flag-icons": "^7.5.0",
