@@ -30,6 +30,10 @@
     "src/lib/supabaseClient.ts",
     "src/lib/types.ts"
   ],
+  "src/lib/sessionCode.test.ts": [
+    "src/lib/mutations.ts",
+    "src/lib/supabaseClient.ts"
+  ],
   "src/lib/sessionHooks.ts": [
     "src/lib/supabaseClient.ts"
   ],
@@ -48,9 +52,11 @@
     "src/lib/mutations.ts"
   ],
   "src/pages/Join.tsx": [
+    "src/lib/mutations.ts",
     "src/lib/supabaseClient.ts"
   ],
   "src/pages/Lobby.tsx": [
+    "src/lib/mutations.ts",
     "src/lib/sessionHooks.ts",
     "src/lib/supabaseClient.ts"
   ],
@@ -61,6 +67,7 @@
     "src/lib/types.ts"
   ],
   "src/pages/Results.tsx": [
+    "src/lib/mutations.ts",
     "src/lib/sessionHooks.ts",
     "src/lib/supabaseClient.ts"
   ],
