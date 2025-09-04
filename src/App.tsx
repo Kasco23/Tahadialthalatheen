@@ -11,10 +11,11 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<Homepage />} />
-        <Route path="/gamesetup/:sessionId" element={<GameSetup />} />
+        <Route path="/gamesetup/:sessionCode" element={<GameSetup />} />
         <Route path="/join" element={<Join />} />
-        <Route path="/lobby/:sessionId" element={<Lobby />} />
-        <Route path="/quiz/:sessionId" element={<Quiz />} />
+        <Route path="/lobby/:sessionCode" element={<Lobby />} />
+        <Route path="/quiz/:sessionCode" element={<Quiz />} />
+        <Route path="/results/:sessionCode" element={<Results />} />
         <Route path="/results" element={<Results />} />
       </Routes>
     </Router>

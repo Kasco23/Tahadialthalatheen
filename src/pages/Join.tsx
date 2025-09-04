@@ -1,17 +1,19 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
+import { joinAsHostWithCode, joinAsPlayerWithCode } from '../lib/mutations';
 
 const Join: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'host' | 'player'>('host');
 
   // Host form state
-  const [sessionId, setSessionId] = useState('');
+  const [sessionCode, setSessionCode] = useState('');
   const [hostPassword, setHostPassword] = useState('');
   const [hostLoading, setHostLoading] = useState(false);
 
   // Player form state
+  const [playerSessionCode, setPlayerSessionCode] = useState('');
   const [playerName, setPlayerName] = useState('');
   const [selectedFlag, setSelectedFlag] = useState('');
   const [flagSearch, setFlagSearch] = useState('');
@@ -202,7 +204,7 @@ const Join: React.FC = () => {
   const handleHostSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!sessionId.trim() || !hostPassword.trim()) {
+    if (!sessionCode.trim() || !hostPassword.trim()) {
       alert('Please fill in all fields');
       return;
     }
@@ -210,13 +212,14 @@ const Join: React.FC = () => {
     setHostLoading(true);
 
     try {
-      // Here you would validate the session and password with Supabase
-      // For now, just navigate to lobby
-      console.log('Joining as host:', { sessionId, hostPassword });
-      navigate('/lobby');
+      // Join as host using session code
+      const participantId = await joinAsHostWithCode(sessionCode, hostPassword, 'Host Name'); // TODO: Get actual host name
+      
+      console.log('Joined as host:', { sessionCode, participantId });
+      navigate(`/lobby/${sessionCode}`);
     } catch (error) {
       console.error('Error joining as host:', error);
-      alert('Failed to join session. Please try again.');
+      alert('Failed to join session. Please check your session code and password.');
     } finally {
       setHostLoading(false);
     }
@@ -225,7 +228,7 @@ const Join: React.FC = () => {
   const handlePlayerSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!playerName.trim() || !selectedFlag) {
+    if (!playerSessionCode.trim() || !playerName.trim() || !selectedFlag) {
       alert('Please fill in all fields');
       return;
     }
@@ -233,13 +236,14 @@ const Join: React.FC = () => {
     setPlayerLoading(true);
 
     try {
-      // Here you would create player record in Supabase
-      // For now, just navigate to lobby
-      console.log('Joining as player:', { playerName, selectedFlag, teamLogoUrl });
-      navigate('/lobby');
+      // Join as player using session code
+      const participantId = await joinAsPlayerWithCode(playerSessionCode, playerName, selectedFlag, teamLogoUrl);
+      
+      console.log('Joined as player:', { sessionCode: playerSessionCode, participantId, playerName, selectedFlag, teamLogoUrl });
+      navigate(`/lobby/${playerSessionCode}`);
     } catch (error) {
       console.error('Error joining as player:', error);
-      alert('Failed to join session. Please try again.');
+      alert('Failed to join session. Please check your session code.');
     } finally {
       setPlayerLoading(false);
     }
@@ -280,17 +284,18 @@ const Join: React.FC = () => {
         {activeTab === 'host' && (
           <form onSubmit={handleHostSubmit} className="space-y-6">
             <div>
-              <label htmlFor="sessionId" className="block text-sm font-medium text-gray-700 mb-2">
-                Session ID
+              <label htmlFor="sessionCode" className="block text-sm font-medium text-gray-700 mb-2">
+                Session Code
               </label>
               <input
                 type="text"
-                id="sessionId"
-                value={sessionId}
-                onChange={(e) => setSessionId(e.target.value.toUpperCase())}
+                id="sessionCode"
+                value={sessionCode}
+                onChange={(e) => setSessionCode(e.target.value.toUpperCase())}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
-                placeholder="Enter session ID"
+                placeholder="Enter session code (e.g., ABC123)"
                 required
+                maxLength={6}
               />
             </div>
 
@@ -322,6 +327,22 @@ const Join: React.FC = () => {
         {/* Player Form */}
         {activeTab === 'player' && (
           <form onSubmit={handlePlayerSubmit} className="space-y-6">
+            <div>
+              <label htmlFor="playerSessionCode" className="block text-sm font-medium text-gray-700 mb-2">
+                Session Code
+              </label>
+              <input
+                type="text"
+                id="playerSessionCode"
+                value={playerSessionCode}
+                onChange={(e) => setPlayerSessionCode(e.target.value.toUpperCase())}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+                placeholder="Enter session code (e.g., ABC123)"
+                required
+                maxLength={6}
+              />
+            </div>
+            
             <div>
               <label htmlFor="playerName" className="block text-sm font-medium text-gray-700 mb-2">
                 Player Name

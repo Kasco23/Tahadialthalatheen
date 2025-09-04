@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { setSegmentConfig, createDailyRoom, getSegmentConfig } from '../lib/mutations';
+import { setSegmentConfig, createDailyRoom, getSegmentConfig, getSessionIdByCode } from '../lib/mutations';
 import type { SegmentCode } from '../lib/types';
 
 const GameSetup: React.FC = () => {
   const navigate = useNavigate();
-  const { sessionId } = useParams<{ sessionId: string }>();
+  const { sessionCode } = useParams<{ sessionCode: string }>();
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isDailyRoomCreated, setIsDailyRoomCreated] = useState(false);
   const [segments, setSegments] = useState({
@@ -15,6 +16,26 @@ const GameSetup: React.FC = () => {
     UPDW: 10, // Up Down
     REMO: 4  // Remote
   });
+
+  // Convert sessionCode to sessionId when component mounts
+  useEffect(() => {
+    const resolveSessionId = async () => {
+      if (!sessionCode) return;
+      
+      try {
+        const resolvedSessionId = await getSessionIdByCode(sessionCode);
+        setSessionId(resolvedSessionId);
+      } catch (error) {
+        console.error('Failed to resolve session code:', error);
+        alert('Invalid session code. Please check and try again.');
+        navigate('/');
+      }
+    };
+
+    if (sessionCode) {
+      resolveSessionId();
+    }
+  }, [sessionCode, navigate]);
 
   // Load existing segment configuration when component mounts
   useEffect(() => {
@@ -62,7 +83,7 @@ const GameSetup: React.FC = () => {
 
   const handleCreateDailyRoom = async () => {
     if (!sessionId) {
-      alert('No session ID available. Please go back to homepage and create a session.');
+      alert('No session available. Please go back to homepage and create a session.');
       return;
     }
     
@@ -79,7 +100,7 @@ const GameSetup: React.FC = () => {
       await createDailyRoom(sessionId);
       
       setIsDailyRoomCreated(true);
-      alert(`Daily room created successfully! Session ID: ${sessionId}`);
+      alert(`Daily room created successfully! Session Code: ${sessionCode}`);
     } catch (error) {
       console.error('Error setting up game:', error);
       alert(`Error setting up game: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -90,15 +111,15 @@ const GameSetup: React.FC = () => {
 
   const handleStartQuiz = () => {
     if (!sessionId) {
-      alert('No session ID available. Please go back to homepage and create a session.');
+      alert('No session available. Please go back to homepage and create a session.');
       return;
     }
     if (!isDailyRoomCreated) {
       alert('Please create a Daily room first by clicking "Create Daily Room"');
       return;
     }
-    // Navigate to the quiz with the actual session ID
-    navigate(`/quiz/${sessionId}`);
+    // Navigate to the quiz with the session code
+    navigate(`/quiz/${sessionCode}`);
   };
 
   return (
@@ -108,10 +129,13 @@ const GameSetup: React.FC = () => {
           🎮 Game Setup
         </h1>
         
-        {sessionId && (
+        {sessionCode && (
           <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
             <p className="text-green-800 text-sm">
-              <strong>Session ID:</strong> {sessionId}
+              <strong>Session Code:</strong> {sessionCode}
+            </p>
+            <p className="text-green-600 text-xs mt-1">
+              Share this code with players to join
             </p>
           </div>
         )}
