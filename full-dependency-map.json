@@ -10,7 +10,9 @@
     "src/pages/Results.tsx"
   ],
   "src/index.css": [],
-  "src/lib/mutations.ts": [],
+  "src/lib/mutations.ts": [
+    "src/lib/supabaseClient.ts"
+  ],
   "src/lib/presence.ts": [
     "src/lib/supabaseClient.ts"
   ],
@@ -22,7 +24,9 @@
     "src/App.tsx",
     "src/index.css"
   ],
-  "src/pages/GameSetup.tsx": [],
+  "src/pages/GameSetup.tsx": [
+    "src/lib/mutations.ts"
+  ],
   "src/pages/Homepage.tsx": [],
   "src/pages/Join.tsx": [
     "src/lib/supabaseClient.ts"
@@ -32,8 +36,8 @@
     "src/lib/supabaseClient.ts"
   ],
   "src/pages/Quiz.tsx": [
-    "src/lib/sessionHooks.ts",
-    "src/lib/supabaseClient.ts"
+    "src/lib/mutations.ts",
+    "src/lib/sessionHooks.ts"
   ],
   "src/pages/Results.tsx": [
     "src/lib/sessionHooks.ts",
