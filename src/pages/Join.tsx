@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
-import { getSessionIdByCode } from '../lib/mutations';
+import { joinAsHostWithCode, joinAsPlayerWithCode } from '../lib/mutations';
 
 const Join: React.FC = () => {
   const navigate = useNavigate();
@@ -212,13 +212,11 @@ const Join: React.FC = () => {
     setHostLoading(true);
 
     try {
-      // Convert session code to session ID and validate password
-      const sessionId = await getSessionIdByCode(sessionCode);
+      // Join as host using session code
+      const participantId = await joinAsHostWithCode(sessionCode, hostPassword, 'Host Name'); // TODO: Get actual host name
       
-      // TODO: Implement host joining with proper validation
-      // For now, just navigate to lobby
-      console.log('Joining as host:', { sessionCode, sessionId, hostPassword });
-      navigate('/lobby');
+      console.log('Joined as host:', { sessionCode, participantId });
+      navigate(`/lobby/${sessionCode}`);
     } catch (error) {
       console.error('Error joining as host:', error);
       alert('Failed to join session. Please check your session code and password.');
@@ -238,13 +236,11 @@ const Join: React.FC = () => {
     setPlayerLoading(true);
 
     try {
-      // Convert session code to session ID and validate session exists
-      const sessionId = await getSessionIdByCode(playerSessionCode);
+      // Join as player using session code
+      const participantId = await joinAsPlayerWithCode(playerSessionCode, playerName, selectedFlag, teamLogoUrl);
       
-      // TODO: Implement player joining with proper session validation
-      // For now, just navigate to lobby
-      console.log('Joining as player:', { sessionCode: playerSessionCode, sessionId, playerName, selectedFlag, teamLogoUrl });
-      navigate('/lobby');
+      console.log('Joined as player:', { sessionCode: playerSessionCode, participantId, playerName, selectedFlag, teamLogoUrl });
+      navigate(`/lobby/${playerSessionCode}`);
     } catch (error) {
       console.error('Error joining as player:', error);
       alert('Failed to join session. Please check your session code.');

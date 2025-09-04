@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useSession } from '../lib/sessionHooks';
+import { getSessionIdByCode } from '../lib/mutations';
 
 interface PlayerData {
   player_id: string;
@@ -21,12 +22,37 @@ interface SegmentScore {
 }
 
 const Results: React.FC = () => {
-  const { sessionId } = useParams<{ sessionId: string }>();
-  const { session, loading: sessionLoading } = useSession(sessionId || null);
+  const { sessionCode } = useParams<{ sessionCode: string }>();
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const { session, loading: sessionLoading } = useSession(sessionId);
   const [players, setPlayers] = useState<PlayerData[]>([]);
   const [segmentScores, setSegmentScores] = useState<SegmentScore[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Convert sessionCode to sessionId when component mounts
+  useEffect(() => {
+    const resolveSessionId = async () => {
+      if (!sessionCode) {
+        setError('No session code provided');
+        setLoading(false);
+        return;
+      }
+      
+      try {
+        const resolvedSessionId = await getSessionIdByCode(sessionCode);
+        setSessionId(resolvedSessionId);
+      } catch (error) {
+        console.error('Failed to resolve session code:', error);
+        setError('Invalid session code');
+        setLoading(false);
+      }
+    };
+
+    if (sessionCode) {
+      resolveSessionId();
+    }
+  }, [sessionCode]);
 
   // Segment definitions with full names
   const segments = [

@@ -45,6 +45,27 @@ export async function getSessionIdByCode(sessionCode: string): Promise<string> {
   return data.session_id
 }
 
+// Wrapper function for joining as host with session code
+export async function joinAsHostWithCode(
+  sessionCode: string,
+  password: string,
+  hostName: string
+): Promise<string> {
+  const sessionId = await getSessionIdByCode(sessionCode);
+  return joinAsHost(sessionId, password, hostName);
+}
+
+// Wrapper function for joining as player with session code
+export async function joinAsPlayerWithCode(
+  sessionCode: string,
+  name: string,
+  flag: string,
+  logoUrl: string
+): Promise<string> {
+  const sessionId = await getSessionIdByCode(sessionCode);
+  return joinAsPlayer(sessionId, name, flag, logoUrl);
+}
+
 // 2. Add Segment Config (GameSetup)
 export async function setSegmentConfig(
   sessionId: string, 

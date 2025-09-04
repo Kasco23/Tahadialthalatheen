@@ -15,6 +15,7 @@ function App() {
         <Route path="/join" element={<Join />} />
         <Route path="/lobby/:sessionCode" element={<Lobby />} />
         <Route path="/quiz/:sessionCode" element={<Quiz />} />
+        <Route path="/results/:sessionCode" element={<Results />} />
         <Route path="/results" element={<Results />} />
       </Routes>
     </Router>
