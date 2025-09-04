@@ -1,13 +1,13 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { createSession, setSegmentConfig, createDailyRoom, getSegmentConfig } from '../lib/mutations';
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { setSegmentConfig, createDailyRoom, getSegmentConfig } from '../lib/mutations';
 import type { SegmentCode } from '../lib/types';
 
 const GameSetup: React.FC = () => {
   const navigate = useNavigate();
-  const [hostPassword, setHostPassword] = useState('');
-  const [sessionId, setSessionId] = useState<string | null>(null);
+  const { sessionId } = useParams<{ sessionId: string }>();
   const [isLoading, setIsLoading] = useState(false);
+  const [isDailyRoomCreated, setIsDailyRoomCreated] = useState(false);
   const [segments, setSegments] = useState({
     WDYK: 4, // What Do You Know
     AUCT: 2, // Auction
@@ -15,6 +15,30 @@ const GameSetup: React.FC = () => {
     UPDW: 10, // Up Down
     REMO: 4  // Remote
   });
+
+  // Load existing segment configuration when component mounts
+  useEffect(() => {
+    if (sessionId) {
+      loadSegmentConfig();
+    }
+  }, [sessionId]);
+
+  const loadSegmentConfig = async () => {
+    if (!sessionId) return;
+    
+    try {
+      const fetchedConfig = await getSegmentConfig(sessionId);
+      const configMap = fetchedConfig.reduce((acc, config) => {
+        acc[config.segment_code] = config.questions_count;
+        return acc;
+      }, {} as Record<SegmentCode, number>);
+      
+      // Update local state with fetched config
+      setSegments(prev => ({ ...prev, ...configMap }));
+    } catch (error) {
+      console.error('Failed to load segment config:', error);
+    }
+  };
 
   const handleSegmentChange = async (segment: keyof typeof segments, value: string) => {
     const numValue = parseInt(value) || 0;
@@ -37,38 +61,25 @@ const GameSetup: React.FC = () => {
   };
 
   const handleCreateDailyRoom = async () => {
-    if (!hostPassword.trim()) {
-      alert('Please enter a host password first');
+    if (!sessionId) {
+      alert('No session ID available. Please go back to homepage and create a session.');
       return;
     }
     
     setIsLoading(true);
     try {
-      // 1. Create session
-      const newSessionId = await createSession(hostPassword);
-      setSessionId(newSessionId);
-      
-      // 2. Set segment configuration
+      // 1. Set segment configuration
       const segmentConfigs = Object.entries(segments).map(([code, count]) => ({
         segment_code: code as SegmentCode,
         questions_count: count
       }));
-      await setSegmentConfig(newSessionId, segmentConfigs);
+      await setSegmentConfig(sessionId, segmentConfigs);
       
-      // 3. Create Daily room
-      await createDailyRoom(newSessionId);
+      // 2. Create Daily room
+      await createDailyRoom(sessionId);
       
-      // 4. Fetch the created segment config to ensure UI is in sync
-      const fetchedConfig = await getSegmentConfig(newSessionId);
-      const configMap = fetchedConfig.reduce((acc, config) => {
-        acc[config.segment_code] = config.questions_count;
-        return acc;
-      }, {} as Record<SegmentCode, number>);
-      
-      // Update local state with fetched config
-      setSegments(prev => ({ ...prev, ...configMap }));
-      
-      alert(`Session created successfully! Session ID: ${newSessionId}`);
+      setIsDailyRoomCreated(true);
+      alert(`Daily room created successfully! Session ID: ${sessionId}`);
     } catch (error) {
       console.error('Error setting up game:', error);
       alert(`Error setting up game: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -79,7 +90,11 @@ const GameSetup: React.FC = () => {
 
   const handleStartQuiz = () => {
     if (!sessionId) {
-      alert('Please create a session first by clicking "Create Daily Room"');
+      alert('No session ID available. Please go back to homepage and create a session.');
+      return;
+    }
+    if (!isDailyRoomCreated) {
+      alert('Please create a Daily room first by clicking "Create Daily Room"');
       return;
     }
     // Navigate to the quiz with the actual session ID
@@ -92,23 +107,16 @@ const GameSetup: React.FC = () => {
         <h1 className="text-3xl font-bold text-center text-gray-800 mb-8">
           🎮 Game Setup
         </h1>
+        
+        {sessionId && (
+          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+            <p className="text-green-800 text-sm">
+              <strong>Session ID:</strong> {sessionId}
+            </p>
+          </div>
+        )}
 
         <form className="space-y-6">
-          {/* Host Password Input */}
-          <div>
-            <label htmlFor="hostPassword" className="block text-sm font-medium text-gray-700 mb-2">
-              Host Password
-            </label>
-            <input
-              type="password"
-              id="hostPassword"
-              value={hostPassword}
-              onChange={(e) => setHostPassword(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors"
-              placeholder="Enter host password"
-            />
-          </div>
-
           {/* Segment Settings */}
           <div>
             <h3 className="text-lg font-semibold text-gray-800 mb-4">Question Counts</h3>
@@ -199,7 +207,7 @@ const GameSetup: React.FC = () => {
             <button
               type="button"
               onClick={handleStartQuiz}
-              disabled={!sessionId}
+              disabled={!sessionId || !isDailyRoomCreated}
               className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200 transform hover:scale-105 disabled:transform-none"
             >
               🚀 Start Quiz

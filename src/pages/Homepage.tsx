@@ -1,8 +1,13 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import PasswordModal from '../components/PasswordModal';
+import { createSession } from '../lib/mutations';
 
 const Homepage: React.FC = () => {
   const [countdown, setCountdown] = useState(10);
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [isCreatingSession, setIsCreatingSession] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -11,6 +16,29 @@ const Homepage: React.FC = () => {
 
     return () => clearInterval(timer);
   }, []);
+
+  const handleCreateSession = () => {
+    setIsPasswordModalOpen(true);
+  };
+
+  const handlePasswordConfirm = async (password: string) => {
+    setIsCreatingSession(true);
+    try {
+      const sessionId = await createSession(password);
+      setIsPasswordModalOpen(false);
+      // Navigate to game setup with the session ID
+      navigate(`/gamesetup/${sessionId}`);
+    } catch (error) {
+      console.error('Error creating session:', error);
+      alert(`Error creating session: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsCreatingSession(false);
+    }
+  };
+
+  const handlePasswordModalClose = () => {
+    setIsPasswordModalOpen(false);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-600 via-green-700 to-green-800 flex flex-col items-center justify-center relative overflow-hidden pitch-lines center-circle goal-area">
@@ -44,12 +72,12 @@ const Homepage: React.FC = () => {
 
         {/* CTA Buttons */}
         <div className="space-y-6">
-          <Link
-            to="/gamesetup"
+          <button
+            onClick={handleCreateSession}
             className="block w-full max-w-sm mx-auto bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 hover:from-yellow-500 hover:via-yellow-600 hover:to-yellow-700 text-black font-bold text-xl md:text-2xl py-6 px-8 rounded-2xl shadow-2xl transform transition-all duration-300 hover:scale-105 hover:shadow-3xl border-4 border-yellow-300"
           >
             🏆 Create Session
-          </Link>
+          </button>
 
           <Link
             to="/join"
@@ -69,6 +97,14 @@ const Homepage: React.FC = () => {
 
       {/* Stadium atmosphere effects */}
       <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black via-transparent to-transparent opacity-30"></div>
+      
+      {/* Password Modal */}
+      <PasswordModal
+        isOpen={isPasswordModalOpen}
+        onClose={handlePasswordModalClose}
+        onConfirm={handlePasswordConfirm}
+        isLoading={isCreatingSession}
+      />
     </div>
   );
 };
