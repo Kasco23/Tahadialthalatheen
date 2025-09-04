@@ -127,6 +127,7 @@ export type Database = {
           host_password: string
           phase: string
           session_id: string
+          session_code: string
         }
         Insert: {
           created_at?: string | null
@@ -135,6 +136,7 @@ export type Database = {
           host_password: string
           phase: string
           session_id?: string
+          session_code?: string
         }
         Update: {
           created_at?: string | null
@@ -143,6 +145,7 @@ export type Database = {
           host_password?: string
           phase?: string
           session_id?: string
+          session_code?: string
         }
       }
       Strikes: {

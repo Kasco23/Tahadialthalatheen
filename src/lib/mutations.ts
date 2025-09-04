@@ -12,7 +12,7 @@ import type {
 } from './types'
 
 // 1. Create Session (Host PC → GameSetup)
-export async function createSession(hostPassword: string): Promise<string> {
+export async function createSession(hostPassword: string): Promise<{ sessionId: string; sessionCode: string }> {
   const { data, error } = await supabase
     .from('Session')
     .insert({
@@ -20,11 +20,26 @@ export async function createSession(hostPassword: string): Promise<string> {
       phase: 'Setup',
       game_state: 'pre-quiz'
     })
-    .select('session_id')
+    .select('session_id, session_code')
     .single()
 
   if (error) {
     throw new Error(`Failed to create session: ${error.message}`)
+  }
+
+  return { sessionId: data.session_id, sessionCode: data.session_code }
+}
+
+// Helper function to resolve session_code to session_id
+export async function getSessionIdByCode(sessionCode: string): Promise<string> {
+  const { data, error } = await supabase
+    .from('Session')
+    .select('session_id')
+    .eq('session_code', sessionCode.toUpperCase())
+    .single()
+
+  if (error) {
+    throw new Error(`Session not found: ${error.message}`)
   }
 
   return data.session_id

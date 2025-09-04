@@ -1,20 +1,40 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useSession } from '../lib/sessionHooks';
 import { useStrikes, useSegmentConfig, useParticipants } from '../lib/realtimeHooks';
-import { incrementStrike, resetStrikes, activatePowerup } from '../lib/mutations';
+import { incrementStrike, resetStrikes, activatePowerup, getSessionIdByCode } from '../lib/mutations';
 import type { Tables, SegmentCode } from '../lib/types';
 
 const Quiz: React.FC = () => {
-  const { sessionId } = useParams<{ sessionId: string }>();
-  const { session, loading: sessionLoading } = useSession(sessionId || null);
-  const { strikes, loading: strikesLoading } = useStrikes(sessionId || null);
-  const { segmentConfig, loading: configLoading } = useSegmentConfig(sessionId || null);
-  const { participants, loading: participantsLoading } = useParticipants(sessionId || null);
+  const { sessionCode } = useParams<{ sessionCode: string }>();
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const { session, loading: sessionLoading } = useSession(sessionId);
+  const { strikes, loading: strikesLoading } = useStrikes(sessionId);
+  const { segmentConfig, loading: configLoading } = useSegmentConfig(sessionId);
+  const { participants, loading: participantsLoading } = useParticipants(sessionId);
   
   const [currentSegment, setCurrentSegment] = useState<SegmentCode>('WDYK');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Convert sessionCode to sessionId when component mounts
+  useEffect(() => {
+    const resolveSessionId = async () => {
+      if (!sessionCode) return;
+      
+      try {
+        const resolvedSessionId = await getSessionIdByCode(sessionCode);
+        setSessionId(resolvedSessionId);
+      } catch (error) {
+        console.error('Failed to resolve session code:', error);
+        setError('Invalid session code');
+      }
+    };
+
+    if (sessionCode) {
+      resolveSessionId();
+    }
+  }, [sessionCode]);
 
   // Segment definitions
   const segments = {

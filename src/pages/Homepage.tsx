@@ -24,10 +24,10 @@ const Homepage: React.FC = () => {
   const handlePasswordConfirm = async (password: string) => {
     setIsCreatingSession(true);
     try {
-      const sessionId = await createSession(password);
+      const { sessionCode } = await createSession(password);
       setIsPasswordModalOpen(false);
-      // Navigate to game setup with the session ID
-      navigate(`/gamesetup/${sessionId}`);
+      // Navigate to game setup with the session code (not session ID)
+      navigate(`/gamesetup/${sessionCode}`);
     } catch (error) {
       console.error('Error creating session:', error);
       alert(`Error creating session: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -65,7 +65,7 @@ const Homepage: React.FC = () => {
         <div className="mb-8">
           <div className="inline-block bg-black bg-opacity-50 rounded-full px-6 py-3 mb-4">
             <span className="text-white text-lg font-bold">
-              ⏰ Kick-off in: {countdown}s
+              ⏰ Starting in: {countdown}s
             </span>
           </div>
         </div>
