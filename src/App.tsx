@@ -11,7 +11,7 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<Homepage />} />
-        <Route path="/gamesetup" element={<GameSetup />} />
+        <Route path="/gamesetup/:sessionId" element={<GameSetup />} />
         <Route path="/join" element={<Join />} />
         <Route path="/lobby/:sessionId" element={<Lobby />} />
         <Route path="/quiz/:sessionId" element={<Quiz />} />
