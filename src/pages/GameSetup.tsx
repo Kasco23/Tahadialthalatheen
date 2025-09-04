@@ -18,27 +18,27 @@ const GameSetup: React.FC = () => {
 
   // Load existing segment configuration when component mounts
   useEffect(() => {
+    const loadConfig = async () => {
+      if (!sessionId) return;
+      
+      try {
+        const fetchedConfig = await getSegmentConfig(sessionId);
+        const configMap = fetchedConfig.reduce((acc, config) => {
+          acc[config.segment_code] = config.questions_count;
+          return acc;
+        }, {} as Record<SegmentCode, number>);
+        
+        // Update local state with fetched config
+        setSegments(prev => ({ ...prev, ...configMap }));
+      } catch (error) {
+        console.error('Failed to load segment config:', error);
+      }
+    };
+
     if (sessionId) {
-      loadSegmentConfig();
+      loadConfig();
     }
   }, [sessionId]);
-
-  const loadSegmentConfig = async () => {
-    if (!sessionId) return;
-    
-    try {
-      const fetchedConfig = await getSegmentConfig(sessionId);
-      const configMap = fetchedConfig.reduce((acc, config) => {
-        acc[config.segment_code] = config.questions_count;
-        return acc;
-      }, {} as Record<SegmentCode, number>);
-      
-      // Update local state with fetched config
-      setSegments(prev => ({ ...prev, ...configMap }));
-    } catch (error) {
-      console.error('Failed to load segment config:', error);
-    }
-  };
 
   const handleSegmentChange = async (segment: keyof typeof segments, value: string) => {
     const numValue = parseInt(value) || 0;
