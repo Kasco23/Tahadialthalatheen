@@ -1,0 +1,114 @@
+name: Performance Monitoring
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 6 * * 1' # Weekly on Monday at 6 AM UTC
+
+env:
+  NODE_VERSION: 22
+  PNPM_VERSION: 10
+
+jobs:
+  bundle-analysis:
+    name: Bundle Size Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build project
+        run: pnpm build
+
+      - name: Analyze bundle size
+        run: |
+          echo "📦 Build Output Analysis:"
+          ls -lah dist/
+          echo ""
+          echo "📊 Asset Sizes:"
+          find dist -name "*.js" -o -name "*.css" | while read file; do
+            size=$(stat -c%s "$file" 2>/dev/null || stat -f%z "$file" 2>/dev/null)
+            size_kb=$((size / 1024))
+            echo "  $file: ${size_kb}KB"
+          done
+
+      - name: Check bundle size limits
+        run: |
+          # Check if main JS bundle exceeds 500KB
+          main_js=$(find dist -name "index-*.js" | head -1)
+          if [ -f "$main_js" ]; then
+            size=$(stat -c%s "$main_js" 2>/dev/null || stat -f%z "$main_js" 2>/dev/null)
+            size_kb=$((size / 1024))
+            echo "Main JS bundle size: ${size_kb}KB"
+            if [ $size_kb -gt 500 ]; then
+              echo "❌ Main JS bundle exceeds 500KB limit!"
+              exit 1
+            fi
+            echo "✅ Bundle size within limits"
+          fi
+
+  dependency-graph:
+    name: Dependency Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate dependency map
+        run: pnpm dep:graph
+
+      - name: Upload dependency map
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-map
+          path: full-dependency-map.json
+          retention-days: 30
+
+      - name: Analyze dependency structure
+        run: |
+          echo "📊 Dependency Analysis:"
+          if [ -f "full-dependency-map.json" ]; then
+            echo "Dependency map generated successfully"
+            node -e "
+              const fs = require('fs');
+              const data = JSON.parse(fs.readFileSync('full-dependency-map.json', 'utf8'));
+              console.log('Total modules:', Object.keys(data).length);
+              console.log('Modules with dependencies:');
+              Object.entries(data).forEach(([module, deps]) => {
+                if (deps.length > 5) {
+                  console.log('  ' + module + ': ' + deps.length + ' dependencies');
+                }
+              });
+            "
+          fi
