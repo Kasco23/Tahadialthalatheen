@@ -1,39 +1,20 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { supabase } from '../lib/supabaseClient';
 import { useSession } from '../lib/sessionHooks';
-
-interface PlayerData {
-  player_id: string;
-  session_id: string;
-  name: string;
-  role: string;
-  flag: string;
-  score: number;
-  is_connected: boolean;
-  is_host: boolean;
-  special_buttons: {
-    PIT_BUTTON: boolean;
-    LOCK_BUTTON: boolean;
-    TRAVELER_BUTTON: boolean;
-  };
-}
+import { useStrikes, useSegmentConfig, useParticipants } from '../lib/realtimeHooks';
+import { incrementStrike, resetStrikes, activatePowerup } from '../lib/mutations';
+import type { Tables, SegmentCode } from '../lib/types';
 
 const Quiz: React.FC = () => {
   const { sessionId } = useParams<{ sessionId: string }>();
   const { session, loading: sessionLoading } = useSession(sessionId || null);
-  const [players, setPlayers] = useState<PlayerData[]>([]);
-  const [currentPlayer, setCurrentPlayer] = useState<PlayerData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { strikes, loading: strikesLoading } = useStrikes(sessionId || null);
+  const { segmentConfig, loading: configLoading } = useSegmentConfig(sessionId || null);
+  const { participants, loading: participantsLoading } = useParticipants(sessionId || null);
+  
+  const [currentSegment, setCurrentSegment] = useState<SegmentCode>('WDYK');
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Powerup definitions - map to special_buttons
-  const powerups = [
-    { id: 'PIT_BUTTON', name: 'Pass', description: 'Skip this question' },
-    { id: 'LOCK_BUTTON', name: 'Al-Habeed', description: 'Lock question for yourself' },
-    { id: 'TRAVELER_BUTTON', name: 'Bellegoal', description: 'Get first turn' },
-    { id: 'EXTRA_BUTTON', name: 'Slippy-G', description: 'Lock question + bonus points' }
-  ];
 
   // Segment definitions
   const segments = {
@@ -44,272 +25,285 @@ const Quiz: React.FC = () => {
     REMO: { name: 'Remontada', description: 'Career path questions' }
   };
 
-  useEffect(() => {
-    if (!sessionId) {
-      setError('No session ID provided');
-      setLoading(false);
-      return;
-    }
+  const players = participants.filter(p => p.role !== 'Host');
+  const host = participants.find(p => p.role === 'Host');
 
-    // Subscribe to session changes
-    const subscribeToSession = () => {
-      const channel = supabase
-        .channel('session_updates')
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'sessions',
-            filter: `session_id=eq.${sessionId}`
-          },
-          (payload) => {
-            console.log('Session update:', payload);
-            if (payload.new) {
-              // Session updates are handled by useSession hook
-            }
-          }
-        )
-        .subscribe();
-
-      return channel;
-    };
-
-    // Subscribe to player changes (including score updates)
-    const subscribeToPlayers = () => {
-      const channel = supabase
-        .channel('player_updates')
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'players',
-            filter: `session_id=eq.${sessionId}`
-          },
-          (payload) => {
-            console.log('Player update:', payload);
-            // Refresh players data when any player changes
-            loadPlayers();
-          }
-        )
-        .subscribe();
-
-      return channel;
-    };
-
-    const loadInitialData = async () => {
-      try {
-        // Load players data and identify current player
-        await loadPlayers();
-        
-        // For demo, set first player as current player
-        const currentPlayerId = 'player1'; // This would come from auth
-        const foundPlayer = players.find(p => p.player_id === currentPlayerId);
-        if (foundPlayer) {
-          setCurrentPlayer(foundPlayer);
-        }
-
-      } catch (err) {
-        console.error('Error loading data:', err);
-        setError('Failed to load quiz data');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    // Load players for current session
-    const loadPlayers = async () => {
-      try {
-        const { data: playersData, error: playersError } = await supabase
-          .from('players')
-          .select('*')
-          .eq('session_id', sessionId);
-
-        if (playersError) {
-          console.error('Error loading players:', playersError);
-        } else {
-          setPlayers(playersData || []);
-        }
-      } catch (err) {
-        console.error('Error loading players:', err);
-      }
-    };
-
-    const sessionChannel = subscribeToSession();
-    const playerChannel = subscribeToPlayers();
-    loadInitialData();
-
-    // Cleanup subscriptions
-    return () => {
-      sessionChannel.unsubscribe();
-      playerChannel.unsubscribe();
-    };
-  }, [sessionId]);
-
-  const handlePowerupClick = async (powerupId: string) => {
-    if (!session || !currentPlayer) return;
-
-    try {
-      // Update the special_buttons field
-      const updatedButtons = {
-        ...currentPlayer.special_buttons,
-        [powerupId]: false // Disable the button
-      };
-
-      const { error } = await supabase
-        .from('players')
-        .update({ special_buttons: updatedButtons })
-        .eq('player_id', currentPlayer.player_id);
-
-      if (error) {
-        console.error('Error updating powerup:', error);
-      } else {
-        console.log(`Powerup ${powerupId} used by ${currentPlayer.name}`);
-      }
-    } catch (err) {
-      console.error('Error using powerup:', err);
-    }
+  // Get remaining questions for current segment
+  const getCurrentSegmentConfig = () => {
+    return segmentConfig.find(config => config.segment_code === currentSegment);
   };
 
-  const isPowerupUsed = (powerupId: string): boolean => {
-    if (!currentPlayer) return true; // Disable if no current player
-    return !currentPlayer.special_buttons[powerupId as keyof typeof currentPlayer.special_buttons];
-  };
+  const remainingQuestions = getCurrentSegmentConfig()?.questions_count || 0;
 
-  // Calculate running scores for Player1 and Player2
-  const getRunningScores = () => {
-    const player1 = players.find(p => p.role === 'Player1');
-    const player2 = players.find(p => p.role === 'Player2');
-
-    return {
-      player1Score: player1?.score || 0,
-      player2Score: player2?.score || 0
-    };
-  };
-
-  if (loading || sessionLoading) {
+  // PASS Button Logic - Enabled only if:
+  // 1. currentSegment === 'WDYK'
+  // 2. Player has exactly 2 strikes
+  // 3. powerup_pass_used === false
+  const canUsePass = (participant: Tables<'Participant'>) => {
+    const participantStrikes = strikes[participant.participant_id] || 0;
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 flex items-center justify-center">
-        <div className="text-white text-xl">Loading Quiz...</div>
-      </div>
+      currentSegment === 'WDYK' &&
+      participantStrikes === 2 &&
+      !participant.powerup_pass_used
     );
-  }
+  };
 
-  if (error) {
+  const handlePassButtonClick = async (participant: Tables<'Participant'>) => {
+    if (!canUsePass(participant)) return;
+    
+    setLoading(true);
+    try {
+      await activatePowerup(participant.participant_id, 'pass');
+      // Note: This would also lock the other player's PASS until they answer correctly
+      // That logic would be implemented in the game flow management
+    } catch (error) {
+      console.error('Error using PASS powerup:', error);
+      setError(error instanceof Error ? error.message : 'Failed to use PASS powerup');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleIncrementStrike = async (participantId: string) => {
+    setLoading(true);
+    try {
+      await incrementStrike(sessionId!, participantId);
+    } catch (error) {
+      console.error('Error incrementing strike:', error);
+      setError(error instanceof Error ? error.message : 'Failed to increment strike');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResetStrikes = async (participantId: string) => {
+    setLoading(true);
+    try {
+      await resetStrikes(sessionId!, participantId);
+    } catch (error) {
+      console.error('Error resetting strikes:', error);
+      setError(error instanceof Error ? error.message : 'Failed to reset strikes');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (sessionLoading || strikesLoading || configLoading || participantsLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-red-600 via-red-700 to-red-800 flex items-center justify-center">
-        <div className="text-white text-xl">{error}</div>
+      <div className="min-h-screen bg-gradient-to-br from-green-600 via-green-700 to-green-800 flex items-center justify-center">
+        <div className="text-white text-xl">Loading quiz...</div>
       </div>
     );
   }
 
   if (!session) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-600 via-gray-700 to-gray-800 flex items-center justify-center">
-        <div className="text-white text-xl">No session data available</div>
+      <div className="min-h-screen bg-gradient-to-br from-red-600 via-red-700 to-red-800 flex items-center justify-center">
+        <div className="text-white text-xl">Session not found</div>
       </div>
     );
   }
 
-  const currentSegment = segments[session.current_segment as keyof typeof segments];
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-green-600 via-green-700 to-green-800 p-4">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">⚽ Football Quiz</h1>
-          <div className="text-xl text-blue-100">
-            Current Segment: <span className="font-bold text-yellow-300">
-              {currentSegment?.name || session.current_segment}
-            </span>
-            {session.current_segment && (
-              <span className="ml-2 text-sm">
-                (Phase: {session.phase})
-              </span>
-            )}
-          </div>
-          <div className="text-sm text-blue-200 mt-1">
-            {currentSegment?.description}
-          </div>
+        <div className="text-center mb-8 text-white">
+          <h1 className="text-4xl font-bold mb-2">⚽ Quiz In Progress</h1>
+          <p className="text-xl opacity-90">Session: {sessionId}</p>
+          <p className="text-lg opacity-80">Phase: {session.phase} | Current Segment: {session.current_segment}</p>
         </div>
 
-        {/* Scores */}
-        <div className="grid grid-cols-2 gap-4 mb-8">
-          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 text-center">
-            <div className="text-2xl font-bold text-white mb-2">Player 1</div>
-            <div className="text-4xl font-bold text-yellow-300">
-              {getRunningScores().player1Score}
+        {/* Current Segment Info */}
+        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 mb-8 text-white">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-bold">
+              Current Segment: {segments[currentSegment].name}
+            </h2>
+            <div className="text-right">
+              <div className="text-lg font-semibold">
+                Questions Remaining: {remainingQuestions}
+              </div>
+              <div className="text-sm opacity-80">
+                {segments[currentSegment].description}
+              </div>
             </div>
           </div>
-          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 text-center">
-            <div className="text-2xl font-bold text-white mb-2">Player 2</div>
-            <div className="text-4xl font-bold text-yellow-300">
-              {getRunningScores().player2Score}
-            </div>
-          </div>
-        </div>
-
-        {/* Question Area */}
-        <div className="bg-white/10 backdrop-blur-sm rounded-lg p-8 mb-8 text-center">
-          <h2 className="text-2xl font-bold text-white mb-4">Question</h2>
-          <div className="text-xl text-blue-100">
-            {/* Question content would go here */}
-            Question content will be displayed here...
-          </div>
-        </div>
-
-        {/* Powerups */}
-        <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6">
-          <h3 className="text-xl font-bold text-white mb-4 text-center">Power-ups</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {powerups.map((powerup) => {
-              const isUsed = isPowerupUsed(powerup.id);
+          
+          {/* Segment Selector */}
+          <div className="flex flex-wrap gap-2">
+            {Object.entries(segments).map(([code, info]) => {
+              const config = segmentConfig.find(c => c.segment_code === code);
               return (
                 <button
-                  key={powerup.id}
-                  onClick={() => handlePowerupClick(powerup.id)}
-                  disabled={isUsed}
-                  className={`p-4 rounded-lg font-bold transition-all duration-200 transform hover:scale-105 ${
-                    isUsed
-                      ? 'bg-gray-500 text-gray-300 cursor-not-allowed opacity-50'
-                      : 'bg-yellow-500 hover:bg-yellow-600 text-black shadow-lg'
+                  key={code}
+                  onClick={() => setCurrentSegment(code as SegmentCode)}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                    currentSegment === code
+                      ? 'bg-yellow-500 text-black'
+                      : 'bg-white/20 text-white hover:bg-white/30'
                   }`}
                 >
-                  <div className="text-sm">{powerup.name}</div>
-                  <div className="text-xs mt-1 opacity-75">{powerup.description}</div>
-                  {isUsed && <div className="text-xs mt-1">✅ Used</div>}
+                  {info.name} ({config?.questions_count || 0})
                 </button>
               );
             })}
           </div>
         </div>
 
-        {/* Answer Input */}
-        <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 mt-6">
-          <h3 className="text-xl font-bold text-white mb-4 text-center">Your Answer</h3>
-          <div className="flex gap-4">
-            <input
-              type="text"
-              placeholder="Type your answer here..."
-              className="flex-1 px-4 py-3 rounded-lg bg-white/20 text-white placeholder-blue-200 border border-white/30 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-            />
-            <button className="px-8 py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-lg transition-colors duration-200">
-              Submit Answer
-            </button>
-          </div>
+        {/* Players Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          {players.map((player) => {
+            const playerStrikes = strikes[player.participant_id] || 0;
+            
+            return (
+              <div key={player.participant_id} className="bg-white rounded-xl p-6 shadow-lg">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">
+                      {player.flag || player.name.charAt(0)}
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-gray-800">{player.name}</h3>
+                      <p className="text-sm text-gray-600">{player.role}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-gray-800">0 pts</div>
+                    <div className="text-sm text-red-600 font-semibold">
+                      Strikes: {playerStrikes}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Strike Management (WDYK only) */}
+                {currentSegment === 'WDYK' && (
+                  <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-gray-700">Strike Management:</span>
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => handleIncrementStrike(player.participant_id)}
+                          disabled={loading}
+                          className="px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 disabled:opacity-50"
+                        >
+                          +1 Strike
+                        </button>
+                        <button
+                          onClick={() => handleResetStrikes(player.participant_id)}
+                          disabled={loading}
+                          className="px-3 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 disabled:opacity-50"
+                        >
+                          Reset
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Powerup Buttons */}
+                <div className="space-y-2">
+                  {/* PASS Button - WDYK only, specific conditions */}
+                  <button
+                    onClick={() => handlePassButtonClick(player)}
+                    disabled={!canUsePass(player) || loading}
+                    className={`w-full py-2 px-4 rounded-lg font-medium transition-colors ${
+                      canUsePass(player) && !loading
+                        ? 'bg-yellow-500 hover:bg-yellow-600 text-black'
+                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    }`}
+                  >
+                    {player.powerup_pass_used 
+                      ? '✓ PASS Used' 
+                      : currentSegment !== 'WDYK' 
+                        ? 'PASS (WDYK only)' 
+                        : playerStrikes !== 2 
+                          ? `PASS (Need 2 strikes, have ${playerStrikes})` 
+                          : 'PASS Available'
+                    }
+                  </button>
+
+                  {/* Other Powerups */}
+                  <div className="grid grid-cols-3 gap-2">
+                    <button
+                      disabled={player.powerup_alhabeed || loading}
+                      className={`py-1 px-2 text-xs rounded font-medium ${
+                        player.powerup_alhabeed
+                          ? 'bg-gray-300 text-gray-500'
+                          : 'bg-blue-500 hover:bg-blue-600 text-white'
+                      }`}
+                    >
+                      {player.powerup_alhabeed ? '✓ Al-Habeed' : 'Al-Habeed'}
+                    </button>
+                    
+                    <button
+                      disabled={player.powerup_bellegoal || loading}
+                      className={`py-1 px-2 text-xs rounded font-medium ${
+                        player.powerup_bellegoal
+                          ? 'bg-gray-300 text-gray-500'
+                          : 'bg-purple-500 hover:bg-purple-600 text-white'
+                      }`}
+                    >
+                      {player.powerup_bellegoal ? '✓ Bellegoal' : 'Bellegoal'}
+                    </button>
+                    
+                    <button
+                      disabled={player.powerup_slippyg || loading}
+                      className={`py-1 px-2 text-xs rounded font-medium ${
+                        player.powerup_slippyg
+                          ? 'bg-gray-300 text-gray-500'
+                          : 'bg-red-500 hover:bg-red-600 text-white'
+                      }`}
+                    >
+                      {player.powerup_slippyg ? '✓ Slippy-G' : 'Slippy-G'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Connection Status */}
+                <div className="mt-4 flex items-center space-x-2">
+                  <div className={`w-3 h-3 rounded-full ${
+                    player.video_presence ? 'bg-green-500' : 'bg-red-500'
+                  }`}></div>
+                  <span className="text-sm text-gray-600">
+                    {player.video_presence ? 'Connected' : 'Disconnected'}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
         </div>
 
-        {/* Phase Info */}
-        <div className="text-center mt-8">
-          <div className="text-sm text-blue-200">
-            Session Phase: <span className="font-bold text-white">{session.phase}</span>
+        {/* Host Section */}
+        {host && (
+          <div className="bg-white rounded-xl p-6 shadow-lg">
+            <h3 className="text-xl font-bold text-gray-800 mb-4">
+              🎯 Host: {host.name}
+            </h3>
+            <div className="flex items-center space-x-2">
+              <div className={`w-3 h-3 rounded-full ${
+                host.video_presence ? 'bg-green-500' : 'bg-red-500'
+              }`}></div>
+              <span className="text-sm text-gray-600">
+                {host.video_presence ? 'Connected' : 'Disconnected'}
+              </span>
+            </div>
           </div>
-          <div className="text-sm text-blue-200 mt-1">
-            Current Segment: <span className="font-bold text-yellow-300">{session.current_segment}</span>
+        )}
+
+        {/* Error Display */}
+        {error && (
+          <div className="mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+            <p className="font-medium">Error:</p>
+            <p>{error}</p>
+            <button
+              onClick={() => setError(null)}
+              className="mt-2 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+            >
+              Dismiss
+            </button>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
