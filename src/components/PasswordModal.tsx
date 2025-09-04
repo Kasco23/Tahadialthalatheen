@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 
 interface PasswordModalProps {
   isOpen: boolean;
@@ -14,7 +15,7 @@ const PasswordModal: React.FC<PasswordModalProps> = ({
   isLoading = false
 }) => {
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -24,14 +25,6 @@ const PasswordModal: React.FC<PasswordModalProps> = ({
     
     if (!password.trim()) {
       newErrors.push('Password is required');
-    }
-    
-    if (!confirmPassword.trim()) {
-      newErrors.push('Password confirmation is required');
-    }
-    
-    if (password && confirmPassword && password !== confirmPassword) {
-      newErrors.push('Passwords do not match');
     }
     
     if (password.length < 3) {
@@ -47,7 +40,7 @@ const PasswordModal: React.FC<PasswordModalProps> = ({
 
   const handleClose = () => {
     setPassword('');
-    setConfirmPassword('');
+    setShowPassword(false);
     setErrors([]);
     onClose();
   };
@@ -70,30 +63,29 @@ const PasswordModal: React.FC<PasswordModalProps> = ({
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
               Password
             </label>
-            <input
-              type="password"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
-              placeholder="Enter password"
-              disabled={isLoading}
-            />
-          </div>
-          
-          <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
-              Confirm Password
-            </label>
-            <input
-              type="password"
-              id="confirmPassword"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
-              placeholder="Confirm password"
-              disabled={isLoading}
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                id="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+                placeholder="Enter password"
+                disabled={isLoading}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
+                disabled={isLoading}
+              >
+                {showPassword ? (
+                  <EyeSlashIcon className="h-5 w-5" />
+                ) : (
+                  <EyeIcon className="h-5 w-5" />
+                )}
+              </button>
+            </div>
           </div>
           
           {errors.length > 0 && (

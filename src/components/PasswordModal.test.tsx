@@ -33,7 +33,7 @@ describe('PasswordModal', () => {
     
     expect(screen.getByText('🔐 Set Host Password')).toBeInTheDocument();
     expect(screen.getByLabelText('Password')).toBeInTheDocument();
-    expect(screen.getByLabelText('Confirm Password')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Confirm Password')).not.toBeInTheDocument();
   });
 
   it('should call onClose when Cancel button is clicked', () => {
@@ -49,7 +49,7 @@ describe('PasswordModal', () => {
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 
-  it('should show validation errors for empty fields', async () => {
+  it('should show validation error for empty password field', async () => {
     render(
       <PasswordModal
         isOpen={true}
@@ -62,32 +62,6 @@ describe('PasswordModal', () => {
     
     await waitFor(() => {
       expect(screen.getByText('• Password is required')).toBeInTheDocument();
-      expect(screen.getByText('• Password confirmation is required')).toBeInTheDocument();
-    });
-    
-    expect(mockOnConfirm).not.toHaveBeenCalled();
-  });
-
-  it('should show validation error for mismatched passwords', async () => {
-    render(
-      <PasswordModal
-        isOpen={true}
-        onClose={mockOnClose}
-        onConfirm={mockOnConfirm}
-      />
-    );
-    
-    fireEvent.change(screen.getByLabelText('Password'), {
-      target: { value: 'password123' }
-    });
-    fireEvent.change(screen.getByLabelText('Confirm Password'), {
-      target: { value: 'different123' }
-    });
-    
-    fireEvent.click(screen.getByText('✅ Confirm'));
-    
-    await waitFor(() => {
-      expect(screen.getByText('• Passwords do not match')).toBeInTheDocument();
     });
     
     expect(mockOnConfirm).not.toHaveBeenCalled();
@@ -103,9 +77,6 @@ describe('PasswordModal', () => {
     );
     
     fireEvent.change(screen.getByLabelText('Password'), {
-      target: { value: 'ab' }
-    });
-    fireEvent.change(screen.getByLabelText('Confirm Password'), {
       target: { value: 'ab' }
     });
     
@@ -130,9 +101,6 @@ describe('PasswordModal', () => {
     fireEvent.change(screen.getByLabelText('Password'), {
       target: { value: 'validpassword' }
     });
-    fireEvent.change(screen.getByLabelText('Confirm Password'), {
-      target: { value: 'validpassword' }
-    });
     
     fireEvent.click(screen.getByText('✅ Confirm'));
     
@@ -152,7 +120,51 @@ describe('PasswordModal', () => {
     );
     
     expect(screen.getByLabelText('Password')).toBeDisabled();
-    expect(screen.getByLabelText('Confirm Password')).toBeDisabled();
     expect(screen.getByText('⏳ Creating...')).toBeInTheDocument();
+  });
+
+  it('should toggle password visibility when eye icon is clicked', () => {
+    render(
+      <PasswordModal
+        isOpen={true}
+        onClose={mockOnClose}
+        onConfirm={mockOnConfirm}
+      />
+    );
+    
+    const passwordInput = screen.getByLabelText('Password');
+    const eyeButton = screen.getByRole('button', { name: '' }); // Eye icon button
+    
+    // Password should start as hidden
+    expect(passwordInput).toHaveAttribute('type', 'password');
+    
+    // Click eye icon to show password
+    fireEvent.click(eyeButton);
+    expect(passwordInput).toHaveAttribute('type', 'text');
+    
+    // Click eye icon again to hide password
+    fireEvent.click(eyeButton);
+    expect(passwordInput).toHaveAttribute('type', 'password');
+  });
+
+  it('should clear form when modal is closed', () => {
+    render(
+      <PasswordModal
+        isOpen={true}
+        onClose={mockOnClose}
+        onConfirm={mockOnConfirm}
+      />
+    );
+    
+    // Type password and show errors
+    fireEvent.change(screen.getByLabelText('Password'), {
+      target: { value: 'ab' }
+    });
+    fireEvent.click(screen.getByText('✅ Confirm'));
+    
+    // Close modal
+    fireEvent.click(screen.getByText('Cancel'));
+    
+    expect(mockOnClose).toHaveBeenCalled();
   });
 });
