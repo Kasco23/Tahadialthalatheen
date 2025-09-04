@@ -18,7 +18,8 @@
     "netlify/functions/_utils.ts"
   ],
   "netlify/functions/game-event.ts": [
-    "netlify/functions/_auth.ts"
+    "netlify/functions/_auth.ts",
+    "netlify/functions/_utils.ts"
   ],
   "netlify/functions/health-check.ts": [],
   "netlify/functions/join-session.ts": [
