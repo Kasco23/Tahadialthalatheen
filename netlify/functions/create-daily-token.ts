@@ -1,6 +1,6 @@
 import type { Context, Config } from "@netlify/functions";
 
-export default async (req: Request, context: Context) => {
+export default async (req: Request, _context: Context) => {
   // Only allow POST requests
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
