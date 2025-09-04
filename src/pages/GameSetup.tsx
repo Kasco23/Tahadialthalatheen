@@ -1,9 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { createSession, setSegmentConfig, createDailyRoom, getSegmentConfig } from '../lib/mutations';
+import type { SegmentCode } from '../lib/types';
 
 const GameSetup: React.FC = () => {
   const navigate = useNavigate();
   const [hostPassword, setHostPassword] = useState('');
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [segments, setSegments] = useState({
     WDYK: 4, // What Do You Know
     AUCT: 2, // Auction
@@ -12,23 +16,74 @@ const GameSetup: React.FC = () => {
     REMO: 4  // Remote
   });
 
-  const handleSegmentChange = (segment: keyof typeof segments, value: string) => {
+  const handleSegmentChange = async (segment: keyof typeof segments, value: string) => {
     const numValue = parseInt(value) || 0;
     setSegments(prev => ({
       ...prev,
       [segment]: numValue
     }));
+
+    // If session exists, update the config in Supabase immediately
+    if (sessionId) {
+      try {
+        await setSegmentConfig(sessionId, [{
+          segment_code: segment as SegmentCode,
+          questions_count: numValue
+        }]);
+      } catch (error) {
+        console.error('Failed to update segment config:', error);
+      }
+    }
   };
 
-  const handleCreateDailyRoom = () => {
-    // Mock handler for Daily.co room creation
-    alert('Creating Daily Room... (Mock implementation)');
-    console.log('Daily Room creation would happen here');
+  const handleCreateDailyRoom = async () => {
+    if (!hostPassword.trim()) {
+      alert('Please enter a host password first');
+      return;
+    }
+    
+    setIsLoading(true);
+    try {
+      // 1. Create session
+      const newSessionId = await createSession(hostPassword);
+      setSessionId(newSessionId);
+      
+      // 2. Set segment configuration
+      const segmentConfigs = Object.entries(segments).map(([code, count]) => ({
+        segment_code: code as SegmentCode,
+        questions_count: count
+      }));
+      await setSegmentConfig(newSessionId, segmentConfigs);
+      
+      // 3. Create Daily room
+      await createDailyRoom(newSessionId);
+      
+      // 4. Fetch the created segment config to ensure UI is in sync
+      const fetchedConfig = await getSegmentConfig(newSessionId);
+      const configMap = fetchedConfig.reduce((acc, config) => {
+        acc[config.segment_code] = config.questions_count;
+        return acc;
+      }, {} as Record<SegmentCode, number>);
+      
+      // Update local state with fetched config
+      setSegments(prev => ({ ...prev, ...configMap }));
+      
+      alert(`Session created successfully! Session ID: ${newSessionId}`);
+    } catch (error) {
+      console.error('Error setting up game:', error);
+      alert(`Error setting up game: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleStartQuiz = () => {
-    // For testing, use the first available session
-    navigate('/quiz/67B35Y');
+    if (!sessionId) {
+      alert('Please create a session first by clicking "Create Daily Room"');
+      return;
+    }
+    // Navigate to the quiz with the actual session ID
+    navigate(`/quiz/${sessionId}`);
   };
 
   return (
@@ -135,15 +190,17 @@ const GameSetup: React.FC = () => {
             <button
               type="button"
               onClick={handleCreateDailyRoom}
-              className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200 transform hover:scale-105"
+              disabled={isLoading}
+              className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200 transform hover:scale-105 disabled:transform-none"
             >
-              📹 Create Daily Room
+              {isLoading ? '⏳ Creating...' : '📹 Create Daily Room'}
             </button>
 
             <button
               type="button"
               onClick={handleStartQuiz}
-              className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200 transform hover:scale-105"
+              disabled={!sessionId}
+              className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200 transform hover:scale-105 disabled:transform-none"
             >
               🚀 Start Quiz
             </button>
