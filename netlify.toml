@@ -11,16 +11,35 @@
   directory = "netlify/functions"
   node_bundler = "esbuild"
 
+# Security Headers
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://cdn.daily.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co https://api.daily.co wss://*.supabase.co; media-src 'self' https:; frame-src https://call.daily.co; worker-src 'self' blob:;"
+
+# Cache static assets
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# SPA routing - redirect all non-asset requests to index.html
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
 
-# Optional post-build summary
-[context.production]
-  publish = "dist"
-  artifactPath = ["dist", "reports"]
+# API proxy for functions
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
 
+# Development settings
 [dev]
   framework = "vite"
   command = "pnpm run dev"

@@ -44,6 +44,9 @@ coverage/
 
 .playwright-mcp/
 
+# Netlify
+.netlify/
+
 # Supabase CLI temp files (generated automatically)
 supabase/.temp/
 
