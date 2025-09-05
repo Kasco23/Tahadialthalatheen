@@ -31,16 +31,20 @@ jobs:
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
 
+
+      # pnpm 10
+      - uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
       # Node 22
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
 
-      # pnpm 10
-      - uses: pnpm/action-setup@v4
-        with:
-          run_install: false
+      - name: Install dependencies (pnpm)
+        run: pnpm install --frozen-lockfile
 
       # Lightweight install: just madge + graphviz
       - name: Install madge & graphviz
