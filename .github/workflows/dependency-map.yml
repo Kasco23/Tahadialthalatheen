@@ -46,7 +46,7 @@ jobs:
       # Lightweight install: just madge + graphviz
       - name: Install madge & graphviz
         run: |
-          pnpm add -Dw madge@7
+          pnpm add -Dw madge@8
           sudo apt-get update -y && sudo apt-get install -y graphviz
 
       # Generate artifacts
