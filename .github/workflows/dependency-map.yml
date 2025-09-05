@@ -36,9 +36,6 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-          
-      - name: Install pnpm
-        run: npm install -g pnpm
 
       # pnpm 10
       - uses: pnpm/action-setup@v4
