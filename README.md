@@ -1,294 +1,183 @@
-# Thirty Challenge - Real-time Football Quiz Web App
+# Supabase CLI
 
-[![Netlify Status](https://api.netlify.com/api/v1/badges/b79ae85c-abc9-4765-bd94-af406a733ee5/deploy-status)](https://app.netlify.com/projects/thirtychallenge/deploys)
-[![TypeScript](https://badges.frapsoft.com/typescript/code/typescript.svg?v=101)](https://github.com/ellerbrock/typescript-badges/)
-[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)](https://reactjs.org/)
-[![Vite](https://img.shields.io/badge/Vite-7-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-38B2AC?logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
-[![Supabase](https://img.shields.io/badge/Supabase-2.19-3ECF8E?logo=supabase&logoColor=white)](https://supabase.com/)
-[![Daily.co](https://img.shields.io/badge/Daily.co-0.56-FF6B6B?logo=dailydotco&logoColor=white)](https://daily.co/)
-[![Bundle Size](https://img.shields.io/badge/Bundle_Size-<200kB-green)](https://quiz.tyshub.xyz)
-[![Live Demo](https://img.shields.io/badge/Live_Demo-thirtyquiz.tyshub.xyz-blue)](https://thirtyquiz.tyshub.xyz)
+[![Coverage Status](https://coveralls.io/repos/github/supabase/cli/badge.svg?branch=main)](https://coveralls.io/github/supabase/cli?branch=main) [![Bitbucket Pipelines](https://img.shields.io/bitbucket/pipelines/supabase-cli/setup-cli/master?style=flat-square&label=Bitbucket%20Canary)](https://bitbucket.org/supabase-cli/setup-cli/pipelines) [![Gitlab Pipeline Status](https://img.shields.io/gitlab/pipeline-status/sweatybridge%2Fsetup-cli?label=Gitlab%20Canary)
+](https://gitlab.com/sweatybridge/setup-cli/-/pipelines)
 
-> **Real-time, club-themed football quiz web app** with video conferencing, Arabic language support, and sequential quiz segments.
+[Supabase](https://supabase.io) is an open source Firebase alternative. We're building the features of Firebase using enterprise-grade open source tools.
 
-## 🚀 Live Demo
+This repository contains all the functionality for Supabase CLI.
 
-Visit **[thirtyquiz.tyshub.xyz](https://thirtyquiz.tyshub.xyz/)** to experience the app in action!
+- [x] Running Supabase locally
+- [x] Managing database migrations
+- [x] Creating and deploying Supabase Functions
+- [x] Generating types directly from your database schema
+- [x] Making authenticated HTTP requests to [Management API](https://supabase.com/docs/reference/api/introduction)
 
-## 📋 Table of Contents
+## Getting started
 
-- [Overview](#overview)
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Quick Start](#-quick-start)
-- [Development](#development)
-- [Architecture](#architecture)
-- [Quiz Segments](#quiz-segments)
-- [Deployment](#deployment)
-- [Contributing](#contributing)
-- [Project Structure](#project-structure)
+### Install the CLI
 
-## 🎯 Overview
-
-Thirty Challenge is a modern, real-time football quiz application designed for club-themed competitions. Built with React 19 and featuring seamless video integration via Daily.co, it supports Arabic language and provides an engaging quiz experience with multiple interactive segments.
-
-### Key Highlights
-
-- **Real-time Multiplayer**: Host + 2 players with live video conferencing
-- **Arabic Language Support**: Fully localized interface and content
-- **Sequential Quiz Segments**: BELL, SING, REMO, WSHA, AUCT segments
-- **Modern Stack**: React 19, Vite 7, TypeScript, Tailwind CSS
-- **Performance Optimized**: <200kB bundle size requirement
-- **Production Ready**: Deployed on Netlify with CI/CD
-
-## ✨ Features
-
-### 🎮 Game Features
-
-- **Multi-user Lobby**: Create and join game sessions
-- **Video Conferencing**: Integrated Daily.co video rooms
-- **Real-time Sync**: Supabase-powered live game state
-- **Dynamic Scoring**: Points tracking and winner determination
-- **Segment Controls**: Host-controlled quiz progression
-
-### 🌐 Technical Features
-
-- **Responsive Design**: Mobile-first Tailwind CSS
-- **Type Safety**: Full TypeScript coverage
-- **State Management**: Jotai atoms for efficient state
-- **Animation**: Framer Motion for smooth transitions
-- **Testing**: Vitest/Jest test suite
-- **Bundle Analysis**: Size monitoring and optimization
-
-### 🌍 Internationalization
-
-- **Arabic Language**: RTL support and localized content
-- **English Fallback**: Dual language toggle
-- **Cultural Adaptation**: Club-themed quiz content
-
-## 🛠 Tech Stack
-
-| Category       | Technology    | Version | Purpose                  |
-| -------------- | ------------- | ------- | ------------------------ |
-| **Frontend**   | React         | 19      | UI Framework             |
-| **Build Tool** | Vite          | 7       | Development & Build      |
-| **Styling**    | Tailwind CSS  | 3.4     | Utility-first CSS        |
-| **Language**   | TypeScript    | 5.8.3   | Type Safety              |
-| **State**      | Jotai         | 2.12.5  | Atomic State Management  |
-| **Animation**  | Framer Motion | 12      | Motion & Transitions     |
-| **Backend**    | Supabase      | 2.52.1  | Database & Realtime      |
-| **Video**      | Daily.co      | 0.81.0  | Video Conferencing       |
-| **Testing**    | Vitest/Jest   | 29.7.0  | Unit & Integration Tests |
-| **Deployment** | Netlify       | -       | Static Site Hosting      |
-
-## 🚀 Quick Start
-
-### Prerequisites
-
-- **Node.js** 18+
-- **pnpm** 10+ (recommended)
-- **Supabase** account (for backend)
-- **Daily.co** account (for video)
-
-### Installation
+Available via [NPM](https://www.npmjs.com) as dev dependency. To install:
 
 ```bash
-# Clone the repository
-git clone https://github.com/AmberMaze/thirty-challenge-code.git
-cd thirty-challenge-code
-
-# Install dependencies
-pnpm install
-
-# Copy environment variables
-cp .env.example .env
-# Edit .env with your Supabase and Daily.co credentials
-
-# Start development server
-pnpm dev
-
-# Open browser to http://localhost:5173
+npm i supabase --save-dev
 ```
 
-### Environment Setup
-
-Create a `.env` file with the following variables:
-
-```env
-# Daily.co Configuration
-DAILY_API_KEY=your_daily_api_key
-VITE_DAILY_DOMAIN=your_daily_domain
-
-# Supabase Configuration
-VITE_SUPABASE_URL=your_supabase_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
-
-# Development
-NETLIFY_DEV=true
-```
-
-## 🔧 Development
-
-### Available Scripts
+To install the beta release channel:
 
 ```bash
-# Development
-pnpm dev              # Start development server
-pnpm dev:netlify      # Start with Netlify functions
-
-# Building
-pnpm build            # Production build
-pnpm preview          # Preview production build
-
-# Quality Assurance
-pnpm test             # Run tests
-pnpm lint             # ESLint checking
-pnpm format           # Prettier formatting
-pnpm tsc --noEmit     # TypeScript checking
-
-# Analysis
-pnpm dep:graph        # Generate dependency graph
-pnpm flow:update      # Update flowchart documentation
-pnpm analyze          # Bundle size analysis
+npm i supabase@beta --save-dev
 ```
 
-### Development Workflow
-
-1. **Code Quality**: ESLint + Prettier + TypeScript
-2. **Testing**: Vitest for unit/integration tests
-3. **Bundle Monitoring**: <200kB JS bundle enforced
-4. **Dependency Tracking**: Madge for circular dependency detection
-
-## 🏗 Architecture
-
-### State Management
-
-- **Jotai Atoms**: Small, focused state pieces in `src/state/`
-- **Game Context**: Centralized game state management
-- **Real-time Sync**: Supabase channels for live updates
-
-### Component Structure
+When installing with yarn 4, you need to disable experimental fetch with the following nodejs config.
 
 ```
-src/
-├── components/     # Reusable UI components
-├── pages/         # Route-level components
-├── segments/      # Quiz segment logic
-├── hooks/         # Custom React hooks
-├── lib/           # Utilities and configurations
-├── state/         # Jotai atoms and state
-└── types/         # TypeScript definitions
+NODE_OPTIONS=--no-experimental-fetch yarn add supabase
 ```
 
-### Data Flow
+> **Note**
+For Bun versions below v1.0.17, you must add `supabase` as a [trusted dependency](https://bun.sh/guides/install/trusted) before running `bun add -D supabase`.
 
-```mermaid
-graph TD
-    A[User Action] --> B[Component]
-    B --> C[Jotai Atom]
-    C --> D[Supabase Sync]
-    D --> E[Real-time Update]
-    E --> F[Other Clients]
-```
+<details>
+  <summary><b>macOS</b></summary>
 
-## 🎯 Quiz Segments
+  Available via [Homebrew](https://brew.sh). To install:
 
-| Segment  | Description       | Points | Duration |
-| -------- | ----------------- | ------ | -------- |
-| **WSHA** | Team Recognition  | 4      | Variable |
-| **BELL** | Quick Answer Bell | 10     | Timed    |
-| **SING** | Audio/Music Round | 10     | Timed    |
-| **REMO** | Penalty Kicks     | 4      | Variable |
-| **AUCT** | Auction Bidding   | 4      | Variable |
+  ```sh
+  brew install supabase/tap/supabase
+  ```
 
-Each segment has custom logic in `src/segments/` with specialized hooks and components.
+  To install the beta release channel:
+  
+  ```sh
+  brew install supabase/tap/supabase-beta
+  brew link --overwrite supabase-beta
+  ```
+  
+  To upgrade:
 
-## 🚀 Deployment
+  ```sh
+  brew upgrade supabase
+  ```
+</details>
 
-### Netlify Deployment
+<details>
+  <summary><b>Windows</b></summary>
 
-The app is automatically deployed to Netlify on every push to `main`:
+  Available via [Scoop](https://scoop.sh). To install:
 
-1. **Build Command**: `pnpm build`
-2. **Publish Directory**: `dist`
-3. **Environment Variables**: Set in Netlify dashboard
-4. **Functions**: Serverless functions in `netlify/functions/`
+  ```powershell
+  scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
+  scoop install supabase
+  ```
 
-### Manual Deployment
+  To upgrade:
+
+  ```powershell
+  scoop update supabase
+  ```
+</details>
+
+<details>
+  <summary><b>Linux</b></summary>
+
+  Available via [Homebrew](https://brew.sh) and Linux packages.
+
+  #### via Homebrew
+
+  To install:
+
+  ```sh
+  brew install supabase/tap/supabase
+  ```
+
+  To upgrade:
+
+  ```sh
+  brew upgrade supabase
+  ```
+
+  #### via Linux packages
+
+  Linux packages are provided in [Releases](https://github.com/supabase/cli/releases). To install, download the `.apk`/`.deb`/`.rpm`/`.pkg.tar.zst` file depending on your package manager and run the respective commands.
+
+  ```sh
+  sudo apk add --allow-untrusted <...>.apk
+  ```
+
+  ```sh
+  sudo dpkg -i <...>.deb
+  ```
+
+  ```sh
+  sudo rpm -i <...>.rpm
+  ```
+
+  ```sh
+  sudo pacman -U <...>.pkg.tar.zst
+  ```
+</details>
+
+<details>
+  <summary><b>Other Platforms</b></summary>
+
+  You can also install the CLI via [go modules](https://go.dev/ref/mod#go-install) without the help of package managers.
+
+  ```sh
+  go install github.com/supabase/cli@latest
+  ```
+
+  Add a symlink to the binary in `$PATH` for easier access:
+
+  ```sh
+  ln -s "$(go env GOPATH)/bin/cli" /usr/bin/supabase
+  ```
+
+  This works on other non-standard Linux distros.
+</details>
+
+<details>
+  <summary><b>Community Maintained Packages</b></summary>
+
+  Available via [pkgx](https://pkgx.sh/). Package script [here](https://github.com/pkgxdev/pantry/blob/main/projects/supabase.com/cli/package.yml).
+  To install in your working directory:
+
+  ```bash
+  pkgx install supabase
+  ```
+
+  Available via [Nixpkgs](https://nixos.org/). Package script [here](https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/tools/supabase-cli/default.nix).
+</details>
+
+### Run the CLI
 
 ```bash
-# Build for production
-pnpm build
-
-# Preview locally
-pnpm preview
-
-# Deploy to Netlify (requires CLI)
-netlify deploy --prod
+supabase bootstrap
 ```
 
-## 🤝 Contributing
+Or using npx:
 
-### Pull Request Checklist
-
-- [ ] Code compiles (`pnpm tsc --noEmit`)
-- [ ] ESLint passes (`pnpm lint`)
-- [ ] Tests pass (`pnpm test`)
-- [ ] Bundle size <200kB
-- [ ] Dependency map updated if needed
-- [ ] Documentation updated
-
-### Development Guidelines
-
-- **Components**: Function components with hooks only
-- **Styling**: Tailwind utility classes only
-- **State**: Jotai atoms for state management
-- **Bundle**: Monitor size with each import
-- **Types**: Full TypeScript coverage
-
-## 📁 Project Structure
-
-```
-thirty-challenge-code/
-├── src/
-│   ├── components/         # Reusable UI components
-│   ├── pages/             # Route components
-│   ├── segments/          # Quiz segment logic
-│   ├── hooks/             # Custom React hooks
-│   ├── lib/               # Utilities & config
-│   ├── state/             # Jotai atoms
-│   └── types/             # TypeScript definitions
-├── netlify/
-│   └── functions/         # Serverless functions
-├── docs/                  # Documentation
-├── public/                # Static assets
-└── scripts/               # Build & utility scripts
+```bash
+npx supabase bootstrap
 ```
 
-## 📚 Documentation
+The bootstrap command will guide you through the process of setting up a Supabase project using one of the [starter](https://github.com/supabase-community/supabase-samples/blob/main/samples.json) templates.
 
-- [Project Overview](docs/PROJECT_OVERVIEW.md) - Comprehensive project details
-- [Agent Guidelines](docs/AGENTS.md) - AI development guidelines
-- [Quiz Structure](docs/QUIZ_STRUCTURE.md) - Game flow and segments
-- [Daily.co Integration](docs/DAILY_CO_INTEGRATION.md) - Video setup
-- [Workflows](docs/WORKFLOWS.md) - Development processes
+## Docs
 
-## 📄 License
+Command & config reference can be found [here](https://supabase.com/docs/reference/cli/about).
 
-This project is proprietary. All rights reserved.
+## Breaking changes
 
-## 🙏 Acknowledgments
+We follow semantic versioning for changes that directly impact CLI commands, flags, and configurations.
 
-- **React Team** for React 19
-- **Vite Team** for blazing fast builds
-- **Supabase** for backend-as-a-service
-- **Daily.co** for video infrastructure
-- **Tailwind CSS** for utility-first styling
+However, due to dependencies on other service images, we cannot guarantee that schema migrations, seed.sql, and generated types will always work for the same CLI major version. If you need such guarantees, we encourage you to pin a specific version of CLI in package.json.
 
----
+## Developing
 
-**Built with ❤️ for the football community**
+To run from source:
 
-For questions or support, please refer to the documentation in the `docs/` directory.
+```sh
+# Go >= 1.22
+go run . help
+```

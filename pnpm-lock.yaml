@@ -44,6 +44,9 @@ importers:
       netlify:
         specifier: ^23.4.0
         version: 23.5.0(@types/node@24.3.0)(picomatch@4.0.3)(rollup@4.49.0)
+      netlify-cli:
+        specifier: ^23.5.0
+        version: 23.5.0(@types/node@24.3.0)(picomatch@4.0.3)(rollup@4.49.0)
       node-vibrant:
         specifier: ^4.0.3
         version: 4.0.3
@@ -5015,6 +5018,11 @@ packages:
 
   neo-async@2.6.2:
     resolution: {integrity: sha512-Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw==}
+
+  netlify-cli@23.5.0:
+    resolution: {integrity: sha512-7Wy8gm2InfvR+SKW4qhc3qbsuIm+nH7blIzgHk3LfzHNlcMAHYo0tU9a3KcX2LmDE1hMvzgSsyaDMScOmxA+xw==}
+    engines: {node: '>=20.12.2'}
+    hasBin: true
 
   netlify-redirector@0.5.0:
     resolution: {integrity: sha512-4zdzIP+6muqPCuE8avnrgDJ6KW/2+UpHTRcTbMXCIRxiRmyrX+IZ4WSJGZdHPWF3WmQpXpy603XxecZ9iygN7w==}
@@ -12870,6 +12878,133 @@ snapshots:
   negotiator@0.6.4: {}
 
   neo-async@2.6.2: {}
+
+  netlify-cli@23.5.0(@types/node@24.3.0)(picomatch@4.0.3)(rollup@4.49.0):
+    dependencies:
+      '@fastify/static': 7.0.4
+      '@netlify/api': 14.0.4
+      '@netlify/blobs': 10.0.10
+      '@netlify/build': 35.1.3(@opentelemetry/api@1.8.0)(@types/node@24.3.0)(picomatch@4.0.3)(rollup@4.49.0)
+      '@netlify/build-info': 10.0.7
+      '@netlify/config': 24.0.3
+      '@netlify/dev-utils': 4.1.2
+      '@netlify/edge-bundler': 14.5.3
+      '@netlify/edge-functions-bootstrap': 2.14.0
+      '@netlify/headers-parser': 9.0.2
+      '@netlify/local-functions-proxy': 2.0.3
+      '@netlify/redirect-parser': 15.0.3
+      '@netlify/zip-it-and-ship-it': 14.1.5(rollup@4.49.0)(supports-color@10.2.0)
+      '@octokit/rest': 21.1.1
+      '@opentelemetry/api': 1.8.0
+      '@pnpm/tabtab': 0.5.4
+      ansi-escapes: 7.0.0
+      ansi-to-html: 0.7.2
+      ascii-table: 0.0.9
+      backoff: 2.5.0
+      boxen: 8.0.1
+      chalk: 5.6.0
+      chokidar: 4.0.3
+      ci-info: 4.3.0
+      clean-deep: 3.4.0
+      commander: 12.1.0
+      comment-json: 4.2.5
+      content-type: 1.0.5
+      cookie: 1.0.2
+      cron-parser: 4.9.0
+      debug: 4.4.1(supports-color@10.2.0)
+      decache: 4.6.2
+      dot-prop: 9.0.0
+      dotenv: 17.2.1
+      env-paths: 3.0.0
+      envinfo: 7.14.0
+      etag: 1.8.1
+      execa: 5.1.1
+      express: 4.21.2
+      express-logging: 1.1.1
+      extract-zip: 2.0.1
+      fastest-levenshtein: 1.0.16
+      fastify: 4.29.1
+      find-up: 7.0.0
+      folder-walker: 3.2.0
+      fuzzy: 0.1.3
+      get-port: 5.1.1
+      gh-release-fetch: 4.0.3
+      git-repo-info: 2.1.1
+      gitconfiglocal: 2.1.0
+      http-proxy: 1.18.1(debug@4.4.1)
+      http-proxy-middleware: 2.0.9(debug@4.4.1)
+      https-proxy-agent: 7.0.6(supports-color@10.2.0)
+      inquirer: 8.2.6
+      inquirer-autocomplete-prompt: 1.4.0(inquirer@8.2.6)
+      ipx: 3.1.1(@netlify/blobs@10.0.10)
+      is-docker: 3.0.0
+      is-stream: 4.0.1
+      is-wsl: 3.1.0
+      isexe: 3.1.1
+      jsonwebtoken: 9.0.2
+      jwt-decode: 4.0.0
+      lambda-local: 2.2.0
+      locate-path: 7.2.0
+      lodash: 4.17.21
+      log-update: 6.1.0
+      maxstache: 1.0.7
+      maxstache-stream: 1.0.4
+      multiparty: 4.2.3
+      nanospinner: 1.2.2
+      netlify-redirector: 0.5.0
+      node-fetch: 3.3.2
+      normalize-package-data: 7.0.1
+      open: 10.2.0
+      p-filter: 4.1.0
+      p-map: 7.0.3
+      p-wait-for: 5.0.2
+      parallel-transform: 1.2.0
+      parse-github-url: 1.0.3
+      prettyjson: 1.2.5
+      raw-body: 3.0.0
+      read-package-up: 11.0.0
+      readdirp: 4.1.2
+      semver: 7.7.2
+      source-map-support: 0.5.21
+      terminal-link: 4.0.0
+      toml: 3.0.0
+      tomlify-j0.4: 3.0.0
+      ulid: 3.0.1
+      update-notifier: 7.3.1
+      uuid: 11.1.0
+      wait-port: 1.1.0
+      write-file-atomic: 5.0.1
+      ws: 8.18.3
+    transitivePeerDependencies:
+      - '@azure/app-configuration'
+      - '@azure/cosmos'
+      - '@azure/data-tables'
+      - '@azure/identity'
+      - '@azure/keyvault-secrets'
+      - '@azure/storage-blob'
+      - '@capacitor/preferences'
+      - '@deno/kv'
+      - '@netlify/opentelemetry-sdk-setup'
+      - '@planetscale/database'
+      - '@swc/core'
+      - '@swc/wasm'
+      - '@types/express'
+      - '@types/node'
+      - '@upstash/redis'
+      - '@vercel/blob'
+      - '@vercel/functions'
+      - '@vercel/kv'
+      - aws4fetch
+      - bufferutil
+      - db0
+      - encoding
+      - idb-keyval
+      - ioredis
+      - picomatch
+      - rollup
+      - supports-color
+      - uploadthing
+      - utf-8-validate
 
   netlify-redirector@0.5.0: {}
 

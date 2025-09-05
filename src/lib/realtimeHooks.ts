@@ -54,13 +54,15 @@ export function useStrikes(sessionId: string | null) {
           console.log('Strikes update:', payload)
           
           if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
-            const newData = payload.new as Tables<'Strikes'>
+            type StrikeRow = { participant_id: string; strikes: number }
+            const newData = payload.new as unknown as StrikeRow
             setStrikes(prev => ({
               ...prev,
               [newData.participant_id]: newData.strikes
             }))
           } else if (payload.eventType === 'DELETE') {
-            const oldData = payload.old as Tables<'Strikes'>
+            type StrikeRow = { participant_id: string; strikes: number }
+            const oldData = payload.old as unknown as StrikeRow
             setStrikes(prev => {
               const updated = { ...prev }
               delete updated[oldData.participant_id]

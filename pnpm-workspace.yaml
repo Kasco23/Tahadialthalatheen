@@ -4,7 +4,8 @@ onlyBuiltDependencies:
   - esbuild
   - inotify
   - netlify
+  - netlify-cli
+  - puppeteer
   - sharp
   - supabase
   - unix-dgram
-  - puppeteer

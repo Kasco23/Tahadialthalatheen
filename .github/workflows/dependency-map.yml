@@ -8,7 +8,7 @@ on:
     workflows: ["CI", "Lint", "CodeQL"]
     types:
       - completed
-    branches: [ minimal, main, advanced ]
+    branches: [ minimal]
     # only run if they finished successfully
     # (GitHub adds `conclusion: success` automatically for "completed")
     # no extra filter needed
