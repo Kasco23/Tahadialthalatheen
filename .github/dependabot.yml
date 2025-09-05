@@ -3,7 +3,7 @@ updates:
   #
   # ──────────────────────────  JavaScript / TypeScript  ──────────────────────────
   #
-  - package-ecosystem: "pnpm"
+  - package-ecosystem: "npm"
     directory: "/"                 # project root
     schedule:
       interval: "weekly"
