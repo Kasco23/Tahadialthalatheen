@@ -59,8 +59,8 @@ jobs:
           pnpm madge \
             --extensions ts,tsx \
             --exclude "${MADGE_EXCLUDES}" \
-            --layout circular \
-            --svg dep-graph.svg src
+            --layout circo \
+            -i dep-graph.svg src
 
           # circular detection -- fail if any, but keep going to commit
           pnpm madge --circular --extensions ts,tsx src | tee circular.txt
