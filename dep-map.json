@@ -1,7 +1,14 @@
 {
   "netlify/functions/create-daily-token.ts": [],
   "netlify/functions/createDailyRoom.ts": [],
+  "src/components/PasswordModal.test.tsx": [
+    "src/components/PasswordModal.tsx"
+  ],
   "src/components/PasswordModal.tsx": [],
+  "src/lib/mutations.test.ts": [
+    "src/lib/mutations.ts",
+    "src/lib/types.ts"
+  ],
   "src/lib/mutations.ts": [
     "src/lib/supabaseClient.ts",
     "src/lib/types.ts"
@@ -13,6 +20,10 @@
   "src/lib/realtimeHooks.ts": [
     "src/lib/supabaseClient.ts",
     "src/lib/types.ts"
+  ],
+  "src/lib/sessionCode.test.ts": [
+    "src/lib/mutations.ts",
+    "src/lib/supabaseClient.ts"
   ],
   "src/lib/sessionHooks.ts": [
     "src/lib/supabaseClient.ts"
