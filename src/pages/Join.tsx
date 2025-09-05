@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { joinAsHostWithCode, joinAsPlayerWithCode } from '../lib/mutations';
 
 const Join: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState<'host' | 'player'>('host');
 
   // Host form state
@@ -200,6 +201,17 @@ const Join: React.FC = () => {
       loadTeamLogo();
     }
   }, [activeTab]);
+
+  // Auto-fill session code from query parameters
+  useEffect(() => {
+    const sessionCodeParam = searchParams.get('sessionCode');
+    if (sessionCodeParam) {
+      setSessionCode(sessionCodeParam);
+      setPlayerSessionCode(sessionCodeParam);
+      // Auto-switch to player tab if coming from quick join
+      setActiveTab('player');
+    }
+  }, [searchParams]);
 
   const handleHostSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

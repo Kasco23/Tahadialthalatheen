@@ -32,6 +32,7 @@ describe('PasswordModal', () => {
     );
     
     expect(screen.getByText('🔐 Set Host Password')).toBeInTheDocument();
+    expect(screen.getByLabelText('Host Name')).toBeInTheDocument();
     expect(screen.getByLabelText('Password')).toBeInTheDocument();
     expect(screen.queryByLabelText('Confirm Password')).not.toBeInTheDocument();
   });
@@ -61,6 +62,7 @@ describe('PasswordModal', () => {
     fireEvent.click(screen.getByText('✅ Confirm'));
     
     await waitFor(() => {
+      expect(screen.getByText('• Host name is required')).toBeInTheDocument();
       expect(screen.getByText('• Password is required')).toBeInTheDocument();
     });
     
@@ -76,6 +78,10 @@ describe('PasswordModal', () => {
       />
     );
     
+    fireEvent.change(screen.getByLabelText('Host Name'), {
+      target: { value: 'Test Host' }
+    });
+    
     fireEvent.change(screen.getByLabelText('Password'), {
       target: { value: 'ab' }
     });
@@ -89,7 +95,7 @@ describe('PasswordModal', () => {
     expect(mockOnConfirm).not.toHaveBeenCalled();
   });
 
-  it('should call onConfirm with password when valid input is provided', async () => {
+  it('should call onConfirm with password and hostName when valid input is provided', async () => {
     render(
       <PasswordModal
         isOpen={true}
@@ -98,6 +104,10 @@ describe('PasswordModal', () => {
       />
     );
     
+    fireEvent.change(screen.getByLabelText('Host Name'), {
+      target: { value: 'Test Host' }
+    });
+    
     fireEvent.change(screen.getByLabelText('Password'), {
       target: { value: 'validpassword' }
     });
@@ -105,7 +115,7 @@ describe('PasswordModal', () => {
     fireEvent.click(screen.getByText('✅ Confirm'));
     
     await waitFor(() => {
-      expect(mockOnConfirm).toHaveBeenCalledWith('validpassword');
+      expect(mockOnConfirm).toHaveBeenCalledWith('validpassword', 'Test Host');
     });
   });
 
@@ -119,6 +129,7 @@ describe('PasswordModal', () => {
       />
     );
     
+    expect(screen.getByLabelText('Host Name')).toBeDisabled();
     expect(screen.getByLabelText('Password')).toBeDisabled();
     expect(screen.getByText('⏳ Creating...')).toBeInTheDocument();
   });
@@ -156,7 +167,10 @@ describe('PasswordModal', () => {
       />
     );
     
-    // Type password and show errors
+    // Type host name and password and show errors
+    fireEvent.change(screen.getByLabelText('Host Name'), {
+      target: { value: 'Test' }
+    });
     fireEvent.change(screen.getByLabelText('Password'), {
       target: { value: 'ab' }
     });
