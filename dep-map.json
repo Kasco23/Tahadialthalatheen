@@ -29,7 +29,13 @@
     "src/lib/supabaseClient.ts"
   ],
   "src/lib/supabaseClient.ts": [],
-  "src/lib/types.ts": [],
+  "src/lib/types.ts": [
+    "src/lib/types/index.ts"
+  ],
+  "src/lib/types/index.ts": [
+    "src/lib/types/supabase.ts"
+  ],
+  "src/lib/types/supabase.ts": [],
   "src/pages/GameSetup.tsx": [
     "src/lib/mutations.ts",
     "src/lib/types.ts"
