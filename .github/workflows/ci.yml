@@ -1,38 +1,54 @@
-# .github/workflows/ci.yml
 name: CI
 on:
   push:
     branches: [ minimal, main, advanced ]
   pull_request:
     branches: [ minimal, main, advanced ]
+
+env:                      # shared across all steps
+  # ----- Front-end (Vite) -----
+  VITE_SUPABASE_DATABASE_URL: ${{ secrets.VITE_SUPABASE_DATABASE_URL }}
+  VITE_SUPABASE_ANON_KEY:     ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+  VITE_DAILY_DOMAIN:          ${{ secrets.VITE_DAILY_DOMAIN }}
+  # ----- Serverless (Netlify Functions) -----
+  SUPABASE_DATABASE_URL:      ${{ secrets.SUPABASE_DATABASE_URL }}
+  SUPABASE_ANON_KEY:          ${{ secrets.SUPABASE_ANON_KEY }}
+  SUPABASE_SERVICE_ROLE_KEY:  ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+  SUPABASE_JWT_SECRET:        ${{ secrets.SUPABASE_JWT_SECRET }}
+  DAILY_API_KEY:              ${{ secrets.DAILY_API_KEY }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    # Speed up with pnpm store cache
+    permissions:
+      contents: read
+      packages: write
+
     steps:
-      - name: Use pnpm
-        uses: pnpm/action-setup@v2
-        with: 
-          version: 8            
-      - name: Use Node.js
-        uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'pnpm'
-      - name: Install dependencies
+          cache: 'pnpm'          # enables automatic ~/.pnpm-store cache
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          run_install: false     # we run pnpm install ourselves below
+
+      - name: Install dependencies (pnpm)
         run: pnpm install --frozen-lockfile
+
       - name: Lint
-        run: pnpm lint
-      - name: pnpm test
-        run: npm run test -- --run
-        env:
-          SUPABASE_DATABASE_URL: ${{ secrets.SUPABASE_DATABASE_URL }}
-          SUPABASE_ANON_KEY:     ${{ secrets.SUPABASE_ANON_KEY }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          SUPABASE_JWT_SECRET:   ${{ secrets.SUPABASE_JWT_SECRET }}
-          DAILY_API_KEY:         ${{ secrets.DAILY_API_KEY }}
+        run: pnpm run lint
+
+      - name: Unit + integration tests
+        run: pnpm run test -- --run
+
       - name: Build
-        run: pnpm build
-        env:
-          VITE_SUPABASE_DATABASE_URL: ${{ secrets.VITE_SUPABASE_DATABASE_URL }}
-          VITE_SUPABASE_ANON_KEY:     ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-          VITE_DAILY_DOMAIN:          ${{ secrets.VITE_DAILY_DOMAIN }}
+        run: pnpm run build
