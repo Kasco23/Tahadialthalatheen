@@ -12,8 +12,9 @@ import type {
 } from './types'
 
 // 1. Create Session (Host PC → GameSetup)
-export async function createSession(hostPassword: string): Promise<{ sessionId: string; sessionCode: string }> {
-  const { data, error } = await supabase
+export async function createSession(hostPassword: string, hostName: string): Promise<{ sessionId: string; sessionCode: string }> {
+  // Start a transaction by creating the session first
+  const { data: sessionData, error: sessionError } = await supabase
     .from('Session')
     .insert({
       host_password: hostPassword,
@@ -23,11 +24,27 @@ export async function createSession(hostPassword: string): Promise<{ sessionId: 
     .select('session_id, session_code')
     .single()
 
-  if (error) {
-    throw new Error(`Failed to create session: ${error.message}`)
+  if (sessionError) {
+    throw new Error(`Failed to create session: ${sessionError.message}`)
   }
 
-  return { sessionId: data.session_id, sessionCode: data.session_code }
+  // Now create the host participant
+  const { error: participantError } = await supabase
+    .from('Participant')
+    .insert({
+      session_id: sessionData.session_id,
+      name: hostName,
+      role: 'Host',
+      lobby_presence: 'NotJoined'
+    })
+
+  if (participantError) {
+    // If participant creation fails, we should ideally clean up the session
+    // but for now just throw the error
+    throw new Error(`Failed to create host participant: ${participantError.message}`)
+  }
+
+  return { sessionId: sessionData.session_id, sessionCode: sessionData.session_code }
 }
 
 // Helper function to resolve session_code to session_id

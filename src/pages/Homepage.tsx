@@ -1,30 +1,21 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import PasswordModal from '../components/PasswordModal';
 import { createSession } from '../lib/mutations';
 
 const Homepage: React.FC = () => {
-  const [countdown, setCountdown] = useState(10);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [isCreatingSession, setIsCreatingSession] = useState(false);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCountdown((prev) => (prev > 0 ? prev - 1 : 10));
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, []);
 
   const handleCreateSession = () => {
     setIsPasswordModalOpen(true);
   };
 
-  const handlePasswordConfirm = async (password: string) => {
+  const handlePasswordConfirm = async (password: string, hostName: string) => {
     setIsCreatingSession(true);
     try {
-      const { sessionCode } = await createSession(password);
+      const { sessionCode } = await createSession(password, hostName);
       setIsPasswordModalOpen(false);
       // Navigate to game setup with the session code (not session ID)
       navigate(`/gamesetup/${sessionCode}`);
@@ -61,14 +52,7 @@ const Homepage: React.FC = () => {
           The ultimate football quiz showdown
         </p>
 
-        {/* Countdown */}
-        <div className="mb-8">
-          <div className="inline-block bg-black bg-opacity-50 rounded-full px-6 py-3 mb-4">
-            <span className="text-white text-lg font-bold">
-              ⏰ Starting in: {countdown}s
-            </span>
-          </div>
-        </div>
+
 
         {/* CTA Buttons */}
         <div className="space-y-6">

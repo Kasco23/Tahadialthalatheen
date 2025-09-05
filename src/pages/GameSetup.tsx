@@ -14,7 +14,7 @@ const GameSetup: React.FC = () => {
     AUCT: 2, // Auction
     BELL: 10, // Bell
     UPDW: 10, // Up Down
-    REMO: 4  // Remote
+    REMO: 4  // Remontada
   });
 
   // Convert sessionCode to sessionId when component mounts

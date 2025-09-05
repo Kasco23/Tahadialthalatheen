@@ -4,7 +4,7 @@ import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 interface PasswordModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: (password: string) => void;
+  onConfirm: (password: string, hostName: string) => void;
   isLoading?: boolean;
 }
 
@@ -15,6 +15,7 @@ const PasswordModal: React.FC<PasswordModalProps> = ({
   isLoading = false
 }) => {
   const [password, setPassword] = useState('');
+  const [hostName, setHostName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
 
@@ -22,6 +23,10 @@ const PasswordModal: React.FC<PasswordModalProps> = ({
     e.preventDefault();
     
     const newErrors: string[] = [];
+    
+    if (!hostName.trim()) {
+      newErrors.push('Host name is required');
+    }
     
     if (!password.trim()) {
       newErrors.push('Password is required');
@@ -34,12 +39,13 @@ const PasswordModal: React.FC<PasswordModalProps> = ({
     setErrors(newErrors);
     
     if (newErrors.length === 0) {
-      onConfirm(password);
+      onConfirm(password, hostName);
     }
   };
 
   const handleClose = () => {
     setPassword('');
+    setHostName('');
     setShowPassword(false);
     setErrors([]);
     onClose();
@@ -59,6 +65,21 @@ const PasswordModal: React.FC<PasswordModalProps> = ({
         </p>
         
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label htmlFor="hostName" className="block text-sm font-medium text-gray-700 mb-2">
+              Host Name
+            </label>
+            <input
+              type="text"
+              id="hostName"
+              value={hostName}
+              onChange={(e) => setHostName(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+              placeholder="Enter your name"
+              disabled={isLoading}
+            />
+          </div>
+
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
               Password
