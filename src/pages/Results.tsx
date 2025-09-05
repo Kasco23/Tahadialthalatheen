@@ -307,7 +307,7 @@ const Results: React.FC = () => {
             Session Phase: <span className="font-bold text-white">{session.phase}</span>
           </div>
           <div className="text-sm text-green-200 mt-1">
-            Status: <span className="font-bold text-yellow-300">{session.status}</span>
+            Game State: <span className="font-bold text-yellow-300">{session.game_state}</span>
           </div>
         </div>
       </div>

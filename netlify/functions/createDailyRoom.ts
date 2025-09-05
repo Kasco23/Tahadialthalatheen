@@ -10,10 +10,17 @@ export default async (req: Request, _context: Context) => {
   }
 
   try {
-    const { session_id } = await req.json();
+    const { session_id, session_code } = await req.json();
 
     if (!session_id) {
       return new Response(JSON.stringify({ error: 'session_id is required' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    if (!session_code) {
+      return new Response(JSON.stringify({ error: 'session_code is required' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' }
       });
@@ -28,7 +35,7 @@ export default async (req: Request, _context: Context) => {
       });
     }
 
-    // Create room using Daily.co API
+    // Create room using Daily.co API with session_code as room name
     const roomResponse = await fetch('https://api.daily.co/v1/rooms', {
       method: 'POST',
       headers: {
@@ -36,7 +43,7 @@ export default async (req: Request, _context: Context) => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        name: session_id,
+        name: session_code, // Use session_code instead of session_id
         privacy: 'public',
         properties: {
           max_participants: 10,
@@ -62,9 +69,10 @@ export default async (req: Request, _context: Context) => {
 
     const roomData = await roomResponse.json();
 
-    // Return room URL and session ID
+    // Return room URL and session info
     const response = {
       room_url: roomData.url,
+      room_name: session_code,
       session_id: session_id
     };
 

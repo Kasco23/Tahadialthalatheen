@@ -10,10 +10,15 @@ export default async (req: Request, _context: Context) => {
   }
 
   try {
-    const { room_name, user_name } = await req.json();
+    const { room_name, user_name, session_code } = await req.json();
 
-    if (!room_name || !user_name) {
-      return new Response(JSON.stringify({ error: 'room_name and user_name are required' }), {
+    // Allow either room_name or session_code to be provided
+    const roomIdentifier = room_name || session_code;
+
+    if (!roomIdentifier || !user_name) {
+      return new Response(JSON.stringify({ 
+        error: 'room_name (or session_code) and user_name are required' 
+      }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' }
       });
@@ -37,7 +42,7 @@ export default async (req: Request, _context: Context) => {
       },
       body: JSON.stringify({
         properties: {
-          room_name: room_name,
+          room_name: roomIdentifier, // Use the roomIdentifier (session_code or room_name)
           user_name: user_name,
           is_owner: false,
           enable_recording: false,

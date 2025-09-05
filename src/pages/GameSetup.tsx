@@ -87,6 +87,11 @@ const GameSetup: React.FC = () => {
       return;
     }
     
+    if (!sessionCode) {
+      alert('No session code available. Please go back to homepage and create a session.');
+      return;
+    }
+    
     setIsLoading(true);
     try {
       // 1. Set segment configuration
@@ -96,8 +101,8 @@ const GameSetup: React.FC = () => {
       }));
       await setSegmentConfig(sessionId, segmentConfigs);
       
-      // 2. Create Daily room
-      await createDailyRoom(sessionId);
+      // 2. Create Daily room using both session ID and session code
+      await createDailyRoom(sessionId, sessionCode);
       
       setIsDailyRoomCreated(true);
       alert(`Daily room created successfully! Session Code: ${sessionCode}`);

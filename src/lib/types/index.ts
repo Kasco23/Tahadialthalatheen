@@ -39,7 +39,8 @@ export interface SegmentConfigInput {
 
 export interface CreateDailyRoomResponse {
   room_url: string
-  room_name?: string
+  room_name: string
+  session_id: string
 }
 
 export interface StrikeData {

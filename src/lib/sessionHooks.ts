@@ -3,16 +3,12 @@ import { supabase } from './supabaseClient';
 
 interface SessionData {
   session_id: string;
+  session_code: string | null;
   phase: string;
-  status: string;
-  current_segment?: string;
-  host_name?: string;
-  video_room_url?: string;
-  video_room_created?: boolean;
-  created_at?: string;
-  updated_at?: string;
-  host_id?: string;
-  controller_user_id?: string;
+  game_state: string;
+  host_password: string;
+  created_at: string | null;
+  ended_at: string | null;
 }
 
 interface UseSessionReturn {
@@ -43,7 +39,7 @@ export const useSession = (sessionId: string | null): UseSessionReturn => {
           {
             event: '*',
             schema: 'public',
-            table: 'sessions',
+            table: 'Session',
             filter: `session_id=eq.${sessionId}`
           },
           (payload) => {
@@ -83,7 +79,7 @@ export const useSession = (sessionId: string | null): UseSessionReturn => {
         setError(null);
 
         const { data, error: fetchError } = await supabase
-          .from('sessions')
+          .from('Session')
           .select('*')
           .eq('session_id', sessionId)
           .single();

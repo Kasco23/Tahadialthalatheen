@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useSession } from '../lib/sessionHooks';
-import { getSessionIdByCode } from '../lib/mutations';
+import { getSessionIdByCode, getDailyRoom } from '../lib/mutations';
 
 interface Player {
   player_id: string;
@@ -24,6 +24,7 @@ const Lobby: React.FC = () => {
   const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [dailyRoom, setDailyRoom] = useState<{ room_url: string; ready: boolean } | null>(null);
 
   // Convert sessionCode to sessionId when component mounts
   useEffect(() => {
@@ -48,6 +49,24 @@ const Lobby: React.FC = () => {
       resolveSessionId();
     }
   }, [sessionCode]);
+
+  // Load Daily room data when sessionId is available
+  useEffect(() => {
+    const loadDailyRoom = async () => {
+      if (!sessionId) return;
+      
+      try {
+        const roomData = await getDailyRoom(sessionId);
+        setDailyRoom(roomData);
+      } catch (error) {
+        console.error('Failed to load Daily room data:', error);
+      }
+    };
+
+    if (sessionId) {
+      loadDailyRoom();
+    }
+  }, [sessionId]);
 
   useEffect(() => {
     if (!sessionId) {
@@ -202,7 +221,7 @@ const Lobby: React.FC = () => {
           </div>
           <div className="text-sm text-blue-200 mt-2">
             Phase: <span className="font-bold">{session.phase}</span> |
-            Status: <span className="font-bold">{session.status}</span>
+            Game State: <span className="font-bold">{session.game_state}</span>
           </div>
         </div>
 
@@ -304,11 +323,18 @@ const Lobby: React.FC = () => {
         {/* Session Info */}
         <div className="text-center mt-8">
           <div className="text-sm text-blue-200">
-            Video Room: {session.video_room_created ? '✅ Created' : '⏳ Pending'}
+            Video Room: {dailyRoom?.ready ? '✅ Created' : '⏳ Pending'}
           </div>
-          {session.video_room_url && (
+          {dailyRoom?.room_url && (
             <div className="text-sm text-blue-200 mt-1">
-              Room URL: {session.video_room_url}
+              <a 
+                href={dailyRoom.room_url} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-blue-300 hover:text-blue-100 underline"
+              >
+                🎥 Join Video Room
+              </a>
             </div>
           )}
         </div>

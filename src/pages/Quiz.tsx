@@ -131,7 +131,7 @@ const Quiz: React.FC = () => {
         <div className="text-center mb-8 text-white">
           <h1 className="text-4xl font-bold mb-2">⚽ Quiz In Progress</h1>
           <p className="text-xl opacity-90">Session: {sessionId}</p>
-          <p className="text-lg opacity-80">Phase: {session.phase} | Current Segment: {session.current_segment}</p>
+          <p className="text-lg opacity-80">Phase: {session.phase} | Game State: {session.game_state}</p>
         </div>
 
         {/* Current Segment Info */}
