@@ -5,7 +5,7 @@ on:
   pull_request:
     branches: [ minimal, main, advanced ]
 
-env:                      # shared across all steps
+env:                      # shared across all jobs and steps
   # ----- Front-end (Vite) -----
   VITE_SUPABASE_DATABASE_URL: ${{ secrets.VITE_SUPABASE_DATABASE_URL }}
   VITE_SUPABASE_ANON_KEY:     ${{ secrets.VITE_SUPABASE_ANON_KEY }}
