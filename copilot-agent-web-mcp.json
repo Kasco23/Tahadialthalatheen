@@ -1,0 +1,77 @@
+{
+  "mcpServers": {
+    "microsoft-docs": {
+      "type": "http",
+      "url": "https://learn.microsoft.com/api/mcp",
+      "tools": ["*"]
+    },
+    "imagesorcery": {
+      "type": "local",
+      "command": "npx",
+      "args": ["-y", "imagesorcery-mcp"],
+      "tools": ["*"]
+  },
+   "context7": {
+      "type": "http",
+      "url": "https://mcp.context7.com/mcp",
+      "headers": {
+        "CONTEXT7_API_KEY": "${COPILOT_MCP_CONTEXT7_API_KEY}"
+      },
+      "tools": ["*"]
+    },
+    "netlify-mcp": {
+      "type": "local",
+      "command": "npx",
+      "args": ["-y", "@netlify/mcp"],
+      "env": {
+        "NETLIFY_AUTH_TOKEN": "${COPILOT_MCP_NETLIFY_AUTH_TOKEN}",
+        "NETLIFY_SITE_ID": "${COPILOT_MCP_NETLIFY_SITE_ID}"
+      },
+      "tools": ["*"]
+    },
+    "sequentialthinking": {
+      "type": "local",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
+      "tools": ["*"]
+    },
+    "memory": {
+      "type": "local",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-memory"],
+      "env": {
+        "MEMORY_FILE_PATH": "/tmp/copilot-memory.json"
+      },
+      "tools": ["*"]
+    },
+    "firecrawl": {
+      "type": "local",
+      "command": "npx",
+      "args": ["-y", "firecrawl-mcp"],
+      "env": {
+        "FIRECRAWL_API_KEY": "${COPILOT_MCP_FIRECRAWL_API_KEY}"
+      },
+      "tools": ["crawl", "scrape", "search"]
+    },
+    "reactbits": {
+      "type": "local",
+      "command": "npx",
+      "args": ["reactbits-dev-mcp-server"],
+      "tools": ["*"]
+    },
+    "supabase": {
+      "type": "local",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@supabase/mcp-server-supabase@latest",
+        "--read-only",
+        "--project-ref=zgvmkjefgdabumvafqch"
+      ],
+      "env": {
+        "SUPABASE_ACCESS_TOKEN": "${COPILOT_MCP_SUPABASE_ACCESS_TOKEN}"
+      },
+      "tools": ["*"]
+    }
+  }
+}
