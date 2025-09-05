@@ -11,6 +11,18 @@ import type {
   CreateDailyRoomResponse
 } from './types'
 
+// Interface for active session data
+export interface ActiveSession {
+  session_id: string;
+  session_code: string;
+  phase: SessionPhase;
+  game_state: GameState;
+  created_at: string;
+  host_name: string;
+  participant_count: number;
+  has_daily_room: boolean;
+}
+
 // 1. Create Session (Host PC → GameSetup)
 export async function createSession(hostPassword: string, hostName: string): Promise<{ sessionId: string; sessionCode: string }> {
   // Start a transaction by creating the session first
@@ -45,6 +57,47 @@ export async function createSession(hostPassword: string, hostName: string): Pro
   }
 
   return { sessionId: sessionData.session_id, sessionCode: sessionData.session_code }
+}
+
+// Function to fetch active sessions for the Active Games component
+export async function getActiveSessions(): Promise<ActiveSession[]> {
+  const { data, error } = await supabase
+    .from('Session')
+    .select(`
+      session_id,
+      session_code,
+      phase,
+      game_state,
+      created_at,
+      Participant!inner(name, role),
+      DailyRoom(room_url)
+    `)
+    .eq('game_state', 'pre-quiz')
+    .is('ended_at', null)
+    
+  if (error) {
+    throw new Error(`Failed to fetch active sessions: ${error.message}`)
+  }
+
+  // Transform the data to match our interface
+  const activeSessions: ActiveSession[] = data.map((session: any) => {
+    const hostParticipant = session.Participant.find((p: any) => p.role === 'Host')
+    const participantCount = session.Participant.length
+    const hasDailyRoom = session.DailyRoom && session.DailyRoom.length > 0
+
+    return {
+      session_id: session.session_id,
+      session_code: session.session_code,
+      phase: session.phase,
+      game_state: session.game_state,
+      created_at: session.created_at,
+      host_name: hostParticipant ? hostParticipant.name : 'Unknown Host',
+      participant_count: participantCount,
+      has_daily_room: hasDailyRoom
+    }
+  })
+
+  return activeSessions
 }
 
 // Helper function to resolve session_code to session_id
