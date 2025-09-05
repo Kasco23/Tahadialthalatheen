@@ -27,19 +27,13 @@ jobs:
       packages: write
 
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Node 22
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'pnpm'          # enables automatic ~/.pnpm-store cache
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10
-          run_install: false     # we run pnpm install ourselves below
+          cache: 'pnpm'
+          cache-dependency-path: '**/pnpm-lock.yaml'
+          package-manager: 'pnpm'
+          pnpm-version: 10
 
       - name: Install dependencies (pnpm)
         run: pnpm install --frozen-lockfile
