@@ -1,0 +1,73 @@
+# .github/workflows/copilot-setup-steps.yml
+name: Copilot Setup Steps
+
+# Let you test changes manually and validate on PRs,
+# but Copilot will also trigger this automatically before it starts working
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+  pull_request:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+
+jobs:
+  # The job **must** be called exactly this or Copilot ignores it
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read      # minimal permission Copilot needs
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5     # Copilot will do this for you if you omit it, but we need it for Netlify link
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Netlify CLI
+        run: npm install -g netlify-cli
+
+      - name: Authenticate Netlify CLI
+        run: netlify status
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+
+      - name: Link Netlify project
+        run: netlify link --id "$NETLIFY_PROJECT_ID"
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_PROJECT_ID: ${{ vars.NETLIFY_PROJECT_ID }}
+
+      - name: Verify required environment variables
+        run: |
+          required=(VITE_SUPABASE_URL VITE_SUPABASE_ANON_KEY DAILY_API_KEY VITE_DAILY_DOMAIN NETLIFY_AUTH_TOKEN NETLIFY_PROJECT_ID)
+          missing=0
+          for var in "${required[@]}"; do
+            if [ -z "${!var}" ]; then
+              echo "::error::❌ $var is missing"
+              missing=1
+            else
+              echo "✅ $var is set"
+            fi
+          done
+          exit $missing
+        env:
+          VITE_SUPABASE_URL:       ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY:  ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          DAILY_API_KEY:           ${{ secrets.DAILY_API_KEY }}
+          VITE_DAILY_DOMAIN:       ${{ vars.VITE_DAILY_DOMAIN }}
+          NETLIFY_AUTH_TOKEN:      ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_PROJECT_ID:      ${{ vars.NETLIFY_PROJECT_ID }}
