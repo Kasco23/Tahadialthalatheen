@@ -1,48 +1,58 @@
+# ================================================
+# Netlify configuration for Tahadialthalatheen (minimal)
+# • Node 22 LTS  • pnpm 8/10 • Vite build
+# ================================================
+
 [build]
-  command = "corepack enable && pnpm i --frozen-lockfile && pnpm build"
+  # Corepack is pre‑enabled on the Node 22 image, but leaving it explicit is harmless
+  command = "corepack enable && pnpm install --frozen-lockfile && pnpm run build"
   publish = "dist"
 
 [build.environment]
-  NODE_VERSION = "22"
-  PNPM_VERSION = "10"
-  NPM_FLAGS = "--include=dev"
+  NODE_VERSION   = "22"
+  # stick to the major you want; Netlify auto‑installs the version below
+  PNPM_VERSION   = "10"          # or "8" if you prefer the current LTS of pnpm
+  # Let pnpm include devDependencies during production build (Vite plugins, ESLint, etc.)
+  PNPM_FLAGS     = "--frozen-lockfile --strict-peer-dependencies=false"
 
 [functions]
-  directory = "netlify/functions"
-  node_bundler = "esbuild"
+  directory     = "netlify/functions"
+  node_bundler  = "esbuild"
+  external_node_modules = ["@supabase/supabase-js"]
 
-# Security Headers
+# ─────────────────────────────── Security Headers ─────────────────────────────
 [[headers]]
   for = "/*"
   [headers.values]
-    X-Frame-Options = "DENY"
-    X-Content-Type-Options = "nosniff"
-    X-XSS-Protection = "1; mode=block"
-    Referrer-Policy = "strict-origin-when-cross-origin"
+    X-Frame-Options         = "DENY"
+    X-Content-Type-Options  = "nosniff"
+    X-XSS-Protection        = "1; mode=block"
+    Referrer-Policy         = "strict-origin-when-cross-origin"
     Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://cdn.daily.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co https://api.daily.co wss://*.supabase.co; media-src 'self' https:; frame-src https://call.daily.co; worker-src 'self' blob:;"
 
-# Cache static assets
+# Cache static assets (fingerprinted by Vite)
 [[headers]]
   for = "/assets/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
-# SPA routing - redirect all non-asset requests to index.html
+# ─────────────────────────────────── Redirects ────────────────────────────────
+# SPA fallback
 [[redirects]]
-  from = "/*"
-  to = "/index.html"
+  from   = "/*"
+  to     = "/index.html"
   status = 200
 
-# API proxy for functions
+# Proxy API Calls to Netlify Functions
 [[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/:splat"
+  from   = "/api/*"
+  to     = "/.netlify/functions/:splat"
   status = 200
 
-# Development settings
+# ─────────────────────────────── Dev server (netlify dev) ─────────────────────
 [dev]
-  framework = "vite"
-  command = "pnpm run dev"
-  port = 3000
-  targetPort = 5173
-  autoLaunch = false
+  framework   = "vite"
+  command     = "pnpm run dev"
+  port        = 3000            # external port exposed locally
+  targetPort  = 5173            # Vite's internal dev port
+  autoLaunch  = false
