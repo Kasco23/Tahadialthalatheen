@@ -1,75 +1,73 @@
 {
-  "netlify/functions/create-daily-token.ts": [],
-  "netlify/functions/createDailyRoom.ts": [],
-  "src/App.tsx": [
-    "src/pages/GameSetup.tsx",
-    "src/pages/Homepage.tsx",
-    "src/pages/Join.tsx",
-    "src/pages/Lobby.tsx",
-    "src/pages/Quiz.tsx",
-    "src/pages/Results.tsx"
+  "App.tsx": [
+    "pages/GameSetup.tsx",
+    "pages/Homepage.tsx",
+    "pages/Join.tsx",
+    "pages/Lobby.tsx",
+    "pages/Quiz.tsx",
+    "pages/Results.tsx"
   ],
-  "src/components/PasswordModal.test.tsx": [
-    "src/components/PasswordModal.tsx"
+  "components/PasswordModal.test.tsx": [
+    "components/PasswordModal.tsx"
   ],
-  "src/components/PasswordModal.tsx": [],
-  "src/index.css": [],
-  "src/lib/mutations.test.ts": [
-    "src/lib/mutations.ts",
-    "src/lib/types.ts"
+  "components/PasswordModal.tsx": [],
+  "index.css": [],
+  "lib/mutations.test.ts": [
+    "lib/mutations.ts",
+    "lib/types.ts"
   ],
-  "src/lib/mutations.ts": [
-    "src/lib/supabaseClient.ts",
-    "src/lib/types.ts"
+  "lib/mutations.ts": [
+    "lib/supabaseClient.ts",
+    "lib/types.ts"
   ],
-  "src/lib/mutations.validation.ts": [],
-  "src/lib/presence.ts": [
-    "src/lib/supabaseClient.ts"
+  "lib/mutations.validation.ts": [],
+  "lib/presence.ts": [
+    "lib/supabaseClient.ts"
   ],
-  "src/lib/realtimeHooks.ts": [
-    "src/lib/supabaseClient.ts",
-    "src/lib/types.ts"
+  "lib/realtimeHooks.ts": [
+    "lib/supabaseClient.ts",
+    "lib/types.ts"
   ],
-  "src/lib/sessionCode.test.ts": [
-    "src/lib/mutations.ts",
-    "src/lib/supabaseClient.ts"
+  "lib/sessionCode.test.ts": [
+    "lib/mutations.ts",
+    "lib/supabaseClient.ts"
   ],
-  "src/lib/sessionHooks.ts": [
-    "src/lib/supabaseClient.ts"
+  "lib/sessionHooks.ts": [
+    "lib/supabaseClient.ts"
   ],
-  "src/lib/supabaseClient.ts": [],
-  "src/lib/types.ts": [],
-  "src/main.tsx": [
-    "src/App.tsx",
-    "src/index.css"
+  "lib/supabaseClient.ts": [],
+  "lib/types.ts": [],
+  "main.tsx": [
+    "App.tsx",
+    "index.css"
   ],
-  "src/pages/GameSetup.tsx": [
-    "src/lib/mutations.ts",
-    "src/lib/types.ts"
+  "pages/GameSetup.tsx": [
+    "lib/mutations.ts",
+    "lib/types.ts"
   ],
-  "src/pages/Homepage.tsx": [
-    "src/components/PasswordModal.tsx",
-    "src/lib/mutations.ts"
+  "pages/Homepage.tsx": [
+    "components/PasswordModal.tsx",
+    "lib/mutations.ts"
   ],
-  "src/pages/Join.tsx": [
-    "src/lib/mutations.ts",
-    "src/lib/supabaseClient.ts"
+  "pages/Join.tsx": [
+    "lib/mutations.ts",
+    "lib/supabaseClient.ts"
   ],
-  "src/pages/Lobby.tsx": [
-    "src/lib/mutations.ts",
-    "src/lib/sessionHooks.ts",
-    "src/lib/supabaseClient.ts"
+  "pages/Lobby.tsx": [
+    "lib/mutations.ts",
+    "lib/sessionHooks.ts",
+    "lib/supabaseClient.ts"
   ],
-  "src/pages/Quiz.tsx": [
-    "src/lib/mutations.ts",
-    "src/lib/realtimeHooks.ts",
-    "src/lib/sessionHooks.ts",
-    "src/lib/types.ts"
+  "pages/Quiz.tsx": [
+    "lib/mutations.ts",
+    "lib/realtimeHooks.ts",
+    "lib/sessionHooks.ts",
+    "lib/types.ts"
   ],
-  "src/pages/Results.tsx": [
-    "src/lib/mutations.ts",
-    "src/lib/sessionHooks.ts",
-    "src/lib/supabaseClient.ts"
+  "pages/Results.tsx": [
+    "lib/mutations.ts",
+    "lib/sessionHooks.ts",
+    "lib/supabaseClient.ts"
   ],
-  "src/setupTests.ts": []
+  "setupTests.ts": []
 }

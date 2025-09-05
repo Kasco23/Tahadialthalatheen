@@ -8,9 +8,9 @@ on:
 
 env:                      # shared across all jobs and steps
   # ----- Front-end (Vite) -----
-  VITE_SUPABASE_DATABASE_URL: ${{ secrets.VITE_SUPABASE_DATABASE_URL }}
-  VITE_SUPABASE_ANON_KEY:     ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-  VITE_DAILY_DOMAIN:          ${{ secrets.VITE_DAILY_DOMAIN }}
+  VITE_SUPABASE_DATABASE_URL: ${{ vars.VITE_SUPABASE_DATABASE_URL }}
+  VITE_SUPABASE_ANON_KEY:     ${{ vars.VITE_SUPABASE_ANON_KEY }}
+  VITE_DAILY_DOMAIN:          ${{ vars.VITE_DAILY_DOMAIN }}
   # ----- Serverless (Netlify Functions) -----
   SUPABASE_DATABASE_URL:      ${{ secrets.SUPABASE_DATABASE_URL }}
   SUPABASE_ANON_KEY:          ${{ secrets.SUPABASE_ANON_KEY }}
@@ -52,4 +52,3 @@ jobs:
 
       - name: Build
         run: pnpm run build
-

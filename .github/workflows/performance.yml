@@ -19,7 +19,7 @@ jobs:
         id: netlify
         uses: jakepartusch/wait-for-netlify-action@v1
         with:
-          site_name: ${{ secrets.NETLIFY_SITE_ID }} # requires NETLIFY_AUTH_TOKEN in secrets
+          site_name: ${{ vars.NETLIFY_PROJECT_ID }} # requires NETLIFY_AUTH_TOKEN in secrets
 
       - name: Install Node & pnpm
         uses: actions/setup-node@v4
