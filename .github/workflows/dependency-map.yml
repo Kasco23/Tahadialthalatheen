@@ -43,7 +43,6 @@ jobs:
       # pnpm 10
       - uses: pnpm/action-setup@v4
         with:
-          version: 10
           run_install: false
 
       # Lightweight install: just madge + graphviz
