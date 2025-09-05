@@ -1,141 +1,49 @@
 name: CI
-
 on:
   push:
-    branches: [main, minimal]
+    branches: [ minimal, main, advanced ]
   pull_request:
-    branches: [main]
+
+    branches: [ minimal, main, advanced ]
+
+env:                      # shared across all jobs and steps
+  # ----- Front-end (Vite) -----
+  VITE_SUPABASE_DATABASE_URL: ${{ secrets.VITE_SUPABASE_DATABASE_URL }}
+  VITE_SUPABASE_ANON_KEY:     ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+  VITE_DAILY_DOMAIN:          ${{ secrets.VITE_DAILY_DOMAIN }}
+  # ----- Serverless (Netlify Functions) -----
+  SUPABASE_DATABASE_URL:      ${{ secrets.SUPABASE_DATABASE_URL }}
+  SUPABASE_ANON_KEY:          ${{ secrets.SUPABASE_ANON_KEY }}
+  SUPABASE_SERVICE_ROLE_KEY:  ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+  SUPABASE_JWT_SECRET:        ${{ secrets.SUPABASE_JWT_SECRET }}
+  DAILY_API_KEY:              ${{ secrets.DAILY_API_KEY }}
 
 jobs:
-  test:
-    name: Test & Lint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10 # Always use pnpm 10
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22 # Always use Node.js 22
-          cache: 'pnpm'
-
-      - run: pnpm install --frozen-lockfile
-
-      - run: pnpm tsc --noEmit
-        name: Run TypeScript check
-
-      - run: pnpm lint
-        name: Run linting
-
-      - run: |
-          pnpm prettier --check "**/*.{ts,tsx,js,jsx,json,md}" || {
-            echo "❌ Code formatting issues found. Run 'pnpm format' to fix them."
-            exit 1
-          }
-        name: Check code formatting
-
-      - run: pnpm test
-        name: Run tests
-
   build:
-    name: Build
-    runs-on: ubuntu-latest
-    needs: test
-    steps:
-      - uses: actions/checkout@v4
+    runs-on: ubuntu-latest    # Speed up with pnpm store cache
+    permissions:
+      contents: read
+      packages: write
 
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10
+    steps:
 
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: 'pnpm'
+          cache-dependency-path: '**/pnpm-lock.yaml'
+          package-manager: 'pnpm'
+          pnpm-version: 10
+          
+      - name: Install dependencies (pnpm)
+        run: pnpm install --frozen-lockfile
 
-      - run: pnpm install --frozen-lockfile
+      - name: Lint
+        run: pnpm run lint
 
-      - run: pnpm build
-        name: Build project
+      - name: Unit + integration tests
+        run: pnpm run test -- --run
 
-      - run: |
-          echo "📦 Build Output:"
-          ls -lah dist/
-          echo ""
-          echo "📊 Bundle Analysis:"
-          find dist -name "*.js" -o -name "*.css" | while read file; do
-            size=$(stat -c%s "$file" 2>/dev/null || stat -f%z "$file" 2>/dev/null)
-            size_kb=$((size / 1024))
-            echo "  $(basename "$file"): ${size_kb}KB"
-          done
-        name: Check build output
+      - name: Build
+        run: pnpm run build
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: build-artifacts
-          path: dist/
-          retention-days: 7
-
-  e2e-test:
-    name: E2E Tests
-    runs-on: ubuntu-latest
-    needs: build
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: 'pnpm'
-
-      - run: pnpm install --frozen-lockfile
-
-      - run: pnpm test:install
-        name: Install Playwright browsers
-
-      - run: pnpm build
-        name: Build project
-
-      - run: pnpm test:e2e
-        name: Run E2E tests
-
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: e2e-test-results
-          path: |
-            test-results/
-            playwright-report/
-          retention-days: 7
-
-  security:
-    name: Security Audit
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: 'pnpm'
-
-      - run: pnpm audit --audit-level high || {
-            echo "⚠️ Security vulnerabilities found"
-            pnpm audit --audit-level high
-          }
-        name: Run security audit
-
-      - run: pnpm outdated || echo "ℹ️ Some dependencies might be outdated"
-        name: Check for outdated dependencies

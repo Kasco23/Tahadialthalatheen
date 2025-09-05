@@ -1,11 +1,66 @@
-# Basic `dependabot.yml` file
-
 version: 2
 updates:
-  # Enable version updates for pnpm
-  - package-ecosystem: 'npm'
-    # Look for `package.json` and `lock` files in the `root` directory
-    directory: '/'
-    # Check the pnpm registry for updates every day (weekdays)
+  #
+  # ──────────────────────────  JavaScript / TypeScript  ──────────────────────────
+  #
+  - package-ecosystem: "npm"
+    directory: "/"                 # project root
     schedule:
-      interval: 'weekly'
+      interval: "weekly"
+    # open-pull-requests-limit applies *after* grouping
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "deps"
+    #
+    # ─── GROUP RULES ────────────────────────────────────────────────────────────
+    #
+    groups:
+      # 1. core production libs
+      prod-dependencies:
+        dependency-type: "production"
+
+      # 2. dev-only tools that rarely affect bundle size
+      dev-dependencies:
+        dependency-type: "development"
+        # keep eslint / prettier separate (large diffs)
+        exclude-patterns:
+          - "eslint*"
+          - "prettier*"
+
+      # 3. Vite + ecosystem (often must be upgraded together)
+      vite-ecosystem:
+        patterns:
+          - "vite*"
+          - "@vitejs*"
+          - "rollup*"
+
+      # 4. React major stack
+      react-stack:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "@types/react*"
+
+      # 5. Supabase client SDK + helpers
+      supabase:
+        patterns:
+          - "@supabase*"
+
+      # 6. Test runners & utilities
+      test-tools:
+        patterns:
+          - "vitest*"
+          - "@testing-library*"
+          - "jest*"
+
+  #
+  # ────────────────────────────  GitHub Actions  ────────────────────────────────
+  #
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      gh-actions:
+        patterns:
+          - "*"
