@@ -39,16 +39,18 @@ jobs:
       - name: Install Netlify CLI
         run: npm install -g netlify-cli
 
-      - name: Authenticate Netlify CLI
-        run: netlify status
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-
       - name: Link Netlify project
         run: netlify link --id "$NETLIFY_PROJECT_ID"
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_PROJECT_ID: ${{ vars.NETLIFY_PROJECT_ID }}
+
+      - name: Authenticate Netlify CLI
+        run: netlify status
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+
+      
 
       - name: Verify required environment variables
         run: |
