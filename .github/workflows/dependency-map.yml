@@ -1,0 +1,77 @@
+name: Dependency Map (auto-commit)
+
+# ───────────────────────────────────────────────────────────────
+# RUN AFTER CI/Lint/CodeQL succeed on the same branch
+# ───────────────────────────────────────────────────────────────
+on:
+  workflow_run:
+    workflows: ["CI", "Lint", "CodeQL"]
+    types:
+      - completed
+    branches: [ minimal, main, advanced ]
+    # only run if they finished successfully
+    # (GitHub adds `conclusion: success` automatically for "completed")
+    # no extra filter needed
+
+permissions:
+  contents: write     # allow committing map files back
+
+env:
+  MADGE_EXCLUDES: 'ignored|\\.test'
+
+jobs:
+  generate-map:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the exact SHA that the successful workflow built
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      # Node 22
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      # pnpm 10
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+          run_install: false
+
+      # Lightweight install: just madge + graphviz
+      - name: Install madge & graphviz
+        run: |
+          pnpm add -Dw madge@7
+          sudo apt-get update -y && sudo apt-get install -y graphviz
+
+      # Generate artifacts
+      - name: Build dependency map
+        run: |
+          pnpm madge \
+            --extensions ts,tsx \
+            --exclude "${MADGE_EXCLUDES}" \
+            --json src/pages src/components src/lib netlify/functions > dep-map.json
+
+          pnpm madge \
+            --extensions ts,tsx \
+            --exclude "${MADGE_EXCLUDES}" \
+            --layout circular \
+            --svg dep-graph.svg src
+
+          # circular detection -- fail if any, but keep going to commit
+          pnpm madge --circular --extensions ts,tsx src | tee circular.txt
+          echo "If circular dependencies are listed above, fix them in a follow-up PR."
+
+      # Auto-commit if anything changed
+      - name: Commit dependency artifacts
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore(deps-map): update dependency graph (auto)"
+          branch: ${{ github.event.workflow_run.head_branch }}
+          file_pattern: dep-map.json dep-graph.svg circular.txt
+

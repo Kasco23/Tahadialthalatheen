@@ -3,6 +3,7 @@ on:
   push:
     branches: [ minimal, main, advanced ]
   pull_request:
+
     branches: [ minimal, main, advanced ]
 
 env:                      # shared across all jobs and steps
@@ -19,14 +20,13 @@ env:                      # shared across all jobs and steps
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-
-    # Speed up with pnpm store cache
+    runs-on: ubuntu-latest    # Speed up with pnpm store cache
     permissions:
       contents: read
       packages: write
 
     steps:
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -34,7 +34,7 @@ jobs:
           cache-dependency-path: '**/pnpm-lock.yaml'
           package-manager: 'pnpm'
           pnpm-version: 10
-
+          
       - name: Install dependencies (pnpm)
         run: pnpm install --frozen-lockfile
 
@@ -46,3 +46,4 @@ jobs:
 
       - name: Build
         run: pnpm run build
+

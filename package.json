@@ -16,7 +16,7 @@
     "test:e2e:headed": "playwright test --headed",
     "test:install": "playwright install",
     "lint": "eslint .",
-    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "format": "prettier --write .",
     "preview": "vite preview",
     "dep:graph": "madge --json --extensions ts,tsx,js,jsx > full-dependency-map.json src && (madge --image full-graph.dot --extensions ts,tsx,js,jsx src || echo 'Graphviz not available, skipping image generation')",
     "flow:update": "node scripts/flow-from-json.mjs",
