@@ -19,7 +19,7 @@ interface ParticipantInfo {
 
 interface DailyRoomInfo {
   room_url: string;
-  room_name: string;
+  ready?: boolean;
 }
 
 const LobbyStatus: React.FC<LobbyStatusProps> = ({ sessionId, sessionCode, hostPassword: hostPasswordProp, onEndSession }) => {
@@ -48,8 +48,8 @@ const LobbyStatus: React.FC<LobbyStatusProps> = ({ sessionId, sessionCode, hostP
         // Fetch daily room info
         const { data: dailyRoomData, error: dailyRoomError } = await supabase
           .from('DailyRoom')
-          .select('room_url, room_name')
-          .eq('session_id', sessionId)
+          .select('room_url, ready')
+          .eq('room_id', sessionId)
           .single();
 
         if (dailyRoomError) {
@@ -194,7 +194,7 @@ const LobbyStatus: React.FC<LobbyStatusProps> = ({ sessionId, sessionCode, hostP
               <span className="font-medium">Room Created</span>
             </div>
             <div className="text-sm text-gray-600">
-              <div><strong>Room Name:</strong> {dailyRoom.room_name}</div>
+              <div><strong>Room Name:</strong> {sessionCode}</div>
               <div><strong>Room URL:</strong> 
                 <a 
                   href={dailyRoom.room_url} 

@@ -133,7 +133,7 @@ export default async (req: Request, _context: Context) => {
     // Return room URL and session info
     const response = {
       room_url: roomData.url,
-  room_name: session_code,
+      room_name: session_code, // optional: front-end uses sessionCode for display
       session_id: session_id
     };
 
