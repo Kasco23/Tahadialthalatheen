@@ -169,7 +169,7 @@ export async function setSegmentConfig(
 }
 
 // 3. Create Daily Room (GameSetup → Netlify Function)
-export async function createDailyRoom(sessionId: string, sessionCode: string): Promise<void> {
+export async function createDailyRoom(sessionId: string, sessionCode: string): Promise<CreateDailyRoomResponse> {
   try {
     console.log('Creating Daily room with:', { sessionId, sessionCode });
     
@@ -201,8 +201,8 @@ export async function createDailyRoom(sessionId: string, sessionCode: string): P
       }
     }
 
-    const data: CreateDailyRoomResponse = await response.json()
-    console.log('Daily room created successfully:', data);
+  const data: CreateDailyRoomResponse = await response.json()
+  console.log('Daily room created successfully:', data);
 
     // Insert/update DailyRoom table
     const { error } = await supabase
@@ -213,10 +213,11 @@ export async function createDailyRoom(sessionId: string, sessionCode: string): P
         ready: true
       })
 
-    if (error) {
+  if (error) {
       console.error('Database error saving Daily room:', error);
       throw new Error(`Failed to save Daily room: ${error.message}`)
     }
+  return data
   } catch (error) {
     throw new Error(`Failed to create Daily room: ${error instanceof Error ? error.message : 'Unknown error'}`)
   }

@@ -3,25 +3,17 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useSession } from '../lib/sessionHooks';
 import { getSessionIdByCode, getDailyRoom } from '../lib/mutations';
+import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
+import type { Database } from '../lib/types/supabase';
 
-interface Player {
-  player_id: string;
-  session_id: string;
-  name: string;
-  flag: string;
-  role: string;
-  is_connected: boolean;
-  is_host: boolean;
-  joined_at: string;
-  last_active: string;
-}
+type ParticipantRow = Database['public']['Tables']['Participant']['Row'];
 
 const Lobby: React.FC = () => {
   const { sessionCode } = useParams<{ sessionCode: string }>();
   const navigate = useNavigate();
   const [sessionId, setSessionId] = useState<string | null>(null);
   const { session, loading: sessionLoading, error: sessionError } = useSession(sessionId);
-  const [players, setPlayers] = useState<Player[]>([]);
+  const [players, setPlayers] = useState<ParticipantRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [dailyRoom, setDailyRoom] = useState<{ room_url: string; ready: boolean } | null>(null);
@@ -77,65 +69,65 @@ const Lobby: React.FC = () => {
 
     let isMounted = true;
 
-    // Subscribe to player changes
-    const subscribeToPlayers = () => {
+  // Subscribe to participant changes
+  const subscribeToPlayers = () => {
       const channel = supabase
-        .channel(`players_${sessionId}`)
+    .channel(`participants_${sessionId}`)
         .on(
           'postgres_changes',
           {
             event: '*',
             schema: 'public',
-            table: 'players',
+      table: 'Participant',
             filter: `session_id=eq.${sessionId}`
           },
-          (payload) => {
-            console.log('Player update:', payload);
+          (payload: RealtimePostgresChangesPayload<Database['public']['Tables']['Participant']['Row']>) => {
+      console.log('Participant update:', payload);
 
             if (!isMounted) return;
 
             if (payload.eventType === 'INSERT') {
-              setPlayers(prev => [...prev, payload.new as Player]);
+              if (payload.new) setPlayers(prev => [...prev, payload.new as ParticipantRow]);
             } else if (payload.eventType === 'UPDATE') {
               setPlayers(prev =>
                 prev.map(player =>
-                  player.player_id === payload.new.player_id
-                    ? { ...player, ...payload.new } as Player
+                  player.participant_id === (payload.new?.participant_id || '')
+                    ? { ...player, ...(payload.new as ParticipantRow) }
                     : player
                 )
               );
             } else if (payload.eventType === 'DELETE') {
               setPlayers(prev =>
-                prev.filter(player => player.player_id !== payload.old.player_id)
+                prev.filter(player => player.participant_id !== (payload.old?.participant_id || ''))
               );
             }
           }
         )
         .subscribe((status) => {
-          console.log('Players subscription status:', status);
+      console.log('Participants subscription status:', status);
         });
 
       return channel;
     };
 
-    // Load initial players
+    // Load initial participants
     const loadInitialPlayers = async () => {
       try {
         setLoading(true);
         setError(null);
 
         const { data, error: fetchError } = await supabase
-          .from('players')
+          .from('Participant')
           .select('*')
           .eq('session_id', sessionId)
-          .order('joined_at', { ascending: true });
+          .order('name', { ascending: true });
 
         if (fetchError) {
           console.error('Error loading players:', fetchError);
-          setError('Failed to load players');
+          setError('Failed to load participants');
         } else {
           if (isMounted) {
-            setPlayers(data || []);
+            setPlayers((data as ParticipantRow[]) || []);
             setError(null);
           }
         }
@@ -162,23 +154,27 @@ const Lobby: React.FC = () => {
     };
   }, [sessionId]);
 
-  const getPresenceStatus = (player: Player) => {
-    const lobbyPresence = player.is_connected ? '🟢 Online' : '🔴 Offline';
-    // For video presence, we'll use a placeholder for now
-    // In a real implementation, this would come from Daily.co or another video service
-    const videoPresence = player.is_connected ? '📹 In Call' : '📵 Not in Call';
+  const getPresenceStatus = (p: ParticipantRow) => {
+    const lobbyPresence = p.lobby_presence === 'Joined'
+      ? '🟢 Online'
+      : p.lobby_presence === 'Disconnected'
+        ? '🟠 Disconnected'
+        : '🔴 Not Joined';
+    const videoPresence = p.video_presence ? '📹 In Call' : '📵 Not in Call';
     return { lobbyPresence, videoPresence };
   };
 
-  const getRoleDisplay = (player: Player) => {
-    if (player.is_host) return '👑 Host';
-    return player.role === 'playerA' ? '⚽ Player A' : '🏆 Player B';
+  const getRoleDisplay = (p: ParticipantRow) => {
+    if (p.role === 'Host') return '👑 Host';
+    if (p.role === 'Player1') return '⚽ Player A';
+    if (p.role === 'Player2') return '🏆 Player B';
+    return `👤 ${p.role}`;
   };
 
   const canStartQuiz = () => {
     if (!session) return false;
-    const connectedPlayers = players.filter(p => p.is_connected);
-    return connectedPlayers.length >= 2 && session.phase === 'lobby';
+    const joinedNonHosts = players.filter(p => p.role !== 'Host' && p.lobby_presence === 'Joined');
+    return joinedNonHosts.length >= 2 && session.phase === 'Lobby';
   };
 
   const handleStartQuiz = () => {
@@ -243,9 +239,9 @@ const Lobby: React.FC = () => {
                 const { lobbyPresence, videoPresence } = getPresenceStatus(player);
                 return (
                   <div
-                    key={player.player_id}
+                    key={player.participant_id}
                     className={`bg-white/10 backdrop-blur-sm rounded-lg p-6 border-2 transition-all duration-300 ${
-                      player.is_connected
+                      player.lobby_presence === 'Joined'
                         ? 'border-green-400 bg-green-500/10'
                         : 'border-red-400 bg-red-500/10'
                     }`}
@@ -259,8 +255,8 @@ const Lobby: React.FC = () => {
                           <div className="text-sm text-blue-200">{getRoleDisplay(player)}</div>
                         </div>
                       </div>
-                      <div className={`text-2xl ${player.is_connected ? 'animate-pulse' : ''}`}>
-                        {player.is_connected ? '🟢' : '🔴'}
+                      <div className={`text-2xl ${player.lobby_presence === 'Joined' ? 'animate-pulse' : ''}`}>
+                        {player.lobby_presence === 'Joined' ? '🟢' : '🔴'}
                       </div>
                     </div>
 
@@ -269,7 +265,7 @@ const Lobby: React.FC = () => {
                       <div className="flex justify-between items-center">
                         <span className="text-sm text-blue-200">Lobby:</span>
                         <span className={`text-sm font-medium ${
-                          player.is_connected ? 'text-green-400' : 'text-red-400'
+                          player.lobby_presence === 'Joined' ? 'text-green-400' : 'text-red-400'
                         }`}>
                           {lobbyPresence}
                         </span>
@@ -277,7 +273,7 @@ const Lobby: React.FC = () => {
                       <div className="flex justify-between items-center">
                         <span className="text-sm text-blue-200">Video:</span>
                         <span className={`text-sm font-medium ${
-                          player.is_connected ? 'text-blue-400' : 'text-gray-400'
+                          player.video_presence ? 'text-blue-400' : 'text-gray-400'
                         }`}>
                           {videoPresence}
                         </span>
@@ -287,11 +283,11 @@ const Lobby: React.FC = () => {
                     {/* Join Time */}
                     <div className="mt-4 pt-4 border-t border-white/20">
                       <div className="text-xs text-blue-300">
-                        Joined: {new Date(player.joined_at).toLocaleTimeString()}
+                        Role: {player.role}
                       </div>
-                      {player.is_connected && (
+                      {player.lobby_presence === 'Joined' && (
                         <div className="text-xs text-green-400 mt-1">
-                          Last active: {new Date(player.last_active).toLocaleTimeString()}
+                          Video: {player.video_presence ? 'On' : 'Off'}
                         </div>
                       )}
                     </div>

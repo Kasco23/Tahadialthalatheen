@@ -3,6 +3,8 @@ import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { setSegmentConfig, createDailyRoom, getSegmentConfig, getSessionIdByCode, endSession } from '../lib/mutations';
 import { supabase } from '../lib/supabaseClient';
 import LobbyStatus from '../components/LobbyStatus';
+import { Alert } from '../components/Alert';
+import { motion } from 'framer-motion';
 import type { SegmentCode } from '../lib/types';
 
 
@@ -16,6 +18,7 @@ const GameSetup: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isDailyRoomCreated, setIsDailyRoomCreated] = useState(false);
   const [roomInfo, setRoomInfo] = useState<{ room_url: string } | null>(null);
+  const [notice, setNotice] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [segments, setSegments] = useState({
     WDYK: 4, // What Do You Know
     AUCT: 2, // Auction
@@ -34,7 +37,7 @@ const GameSetup: React.FC = () => {
         setSessionId(resolvedSessionId);
       } catch (error) {
         console.error('Failed to resolve session code:', error);
-        alert('Invalid session code. Please check and try again.');
+        setNotice({ type: 'error', message: 'Invalid session code. Please check and try again.' });
         navigate('/');
       }
     };
@@ -124,7 +127,8 @@ const GameSetup: React.FC = () => {
       return;
     }
 
-    setIsLoading(true);
+  setIsLoading(true);
+  setNotice(null);
     try {
       const segmentConfigs = Object.entries(segments).map(([code, count]) => ({
         segment_code: code as SegmentCode,
@@ -132,13 +136,13 @@ const GameSetup: React.FC = () => {
       }));
       await setSegmentConfig(sessionId, segmentConfigs);
       // Use the already-created session code from DB (in route params)
-      await createDailyRoom(sessionId, sessionCode);
-
+      const created = await createDailyRoom(sessionId, sessionCode);
       setIsDailyRoomCreated(true);
-      alert(`Daily room created successfully! Session Code: ${sessionCode}`);
+      setRoomInfo({ room_url: created.room_url });
+  setNotice({ type: 'success', message: 'Daily room created successfully.' });
     } catch (error) {
       console.error('Error setting up game:', error);
-      alert(`Error setting up game: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  setNotice({ type: 'error', message: error instanceof Error ? error.message : 'Unknown error' });
     } finally {
       setIsLoading(false);
     }
@@ -146,11 +150,11 @@ const GameSetup: React.FC = () => {
 
   const handleStartQuiz = () => {
     if (!sessionId) {
-      alert('No session available. Please go back to homepage and create a session.');
+      setNotice({ type: 'error', message: 'No session available. Please go back to homepage and create a session.' });
       return;
     }
     if (!isDailyRoomCreated) {
-      alert('Please create a Daily room first by clicking "Create Daily Room"');
+      setNotice({ type: 'error', message: 'Please create a Daily room first by clicking "Create Daily Room"' });
       return;
     }
     // Navigate to the quiz with the session code
@@ -159,19 +163,19 @@ const GameSetup: React.FC = () => {
 
   const handleEndSession = async () => {
     if (!sessionId) {
-      alert('No session available.');
+      setNotice({ type: 'error', message: 'No session available.' });
       return;
     }
 
     const confirmed = confirm('Are you sure you want to end this session? This action cannot be undone.');
     if (confirmed) {
       try {
-        await endSession(sessionId);
-        alert('Session ended successfully.');
+  await endSession(sessionId);
+  setNotice({ type: 'success', message: 'Session ended successfully.' });
         navigate('/');
       } catch (error) {
         console.error('Error ending session:', error);
-        alert(`Error ending session: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  setNotice({ type: 'error', message: `Error ending session: ${error instanceof Error ? error.message : 'Unknown error'}` });
       }
     }
   };
@@ -222,6 +226,14 @@ const GameSetup: React.FC = () => {
               <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
                 ⚙️ Game Configuration
               </h2>
+
+              {notice && (
+                <Alert
+                  type={notice.type}
+                  message={notice.message}
+                  onClose={() => setNotice(null)}
+                />
+              )}
               
               {/* session code moved to LobbyStatus */}
 
@@ -305,14 +317,19 @@ const GameSetup: React.FC = () => {
                 {/* Action Buttons */}
                 <div className="space-y-4">
                   {isDailyRoomCreated && roomInfo ? (
-                    <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <motion.div
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="p-4 bg-green-50 border border-green-200 rounded-lg"
+                    >
                       <p className="text-green-800 text-sm">
                         <strong>Daily Room Created!</strong>
                       </p>
                       <p className="text-green-600 text-xs mt-1">
-                        Room URL: {roomInfo.room_url}
+        Room URL: {roomInfo.room_url}
                       </p>
-                    </div>
+                    </motion.div>
                   ) : (
                     <button
                       type="button"

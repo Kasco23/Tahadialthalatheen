@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { supabase } from '../lib/supabaseClient';
 
 interface LobbyStatusProps {
@@ -188,7 +189,12 @@ const LobbyStatus: React.FC<LobbyStatusProps> = ({ sessionId, sessionCode, hostP
           📹 Daily Room Status
         </h3>
         {dailyRoom ? (
-          <div className="space-y-2">
+          <motion.div
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2 }}
+            className="space-y-2"
+          >
             <div className="flex items-center text-green-600">
               <span className="text-xl mr-2">✅</span>
               <span className="font-medium">Room Created</span>
@@ -206,7 +212,7 @@ const LobbyStatus: React.FC<LobbyStatusProps> = ({ sessionId, sessionCode, hostP
                 </a>
               </div>
             </div>
-          </div>
+          </motion.div>
         ) : (
           <div className="flex items-center text-gray-500">
             <span className="text-xl mr-2">⏳</span>
