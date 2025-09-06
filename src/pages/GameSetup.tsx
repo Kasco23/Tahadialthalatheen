@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { setSegmentConfig, createDailyRoom, getSegmentConfig, getSessionIdByCode } from '../lib/mutations';
+import { supabase } from '../lib/supabaseClient';
 import type { SegmentCode } from '../lib/types';
 
 const GameSetup: React.FC = () => {
@@ -9,6 +10,7 @@ const GameSetup: React.FC = () => {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isDailyRoomCreated, setIsDailyRoomCreated] = useState(false);
+  const [roomInfo, setRoomInfo] = useState<{ room_url: string } | null>(null);
   const [segments, setSegments] = useState({
     WDYK: 4, // What Do You Know
     AUCT: 2, // Auction
@@ -17,7 +19,7 @@ const GameSetup: React.FC = () => {
     REMO: 4  // Remote
   });
 
-  // Convert sessionCode to sessionId when component mounts
+    // Convert sessionCode to sessionId when component mounts
   useEffect(() => {
     const resolveSessionId = async () => {
       if (!sessionCode) return;
@@ -36,6 +38,29 @@ const GameSetup: React.FC = () => {
       resolveSessionId();
     }
   }, [sessionCode, navigate]);
+
+  const fetchRoomInfo = useCallback(async () => {
+    if (!sessionId) return;
+    try {
+      const { data, error } = await supabase
+        .from('DailyRoom')
+        .select('*')
+        .eq('room_id', sessionId)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching room info:', error.message);
+        return;
+      }
+
+      if (data) {
+        setIsDailyRoomCreated(true);
+        setRoomInfo(data);
+      }
+    } catch (error) {
+      console.error('Unexpected error fetching room info:', error);
+    }
+  }, [sessionId]);
 
   // Load existing segment configuration when component mounts
   useEffect(() => {
@@ -58,8 +83,34 @@ const GameSetup: React.FC = () => {
 
     if (sessionId) {
       loadConfig();
+      fetchRoomInfo();
     }
-  }, [sessionId]);
+  }, [sessionId, fetchRoomInfo]);
+
+  // Load existing segment configuration when component mounts
+  useEffect(() => {
+    const loadConfig = async () => {
+      if (!sessionId) return;
+      
+      try {
+        const fetchedConfig = await getSegmentConfig(sessionId);
+        const configMap = fetchedConfig.reduce((acc, config) => {
+          acc[config.segment_code] = config.questions_count;
+          return acc;
+        }, {} as Record<SegmentCode, number>);
+        
+        // Update local state with fetched config
+        setSegments(prev => ({ ...prev, ...configMap }));
+      } catch (error) {
+        console.error('Failed to load segment config:', error);
+      }
+    };
+
+    if (sessionId) {
+      loadConfig();
+      fetchRoomInfo();
+    }
+  }, [sessionId, fetchRoomInfo]);
 
   const handleSegmentChange = async (segment: keyof typeof segments, value: string) => {
     const numValue = parseInt(value) || 0;
@@ -224,14 +275,25 @@ const GameSetup: React.FC = () => {
 
           {/* Action Buttons */}
           <div className="space-y-4">
-            <button
-              type="button"
-              onClick={handleCreateDailyRoom}
-              disabled={isLoading}
-              className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200 transform hover:scale-105 disabled:transform-none"
-            >
-              {isLoading ? '⏳ Creating...' : '📹 Create Daily Room'}
-            </button>
+            {isDailyRoomCreated && roomInfo ? (
+              <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                <p className="text-green-800 text-sm">
+                  <strong>Daily Room Created!</strong>
+                </p>
+                <p className="text-green-600 text-xs mt-1">
+                  Room URL: {roomInfo.room_url}
+                </p>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={handleCreateDailyRoom}
+                disabled={isLoading}
+                className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200 transform hover:scale-105 disabled:transform-none"
+              >
+                {isLoading ? '⏳ Creating...' : '📹 Create Daily Room'}
+              </button>
+            )}
 
             <button
               type="button"

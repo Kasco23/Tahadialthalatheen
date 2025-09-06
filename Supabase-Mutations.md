@@ -99,4 +99,3 @@
 > **Prompt:**
 > "In `src/lib/mutations.ts`, add a function `endSession(sessionId: string)` that updates `Session.game_state='concluded'`.
 > Replace if exists."
-

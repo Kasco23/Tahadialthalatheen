@@ -1,5 +1,3 @@
-
-
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -216,11 +214,6 @@ ALTER TABLE ONLY "public"."SegmentConfig"
 
 ALTER TABLE ONLY "public"."SegmentConfig"
     ADD CONSTRAINT "SegmentConfig_pkey" PRIMARY KEY ("config_id");
-
-
-
-ALTER TABLE ONLY "public"."SegmentConfig"
-    ADD CONSTRAINT "SegmentConfig_segment_code_key" UNIQUE ("segment_code");
 
 
 
