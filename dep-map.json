@@ -1,6 +1,12 @@
 {
   "netlify/functions/create-daily-token.ts": [],
   "netlify/functions/createDailyRoom.ts": [],
+  "src/components/ActiveGames.tsx": [
+    "src/lib/mutations.ts"
+  ],
+  "src/components/LobbyStatus.tsx": [
+    "src/lib/supabaseClient.ts"
+  ],
   "src/components/PasswordModal.test.tsx": [
     "src/components/PasswordModal.tsx"
   ],
@@ -37,10 +43,12 @@
   ],
   "src/lib/types/supabase.ts": [],
   "src/pages/GameSetup.tsx": [
+    "src/components/LobbyStatus.tsx",
     "src/lib/mutations.ts",
     "src/lib/types.ts"
   ],
   "src/pages/Homepage.tsx": [
+    "src/components/ActiveGames.tsx",
     "src/components/PasswordModal.tsx",
     "src/lib/mutations.ts"
   ],

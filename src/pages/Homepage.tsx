@@ -1,30 +1,22 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import PasswordModal from '../components/PasswordModal';
+import ActiveGames from '../components/ActiveGames';
 import { createSession } from '../lib/mutations';
 
 const Homepage: React.FC = () => {
-  const [countdown, setCountdown] = useState(10);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [isCreatingSession, setIsCreatingSession] = useState(false);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCountdown((prev) => (prev > 0 ? prev - 1 : 10));
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, []);
 
   const handleCreateSession = () => {
     setIsPasswordModalOpen(true);
   };
 
-  const handlePasswordConfirm = async (password: string) => {
+  const handlePasswordConfirm = async (password: string, hostName: string) => {
     setIsCreatingSession(true);
     try {
-      const { sessionCode } = await createSession(password);
+      const { sessionCode } = await createSession(password, hostName);
       setIsPasswordModalOpen(false);
       // Navigate to game setup with the session code (not session ID)
       navigate(`/gamesetup/${sessionCode}`);
@@ -41,7 +33,7 @@ const Homepage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-600 via-green-700 to-green-800 flex flex-col items-center justify-center relative overflow-hidden pitch-lines center-circle goal-area">
+    <div className="min-h-screen bg-gradient-to-br from-green-600 via-green-700 to-green-800 flex flex-col p-4 relative overflow-hidden pitch-lines center-circle goal-area">
       {/* Football pitch background elements */}
       <div className="absolute inset-0 opacity-20">
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 h-32 border-2 border-white rounded-full"></div>
@@ -49,49 +41,54 @@ const Homepage: React.FC = () => {
         <div className="absolute bottom-1/4 right-1/4 w-16 h-16 border-2 border-white rounded-full"></div>
       </div>
 
-      {/* Main content */}
-      <div className="relative z-10 text-center px-6 max-w-2xl mx-auto">
-        {/* Arabic Title */}
-        <h1 className="text-6xl md:text-8xl font-black text-white mb-4 drop-shadow-2xl animate-pulse">
-          تحدي الثلاثين ⚽
-        </h1>
+      {/* Main content container */}
+      <div className="relative z-10 flex-1 max-w-7xl mx-auto w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full">
+          
+          {/* Left side - Main content */}
+          <div className="flex flex-col items-center justify-center text-center">
+            {/* Arabic Title */}
+            <h1 className="text-5xl md:text-7xl font-black text-white mb-4 drop-shadow-2xl animate-pulse">
+              تحدي الثلاثين ⚽
+            </h1>
 
-        {/* Tagline */}
-        <p className="text-xl md:text-2xl text-green-100 mb-12 font-medium drop-shadow-lg">
-          The ultimate football quiz showdown
-        </p>
+            {/* Tagline */}
+            <p className="text-xl md:text-2xl text-green-100 mb-8 font-medium drop-shadow-lg">
+              The ultimate football quiz showdown
+            </p>
 
-        {/* Countdown */}
-        <div className="mb-8">
-          <div className="inline-block bg-black bg-opacity-50 rounded-full px-6 py-3 mb-4">
-            <span className="text-white text-lg font-bold">
-              ⏰ Starting in: {countdown}s
-            </span>
+            {/* CTA Buttons */}
+            <div className="space-y-6 w-full max-w-sm">
+              <button
+                onClick={handleCreateSession}
+                className="block w-full bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 hover:from-yellow-500 hover:via-yellow-600 hover:to-yellow-700 text-black font-bold text-xl md:text-2xl py-6 px-8 rounded-2xl shadow-2xl transform transition-all duration-300 hover:scale-105 hover:shadow-3xl border-4 border-yellow-300"
+              >
+                🏆 Create Session
+              </button>
+
+              <Link
+                to="/join"
+                className="block w-full bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:from-blue-600 hover:via-blue-700 hover:to-blue-800 text-white font-bold text-xl md:text-2xl py-6 px-8 rounded-2xl shadow-2xl transform transition-all duration-300 hover:scale-105 hover:shadow-3xl border-4 border-blue-300"
+              >
+                👥 Join Session
+              </Link>
+            </div>
+
+            {/* Football-themed decorations */}
+            <div className="mt-8 flex justify-center space-x-8 opacity-60">
+              <div className="text-4xl animate-bounce">⚽</div>
+              <div className="text-4xl animate-bounce" style={{ animationDelay: '0.2s' }}>🏆</div>
+              <div className="text-4xl animate-bounce" style={{ animationDelay: '0.4s' }}>🎯</div>
+            </div>
           </div>
-        </div>
 
-        {/* CTA Buttons */}
-        <div className="space-y-6">
-          <button
-            onClick={handleCreateSession}
-            className="block w-full max-w-sm mx-auto bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 hover:from-yellow-500 hover:via-yellow-600 hover:to-yellow-700 text-black font-bold text-xl md:text-2xl py-6 px-8 rounded-2xl shadow-2xl transform transition-all duration-300 hover:scale-105 hover:shadow-3xl border-4 border-yellow-300"
-          >
-            🏆 Create Session
-          </button>
+          {/* Right side - Active Games */}
+          <div className="flex items-center justify-center lg:py-8">
+            <div className="w-full max-w-2xl">
+              <ActiveGames />
+            </div>
+          </div>
 
-          <Link
-            to="/join"
-            className="block w-full max-w-sm mx-auto bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:from-blue-600 hover:via-blue-700 hover:to-blue-800 text-white font-bold text-xl md:text-2xl py-6 px-8 rounded-2xl shadow-2xl transform transition-all duration-300 hover:scale-105 hover:shadow-3xl border-4 border-blue-300"
-          >
-            👥 Join Session
-          </Link>
-        </div>
-
-        {/* Football-themed decorations */}
-        <div className="mt-12 flex justify-center space-x-8 opacity-60">
-          <div className="text-4xl animate-bounce">⚽</div>
-          <div className="text-4xl animate-bounce" style={{ animationDelay: '0.2s' }}>🏆</div>
-          <div className="text-4xl animate-bounce" style={{ animationDelay: '0.4s' }}>🎯</div>
         </div>
       </div>
 
