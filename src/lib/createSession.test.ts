@@ -7,42 +7,45 @@ jest.mock('./supabaseClient', () => ({
   }
 }));
 
-describe('createSession session code generator', () => {
+describe('createSession uses DB trigger to create session_code', () => {
   beforeEach(() => {
     jest.resetAllMocks();
   });
 
-  it('generates 3 numbers, 3 letters and 1 special and retries on collision', async () => {
-  const fromMock = (supabase as unknown as { from: jest.Mock }).from;
+  it('creates session and returns DB-generated session_code, then creates host participant', async () => {
+    const fromMock = (supabase as unknown as { from: jest.Mock }).from;
 
-    // First existence check: collision
-    const maybeSingleCollision = jest.fn().mockResolvedValue({ data: { session_id: 'existing' }, error: null });
-    const selectExistCollision = jest.fn().mockReturnValue({ maybeSingle: maybeSingleCollision });
-
-    // Second existence check: unique
-    const maybeSingleUnique = jest.fn().mockResolvedValue({ data: null, error: null });
-    const selectExistUnique = jest.fn().mockReturnValue({ maybeSingle: maybeSingleUnique });
-
-    // Insert call returns created session
+    // Session insert -> select -> single returns session with session_code set by trigger
     const singleInsert = jest.fn().mockResolvedValue({ data: { session_id: 'new-id', session_code: 'A1B2C3!' }, error: null });
     const insertSelect = jest.fn().mockReturnValue({ single: singleInsert });
-    const insertMock = jest.fn().mockReturnValue({ select: insertSelect });
+    const insertMockSession = jest.fn().mockReturnValue({ select: insertSelect });
 
+    // Participant insert returns ok
+    const insertMockParticipant = jest.fn().mockResolvedValue({ data: { participant_id: 'p-1' }, error: null });
+
+    // First call to from('Session'), second to from('Participant')
     fromMock
-      .mockReturnValueOnce({ select: selectExistCollision })
-      .mockReturnValueOnce({ select: selectExistUnique })
-      .mockReturnValueOnce({ insert: insertMock });
+      .mockReturnValueOnce({ insert: insertMockSession })
+      .mockReturnValueOnce({ insert: insertMockParticipant });
 
     const result = await createSession('plaintext-pass', 'Host');
 
-    expect(result.sessionCode).toHaveLength(7);
+    expect(result.sessionCode).toBe('A1B2C3!');
+    expect(result.sessionId).toBe('new-id');
 
-    const digits = result.sessionCode.replace(/[^0-9]/g, '');
-    const letters = result.sessionCode.replace(/[^A-Za-z]/g, '');
-    const specials = result.sessionCode.replace(/[A-Za-z0-9]/g, '');
+    // Ensure we inserted Session without providing session_code (DB trigger handles it)
+    expect(insertMockSession).toHaveBeenCalledWith({
+      host_password: 'plaintext-pass',
+      phase: 'Setup',
+      game_state: 'pre-quiz'
+    });
 
-    expect(digits.length).toBe(3);
-    expect(letters.length).toBe(3);
-    expect(specials.length).toBe(1);
+    // Ensure participant was created for the new session as Host
+    expect(insertMockParticipant).toHaveBeenCalledWith({
+      session_id: 'new-id',
+      name: 'Host',
+      role: 'Host',
+      lobby_presence: 'NotJoined'
+    });
   });
 });

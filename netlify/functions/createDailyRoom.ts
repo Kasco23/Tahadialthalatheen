@@ -1,4 +1,5 @@
 import type { Context, Config } from "@netlify/functions";
+import { createClient } from '@supabase/supabase-js'
 
 export default async (req: Request, _context: Context) => {
   // Only allow POST requests
@@ -24,20 +25,12 @@ export default async (req: Request, _context: Context) => {
       });
     }
 
-    const { session_id, session_code } = parsedBody;
-    console.log('Parsed data:', { session_id, session_code });
+  const { session_id } = parsedBody;
+  console.log('Parsed data:', { session_id });
 
     if (!session_id) {
       console.error('Missing session_id');
       return new Response(JSON.stringify({ error: 'session_id is required' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
-
-    if (!session_code) {
-      console.error('Missing session_code');
-      return new Response(JSON.stringify({ error: 'session_code is required' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' }
       });
@@ -52,10 +45,39 @@ export default async (req: Request, _context: Context) => {
       });
     }
 
-    console.log('Creating Daily.co room with session_code:', session_code);
+    // Init Supabase (server env)
+    const supabaseUrl = process.env.SUPABASE_DATABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
+    if (!supabaseUrl || !supabaseKey) {
+      console.error('Supabase env missing (SUPABASE_DATABASE_URL / SUPABASE_SERVICE_ROLE_KEY)');
+      return new Response(JSON.stringify({ error: 'Server configuration error (Supabase)' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey, { auth: { persistSession: false } });
+
+    // Fetch the canonical session_code from DB (set by trigger)
+    const { data: sessionRow, error: sessionErr } = await supabase
+      .from('Session')
+      .select('session_code')
+      .eq('session_id', session_id)
+      .single();
+
+    if (sessionErr || !sessionRow?.session_code) {
+      console.error('Session not found or missing session_code:', sessionErr);
+      return new Response(JSON.stringify({ error: 'Session not found' }), {
+        status: 404,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    const session_code = sessionRow.session_code;
+    console.log('Creating Daily.co room with session_code from DB:', session_code);
 
     // Create room using Daily.co API with session_code as room name
-    const roomResponse = await fetch('https://api.daily.co/v1/rooms', {
+  const roomResponse = await fetch('https://api.daily.co/v1/rooms', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${process.env.DAILY_API_KEY}`,
@@ -76,24 +98,42 @@ export default async (req: Request, _context: Context) => {
 
     console.log('Daily.co API response status:', roomResponse.status);
 
+  type DailyRoom = { url: string } & Record<string, unknown>;
+  let roomData: DailyRoom;
     if (!roomResponse.ok) {
-      const errorData = await roomResponse.text();
-      console.error('Daily.co API error:', errorData);
-      return new Response(JSON.stringify({
-        error: 'Failed to create room',
-        details: errorData
-      }), {
-        status: roomResponse.status,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      const errorText = await roomResponse.text();
+      console.error('Daily.co API error:', errorText);
+      // If room already exists (conflict), try to fetch it (idempotent behavior)
+      if (roomResponse.status === 409) {
+        const getResp = await fetch(`https://api.daily.co/v1/rooms/${encodeURIComponent(session_code)}`, {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${process.env.DAILY_API_KEY}`,
+          }
+        });
+        if (!getResp.ok) {
+          const getText = await getResp.text();
+          console.error('Daily.co GET room error:', getText);
+          return new Response(JSON.stringify({ error: 'Failed to get existing room', details: getText }), {
+            status: getResp.status,
+            headers: { 'Content-Type': 'application/json' }
+          });
+        }
+        roomData = await getResp.json();
+      } else {
+        return new Response(JSON.stringify({ error: 'Failed to create room', details: errorText }), {
+          status: roomResponse.status,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+    } else {
+      roomData = await roomResponse.json();
     }
-
-    const roomData = await roomResponse.json();
 
     // Return room URL and session info
     const response = {
       room_url: roomData.url,
-      room_name: session_code,
+  room_name: session_code,
       session_id: session_id
     };
 

@@ -25,47 +25,11 @@ export interface ActiveSession {
 
 // 1. Create Session (Host PC → GameSetup)
 export async function createSession(hostPassword: string, hostName: string): Promise<{ sessionId: string; sessionCode: string }> {
-  // Helper to generate a code with 3 numbers, 3 letters, 1 special character
-  const generateCode = (): string => {
-    const nums = Array.from({ length: 3 }, () => String(Math.floor(Math.random() * 10)));
-    const letters = Array.from({ length: 3 }, () => String.fromCharCode(65 + Math.floor(Math.random() * 26)));
-    const specials = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')'];
-    const special = specials[Math.floor(Math.random() * specials.length)];
-    const pool = [...nums, ...letters, special];
-    // Fisher-Yates shuffle
-    for (let i = pool.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      const tmp = pool[i];
-      pool[i] = pool[j];
-      pool[j] = tmp;
-    }
-    return pool.join('');
-  };
-
-  // Ensure uniqueness with a few retries
-  const generateUniqueSessionCode = async (): Promise<string> => {
-    for (let attempt = 0; attempt < 10; attempt++) {
-      const candidate = generateCode();
-      const { data } = await supabase
-        .from('Session')
-        .select('session_id')
-        .eq('session_code', candidate)
-        .maybeSingle();
-
-      if (!data) return candidate;
-      // otherwise loop and try again
-    }
-    throw new Error('Failed to generate unique session code')
-  };
-
-  const sessionCode = await generateUniqueSessionCode();
-
-  // Start a transaction by creating the session with an explicit session_code
+  // Create the session; DB trigger will populate session_code
   const { data: sessionData, error: sessionError } = await supabase
     .from('Session')
     .insert({
       host_password: hostPassword,
-      session_code: sessionCode,
       phase: 'Setup',
       game_state: 'pre-quiz'
     })

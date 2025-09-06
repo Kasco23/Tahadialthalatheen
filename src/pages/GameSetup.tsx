@@ -5,31 +5,6 @@ import { supabase } from '../lib/supabaseClient';
 import LobbyStatus from '../components/LobbyStatus';
 import type { SegmentCode } from '../lib/types';
 
-const generateSessionCode = async (): Promise<string> => {
-  const numbers = Array.from({ length: 3 }, () => Math.floor(Math.random() * 10).toString());
-  const letters = Array.from({ length: 3 }, () => String.fromCharCode(65 + Math.floor(Math.random() * 26)));
-  const specialChars = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')'];
-  const specialChar = specialChars[Math.floor(Math.random() * specialChars.length)];
-
-  const allChars = [...numbers, ...letters, specialChar];
-  const shuffled = allChars.sort(() => Math.random() - 0.5).join('');
-
-  // Ensure uniqueness in the database
-  const { data, error } = await supabase
-    .from('Session')
-    .select('session_code')
-    .eq('session_code', shuffled)
-    .single();
-
-  if (error && error.code === 'PGRST116') {
-    return shuffled; // Code is unique (PGRST116 means no data found)
-  } else if (data) {
-    return generateSessionCode(); // Retry if duplicate
-  } else {
-    console.error('Database error when checking session code:', error);
-    throw new Error(`Error checking session code uniqueness: ${error?.message || 'Unknown database error'}`);
-  }
-};
 
 const GameSetup: React.FC = () => {
   const navigate = useNavigate();
@@ -117,30 +92,7 @@ const GameSetup: React.FC = () => {
     }
   }, [sessionId, fetchRoomInfo]);
 
-  // Load existing segment configuration when component mounts
-  useEffect(() => {
-    const loadConfig = async () => {
-      if (!sessionId) return;
-      
-      try {
-        const fetchedConfig = await getSegmentConfig(sessionId);
-        const configMap = fetchedConfig.reduce((acc, config) => {
-          acc[config.segment_code] = config.questions_count;
-          return acc;
-        }, {} as Record<SegmentCode, number>);
-        
-        // Update local state with fetched config
-        setSegments(prev => ({ ...prev, ...configMap }));
-      } catch (error) {
-        console.error('Failed to load segment config:', error);
-      }
-    };
-
-    if (sessionId) {
-      loadConfig();
-      fetchRoomInfo();
-    }
-  }, [sessionId, fetchRoomInfo]);
+  // (removed duplicate effect)
 
   const handleSegmentChange = async (segment: keyof typeof segments, value: string) => {
     const numValue = parseInt(value) || 0;
@@ -167,19 +119,23 @@ const GameSetup: React.FC = () => {
       alert('No session available. Please go back to homepage and create a session.');
       return;
     }
+    if (!sessionCode) {
+      alert('Missing session code.');
+      return;
+    }
 
     setIsLoading(true);
     try {
-      const newSessionCode = await generateSessionCode();
       const segmentConfigs = Object.entries(segments).map(([code, count]) => ({
         segment_code: code as SegmentCode,
         questions_count: count
       }));
       await setSegmentConfig(sessionId, segmentConfigs);
-      await createDailyRoom(sessionId, newSessionCode);
+      // Use the already-created session code from DB (in route params)
+      await createDailyRoom(sessionId, sessionCode);
 
       setIsDailyRoomCreated(true);
-      alert(`Daily room created successfully! Session Code: ${newSessionCode}`);
+      alert(`Daily room created successfully! Session Code: ${sessionCode}`);
     } catch (error) {
       console.error('Error setting up game:', error);
       alert(`Error setting up game: ${error instanceof Error ? error.message : 'Unknown error'}`);
