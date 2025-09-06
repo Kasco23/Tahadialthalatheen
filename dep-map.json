@@ -45,6 +45,7 @@
   "src/pages/GameSetup.tsx": [
     "src/components/LobbyStatus.tsx",
     "src/lib/mutations.ts",
+    "src/lib/supabaseClient.ts",
     "src/lib/types.ts"
   ],
   "src/pages/Homepage.tsx": [
