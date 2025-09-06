@@ -10,9 +10,25 @@ export default async (req: Request, _context: Context) => {
   }
 
   try {
-    const { session_id, session_code } = await req.json();
+    const body = await req.text();
+    console.log('Received request body:', body);
+    
+    let parsedBody;
+    try {
+      parsedBody = JSON.parse(body);
+    } catch (parseError) {
+      console.error('Failed to parse JSON:', parseError);
+      return new Response(JSON.stringify({ error: 'Invalid JSON in request body' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    const { session_id, session_code } = parsedBody;
+    console.log('Parsed data:', { session_id, session_code });
 
     if (!session_id) {
+      console.error('Missing session_id');
       return new Response(JSON.stringify({ error: 'session_id is required' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' }
@@ -20,6 +36,7 @@ export default async (req: Request, _context: Context) => {
     }
 
     if (!session_code) {
+      console.error('Missing session_code');
       return new Response(JSON.stringify({ error: 'session_code is required' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' }
@@ -34,6 +51,8 @@ export default async (req: Request, _context: Context) => {
         headers: { 'Content-Type': 'application/json' }
       });
     }
+
+    console.log('Creating Daily.co room with session_code:', session_code);
 
     // Create room using Daily.co API with session_code as room name
     const roomResponse = await fetch('https://api.daily.co/v1/rooms', {
@@ -54,6 +73,8 @@ export default async (req: Request, _context: Context) => {
         }
       })
     });
+
+    console.log('Daily.co API response status:', roomResponse.status);
 
     if (!roomResponse.ok) {
       const errorData = await roomResponse.text();
