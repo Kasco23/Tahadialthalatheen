@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabaseClient';
 interface LobbyStatusProps {
   sessionId: string;
   sessionCode: string;
+  hostPassword?: string | null;
   onEndSession: () => void;
 }
 
@@ -21,9 +22,10 @@ interface DailyRoomInfo {
   room_name: string;
 }
 
-const LobbyStatus: React.FC<LobbyStatusProps> = ({ sessionId, sessionCode, onEndSession }) => {
+const LobbyStatus: React.FC<LobbyStatusProps> = ({ sessionId, sessionCode, hostPassword: hostPasswordProp, onEndSession }) => {
   const [participants, setParticipants] = useState<ParticipantInfo[]>([]);
   const [dailyRoom, setDailyRoom] = useState<DailyRoomInfo | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -57,6 +59,9 @@ const LobbyStatus: React.FC<LobbyStatusProps> = ({ sessionId, sessionCode, onEnd
         } else {
           setDailyRoom(dailyRoomData);
         }
+
+  // If host password not supplied from navigation state, fetch hashed value
+  // Note: we prefer showing plaintext passed via navigation state (hostPassword prop)
       } catch (error) {
         console.error('Error fetching lobby data:', error);
       } finally {
@@ -150,7 +155,7 @@ const LobbyStatus: React.FC<LobbyStatusProps> = ({ sessionId, sessionCode, onEnd
 
       {/* Session Info */}
       <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
           <div>
             <span className="text-blue-600 font-medium">Session Code:</span>
             <span className="ml-2 font-mono text-lg font-bold text-blue-800">{sessionCode}</span>
@@ -159,6 +164,21 @@ const LobbyStatus: React.FC<LobbyStatusProps> = ({ sessionId, sessionCode, onEnd
             <span className="text-blue-600 font-medium">Active Players:</span>
             <span className="ml-2 font-bold text-blue-800">{activeParticipantCount}/{totalSlots}</span>
           </div>
+          {hostPasswordProp && (
+            <div className="md:col-span-2 mt-2 flex items-center space-x-3">
+              <div>
+                <span className="text-blue-600 font-medium">Host Password:</span>
+                <span className="ml-2 font-mono text-sm text-blue-800">{showPassword ? hostPasswordProp : '••••••'}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowPassword(s => !s)}
+                className="px-3 py-1 bg-gray-100 border rounded text-sm"
+              >
+                {showPassword ? 'Hide' : 'Show'}
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

@@ -1,13 +1,41 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { setSegmentConfig, createDailyRoom, getSegmentConfig, getSessionIdByCode, endSession } from '../lib/mutations';
 import { supabase } from '../lib/supabaseClient';
 import LobbyStatus from '../components/LobbyStatus';
 import type { SegmentCode } from '../lib/types';
 
+const generateSessionCode = async (): Promise<string> => {
+  const numbers = Array.from({ length: 3 }, () => Math.floor(Math.random() * 10).toString());
+  const letters = Array.from({ length: 3 }, () => String.fromCharCode(65 + Math.floor(Math.random() * 26)));
+  const specialChars = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')'];
+  const specialChar = specialChars[Math.floor(Math.random() * specialChars.length)];
+
+  const allChars = [...numbers, ...letters, specialChar];
+  const shuffled = allChars.sort(() => Math.random() - 0.5).join('');
+
+  // Ensure uniqueness in the database
+  const { data, error } = await supabase
+    .from('Sessions')
+    .select('session_code')
+    .eq('session_code', shuffled)
+    .single();
+
+  if (error && error.code === 'PGRST116') {
+    return shuffled; // Code is unique
+  } else if (data) {
+    return generateSessionCode(); // Retry if duplicate
+  } else {
+    throw new Error('Error checking session code uniqueness');
+  }
+};
+
 const GameSetup: React.FC = () => {
   const navigate = useNavigate();
   const { sessionCode } = useParams<{ sessionCode: string }>();
+  const location = useLocation();
+  type LocationState = { hostPassword?: string } | undefined;
+  const hostPasswordFromState = ((location.state as LocationState)?.hostPassword) || null;
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isDailyRoomCreated, setIsDailyRoomCreated] = useState(false);
@@ -138,26 +166,19 @@ const GameSetup: React.FC = () => {
       alert('No session available. Please go back to homepage and create a session.');
       return;
     }
-    
-    if (!sessionCode) {
-      alert('No session code available. Please go back to homepage and create a session.');
-      return;
-    }
-    
+
     setIsLoading(true);
     try {
-      // 1. Set segment configuration
+      const newSessionCode = await generateSessionCode();
       const segmentConfigs = Object.entries(segments).map(([code, count]) => ({
         segment_code: code as SegmentCode,
         questions_count: count
       }));
       await setSegmentConfig(sessionId, segmentConfigs);
-      
-      // 2. Create Daily room using both session ID and session code
-      await createDailyRoom(sessionId, sessionCode);
-      
+      await createDailyRoom(sessionId, newSessionCode);
+
       setIsDailyRoomCreated(true);
-      alert(`Daily room created successfully! Session Code: ${sessionCode}`);
+      alert(`Daily room created successfully! Session Code: ${newSessionCode}`);
     } catch (error) {
       console.error('Error setting up game:', error);
       alert(`Error setting up game: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -199,19 +220,30 @@ const GameSetup: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-600 via-green-700 to-green-800 flex flex-col p-4 relative overflow-hidden pitch-lines center-circle goal-area">
-      {/* Football pitch background elements */}
+    <div className="min-h-screen bg-gradient-to-br from-gray-800 via-gray-900 to-black flex flex-col p-4 relative overflow-hidden">
+      {/* Expanded tactical board background */}
       <div className="absolute inset-0 opacity-20">
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 h-32 border-2 border-white rounded-full"></div>
-        <div className="absolute top-1/4 left-1/4 w-16 h-16 border-2 border-white rounded-full"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-16 h-16 border-2 border-white rounded-full"></div>
-        
+        {/* Center circle */}
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 border-4 border-white rounded-full"></div>
+        {/* Smaller circles */}
+        <div className="absolute top-1/4 left-1/4 w-32 h-32 border-4 border-white rounded-full"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-32 h-32 border-4 border-white rounded-full"></div>
         {/* Tactical board lines */}
         <div className="absolute inset-0">
-          <div className="absolute top-1/3 left-0 w-full h-0.5 bg-white opacity-30"></div>
-          <div className="absolute top-2/3 left-0 w-full h-0.5 bg-white opacity-30"></div>
-          <div className="absolute left-1/3 top-0 w-0.5 h-full bg-white opacity-30"></div>
-          <div className="absolute left-2/3 top-0 w-0.5 h-full bg-white opacity-30"></div>
+          <div className="absolute top-1/3 left-0 w-full h-1 bg-white opacity-30"></div>
+          <div className="absolute top-2/3 left-0 w-full h-1 bg-white opacity-30"></div>
+          <div className="absolute left-1/3 top-0 w-1 h-full bg-white opacity-30"></div>
+          <div className="absolute left-2/3 top-0 w-1 h-full bg-white opacity-30"></div>
+        </div>
+        {/* Players and arrows */}
+        <div className="absolute inset-0">
+          {/* Players */}
+          <div className="absolute top-1/2 left-1/4 transform -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-blue-500 rounded-full border-2 border-white"></div>
+          <div className="absolute top-1/2 right-1/4 transform -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-red-500 rounded-full border-2 border-white"></div>
+          <div className="absolute top-1/4 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-yellow-500 rounded-full border-2 border-white"></div>
+          {/* Arrows */}
+          <div className="absolute top-1/2 left-1/4 transform -translate-x-1/2 -translate-y-1/2 w-32 h-1 bg-white rotate-45"></div>
+          <div className="absolute top-1/2 right-1/4 transform -translate-x-1/2 -translate-y-1/2 w-32 h-1 bg-white -rotate-45"></div>
         </div>
       </div>
 
@@ -234,16 +266,7 @@ const GameSetup: React.FC = () => {
                 ⚙️ Game Configuration
               </h2>
               
-              {sessionCode && (
-                <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-                  <p className="text-green-800 text-sm">
-                    <strong>Session Code:</strong> <span className="font-mono text-lg">{sessionCode}</span>
-                  </p>
-                  <p className="text-green-600 text-xs mt-1">
-                    Share this code with players to join
-                  </p>
-                </div>
-              )}
+              {/* session code moved to LobbyStatus */}
 
               <form className="space-y-6">
                 {/* Segment Settings */}
@@ -364,6 +387,7 @@ const GameSetup: React.FC = () => {
                 <LobbyStatus 
                   sessionId={sessionId} 
                   sessionCode={sessionCode || ''} 
+                  hostPassword={hostPasswordFromState}
                   onEndSession={handleEndSession}
                 />
               )}
