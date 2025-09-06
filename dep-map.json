@@ -11,6 +11,10 @@
     "src/components/PasswordModal.tsx"
   ],
   "src/components/PasswordModal.tsx": [],
+  "src/lib/createSession.test.ts": [
+    "src/lib/mutations.ts",
+    "src/lib/supabaseClient.ts"
+  ],
   "src/lib/mutations.test.ts": [
     "src/lib/mutations.ts",
     "src/lib/types.ts"
