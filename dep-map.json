@@ -4,6 +4,7 @@
   "src/components/ActiveGames.tsx": [
     "src/lib/mutations.ts"
   ],
+  "src/components/Alert.tsx": [],
   "src/components/LobbyStatus.tsx": [
     "src/lib/supabaseClient.ts"
   ],
@@ -47,6 +48,7 @@
   ],
   "src/lib/types/supabase.ts": [],
   "src/pages/GameSetup.tsx": [
+    "src/components/Alert.tsx",
     "src/components/LobbyStatus.tsx",
     "src/lib/mutations.ts",
     "src/lib/supabaseClient.ts",
@@ -64,7 +66,8 @@
   "src/pages/Lobby.tsx": [
     "src/lib/mutations.ts",
     "src/lib/sessionHooks.ts",
-    "src/lib/supabaseClient.ts"
+    "src/lib/supabaseClient.ts",
+    "src/lib/types/supabase.ts"
   ],
   "src/pages/Quiz.tsx": [
     "src/lib/mutations.ts",
