@@ -24,7 +24,7 @@ export interface ActiveSession {
 }
 
 // 1. Create Session (Host PC → GameSetup)
-export async function createSession(hostPassword: string, hostName: string): Promise<{ sessionId: string; sessionCode: string }> {
+export async function createSession(hostPassword: string, hostName?: string): Promise<{ sessionId: string; sessionCode: string }> {
   // Create the session; DB trigger will populate session_code
   const { data: sessionData, error: sessionError } = await supabase
     .from('Session')
@@ -40,19 +40,17 @@ export async function createSession(hostPassword: string, hostName: string): Pro
     throw new Error(`Failed to create session: ${sessionError.message}`)
   }
 
-  // Now create the host participant
+  // Create the host participant with NotJoined status
   const { error: participantError } = await supabase
     .from('Participant')
     .insert({
       session_id: sessionData.session_id,
-      name: hostName,
+      name: hostName || 'Host',
       role: 'Host',
       lobby_presence: 'NotJoined'
     })
 
   if (participantError) {
-    // If participant creation fails, we should ideally clean up the session
-    // but for now just throw the error
     throw new Error(`Failed to create host participant: ${participantError.message}`)
   }
 
@@ -69,15 +67,19 @@ export async function getActiveSessions(): Promise<ActiveSession[]> {
       phase,
       game_state,
       created_at,
-      Participant!inner(name, role),
+      ended_at,
+      Participant(name, role),
       DailyRoom(room_url)
     `)
-    .eq('game_state', 'pre-quiz')
-    .is('ended_at', null)
-    
+    // Show any session that hasn't ended yet
+    .is('ended_at', null);
+
   if (error) {
-    throw new Error(`Failed to fetch active sessions: ${error.message}`)
+    console.error('Error fetching active sessions:', error);
+    throw new Error(`Failed to fetch active sessions: ${error.message}`);
   }
+
+  console.log('Raw data from Supabase:', data);
 
   // Transform the data to match our interface
   type SessionRow = {
@@ -86,14 +88,19 @@ export async function getActiveSessions(): Promise<ActiveSession[]> {
     phase: SessionPhase;
     game_state: GameState;
     created_at: string;
-    Participant: Array<{ name: string; role: string }>;
-    DailyRoom?: Array<{ room_url?: string }>
-  }
+    ended_at?: string | null;
+    Participant?: Array<{ name: string; role: string }> | null;
+    DailyRoom?: Array<{ room_url?: string }> | null;
+  };
 
-  const activeSessions: ActiveSession[] = (data as SessionRow[]).map((session) => {
-    const hostParticipant = session.Participant.find((p) => p.role === 'Host')
-    const participantCount = session.Participant.length
-    const hasDailyRoom = !!(session.DailyRoom && session.DailyRoom.length > 0)
+  const rows = (data as SessionRow[]) || [];
+
+  const activeSessions: ActiveSession[] = rows.map((session) => {
+    const participants = Array.isArray(session.Participant) ? session.Participant : [];
+    const hostParticipant = participants.find((p) => p.role === 'Host');
+    // Only count Player1 and Player2 roles for participant count
+    const playerCount = participants.filter((p) => p.role === 'Player1' || p.role === 'Player2').length;
+    const hasDailyRoom = !!(session.DailyRoom && session.DailyRoom.length > 0);
 
     return {
       session_id: session.session_id,
@@ -102,11 +109,12 @@ export async function getActiveSessions(): Promise<ActiveSession[]> {
       game_state: session.game_state,
       created_at: session.created_at,
       host_name: hostParticipant ? hostParticipant.name : 'Unknown Host',
-      participant_count: participantCount,
+      participant_count: playerCount,
       has_daily_room: hasDailyRoom
-    }
-  })
+    };
+  });
 
+  console.log('Transformed active sessions:', activeSessions);
   return activeSessions
 }
 
@@ -125,14 +133,105 @@ export async function getSessionIdByCode(sessionCode: string): Promise<string> {
   return data.session_id
 }
 
+type ParticipantIdRow = { participant_id: string };
+
+// Helper to fetch participant_id by session and name
+async function getParticipantIdBySessionAndName(sessionId: string, name: string): Promise<string> {
+  const { data, error } = await supabase
+    .from('Participant')
+    .select('participant_id')
+    .eq('session_id', sessionId)
+    .eq('name', name)
+    .limit(1)
+    .single();
+
+  if (error || !data) {
+    throw new Error(`Participant not found: ${error?.message || 'no data'}`);
+  }
+
+  return (data as ParticipantIdRow).participant_id;
+}
+
 // Wrapper function for joining as host with session code
 export async function joinAsHostWithCode(
   sessionCode: string,
-  password: string,
-  hostName: string
+  hostPassword: string
 ): Promise<string> {
-  const sessionId = await getSessionIdByCode(sessionCode);
-  return joinAsHost(sessionId, password, hostName);
+  // Look up session and verify host password using database function
+  const { data: verificationResult, error: verificationError } = await supabase
+    .rpc('verify_host_password', {
+      session_code_input: sessionCode.toUpperCase(),
+      password_input: hostPassword
+    });
+
+  if (verificationError) {
+    throw new Error(`Error verifying password: ${verificationError.message}`);
+  }
+
+  if (!verificationResult) {
+    throw new Error('Invalid session code or password');
+  }
+
+  // Get the session ID
+  const { data: sessionRow, error: sessionError } = await supabase
+    .from('Session')
+    .select('session_id')
+    .eq('session_code', sessionCode.toUpperCase())
+    .single();
+
+  if (sessionError || !sessionRow) {
+    throw new Error(`Session not found: ${sessionError?.message || 'No session with that code'}`);
+  }
+
+  const sessionId = sessionRow.session_id;
+
+  // First, try to find existing host participant
+  const { data: existingHost, error: findError } = await supabase
+    .from('Participant')
+    .select('participant_id')
+    .eq('session_id', sessionId)
+    .eq('role', 'Host')
+    .maybeSingle();
+
+  if (findError) {
+    throw new Error(`Failed to check for existing host: ${findError.message}`);
+  }
+
+  if (existingHost) {
+    // Update existing host participant to "Joined" status
+    const { data: updateData, error: updateError } = await supabase
+      .from('Participant')
+      .update({
+        lobby_presence: 'Joined'
+      })
+      .eq('participant_id', existingHost.participant_id)
+      .select('participant_id')
+      .single();
+
+    if (updateError || !updateData) {
+      throw new Error(`Failed to update host status: ${updateError?.message || 'Update failed'}`);
+    }
+
+    return updateData.participant_id;
+  } else {
+    // No host participant exists, create one
+    const { data: insertData, error: insertError } = await supabase
+      .from('Participant')
+      .insert({
+        session_id: sessionId,
+        name: 'Host', // Default name since we don't have it
+        role: 'Host',
+        lobby_presence: 'Joined'
+      })
+      .select('participant_id')
+      .single();
+
+    if (insertError || !insertData) {
+      throw new Error(`Failed to create host participant: ${insertError?.message || 'Insert failed'}`);
+    }
+
+    return insertData.participant_id;
+  }
 }
 
 // Wrapper function for joining as player with session code
@@ -143,7 +242,77 @@ export async function joinAsPlayerWithCode(
   logoUrl: string
 ): Promise<string> {
   const sessionId = await getSessionIdByCode(sessionCode);
-  return joinAsPlayer(sessionId, name, flag, logoUrl);
+
+  // First, check if player with this name already exists for the session
+  try {
+    const { data: existing, error: existingErr } = await supabase
+      .from('Participant')
+      .select('participant_id, role')
+      .eq('session_id', sessionId)
+      .eq('name', name)
+      .limit(1)
+      .single();
+
+    type ExistingRow = { participant_id: string; role?: string } | null;
+
+    if (!existingErr && (existing as ExistingRow)) {
+      const existingRow = existing as ExistingRow;
+      // Update presence and return existing id
+      await supabase
+        .from('Participant')
+        .update({ lobby_presence: 'Joined' })
+        .eq('participant_id', existingRow!.participant_id);
+      return existingRow!.participant_id;
+    }
+  } catch (_e) {
+    // ignore and continue to create
+  }
+
+  // Determine available player role (Player1 or Player2)
+  const { data: playersData, error: playersError } = await supabase
+    .from('Participant')
+    .select('role')
+    .eq('session_id', sessionId)
+    .in('role', ['Player1', 'Player2']);
+
+  if (playersError) {
+    throw new Error(`Failed to determine player roles: ${playersError.message || String(playersError)}`);
+  }
+
+  const existingRoles: string[] = Array.isArray(playersData) ? (playersData as Array<{ role?: string }>).map((r) => r.role || '') : [];
+  let assignedRole: string;
+  if (!existingRoles.includes('Player1')) assignedRole = 'Player1';
+  else if (!existingRoles.includes('Player2')) assignedRole = 'Player2';
+  else throw new Error('Session is full (both player slots taken)');
+
+  // Try insert with assigned role
+  const insertResultPlayer = await supabase
+    .from('Participant')
+    .insert({
+      session_id: sessionId,
+      name,
+      flag,
+      team_logo_url: logoUrl,
+      role: assignedRole,
+      lobby_presence: 'Joined'
+    })
+    .select('participant_id');
+
+  const insertPlayerTyped = insertResultPlayer as { data: ParticipantIdRow[] | null; error: unknown };
+  const insertDataPlayer = insertPlayerTyped.data;
+  const insertErrorPlayer = insertPlayerTyped.error;
+
+  if (!insertErrorPlayer && insertDataPlayer && Array.isArray(insertDataPlayer) && insertDataPlayer.length > 0) {
+    return insertDataPlayer[0].participant_id;
+  }
+
+  // If insert failed, try to find existing participant by name as a last resort
+  try {
+    return await getParticipantIdBySessionAndName(sessionId, name);
+  } catch (err) {
+    const insertMsg = extractErrorMessage(insertErrorPlayer);
+    throw new Error(`Failed to join as player: ${insertMsg || (err instanceof Error ? err.message : String(err))}`);
+  }
 }
 
 // 2. Add Segment Config (GameSetup)
@@ -151,11 +320,11 @@ export async function setSegmentConfig(
   sessionId: string, 
   configs: SegmentConfigInput[]
 ): Promise<void> {
-  const configsWithSessionId = configs.map(config => ({
+  const configsWithSessionId = configs.map((config) => ({
     session_id: sessionId,
     segment_code: config.segment_code,
     questions_count: config.questions_count
-  }))
+  }));
 
   const { error } = await supabase
     .from('SegmentConfig')
@@ -180,7 +349,6 @@ export async function createDailyRoom(sessionId: string, sessionCode: string): P
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ 
-        session_id: sessionId,
         session_code: sessionCode 
       })
     })
@@ -540,4 +708,18 @@ export async function getSegmentConfig(sessionId: string): Promise<SegmentConfig
   }
 
   return data || []
+}
+
+// Helper function to extract message from unknown errors to avoid any casts.
+function extractErrorMessage(err: unknown): string {
+  if (!err) return '';
+  if (typeof err === 'string') return err;
+  if (err instanceof Error) return err.message;
+  try {
+    const asObj = err as { message?: unknown };
+    if (asObj && typeof asObj.message === 'string') return asObj.message;
+  } catch (_parseError) {
+    // ignore parse errors when extracting message
+  }
+  return String(err);
 }

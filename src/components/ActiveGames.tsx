@@ -129,7 +129,7 @@ const ActiveGames: React.FC = () => {
                     <div>
                       <span className="text-gray-500">Players:</span>
                       <span className="ml-2 font-medium">
-                        {session.participant_count - 1}/2
+                        {session.participant_count}/2
                       </span>
                     </div>
                     

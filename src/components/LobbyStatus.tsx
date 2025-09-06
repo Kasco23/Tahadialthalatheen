@@ -7,6 +7,7 @@ interface LobbyStatusProps {
   sessionCode: string;
   hostPassword?: string | null;
   onEndSession: () => void;
+  onLobbyUpdate?: (info: { participantCount: number; roomReady: boolean }) => void;
 }
 
 interface ParticipantInfo {
@@ -23,14 +24,14 @@ interface DailyRoomInfo {
   ready?: boolean;
 }
 
-const LobbyStatus: React.FC<LobbyStatusProps> = ({ sessionId, sessionCode, hostPassword: hostPasswordProp, onEndSession }) => {
+const LobbyStatus: React.FC<LobbyStatusProps> = ({ sessionId, sessionCode, hostPassword: hostPasswordProp, onEndSession, onLobbyUpdate }) => {
   const [participants, setParticipants] = useState<ParticipantInfo[]>([]);
   const [dailyRoom, setDailyRoom] = useState<DailyRoomInfo | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchLobbyData = async () => {
+  const fetchLobbyData = async () => {
       try {
         setLoading(true);
         
@@ -63,6 +64,11 @@ const LobbyStatus: React.FC<LobbyStatusProps> = ({ sessionId, sessionCode, hostP
 
   // If host password not supplied from navigation state, fetch hashed value
   // Note: we prefer showing plaintext passed via navigation state (hostPassword prop)
+        // Notify parent about lobby updates
+        if (onLobbyUpdate) {
+          const count = (participantsData || []).filter(p => p.lobby_presence === 'Joined').length;
+          onLobbyUpdate({ participantCount: count, roomReady: !!dailyRoomData?.room_url });
+        }
       } catch (error) {
         console.error('Error fetching lobby data:', error);
       } finally {
@@ -84,9 +90,7 @@ const LobbyStatus: React.FC<LobbyStatusProps> = ({ sessionId, sessionCode, hostP
             table: 'Participant',
             filter: `session_id=eq.${sessionId}`
           },
-          () => {
-            fetchLobbyData();
-          }
+          () => { fetchLobbyData(); }
         )
         .subscribe();
 
@@ -98,11 +102,9 @@ const LobbyStatus: React.FC<LobbyStatusProps> = ({ sessionId, sessionCode, hostP
             event: '*',
             schema: 'public',
             table: 'DailyRoom',
-            filter: `session_id=eq.${sessionId}`
+            filter: `room_id=eq.${sessionId}`
           },
-          () => {
-            fetchLobbyData();
-          }
+          () => { fetchLobbyData(); }
         )
         .subscribe();
 
@@ -111,7 +113,7 @@ const LobbyStatus: React.FC<LobbyStatusProps> = ({ sessionId, sessionCode, hostP
         supabase.removeChannel(dailyRoomChannel);
       };
     }
-  }, [sessionId]);
+  }, [sessionId, onLobbyUpdate]);
 
   const getPresenceColor = (presence: string) => {
     switch (presence) {

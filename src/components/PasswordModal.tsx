@@ -21,23 +21,23 @@ const PasswordModal: React.FC<PasswordModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const newErrors: string[] = [];
-    
-    if (!hostName.trim()) {
-      newErrors.push('Host name is required');
-    }
-    
+
     if (!password.trim()) {
       newErrors.push('Password is required');
     }
-    
+
     if (password.length < 3) {
       newErrors.push('Password must be at least 3 characters long');
     }
-    
+
+    if (!hostName.trim()) {
+      newErrors.push('Host name is required');
+    }
+
     setErrors(newErrors);
-    
+
     if (newErrors.length === 0) {
       onConfirm(password, hostName);
     }

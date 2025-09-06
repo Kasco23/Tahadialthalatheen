@@ -21,7 +21,7 @@ describe('createSession uses DB trigger to create session_code', () => {
     const insertMockSession = jest.fn().mockReturnValue({ select: insertSelect });
 
     // Participant insert returns ok
-    const insertMockParticipant = jest.fn().mockResolvedValue({ data: { participant_id: 'p-1' }, error: null });
+    const insertMockParticipant = jest.fn().mockResolvedValue({ data: null, error: null });
 
     // First call to from('Session'), second to from('Participant')
     fromMock

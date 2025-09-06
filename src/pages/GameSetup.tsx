@@ -18,6 +18,7 @@ const GameSetup: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isDailyRoomCreated, setIsDailyRoomCreated] = useState(false);
   const [roomInfo, setRoomInfo] = useState<{ room_url: string } | null>(null);
+  const [participantCount, setParticipantCount] = useState(0);
   const [notice, setNotice] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [segments, setSegments] = useState({
     WDYK: 4, // What Do You Know
@@ -161,6 +162,13 @@ const GameSetup: React.FC = () => {
     navigate(`/quiz/${sessionCode}`);
   };
 
+  const handleLobbyUpdate = useCallback((info: { participantCount: number; roomReady: boolean }) => {
+  setParticipantCount(info.participantCount);
+    if (info.roomReady && !isDailyRoomCreated) {
+      setIsDailyRoomCreated(true);
+    }
+  }, [isDailyRoomCreated]);
+
   const handleEndSession = async () => {
     if (!sessionId) {
       setNotice({ type: 'error', message: 'No session available.' });
@@ -234,6 +242,12 @@ const GameSetup: React.FC = () => {
                   onClose={() => setNotice(null)}
                 />
               )}
+              
+              {/* Live lobby summary */}
+              <div className="mb-4 p-3 bg-gray-50 border rounded text-sm text-gray-700 flex items-center justify-between">
+                <span>Participants joined:</span>
+                <span className="font-semibold">{participantCount}/3</span>
+              </div>
               
               {/* session code moved to LobbyStatus */}
 
@@ -363,6 +377,7 @@ const GameSetup: React.FC = () => {
                   sessionCode={sessionCode || ''} 
                   hostPassword={hostPasswordFromState}
                   onEndSession={handleEndSession}
+                  onLobbyUpdate={handleLobbyUpdate}
                 />
               )}
             </div>

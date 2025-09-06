@@ -182,6 +182,45 @@ const Lobby: React.FC = () => {
     navigate(`/quiz/${sessionId}`);
   };
 
+  const handleRefresh = async () => {
+    // Re-run initial loaders
+    try {
+      setLoading(true);
+      setError(null);
+      // Participants
+      const { data: pData, error: pErr } = await supabase
+        .from('Participant')
+        .select('*')
+        .eq('session_id', sessionId);
+      if (!pErr) setPlayers((pData as ParticipantRow[]) || []);
+      // Daily room
+  const { data: rData } = await supabase
+        .from('DailyRoom')
+        .select('room_url, ready')
+        .eq('room_id', sessionId)
+        .single();
+  if (rData) setDailyRoom({ room_url: (rData as { room_url: string }).room_url, ready: Boolean((rData as { ready: boolean | null }).ready) });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLeaveLobby = async () => {
+    try {
+      const pid = localStorage.getItem('tt_participant_id');
+      if (pid) {
+        await supabase
+          .from('Participant')
+          .update({ lobby_presence: 'Disconnected' })
+          .eq('participant_id', pid);
+      }
+    } catch (e) {
+      console.error('Failed to update presence on leave:', e);
+    } finally {
+      navigate('/');
+    }
+  };
+
   if (sessionLoading || loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 flex items-center justify-center">
@@ -213,7 +252,7 @@ const Lobby: React.FC = () => {
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-white mb-2">🎮 Game Lobby</h1>
           <div className="text-xl text-blue-100">
-            Session: <span className="font-bold text-yellow-300">{sessionId}</span>
+            Session: <span className="font-bold text-yellow-300">{sessionCode}</span>
           </div>
           <div className="text-sm text-blue-200 mt-2">
             Phase: <span className="font-bold">{session.phase}</span> |
@@ -255,7 +294,7 @@ const Lobby: React.FC = () => {
                           <div className="text-sm text-blue-200">{getRoleDisplay(player)}</div>
                         </div>
                       </div>
-                      <div className={`text-2xl ${player.lobby_presence === 'Joined' ? 'animate-pulse' : ''}`}>
+                      <div className={`text-2xl ${player.lobby_presence === 'Joined' ? 'animate-pulse text-green-500' : 'text-red-500'}`}>
                         {player.lobby_presence === 'Joined' ? '🟢' : '🔴'}
                       </div>
                     </div>
@@ -308,10 +347,10 @@ const Lobby: React.FC = () => {
               🚀 Start Quiz
             </button>
           )}
-          <button className="px-8 py-3 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-lg transition-colors duration-200">
+          <button onClick={handleRefresh} className="px-8 py-3 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-lg transition-colors duration-200">
             🔄 Refresh
           </button>
-          <button className="px-8 py-3 bg-red-500 hover:bg-red-600 text-white font-bold rounded-lg transition-colors duration-200">
+          <button onClick={handleLeaveLobby} className="px-8 py-3 bg-red-500 hover:bg-red-600 text-white font-bold rounded-lg transition-colors duration-200">
             🚪 Leave Lobby
           </button>
         </div>

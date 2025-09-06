@@ -225,7 +225,10 @@ const Join: React.FC = () => {
 
     try {
       // Join as host using session code
-      const participantId = await joinAsHostWithCode(sessionCode, hostPassword, 'Host Name'); // TODO: Get actual host name
+      const participantId = await joinAsHostWithCode(sessionCode, hostPassword);
+
+      // Persist participant id for presence updates
+      try { localStorage.setItem('tt_participant_id', participantId); } catch { /* ignore */ }
       
       console.log('Joined as host:', { sessionCode, participantId });
       navigate(`/lobby/${sessionCode}`);
@@ -250,6 +253,9 @@ const Join: React.FC = () => {
     try {
       // Join as player using session code
       const participantId = await joinAsPlayerWithCode(playerSessionCode, playerName, selectedFlag, teamLogoUrl);
+
+      // Persist participant id for presence updates
+      try { localStorage.setItem('tt_participant_id', participantId); } catch { /* ignore */ }
       
       console.log('Joined as player:', { sessionCode: playerSessionCode, participantId, playerName, selectedFlag, teamLogoUrl });
       navigate(`/lobby/${playerSessionCode}`);

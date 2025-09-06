@@ -11,26 +11,16 @@ export default async (req: Request, _context: Context) => {
   }
 
   try {
-    const body = await req.text();
-    console.log('Received request body:', body);
+    // Parse JSON directly from the request
+    const parsedBody = await req.json();
+    console.log('Received request body:', parsedBody);
     
-    let parsedBody;
-    try {
-      parsedBody = JSON.parse(body);
-    } catch (parseError) {
-      console.error('Failed to parse JSON:', parseError);
-      return new Response(JSON.stringify({ error: 'Invalid JSON in request body' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
+    const { session_code } = parsedBody;
+    console.log('Parsed data:', { session_code });
 
-  const { session_id } = parsedBody;
-  console.log('Parsed data:', { session_id });
-
-    if (!session_id) {
-      console.error('Missing session_id');
-      return new Response(JSON.stringify({ error: 'session_id is required' }), {
+    if (!session_code) {
+      console.error('Missing session_code');
+      return new Response(JSON.stringify({ error: 'session_code is required' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' }
       });
@@ -58,33 +48,33 @@ export default async (req: Request, _context: Context) => {
 
     const supabase = createClient(supabaseUrl, supabaseKey, { auth: { persistSession: false } });
 
-    // Fetch the canonical session_code from DB (set by trigger)
+    // Get the session_id for the provided session_code
     const { data: sessionRow, error: sessionErr } = await supabase
       .from('Session')
-      .select('session_code')
-      .eq('session_id', session_id)
+      .select('session_id')
+      .eq('session_code', session_code.toUpperCase())
       .single();
 
-    if (sessionErr || !sessionRow?.session_code) {
-      console.error('Session not found or missing session_code:', sessionErr);
+    if (sessionErr || !sessionRow?.session_id) {
+      console.error('Session not found for session_code:', sessionErr);
       return new Response(JSON.stringify({ error: 'Session not found' }), {
         status: 404,
         headers: { 'Content-Type': 'application/json' }
       });
     }
 
-    const session_code = sessionRow.session_code;
-    console.log('Creating Daily.co room with session_code from DB:', session_code);
+    const session_id = sessionRow.session_id;
+    console.log('Creating Daily.co room with session_code:', session_code);
 
     // Create room using Daily.co API with session_code as room name
-  const roomResponse = await fetch('https://api.daily.co/v1/rooms', {
+    const roomResponse = await fetch('https://api.daily.co/v1/rooms', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${process.env.DAILY_API_KEY}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        name: session_code, // Use session_code instead of session_id
+        name: session_code, // Use session_code as room name
         privacy: 'public',
         properties: {
           max_participants: 10,
