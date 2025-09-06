@@ -324,30 +324,6 @@ const GameSetup: React.FC = () => {
 
                 {/* Action Buttons */}
                 <div className="space-y-4">
-                  <button
-                    type="button"
-                    onClick={handleCreateDailyRoom}
-                    disabled={isLoading || isDailyRoomCreated}
-                    className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200 transform hover:scale-105 disabled:transform-none disabled:cursor-not-allowed"
-                  >
-                    {isLoading ? '⏳ Creating...' : isDailyRoomCreated ? '✅ Daily Room Created' : '📹 Create Daily Room'}
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleStartQuiz}
-                    disabled={!sessionId || !isDailyRoomCreated}
-                    className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200 transform hover:scale-105 disabled:transform-none"
-                  >
-                    🚀 Start Quiz
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-
-                {/* Action Buttons */}
-                <div className="space-y-4">
                   {isDailyRoomCreated && roomInfo ? (
                     <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
                       <p className="text-green-800 text-sm">
@@ -377,6 +353,21 @@ const GameSetup: React.FC = () => {
                     🚀 Start Quiz
                   </button>
                 </div>
+              </form>
+            </div>
+          </div>
+
+          {/* Right side - Lobby Status */}
+          <div className="flex items-start justify-center">
+            <div className="w-full max-w-2xl">
+              {sessionId && (
+                <LobbyStatus 
+                  sessionId={sessionId} 
+                  sessionCode={sessionCode || ''} 
+                  onEndSession={handleEndSession}
+                />
+              )}
+            </div>
           </div>
 
         </div>
