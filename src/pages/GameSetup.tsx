@@ -16,17 +16,18 @@ const generateSessionCode = async (): Promise<string> => {
 
   // Ensure uniqueness in the database
   const { data, error } = await supabase
-    .from('Sessions')
+    .from('Session')
     .select('session_code')
     .eq('session_code', shuffled)
     .single();
 
   if (error && error.code === 'PGRST116') {
-    return shuffled; // Code is unique
+    return shuffled; // Code is unique (PGRST116 means no data found)
   } else if (data) {
     return generateSessionCode(); // Retry if duplicate
   } else {
-    throw new Error('Error checking session code uniqueness');
+    console.error('Database error when checking session code:', error);
+    throw new Error(`Error checking session code uniqueness: ${error?.message || 'Unknown database error'}`);
   }
 };
 

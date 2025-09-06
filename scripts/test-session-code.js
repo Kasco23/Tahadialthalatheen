@@ -1,0 +1,39 @@
+// Quick test to see if the session code generation works
+import { supabase } from '../src/lib/supabaseClient.js';
+
+const generateSessionCode = async () => {
+  const numbers = Array.from({ length: 3 }, () => Math.floor(Math.random() * 10).toString());
+  const letters = Array.from({ length: 3 }, () => String.fromCharCode(65 + Math.floor(Math.random() * 26)));
+  const specialChars = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')'];
+  const specialChar = specialChars[Math.floor(Math.random() * specialChars.length)];
+
+  const allChars = [...numbers, ...letters, specialChar];
+  const shuffled = allChars.sort(() => Math.random() - 0.5).join('');
+
+  console.log('Generated code:', shuffled);
+
+  // Ensure uniqueness in the database
+  const { data, error } = await supabase
+    .from('Session')
+    .select('session_code')
+    .eq('session_code', shuffled)
+    .single();
+
+  console.log('Database check result:', { data, error });
+
+  if (error && error.code === 'PGRST116') {
+    console.log('Code is unique, returning:', shuffled);
+    return shuffled; // Code is unique
+  } else if (data) {
+    console.log('Code exists, retrying...');
+    return generateSessionCode(); // Retry if duplicate
+  } else {
+    console.error('Unexpected error:', error);
+    throw new Error('Error checking session code uniqueness');
+  }
+};
+
+// Test the function
+generateSessionCode()
+  .then(code => console.log('Final code:', code))
+  .catch(err => console.error('Error:', err));
