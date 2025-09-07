@@ -1,12 +1,11 @@
-import { useState, useEffect } from 'react';
-import { supabase } from './supabaseClient';
+import { useState, useEffect } from "react";
+import { supabase } from "./supabaseClient";
 
 interface SessionData {
   session_id: string;
   session_code: string | null;
   phase: string;
   game_state: string;
-  host_password: string;
   created_at: string | null;
   ended_at: string | null;
 }
@@ -35,37 +34,40 @@ export const useSession = (sessionId: string | null): UseSessionReturn => {
       const channel = supabase
         .channel(`session_${sessionId}`)
         .on(
-          'postgres_changes',
+          "postgres_changes",
           {
-            event: '*',
-            schema: 'public',
-            table: 'Session',
-            filter: `session_id=eq.${sessionId}`
+            event: "*",
+            schema: "public",
+            table: "Session",
+            filter: `session_id=eq.${sessionId}`,
           },
           (payload) => {
-            console.log('Session update:', payload);
+            console.log("Session update:", payload);
 
             if (!isMounted) return;
 
-            if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+            if (
+              payload.eventType === "INSERT" ||
+              payload.eventType === "UPDATE"
+            ) {
               setSession(payload.new as SessionData);
               setError(null);
-            } else if (payload.eventType === 'DELETE') {
+            } else if (payload.eventType === "DELETE") {
               setSession(null);
             }
-          }
+          },
         )
         .subscribe((status) => {
-          console.log('Session subscription status:', status);
+          console.log("Session subscription status:", status);
 
           if (!isMounted) return;
 
-          if (status === 'SUBSCRIBED') {
+          if (status === "SUBSCRIBED") {
             setError(null);
-          } else if (status === 'CHANNEL_ERROR') {
-            setError('Failed to subscribe to session updates');
-          } else if (status === 'TIMED_OUT') {
-            setError('Session subscription timed out');
+          } else if (status === "CHANNEL_ERROR") {
+            setError("Failed to subscribe to session updates");
+          } else if (status === "TIMED_OUT") {
+            setError("Session subscription timed out");
           }
         });
 
@@ -79,18 +81,20 @@ export const useSession = (sessionId: string | null): UseSessionReturn => {
         setError(null);
 
         const { data, error: fetchError } = await supabase
-          .from('Session')
-          .select('*')
-          .eq('session_id', sessionId)
+          .from("Session")
+          .select(
+            "session_id, session_code, phase, game_state, created_at, ended_at",
+          )
+          .eq("session_id", sessionId)
           .single();
 
         if (fetchError) {
-          if (fetchError.code === 'PGRST116') {
+          if (fetchError.code === "PGRST116") {
             // No rows returned
-            setError('Session not found');
+            setError("Session not found");
           } else {
-            console.error('Error loading session:', fetchError);
-            setError('Failed to load session data');
+            console.error("Error loading session:", fetchError);
+            setError("Failed to load session data");
           }
           setSession(null);
         } else {
@@ -100,9 +104,9 @@ export const useSession = (sessionId: string | null): UseSessionReturn => {
           }
         }
       } catch (err) {
-        console.error('Error in loadInitialSession:', err);
+        console.error("Error in loadInitialSession:", err);
         if (isMounted) {
-          setError('An unexpected error occurred');
+          setError("An unexpected error occurred");
           setSession(null);
         }
       } finally {
@@ -126,6 +130,6 @@ export const useSession = (sessionId: string | null): UseSessionReturn => {
   return {
     session,
     loading,
-    error
+    error,
   };
 };

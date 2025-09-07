@@ -24,4 +24,3 @@
         1. 1 logo: name: real-madrid.svg // url: <https://psdrwkjkgubatiemsgqn.supabase.co/storage/v1/object/public/logos/La%20Liga/real-madrid.svg>
      2. assets: empty for now
 - I want to add more logos for other leagues and teams especially Top 5 European leagues
-

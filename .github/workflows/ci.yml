@@ -1,26 +1,25 @@
 name: CI
 on:
   push:
-    branches: [ minimal, main, advanced ]
+    branches: [minimal, main, advanced]
   pull_request:
+    branches: [minimal, main, advanced]
 
-    branches: [ minimal, main, advanced ]
-
-env:                      # shared across all jobs and steps
+env: # shared across all jobs and steps
   # ----- Front-end (Vite) -----
   VITE_SUPABASE_DATABASE_URL: ${{ vars.VITE_SUPABASE_DATABASE_URL }}
-  VITE_SUPABASE_ANON_KEY:     ${{ vars.VITE_SUPABASE_ANON_KEY }}
-  VITE_DAILY_DOMAIN:          ${{ vars.VITE_DAILY_DOMAIN }}
+  VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
+  VITE_DAILY_DOMAIN: ${{ vars.VITE_DAILY_DOMAIN }}
   # ----- Serverless (Netlify Functions) -----
-  SUPABASE_DATABASE_URL:      ${{ secrets.SUPABASE_DATABASE_URL }}
-  SUPABASE_ANON_KEY:          ${{ secrets.SUPABASE_ANON_KEY }}
-  SUPABASE_SERVICE_ROLE_KEY:  ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-  SUPABASE_JWT_SECRET:        ${{ secrets.SUPABASE_JWT_SECRET }}
-  DAILY_API_KEY:              ${{ secrets.DAILY_API_KEY }}
+  SUPABASE_DATABASE_URL: ${{ secrets.SUPABASE_DATABASE_URL }}
+  SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+  SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+  SUPABASE_JWT_SECRET: ${{ secrets.SUPABASE_JWT_SECRET }}
+  DAILY_API_KEY: ${{ secrets.DAILY_API_KEY }}
 
 jobs:
   build:
-    runs-on: ubuntu-latest    # Speed up with pnpm store cache
+    runs-on: ubuntu-latest # Speed up with pnpm store cache
     permissions:
       contents: read
       packages: write
@@ -38,9 +37,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'pnpm'
-          cache-dependency-path: '**/pnpm-lock.yaml'
-          
+          cache: "pnpm"
+          cache-dependency-path: "**/pnpm-lock.yaml"
+
       - name: Install dependencies (pnpm)
         run: pnpm install --frozen-lockfile
 

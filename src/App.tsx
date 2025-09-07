@@ -1,10 +1,10 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Homepage from './pages/Homepage';
-import GameSetup from './pages/GameSetup';
-import Join from './pages/Join';
-import Lobby from './pages/Lobby';
-import Quiz from './pages/Quiz';
-import Results from './pages/Results';
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Homepage from "./pages/Homepage";
+import GameSetup from "./pages/GameSetup";
+import Join from "./pages/Join";
+import Lobby from "./pages/Lobby";
+import Quiz from "./pages/Quiz";
+import Results from "./pages/Results";
 
 function App() {
   return (

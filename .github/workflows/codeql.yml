@@ -1,9 +1,9 @@
 name: CodeQL
 on:
   push:
-    branches: [ minimal, main, advanced ]
+    branches: [minimal, main, advanced]
   pull_request:
-    branches: [ minimal, main, advanced ]
+    branches: [minimal, main, advanced]
 
 permissions:
   actions: read
@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [ 'javascript' ]   # TS is covered by JS analysis
+        language: ["javascript"] # TS is covered by JS analysis
     steps:
       - uses: actions/checkout@v4
       - uses: github/codeql-action/init@v3

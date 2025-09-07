@@ -1,34 +1,33 @@
-import { useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
-type AlertType = 'success' | 'error' | 'info'
+type AlertType = "success" | "error" | "info";
 
 export function Alert({
-  type = 'info',
+  type = "info",
   message,
   onClose,
   autoCloseMs = 3500,
 }: {
-  type?: AlertType
-  message: string
-  onClose?: () => void
-  autoCloseMs?: number
+  type?: AlertType;
+  message: string;
+  onClose?: () => void;
+  autoCloseMs?: number;
 }) {
   useEffect(() => {
-    if (!onClose || !autoCloseMs) return
-    const id = setTimeout(onClose, autoCloseMs)
-    return () => clearTimeout(id)
-  }, [onClose, autoCloseMs])
+    if (!onClose || !autoCloseMs) return;
+    const id = setTimeout(onClose, autoCloseMs);
+    return () => clearTimeout(id);
+  }, [onClose, autoCloseMs]);
 
   const style =
-    type === 'success'
-      ? 'bg-green-50 border-green-200 text-green-800'
-      : type === 'error'
-      ? 'bg-red-50 border-red-200 text-red-800'
-      : 'bg-blue-50 border-blue-200 text-blue-800'
+    type === "success"
+      ? "bg-green-50 border-green-200 text-green-800"
+      : type === "error"
+        ? "bg-red-50 border-red-200 text-red-800"
+        : "bg-blue-50 border-blue-200 text-blue-800";
 
-  const icon =
-    type === 'success' ? '✅' : type === 'error' ? '⚠️' : 'ℹ️'
+  const icon = type === "success" ? "✅" : type === "error" ? "⚠️" : "ℹ️";
 
   return (
     <AnimatePresence>
@@ -56,5 +55,5 @@ export function Alert({
         )}
       </motion.div>
     </AnimatePresence>
-  )
+  );
 }

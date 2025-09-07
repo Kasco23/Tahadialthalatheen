@@ -1,57 +1,72 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabaseClient';
-import { useSession } from '../lib/sessionHooks';
-import { getSessionIdByCode, getDailyRoom } from '../lib/mutations';
-import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
-import type { Database } from '../lib/types/supabase';
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useAtom } from "jotai";
+import { supabase } from "../lib/supabaseClient";
+import { useSession } from "../lib/sessionHooks";
+import { getSessionIdByCode, getDailyRoom } from "../lib/mutations";
+import { sessionAtom, sessionCodeAtom, participantsAtom } from "../atoms";
+import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
+import type { Database } from "../lib/types/supabase";
 
-type ParticipantRow = Database['public']['Tables']['Participant']['Row'];
+type ParticipantRow = Database["public"]["Tables"]["Participant"]["Row"];
 
 const Lobby: React.FC = () => {
   const { sessionCode } = useParams<{ sessionCode: string }>();
   const navigate = useNavigate();
-  const [sessionId, setSessionId] = useState<string | null>(null);
-  const { session, loading: sessionLoading, error: sessionError } = useSession(sessionId);
+
+  // Use Jotai atoms
+  const [sessionId, setSessionId] = useAtom(sessionAtom);
+  const [_currentSessionCode, setCurrentSessionCode] = useAtom(sessionCodeAtom);
+  const [_participants, _setParticipants] = useAtom(participantsAtom);
+
+  const {
+    session,
+    loading: sessionLoading,
+    error: sessionError,
+  } = useSession(sessionId);
   const [players, setPlayers] = useState<ParticipantRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [dailyRoom, setDailyRoom] = useState<{ room_url: string; ready: boolean } | null>(null);
+  const [dailyRoom, setDailyRoom] = useState<{
+    room_url: string;
+    ready: boolean;
+  } | null>(null);
 
   // Convert sessionCode to sessionId when component mounts
   useEffect(() => {
     const resolveSessionId = async () => {
       if (!sessionCode) {
-        setError('No session code provided');
+        setError("No session code provided");
         setLoading(false);
         return;
       }
-      
+
       try {
         const resolvedSessionId = await getSessionIdByCode(sessionCode);
         setSessionId(resolvedSessionId);
+        setCurrentSessionCode(sessionCode);
       } catch (error) {
-        console.error('Failed to resolve session code:', error);
-        setError('Invalid session code');
+        console.error("Failed to resolve session code:", error);
+        setError("Invalid session code");
         setLoading(false);
       }
     };
 
-    if (sessionCode) {
+    if (sessionCode && !sessionId) {
       resolveSessionId();
     }
-  }, [sessionCode]);
+  }, [sessionCode, sessionId, setSessionId, setCurrentSessionCode]);
 
   // Load Daily room data when sessionId is available
   useEffect(() => {
     const loadDailyRoom = async () => {
       if (!sessionId) return;
-      
+
       try {
         const roomData = await getDailyRoom(sessionId);
         setDailyRoom(roomData);
       } catch (error) {
-        console.error('Failed to load Daily room data:', error);
+        console.error("Failed to load Daily room data:", error);
       }
     };
 
@@ -62,49 +77,58 @@ const Lobby: React.FC = () => {
 
   useEffect(() => {
     if (!sessionId) {
-      setError('No session ID provided');
+      setError("No session ID provided");
       setLoading(false);
       return;
     }
 
     let isMounted = true;
 
-  // Subscribe to participant changes
-  const subscribeToPlayers = () => {
+    // Subscribe to participant changes
+    const subscribeToPlayers = () => {
       const channel = supabase
-    .channel(`participants_${sessionId}`)
+        .channel(`participants_${sessionId}`)
         .on(
-          'postgres_changes',
+          "postgres_changes",
           {
-            event: '*',
-            schema: 'public',
-      table: 'Participant',
-            filter: `session_id=eq.${sessionId}`
+            event: "*",
+            schema: "public",
+            table: "Participant",
+            filter: `session_id=eq.${sessionId}`,
           },
-          (payload: RealtimePostgresChangesPayload<Database['public']['Tables']['Participant']['Row']>) => {
-      console.log('Participant update:', payload);
+          (
+            payload: RealtimePostgresChangesPayload<
+              Database["public"]["Tables"]["Participant"]["Row"]
+            >,
+          ) => {
+            console.log("Participant update:", payload);
 
             if (!isMounted) return;
 
-            if (payload.eventType === 'INSERT') {
-              if (payload.new) setPlayers(prev => [...prev, payload.new as ParticipantRow]);
-            } else if (payload.eventType === 'UPDATE') {
-              setPlayers(prev =>
-                prev.map(player =>
-                  player.participant_id === (payload.new?.participant_id || '')
+            if (payload.eventType === "INSERT") {
+              if (payload.new)
+                setPlayers((prev) => [...prev, payload.new as ParticipantRow]);
+            } else if (payload.eventType === "UPDATE") {
+              setPlayers((prev) =>
+                prev.map((player) =>
+                  player.participant_id === (payload.new?.participant_id || "")
                     ? { ...player, ...(payload.new as ParticipantRow) }
-                    : player
-                )
+                    : player,
+                ),
               );
-            } else if (payload.eventType === 'DELETE') {
-              setPlayers(prev =>
-                prev.filter(player => player.participant_id !== (payload.old?.participant_id || ''))
+            } else if (payload.eventType === "DELETE") {
+              setPlayers((prev) =>
+                prev.filter(
+                  (player) =>
+                    player.participant_id !==
+                    (payload.old?.participant_id || ""),
+                ),
               );
             }
-          }
+          },
         )
         .subscribe((status) => {
-      console.log('Participants subscription status:', status);
+          console.log("Participants subscription status:", status);
         });
 
       return channel;
@@ -117,14 +141,14 @@ const Lobby: React.FC = () => {
         setError(null);
 
         const { data, error: fetchError } = await supabase
-          .from('Participant')
-          .select('*')
-          .eq('session_id', sessionId)
-          .order('name', { ascending: true });
+          .from("Participant")
+          .select("*")
+          .eq("session_id", sessionId)
+          .order("name", { ascending: true });
 
         if (fetchError) {
-          console.error('Error loading players:', fetchError);
-          setError('Failed to load participants');
+          console.error("Error loading players:", fetchError);
+          setError("Failed to load participants");
         } else {
           if (isMounted) {
             setPlayers((data as ParticipantRow[]) || []);
@@ -132,9 +156,9 @@ const Lobby: React.FC = () => {
           }
         }
       } catch (err) {
-        console.error('Error in loadInitialPlayers:', err);
+        console.error("Error in loadInitialPlayers:", err);
         if (isMounted) {
-          setError('An unexpected error occurred');
+          setError("An unexpected error occurred");
         }
       } finally {
         if (isMounted) {
@@ -155,26 +179,29 @@ const Lobby: React.FC = () => {
   }, [sessionId]);
 
   const getPresenceStatus = (p: ParticipantRow) => {
-    const lobbyPresence = p.lobby_presence === 'Joined'
-      ? '🟢 Online'
-      : p.lobby_presence === 'Disconnected'
-        ? '🟠 Disconnected'
-        : '🔴 Not Joined';
-    const videoPresence = p.video_presence ? '📹 In Call' : '📵 Not in Call';
+    const lobbyPresence =
+      p.lobby_presence === "Joined"
+        ? "🟢 Online"
+        : p.lobby_presence === "Disconnected"
+          ? "🟠 Disconnected"
+          : "🔴 Not Joined";
+    const videoPresence = p.video_presence ? "📹 In Call" : "📵 Not in Call";
     return { lobbyPresence, videoPresence };
   };
 
   const getRoleDisplay = (p: ParticipantRow) => {
-    if (p.role === 'Host') return '👑 Host';
-    if (p.role === 'Player1') return '⚽ Player A';
-    if (p.role === 'Player2') return '🏆 Player B';
+    if (p.role === "Host") return "👑 Host";
+    if (p.role === "Player1") return "⚽ Player A";
+    if (p.role === "Player2") return "🏆 Player B";
     return `👤 ${p.role}`;
   };
 
   const canStartQuiz = () => {
     if (!session) return false;
-    const joinedNonHosts = players.filter(p => p.role !== 'Host' && p.lobby_presence === 'Joined');
-    return joinedNonHosts.length >= 2 && session.phase === 'Lobby';
+    const joinedNonHosts = players.filter(
+      (p) => p.role !== "Host" && p.lobby_presence === "Joined",
+    );
+    return joinedNonHosts.length >= 2 && session.phase === "Lobby";
   };
 
   const handleStartQuiz = () => {
@@ -189,17 +216,21 @@ const Lobby: React.FC = () => {
       setError(null);
       // Participants
       const { data: pData, error: pErr } = await supabase
-        .from('Participant')
-        .select('*')
-        .eq('session_id', sessionId);
+        .from("Participant")
+        .select("*")
+        .eq("session_id", sessionId);
       if (!pErr) setPlayers((pData as ParticipantRow[]) || []);
       // Daily room
-  const { data: rData } = await supabase
-        .from('DailyRoom')
-        .select('room_url, ready')
-        .eq('room_id', sessionId)
+      const { data: rData } = await supabase
+        .from("DailyRoom")
+        .select("room_url, ready")
+        .eq("room_id", sessionId)
         .single();
-  if (rData) setDailyRoom({ room_url: (rData as { room_url: string }).room_url, ready: Boolean((rData as { ready: boolean | null }).ready) });
+      if (rData)
+        setDailyRoom({
+          room_url: (rData as { room_url: string }).room_url,
+          ready: Boolean((rData as { ready: boolean | null }).ready),
+        });
     } finally {
       setLoading(false);
     }
@@ -207,17 +238,17 @@ const Lobby: React.FC = () => {
 
   const handleLeaveLobby = async () => {
     try {
-      const pid = localStorage.getItem('tt_participant_id');
+      const pid = localStorage.getItem("tt_participant_id");
       if (pid) {
         await supabase
-          .from('Participant')
-          .update({ lobby_presence: 'Disconnected' })
-          .eq('participant_id', pid);
+          .from("Participant")
+          .update({ lobby_presence: "Disconnected" })
+          .eq("participant_id", pid);
       }
     } catch (e) {
-      console.error('Failed to update presence on leave:', e);
+      console.error("Failed to update presence on leave:", e);
     } finally {
-      navigate('/');
+      navigate("/");
     }
   };
 
@@ -252,11 +283,12 @@ const Lobby: React.FC = () => {
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-white mb-2">🎮 Game Lobby</h1>
           <div className="text-xl text-blue-100">
-            Session: <span className="font-bold text-yellow-300">{sessionCode}</span>
+            Session:{" "}
+            <span className="font-bold text-yellow-300">{sessionCode}</span>
           </div>
           <div className="text-sm text-blue-200 mt-2">
-            Phase: <span className="font-bold">{session.phase}</span> |
-            Game State: <span className="font-bold">{session.game_state}</span>
+            Phase: <span className="font-bold">{session.phase}</span> | Game
+            State: <span className="font-bold">{session.game_state}</span>
           </div>
         </div>
 
@@ -275,27 +307,36 @@ const Lobby: React.FC = () => {
           ) : (
             <div className="grid gap-4 md:grid-cols-2">
               {players.map((player) => {
-                const { lobbyPresence, videoPresence } = getPresenceStatus(player);
+                const { lobbyPresence, videoPresence } =
+                  getPresenceStatus(player);
                 return (
                   <div
                     key={player.participant_id}
                     className={`bg-white/10 backdrop-blur-sm rounded-lg p-6 border-2 transition-all duration-300 ${
-                      player.lobby_presence === 'Joined'
-                        ? 'border-green-400 bg-green-500/10'
-                        : 'border-red-400 bg-red-500/10'
+                      player.lobby_presence === "Joined"
+                        ? "border-green-400 bg-green-500/10"
+                        : "border-red-400 bg-red-500/10"
                     }`}
                   >
                     {/* Player Header */}
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center space-x-3">
-                        <span className={`fi fi-${player.flag || 'sa'} text-2xl`}></span>
+                        <span
+                          className={`fi fi-${player.flag || "sa"} text-2xl`}
+                        ></span>
                         <div>
-                          <div className="text-xl font-bold text-white">{player.name}</div>
-                          <div className="text-sm text-blue-200">{getRoleDisplay(player)}</div>
+                          <div className="text-xl font-bold text-white">
+                            {player.name}
+                          </div>
+                          <div className="text-sm text-blue-200">
+                            {getRoleDisplay(player)}
+                          </div>
                         </div>
                       </div>
-                      <div className={`text-2xl ${player.lobby_presence === 'Joined' ? 'animate-pulse text-green-500' : 'text-red-500'}`}>
-                        {player.lobby_presence === 'Joined' ? '🟢' : '🔴'}
+                      <div
+                        className={`text-2xl ${player.lobby_presence === "Joined" ? "animate-pulse text-green-500" : "text-red-500"}`}
+                      >
+                        {player.lobby_presence === "Joined" ? "🟢" : "🔴"}
                       </div>
                     </div>
 
@@ -303,17 +344,25 @@ const Lobby: React.FC = () => {
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
                         <span className="text-sm text-blue-200">Lobby:</span>
-                        <span className={`text-sm font-medium ${
-                          player.lobby_presence === 'Joined' ? 'text-green-400' : 'text-red-400'
-                        }`}>
+                        <span
+                          className={`text-sm font-medium ${
+                            player.lobby_presence === "Joined"
+                              ? "text-green-400"
+                              : "text-red-400"
+                          }`}
+                        >
                           {lobbyPresence}
                         </span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-sm text-blue-200">Video:</span>
-                        <span className={`text-sm font-medium ${
-                          player.video_presence ? 'text-blue-400' : 'text-gray-400'
-                        }`}>
+                        <span
+                          className={`text-sm font-medium ${
+                            player.video_presence
+                              ? "text-blue-400"
+                              : "text-gray-400"
+                          }`}
+                        >
                           {videoPresence}
                         </span>
                       </div>
@@ -324,9 +373,9 @@ const Lobby: React.FC = () => {
                       <div className="text-xs text-blue-300">
                         Role: {player.role}
                       </div>
-                      {player.lobby_presence === 'Joined' && (
+                      {player.lobby_presence === "Joined" && (
                         <div className="text-xs text-green-400 mt-1">
-                          Video: {player.video_presence ? 'On' : 'Off'}
+                          Video: {player.video_presence ? "On" : "Off"}
                         </div>
                       )}
                     </div>
@@ -347,10 +396,16 @@ const Lobby: React.FC = () => {
               🚀 Start Quiz
             </button>
           )}
-          <button onClick={handleRefresh} className="px-8 py-3 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-lg transition-colors duration-200">
+          <button
+            onClick={handleRefresh}
+            className="px-8 py-3 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-lg transition-colors duration-200"
+          >
             🔄 Refresh
           </button>
-          <button onClick={handleLeaveLobby} className="px-8 py-3 bg-red-500 hover:bg-red-600 text-white font-bold rounded-lg transition-colors duration-200">
+          <button
+            onClick={handleLeaveLobby}
+            className="px-8 py-3 bg-red-500 hover:bg-red-600 text-white font-bold rounded-lg transition-colors duration-200"
+          >
             🚪 Leave Lobby
           </button>
         </div>
@@ -358,13 +413,13 @@ const Lobby: React.FC = () => {
         {/* Session Info */}
         <div className="text-center mt-8">
           <div className="text-sm text-blue-200">
-            Video Room: {dailyRoom?.ready ? '✅ Created' : '⏳ Pending'}
+            Video Room: {dailyRoom?.ready ? "✅ Created" : "⏳ Pending"}
           </div>
           {dailyRoom?.room_url && (
             <div className="text-sm text-blue-200 mt-1">
-              <a 
-                href={dailyRoom.room_url} 
-                target="_blank" 
+              <a
+                href={dailyRoom.room_url}
+                target="_blank"
                 rel="noopener noreferrer"
                 className="text-blue-300 hover:text-blue-100 underline"
               >

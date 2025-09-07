@@ -1,15 +1,15 @@
-import { supabase } from './supabaseClient'
-import type { 
+import { supabase } from "./supabaseClient";
+import type {
   TablesUpdate,
-  SegmentCode, 
-  ParticipantRole, 
-  LobbyPresence, 
-  SessionPhase, 
+  SegmentCode,
+  ParticipantRole,
+  LobbyPresence,
+  SessionPhase,
   GameState,
   Powerup,
   SegmentConfigInput,
-  CreateDailyRoomResponse
-} from './types'
+  CreateDailyRoomResponse,
+} from "./types";
 
 // Interface for active session data
 export interface ActiveSession {
@@ -24,44 +24,53 @@ export interface ActiveSession {
 }
 
 // 1. Create Session (Host PC → GameSetup)
-export async function createSession(hostPassword: string, hostName?: string): Promise<{ sessionId: string; sessionCode: string }> {
+export async function createSession(
+  hostPassword: string,
+  hostName?: string,
+): Promise<{ sessionId: string; sessionCode: string }> {
   // Create the session; DB trigger will populate session_code
   const { data: sessionData, error: sessionError } = await supabase
-    .from('Session')
+    .from("Session")
     .insert({
       host_password: hostPassword,
-      phase: 'Setup',
-      game_state: 'pre-quiz'
+      phase: "Setup",
+      game_state: "pre-quiz",
     })
-    .select('session_id, session_code')
-    .single()
+    .select("session_id, session_code")
+    .single();
 
   if (sessionError) {
-    throw new Error(`Failed to create session: ${sessionError.message}`)
+    throw new Error(`Failed to create session: ${sessionError.message}`);
   }
 
   // Create the host participant with NotJoined status
   const { error: participantError } = await supabase
-    .from('Participant')
+    .from("Participant")
     .insert({
       session_id: sessionData.session_id,
-      name: hostName || 'Host',
-      role: 'Host',
-      lobby_presence: 'NotJoined'
-    })
+      name: hostName || "Host",
+      role: "Host",
+      lobby_presence: "NotJoined",
+    });
 
   if (participantError) {
-    throw new Error(`Failed to create host participant: ${participantError.message}`)
+    throw new Error(
+      `Failed to create host participant: ${participantError.message}`,
+    );
   }
 
-  return { sessionId: sessionData.session_id, sessionCode: sessionData.session_code }
+  return {
+    sessionId: sessionData.session_id,
+    sessionCode: sessionData.session_code,
+  };
 }
 
 // Function to fetch active sessions for the Active Games component
 export async function getActiveSessions(): Promise<ActiveSession[]> {
   const { data, error } = await supabase
-    .from('Session')
-    .select(`
+    .from("Session")
+    .select(
+      `
       session_id,
       session_code,
       phase,
@@ -70,16 +79,17 @@ export async function getActiveSessions(): Promise<ActiveSession[]> {
       ended_at,
       Participant(name, role),
       DailyRoom(room_url)
-    `)
+    `,
+    )
     // Show any session that hasn't ended yet
-    .is('ended_at', null);
+    .is("ended_at", null);
 
   if (error) {
-    console.error('Error fetching active sessions:', error);
+    console.error("Error fetching active sessions:", error);
     throw new Error(`Failed to fetch active sessions: ${error.message}`);
   }
 
-  console.log('Raw data from Supabase:', data);
+  console.log("Raw data from Supabase:", data);
 
   // Transform the data to match our interface
   type SessionRow = {
@@ -96,10 +106,14 @@ export async function getActiveSessions(): Promise<ActiveSession[]> {
   const rows = (data as SessionRow[]) || [];
 
   const activeSessions: ActiveSession[] = rows.map((session) => {
-    const participants = Array.isArray(session.Participant) ? session.Participant : [];
-    const hostParticipant = participants.find((p) => p.role === 'Host');
+    const participants = Array.isArray(session.Participant)
+      ? session.Participant
+      : [];
+    const hostParticipant = participants.find((p) => p.role === "Host");
     // Only count Player1 and Player2 roles for participant count
-    const playerCount = participants.filter((p) => p.role === 'Player1' || p.role === 'Player2').length;
+    const playerCount = participants.filter(
+      (p) => p.role === "Player1" || p.role === "Player2",
+    ).length;
     const hasDailyRoom = !!(session.DailyRoom && session.DailyRoom.length > 0);
 
     return {
@@ -108,130 +122,51 @@ export async function getActiveSessions(): Promise<ActiveSession[]> {
       phase: session.phase,
       game_state: session.game_state,
       created_at: session.created_at,
-      host_name: hostParticipant ? hostParticipant.name : 'Unknown Host',
+      host_name: hostParticipant ? hostParticipant.name : "Unknown Host",
       participant_count: playerCount,
-      has_daily_room: hasDailyRoom
+      has_daily_room: hasDailyRoom,
     };
   });
 
-  console.log('Transformed active sessions:', activeSessions);
-  return activeSessions
+  console.log("Transformed active sessions:", activeSessions);
+  return activeSessions;
 }
 
 // Helper function to resolve session_code to session_id
 export async function getSessionIdByCode(sessionCode: string): Promise<string> {
   const { data, error } = await supabase
-    .from('Session')
-    .select('session_id')
-    .eq('session_code', sessionCode.toUpperCase())
-    .single()
+    .from("Session")
+    .select("session_id")
+    .eq("session_code", sessionCode.toUpperCase())
+    .single();
 
   if (error) {
-    throw new Error(`Session not found: ${error.message}`)
+    throw new Error(`Session not found: ${error.message}`);
   }
 
-  return data.session_id
+  return data.session_id;
 }
 
 type ParticipantIdRow = { participant_id: string };
 
 // Helper to fetch participant_id by session and name
-async function getParticipantIdBySessionAndName(sessionId: string, name: string): Promise<string> {
+async function getParticipantIdBySessionAndName(
+  sessionId: string,
+  name: string,
+): Promise<string> {
   const { data, error } = await supabase
-    .from('Participant')
-    .select('participant_id')
-    .eq('session_id', sessionId)
-    .eq('name', name)
+    .from("Participant")
+    .select("participant_id")
+    .eq("session_id", sessionId)
+    .eq("name", name)
     .limit(1)
     .single();
 
   if (error || !data) {
-    throw new Error(`Participant not found: ${error?.message || 'no data'}`);
+    throw new Error(`Participant not found: ${error?.message || "no data"}`);
   }
 
   return (data as ParticipantIdRow).participant_id;
-}
-
-// Wrapper function for joining as host with session code
-export async function joinAsHostWithCode(
-  sessionCode: string,
-  hostPassword: string
-): Promise<string> {
-  // Look up session and verify host password using database function
-  const { data: verificationResult, error: verificationError } = await supabase
-    .rpc('verify_host_password', {
-      session_code_input: sessionCode.toUpperCase(),
-      password_input: hostPassword
-    });
-
-  if (verificationError) {
-    throw new Error(`Error verifying password: ${verificationError.message}`);
-  }
-
-  if (!verificationResult) {
-    throw new Error('Invalid session code or password');
-  }
-
-  // Get the session ID
-  const { data: sessionRow, error: sessionError } = await supabase
-    .from('Session')
-    .select('session_id')
-    .eq('session_code', sessionCode.toUpperCase())
-    .single();
-
-  if (sessionError || !sessionRow) {
-    throw new Error(`Session not found: ${sessionError?.message || 'No session with that code'}`);
-  }
-
-  const sessionId = sessionRow.session_id;
-
-  // First, try to find existing host participant
-  const { data: existingHost, error: findError } = await supabase
-    .from('Participant')
-    .select('participant_id')
-    .eq('session_id', sessionId)
-    .eq('role', 'Host')
-    .maybeSingle();
-
-  if (findError) {
-    throw new Error(`Failed to check for existing host: ${findError.message}`);
-  }
-
-  if (existingHost) {
-    // Update existing host participant to "Joined" status
-    const { data: updateData, error: updateError } = await supabase
-      .from('Participant')
-      .update({
-        lobby_presence: 'Joined'
-      })
-      .eq('participant_id', existingHost.participant_id)
-      .select('participant_id')
-      .single();
-
-    if (updateError || !updateData) {
-      throw new Error(`Failed to update host status: ${updateError?.message || 'Update failed'}`);
-    }
-
-    return updateData.participant_id;
-  } else {
-    // No host participant exists, create one
-    const { data: insertData, error: insertError } = await supabase
-      .from('Participant')
-      .insert({
-        session_id: sessionId,
-        name: 'Host', // Default name since we don't have it
-        role: 'Host',
-        lobby_presence: 'Joined'
-      })
-      .select('participant_id')
-      .single();
-
-    if (insertError || !insertData) {
-      throw new Error(`Failed to create host participant: ${insertError?.message || 'Insert failed'}`);
-    }
-
-    return insertData.participant_id;
-  }
 }
 
 // Wrapper function for joining as player with session code
@@ -239,17 +174,17 @@ export async function joinAsPlayerWithCode(
   sessionCode: string,
   name: string,
   flag: string,
-  logoUrl: string
+  logoUrl: string,
 ): Promise<string> {
   const sessionId = await getSessionIdByCode(sessionCode);
 
   // First, check if player with this name already exists for the session
   try {
     const { data: existing, error: existingErr } = await supabase
-      .from('Participant')
-      .select('participant_id, role')
-      .eq('session_id', sessionId)
-      .eq('name', name)
+      .from("Participant")
+      .select("participant_id, role")
+      .eq("session_id", sessionId)
+      .eq("name", name)
       .limit(1)
       .single();
 
@@ -259,9 +194,9 @@ export async function joinAsPlayerWithCode(
       const existingRow = existing as ExistingRow;
       // Update presence and return existing id
       await supabase
-        .from('Participant')
-        .update({ lobby_presence: 'Joined' })
-        .eq('participant_id', existingRow!.participant_id);
+        .from("Participant")
+        .update({ lobby_presence: "Joined" })
+        .eq("participant_id", existingRow!.participant_id);
       return existingRow!.participant_id;
     }
   } catch (_e) {
@@ -270,39 +205,51 @@ export async function joinAsPlayerWithCode(
 
   // Determine available player role (Player1 or Player2)
   const { data: playersData, error: playersError } = await supabase
-    .from('Participant')
-    .select('role')
-    .eq('session_id', sessionId)
-    .in('role', ['Player1', 'Player2']);
+    .from("Participant")
+    .select("role")
+    .eq("session_id", sessionId)
+    .in("role", ["Player1", "Player2"]);
 
   if (playersError) {
-    throw new Error(`Failed to determine player roles: ${playersError.message || String(playersError)}`);
+    throw new Error(
+      `Failed to determine player roles: ${playersError.message || String(playersError)}`,
+    );
   }
 
-  const existingRoles: string[] = Array.isArray(playersData) ? (playersData as Array<{ role?: string }>).map((r) => r.role || '') : [];
+  const existingRoles: string[] = Array.isArray(playersData)
+    ? (playersData as Array<{ role?: string }>).map((r) => r.role || "")
+    : [];
   let assignedRole: string;
-  if (!existingRoles.includes('Player1')) assignedRole = 'Player1';
-  else if (!existingRoles.includes('Player2')) assignedRole = 'Player2';
-  else throw new Error('Session is full (both player slots taken)');
+  if (!existingRoles.includes("Player1")) assignedRole = "Player1";
+  else if (!existingRoles.includes("Player2")) assignedRole = "Player2";
+  else throw new Error("Session is full (both player slots taken)");
 
   // Try insert with assigned role
   const insertResultPlayer = await supabase
-    .from('Participant')
+    .from("Participant")
     .insert({
       session_id: sessionId,
       name,
       flag,
       team_logo_url: logoUrl,
       role: assignedRole,
-      lobby_presence: 'Joined'
+      lobby_presence: "Joined",
     })
-    .select('participant_id');
+    .select("participant_id");
 
-  const insertPlayerTyped = insertResultPlayer as { data: ParticipantIdRow[] | null; error: unknown };
+  const insertPlayerTyped = insertResultPlayer as {
+    data: ParticipantIdRow[] | null;
+    error: unknown;
+  };
   const insertDataPlayer = insertPlayerTyped.data;
   const insertErrorPlayer = insertPlayerTyped.error;
 
-  if (!insertErrorPlayer && insertDataPlayer && Array.isArray(insertDataPlayer) && insertDataPlayer.length > 0) {
+  if (
+    !insertErrorPlayer &&
+    insertDataPlayer &&
+    Array.isArray(insertDataPlayer) &&
+    insertDataPlayer.length > 0
+  ) {
     return insertDataPlayer[0].participant_id;
   }
 
@@ -311,413 +258,476 @@ export async function joinAsPlayerWithCode(
     return await getParticipantIdBySessionAndName(sessionId, name);
   } catch (err) {
     const insertMsg = extractErrorMessage(insertErrorPlayer);
-    throw new Error(`Failed to join as player: ${insertMsg || (err instanceof Error ? err.message : String(err))}`);
+    throw new Error(
+      `Failed to join as player: ${insertMsg || (err instanceof Error ? err.message : String(err))}`,
+    );
   }
 }
 
 // 2. Add Segment Config (GameSetup)
 export async function setSegmentConfig(
-  sessionId: string, 
-  configs: SegmentConfigInput[]
+  sessionId: string,
+  configs: SegmentConfigInput[],
 ): Promise<void> {
   const configsWithSessionId = configs.map((config) => ({
     session_id: sessionId,
     segment_code: config.segment_code,
-    questions_count: config.questions_count
+    questions_count: config.questions_count,
   }));
 
   const { error } = await supabase
-    .from('SegmentConfig')
+    .from("SegmentConfig")
     .upsert(configsWithSessionId, {
-      onConflict: 'session_id,segment_code'
-    })
+      onConflict: "session_id,segment_code",
+    });
 
   if (error) {
-    throw new Error(`Failed to set segment config: ${error.message}`)
+    throw new Error(`Failed to set segment config: ${error.message}`);
   }
 }
 
 // 3. Create Daily Room (GameSetup → Netlify Function)
-export async function createDailyRoom(sessionId: string, sessionCode: string): Promise<CreateDailyRoomResponse> {
+export async function createDailyRoom(
+  sessionId: string,
+  sessionCode: string,
+): Promise<CreateDailyRoomResponse> {
   try {
-    console.log('Creating Daily room with:', { sessionId, sessionCode });
-    
-    // Call Netlify function with session_code for room name
-    const response = await fetch('/create-daily-room', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ 
-        session_code: sessionCode 
-      })
-    })
+    console.log("Creating Daily room with:", { sessionId, sessionCode });
 
-    console.log('Daily room creation response status:', response.status);
+    // Call Netlify function with session_code for room name
+    const response = await fetch("/create-daily-room", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        session_code: sessionCode,
+      }),
+    });
+
+    console.log("Daily room creation response status:", response.status);
 
     if (!response.ok) {
       // Try to get the error details from the response
       try {
         const errorData = await response.json();
-        console.error('Daily room creation error details:', errorData);
-        throw new Error(`HTTP error! status: ${response.status}, details: ${JSON.stringify(errorData)}`);
+        console.error("Daily room creation error details:", errorData);
+        throw new Error(
+          `HTTP error! status: ${response.status}, details: ${JSON.stringify(errorData)}`,
+        );
       } catch (_parseError) {
         // If we can't parse JSON, get text
         const errorText = await response.text();
-        console.error('Daily room creation error (raw):', errorText);
-        throw new Error(`HTTP error! status: ${response.status}, response: ${errorText}`);
+        console.error("Daily room creation error (raw):", errorText);
+        throw new Error(
+          `HTTP error! status: ${response.status}, response: ${errorText}`,
+        );
       }
     }
 
-  const data: CreateDailyRoomResponse = await response.json()
-  console.log('Daily room created successfully:', data);
+    const data: CreateDailyRoomResponse = await response.json();
+    console.log("Daily room created successfully:", data);
 
     // Insert/update DailyRoom table
-    const { error } = await supabase
-      .from('DailyRoom')
-      .upsert({
-        room_id: sessionId,
-        room_url: data.room_url,
-        ready: true
-      })
+    const { error } = await supabase.from("DailyRoom").upsert({
+      room_id: sessionId,
+      room_url: data.room_url,
+      ready: true,
+    });
 
-  if (error) {
-      console.error('Database error saving Daily room:', error);
-      throw new Error(`Failed to save Daily room: ${error.message}`)
+    if (error) {
+      console.error("Database error saving Daily room:", error);
+      throw new Error(`Failed to save Daily room: ${error.message}`);
     }
-  return data
+    return data;
   } catch (error) {
-    throw new Error(`Failed to create Daily room: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    throw new Error(
+      `Failed to create Daily room: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
   }
 }
 
 // Helper function to get Daily room data
-export async function getDailyRoom(sessionId: string): Promise<{ room_url: string; ready: boolean } | null> {
+export async function getDailyRoom(
+  sessionId: string,
+): Promise<{ room_url: string; ready: boolean } | null> {
   try {
     const { data, error } = await supabase
-      .from('DailyRoom')
-      .select('room_url, ready')
-      .eq('room_id', sessionId)
-      .single()
+      .from("DailyRoom")
+      .select("room_url, ready")
+      .eq("room_id", sessionId)
+      .single();
 
     if (error) {
-      if (error.code === 'PGRST116') {
+      if (error.code === "PGRST116") {
         // No room found
-        return null
+        return null;
       }
-      throw new Error(`Failed to get Daily room: ${error.message}`)
+      throw new Error(`Failed to get Daily room: ${error.message}`);
     }
 
-    return data
+    return data;
   } catch (error) {
-    console.error('Error getting Daily room:', error)
-    return null
+    console.error("Error getting Daily room:", error);
+    return null;
   }
 }
 
-// 4. Join as Host (Phone → Join)
+// 4. Join as Host - Unified helper function
 export async function joinAsHost(
-  sessionId: string, 
-  password: string, 
-  hostName: string
+  sessionCode: string,
+  hostPassword: string,
+  hostName: string = "Host",
 ): Promise<string> {
-  // Verify host password using RPC
-  const { data: isValidPassword, error: rpcError } = await supabase
-    .rpc('verify_host_password', {
-      p_session: sessionId,
-      p_password: password
-    })
+  // Verify host password using RPC with new parameter names
+  const { data: isValidPassword, error: rpcError } = await supabase.rpc(
+    "verify_host_password",
+    {
+      session_code_input: sessionCode.toUpperCase(),
+      password_input: hostPassword,
+    },
+  );
 
   if (rpcError) {
-    throw new Error(`Failed to verify password: ${rpcError.message}`)
+    throw new Error(`Failed to verify password: ${rpcError.message}`);
   }
 
   if (!isValidPassword) {
-    throw new Error('Invalid host password')
+    throw new Error("Invalid session code or password");
   }
 
-  // Insert participant as host
+  // Get the session ID
+  const { data: sessionRow, error: sessionError } = await supabase
+    .from("Session")
+    .select("session_id")
+    .eq("session_code", sessionCode.toUpperCase())
+    .single();
+
+  if (sessionError || !sessionRow) {
+    throw new Error(
+      `Session not found: ${sessionError?.message || "No session with that code"}`,
+    );
+  }
+
+  const sessionId = sessionRow.session_id;
+
+  // First, try to find existing host participant
+  const { data: existingHost, error: findError } = await supabase
+    .from("Participant")
+    .select("participant_id")
+    .eq("session_id", sessionId)
+    .eq("role", "Host")
+    .maybeSingle();
+
+  if (findError) {
+    throw new Error(`Failed to check for existing host: ${findError.message}`);
+  }
+
+  if (existingHost) {
+    // Update existing host to 'Joined' status
+    const { error: updateError } = await supabase
+      .from("Participant")
+      .update({
+        name: hostName,
+        lobby_presence: "Joined",
+      })
+      .eq("participant_id", existingHost.participant_id);
+
+    if (updateError) {
+      throw new Error(`Failed to update host: ${updateError.message}`);
+    }
+
+    return existingHost.participant_id;
+  }
+
+  // Create new host participant
   const { data, error } = await supabase
-    .from('Participant')
+    .from("Participant")
     .insert({
       session_id: sessionId,
       name: hostName,
-      role: 'Host'
+      role: "Host",
+      lobby_presence: "Joined",
     })
-    .select('participant_id')
-    .single()
+    .select("participant_id")
+    .single();
 
   if (error) {
-    throw new Error(`Failed to join as host: ${error.message}`)
+    throw new Error(`Failed to join as host: ${error.message}`);
   }
 
-  return data.participant_id
+  return data.participant_id;
 }
 
 // 5. Join as Player (Phone → Join)
 export async function joinAsPlayer(
-  sessionId: string, 
-  name: string, 
-  flag: string, 
-  logoUrl: string
+  sessionId: string,
+  name: string,
+  flag: string,
+  logoUrl: string,
 ): Promise<string> {
   // Check existing players to determine role
   const { data: existingPlayers, error: countError } = await supabase
-    .from('Participant')
-    .select('role')
-    .eq('session_id', sessionId)
-    .in('role', ['Player1', 'Player2'])
+    .from("Participant")
+    .select("role")
+    .eq("session_id", sessionId)
+    .in("role", ["Player1", "Player2"]);
 
   if (countError) {
-    throw new Error(`Failed to check existing players: ${countError.message}`)
+    throw new Error(`Failed to check existing players: ${countError.message}`);
   }
 
   // Determine role based on existing players
-  let role: ParticipantRole
-  const hasPlayer1 = existingPlayers.some(p => p.role === 'Player1')
-  const hasPlayer2 = existingPlayers.some(p => p.role === 'Player2')
+  let role: ParticipantRole;
+  const hasPlayer1 = existingPlayers.some((p) => p.role === "Player1");
+  const hasPlayer2 = existingPlayers.some((p) => p.role === "Player2");
 
   if (!hasPlayer1) {
-    role = 'Player1'
+    role = "Player1";
   } else if (!hasPlayer2) {
-    role = 'Player2'
+    role = "Player2";
   } else {
-    throw new Error('Session is full - maximum 2 players allowed')
+    throw new Error("Session is full - maximum 2 players allowed");
   }
 
   // Insert participant as player
   const { data, error } = await supabase
-    .from('Participant')
+    .from("Participant")
     .insert({
       session_id: sessionId,
       name: name,
       role: role,
       flag: flag,
-      team_logo_url: logoUrl
+      team_logo_url: logoUrl,
     })
-    .select('participant_id')
-    .single()
+    .select("participant_id")
+    .single();
 
   if (error) {
-    throw new Error(`Failed to join as player: ${error.message}`)
+    throw new Error(`Failed to join as player: ${error.message}`);
   }
 
-  return data.participant_id
+  return data.participant_id;
 }
 
 // 6. Update Presence (Lobby & Call)
 export async function updateLobbyPresence(
-  participantId: string, 
-  status: LobbyPresence
+  participantId: string,
+  status: LobbyPresence,
 ): Promise<void> {
   const { error } = await supabase
-    .from('Participant')
+    .from("Participant")
     .update({ lobby_presence: status })
-    .eq('participant_id', participantId)
+    .eq("participant_id", participantId);
 
   if (error) {
-    throw new Error(`Failed to update lobby presence: ${error.message}`)
+    throw new Error(`Failed to update lobby presence: ${error.message}`);
   }
 }
 
 export async function updateVideoPresence(
-  participantId: string, 
-  connected: boolean
+  participantId: string,
+  connected: boolean,
 ): Promise<void> {
   const { error } = await supabase
-    .from('Participant')
+    .from("Participant")
     .update({ video_presence: connected })
-    .eq('participant_id', participantId)
+    .eq("participant_id", participantId);
 
   if (error) {
-    throw new Error(`Failed to update video presence: ${error.message}`)
+    throw new Error(`Failed to update video presence: ${error.message}`);
   }
 }
 
 // 7. Update Phase / Game State (Host actions)
 export async function updatePhase(
-  sessionId: string, 
-  phase: SessionPhase, 
-  gameState?: GameState
+  sessionId: string,
+  phase: SessionPhase,
+  gameState?: GameState,
 ): Promise<void> {
-  const updateData: TablesUpdate<'Session'> = { phase }
-  
+  const updateData: TablesUpdate<"Session"> = { phase };
+
   if (gameState) {
-    updateData.game_state = gameState
+    updateData.game_state = gameState;
   }
 
   const { error } = await supabase
-    .from('Session')
+    .from("Session")
     .update(updateData)
-    .eq('session_id', sessionId)
+    .eq("session_id", sessionId);
 
   if (error) {
-    throw new Error(`Failed to update phase: ${error.message}`)
+    throw new Error(`Failed to update phase: ${error.message}`);
   }
 }
 
 // 8. Update Score (Quiz)
 export async function updateScore(
-  sessionId: string, 
-  participantId: string, 
-  segmentCode: SegmentCode, 
-  points: number
+  sessionId: string,
+  participantId: string,
+  segmentCode: SegmentCode,
+  points: number,
 ): Promise<void> {
   // First try to get existing score
   const { data: existingScore, error: selectError } = await supabase
-    .from('Score')
-    .select('points')
-    .eq('session_id', sessionId)
-    .eq('participant_id', participantId)
-    .eq('segment_code', segmentCode)
-    .single()
+    .from("Score")
+    .select("points")
+    .eq("session_id", sessionId)
+    .eq("participant_id", participantId)
+    .eq("segment_code", segmentCode)
+    .single();
 
-  let totalPoints = points
+  let totalPoints = points;
 
   // If score exists, add to existing points
   if (existingScore && !selectError) {
-    totalPoints = existingScore.points + points
+    totalPoints = existingScore.points + points;
   }
 
   // Upsert the score
-  const { error } = await supabase
-    .from('Score')
-    .upsert({
+  const { error } = await supabase.from("Score").upsert(
+    {
       session_id: sessionId,
       participant_id: participantId,
       segment_code: segmentCode,
-      points: totalPoints
-    }, {
-      onConflict: 'session_id,participant_id,segment_code'
-    })
+      points: totalPoints,
+    },
+    {
+      onConflict: "session_id,participant_id,segment_code",
+    },
+  );
 
   if (error) {
-    throw new Error(`Failed to update score: ${error.message}`)
+    throw new Error(`Failed to update score: ${error.message}`);
   }
 }
 
 // 9. Use Powerup (Quiz)
 export async function activatePowerup(
-  participantId: string, 
-  powerup: Powerup
+  participantId: string,
+  powerup: Powerup,
 ): Promise<void> {
   const powerupColumnMap = {
-    'pass': 'powerup_pass_used',
-    'alhabeed': 'powerup_alhabeed',
-    'bellegoal': 'powerup_bellegoal',
-    'slippyg': 'powerup_slippyg'
-  } as const
+    pass: "powerup_pass_used",
+    alhabeed: "powerup_alhabeed",
+    bellegoal: "powerup_bellegoal",
+    slippyg: "powerup_slippyg",
+  } as const;
 
-  const column = powerupColumnMap[powerup]
-  
+  const column = powerupColumnMap[powerup];
+
   const { error } = await supabase
-    .from('Participant')
+    .from("Participant")
     .update({ [column]: true })
-    .eq('participant_id', participantId)
+    .eq("participant_id", participantId);
 
   if (error) {
-    throw new Error(`Failed to use powerup: ${error.message}`)
+    throw new Error(`Failed to use powerup: ${error.message}`);
   }
 }
 
 // 10. End Session
 export async function endSession(sessionId: string): Promise<void> {
   const { error } = await supabase
-    .from('Session')
-    .update({ 
-      game_state: 'concluded',
-      ended_at: new Date().toISOString()
+    .from("Session")
+    .update({
+      game_state: "concluded",
+      ended_at: new Date().toISOString(),
     })
-    .eq('session_id', sessionId)
+    .eq("session_id", sessionId);
 
   if (error) {
-    throw new Error(`Failed to end session: ${error.message}`)
+    throw new Error(`Failed to end session: ${error.message}`);
   }
 }
 
 // 11. Increment Strike (WDYK only)
 export async function incrementStrike(
-  sessionId: string, 
-  participantId: string
+  sessionId: string,
+  participantId: string,
 ): Promise<number> {
   // First get current strikes count
   const { data: existingStrike, error: selectError } = await supabase
-    .from('Strikes')
-    .select('strikes')
-    .eq('session_id', sessionId)
-    .eq('participant_id', participantId)
-    .eq('segment_code', 'WDYK')
-    .single()
+    .from("Strikes")
+    .select("strikes")
+    .eq("session_id", sessionId)
+    .eq("participant_id", participantId)
+    .eq("segment_code", "WDYK")
+    .single();
 
-  let newStrikesCount = 1
+  let newStrikesCount = 1;
 
   // If strike record exists, increment by 1
   if (existingStrike && !selectError) {
-    newStrikesCount = existingStrike.strikes + 1
+    newStrikesCount = existingStrike.strikes + 1;
   }
 
   // Upsert the strike record
-  const { error } = await supabase
-    .from('Strikes')
-    .upsert({
+  const { error } = await supabase.from("Strikes").upsert(
+    {
       session_id: sessionId,
       participant_id: participantId,
-      segment_code: 'WDYK',
-      strikes: newStrikesCount
-    }, {
-      onConflict: 'session_id,participant_id,segment_code'
-    })
+      segment_code: "WDYK",
+      strikes: newStrikesCount,
+    },
+    {
+      onConflict: "session_id,participant_id,segment_code",
+    },
+  );
 
   if (error) {
-    throw new Error(`Failed to increment strike: ${error.message}`)
+    throw new Error(`Failed to increment strike: ${error.message}`);
   }
 
-  return newStrikesCount
+  return newStrikesCount;
 }
 
 // 12. Reset Strikes (WDYK only)
 export async function resetStrikes(
-  sessionId: string, 
-  participantId: string
+  sessionId: string,
+  participantId: string,
 ): Promise<void> {
-  const { error } = await supabase
-    .from('Strikes')
-    .upsert({
+  const { error } = await supabase.from("Strikes").upsert(
+    {
       session_id: sessionId,
       participant_id: participantId,
-      segment_code: 'WDYK',
-      strikes: 0
-    }, {
-      onConflict: 'session_id,participant_id,segment_code'
-    })
+      segment_code: "WDYK",
+      strikes: 0,
+    },
+    {
+      onConflict: "session_id,participant_id,segment_code",
+    },
+  );
 
   if (error) {
-    throw new Error(`Failed to reset strikes: ${error.message}`)
+    throw new Error(`Failed to reset strikes: ${error.message}`);
   }
 }
 
 // 13. Get Segment Config for Session
-export async function getSegmentConfig(sessionId: string): Promise<SegmentConfigInput[]> {
+export async function getSegmentConfig(
+  sessionId: string,
+): Promise<SegmentConfigInput[]> {
   const { data, error } = await supabase
-    .from('SegmentConfig')
-    .select('segment_code, questions_count')
-    .eq('session_id', sessionId)
+    .from("SegmentConfig")
+    .select("segment_code, questions_count")
+    .eq("session_id", sessionId);
 
   if (error) {
-    throw new Error(`Failed to get segment config: ${error.message}`)
+    throw new Error(`Failed to get segment config: ${error.message}`);
   }
 
-  return data || []
+  return data || [];
 }
 
 // Helper function to extract message from unknown errors to avoid any casts.
 function extractErrorMessage(err: unknown): string {
-  if (!err) return '';
-  if (typeof err === 'string') return err;
+  if (!err) return "";
+  if (typeof err === "string") return err;
   if (err instanceof Error) return err.message;
   try {
     const asObj = err as { message?: unknown };
-    if (asObj && typeof asObj.message === 'string') return asObj.message;
+    if (asObj && typeof asObj.message === "string") return asObj.message;
   } catch (_parseError) {
     // ignore parse errors when extracting message
   }

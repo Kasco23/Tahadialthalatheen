@@ -1,4 +1,4 @@
-import { supabase } from './supabaseClient';
+import { supabase } from "./supabaseClient";
 
 export interface PresenceUser {
   user_id: string;
@@ -36,7 +36,7 @@ export class PresenceHelper {
     }
 
     this.currentUser = user;
-    
+
     this.channel = supabase.channel(`presence_${this.sessionId}`, {
       config: {
         presence: {
@@ -47,21 +47,21 @@ export class PresenceHelper {
 
     // Track presence changes
     this.channel
-      .on('presence', { event: 'sync' }, () => {
+      .on("presence", { event: "sync" }, () => {
         const presenceState = this.channel.presenceState();
         if (this.onPresenceChange) {
           this.onPresenceChange(this.formatPresenceState(presenceState));
         }
       })
-      .on('presence', { event: 'join' }, ({ key, newPresences }: any) => {
-        console.log('User joined:', key, newPresences);
+      .on("presence", { event: "join" }, ({ key, newPresences }: any) => {
+        console.log("User joined:", key, newPresences);
         const presenceState = this.channel.presenceState();
         if (this.onPresenceChange) {
           this.onPresenceChange(this.formatPresenceState(presenceState));
         }
       })
-      .on('presence', { event: 'leave' }, ({ key, leftPresences }: any) => {
-        console.log('User left:', key, leftPresences);
+      .on("presence", { event: "leave" }, ({ key, leftPresences }: any) => {
+        console.log("User left:", key, leftPresences);
         const presenceState = this.channel.presenceState();
         if (this.onPresenceChange) {
           this.onPresenceChange(this.formatPresenceState(presenceState));
@@ -70,7 +70,7 @@ export class PresenceHelper {
 
     // Subscribe and track this user's presence
     await this.channel.subscribe(async (status: string) => {
-      if (status === 'SUBSCRIBED') {
+      if (status === "SUBSCRIBED") {
         // Track the current user
         await this.channel.track({
           ...user,
@@ -91,13 +91,13 @@ export class PresenceHelper {
     if (this.channel && this.currentUser) {
       // Update database to mark as disconnected
       await this.updateDatabasePresence(this.currentUser.user_id, false);
-      
+
       // Untrack presence
       await this.channel.untrack();
-      
+
       // Unsubscribe from channel
       await this.channel.unsubscribe();
-      
+
       this.channel = null;
       this.currentUser = null;
     }
@@ -136,7 +136,7 @@ export class PresenceHelper {
    */
   getActiveUsers(): PresenceUser[] {
     const presence = this.getCurrentPresence();
-    return Object.values(presence).filter(user => user.is_active);
+    return Object.values(presence).filter((user) => user.is_active);
   }
 
   /**
@@ -159,8 +159,8 @@ export class PresenceHelper {
    */
   private formatPresenceState(rawState: any): PresenceState {
     const formatted: PresenceState = {};
-    
-    Object.keys(rawState).forEach(key => {
+
+    Object.keys(rawState).forEach((key) => {
       const presences = rawState[key];
       if (presences && presences.length > 0) {
         // Take the most recent presence for each user
@@ -175,29 +175,33 @@ export class PresenceHelper {
   /**
    * Private method to update database presence
    */
-  private async updateDatabasePresence(userId: string, isConnected: boolean): Promise<void> {
+  private async updateDatabasePresence(
+    userId: string,
+    isConnected: boolean,
+  ): Promise<void> {
     try {
       const { error } = await supabase
-        .from('players')
-        .update({ 
-          is_connected: isConnected,
-          last_seen: new Date().toISOString()
+        .from("Participant")
+        .update({
+          lobby_presence: isConnected ? "Joined" : "Disconnected",
         })
-        .eq('player_id', userId)
-        .eq('session_id', this.sessionId);
+        .eq("participant_id", userId);
 
       if (error) {
-        console.error('Error updating presence in database:', error);
+        console.error("Error updating presence in database:", error);
       }
     } catch (err) {
-      console.error('Failed to update database presence:', err);
+      console.error("Failed to update database presence:", err);
     }
   }
 
   /**
    * Static method to create a heartbeat interval
    */
-  static createHeartbeat(presenceHelper: PresenceHelper, intervalMs: number = 30000): NodeJS.Timeout {
+  static createHeartbeat(
+    presenceHelper: PresenceHelper,
+    intervalMs: number = 30000,
+  ): NodeJS.Timeout {
     return setInterval(() => {
       presenceHelper.updateActivity();
     }, intervalMs);
@@ -223,7 +227,7 @@ export const usePresence = (sessionId: string, user: PresenceUser | null) => {
 
     presenceHelper = new PresenceHelper(sessionId);
     await presenceHelper.joinPresence(user);
-    
+
     // Start heartbeat
     heartbeat = PresenceHelper.createHeartbeat(presenceHelper);
 
@@ -235,7 +239,7 @@ export const usePresence = (sessionId: string, user: PresenceUser | null) => {
       PresenceHelper.clearHeartbeat(heartbeat);
       heartbeat = null;
     }
-    
+
     if (presenceHelper) {
       await presenceHelper.leavePresence();
       presenceHelper = null;

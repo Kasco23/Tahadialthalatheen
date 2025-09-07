@@ -10,8 +10,8 @@
       "command": "npx",
       "args": ["-y", "imagesorcery-mcp"],
       "tools": ["*"]
-  },
-   "context7": {
+    },
+    "context7": {
       "type": "http",
       "url": "https://mcp.context7.com/mcp",
       "headers": {

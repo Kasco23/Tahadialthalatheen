@@ -1,64 +1,78 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { setSegmentConfig, createDailyRoom, getSegmentConfig, getSessionIdByCode, endSession } from '../lib/mutations';
-import { supabase } from '../lib/supabaseClient';
-import LobbyStatus from '../components/LobbyStatus';
-import { Alert } from '../components/Alert';
-import { motion } from 'framer-motion';
-import type { SegmentCode } from '../lib/types';
-
+import { useState, useEffect, useCallback } from "react";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { useAtom } from "jotai";
+import {
+  setSegmentConfig,
+  createDailyRoom,
+  getSegmentConfig,
+  getSessionIdByCode,
+  endSession,
+} from "../lib/mutations";
+import { supabase } from "../lib/supabaseClient";
+import LobbyStatus from "../components/LobbyStatus";
+import { Alert } from "../components/Alert";
+import { motion } from "framer-motion";
+import { sessionAtom, sessionCodeAtom } from "../atoms";
+import type { SegmentCode } from "../lib/types";
 
 const GameSetup: React.FC = () => {
   const navigate = useNavigate();
   const { sessionCode } = useParams<{ sessionCode: string }>();
   const location = useLocation();
   type LocationState = { hostPassword?: string } | undefined;
-  const hostPasswordFromState = ((location.state as LocationState)?.hostPassword) || null;
-  const [sessionId, setSessionId] = useState<string | null>(null);
+  const hostPasswordFromState =
+    (location.state as LocationState)?.hostPassword || null;
+
+  // Use Jotai atoms instead of local state
+  const [sessionId, setSessionId] = useAtom(sessionAtom);
+  const [_currentSessionCode, setCurrentSessionCode] = useAtom(sessionCodeAtom);
+
   const [isLoading, setIsLoading] = useState(false);
   const [isDailyRoomCreated, setIsDailyRoomCreated] = useState(false);
   const [roomInfo, setRoomInfo] = useState<{ room_url: string } | null>(null);
   const [participantCount, setParticipantCount] = useState(0);
-  const [notice, setNotice] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [notice, setNotice] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
   const [segments, setSegments] = useState({
     WDYK: 4, // What Do You Know
     AUCT: 2, // Auction
     BELL: 10, // Bell
     UPDW: 10, // Up Down
-    REMO: 4  // Remontada
+    REMO: 4, // Remontada
   });
 
-    // Convert sessionCode to sessionId when component mounts
+  // Convert sessionCode to sessionId when component mounts
   useEffect(() => {
     const resolveSessionId = async () => {
       if (!sessionCode) return;
-      
+
       try {
         const resolvedSessionId = await getSessionIdByCode(sessionCode);
         setSessionId(resolvedSessionId);
+        setCurrentSessionCode(sessionCode);
       } catch (error) {
-        console.error('Failed to resolve session code:', error);
-        setNotice({ type: 'error', message: 'Invalid session code. Please check and try again.' });
-        navigate('/');
+        console.error("Failed to resolve session code:", error);
+        navigate("/");
       }
     };
 
-    if (sessionCode) {
+    if (sessionCode && !sessionId) {
       resolveSessionId();
     }
-  }, [sessionCode, navigate]);
-
+  }, [sessionCode, sessionId, setSessionId, setCurrentSessionCode, navigate]);
   const fetchRoomInfo = useCallback(async () => {
     if (!sessionId) return;
     try {
       const { data, error } = await supabase
-        .from('DailyRoom')
-        .select('*')
-        .eq('room_id', sessionId)
+        .from("DailyRoom")
+        .select("*")
+        .eq("room_id", sessionId)
         .single();
 
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error fetching room info:', error.message);
+      if (error && error.code !== "PGRST116") {
+        console.error("Error fetching room info:", error.message);
         return;
       }
 
@@ -67,7 +81,7 @@ const GameSetup: React.FC = () => {
         setRoomInfo(data);
       }
     } catch (error) {
-      console.error('Unexpected error fetching room info:', error);
+      console.error("Unexpected error fetching room info:", error);
     }
   }, [sessionId]);
 
@@ -75,18 +89,21 @@ const GameSetup: React.FC = () => {
   useEffect(() => {
     const loadConfig = async () => {
       if (!sessionId) return;
-      
+
       try {
         const fetchedConfig = await getSegmentConfig(sessionId);
-        const configMap = fetchedConfig.reduce((acc, config) => {
-          acc[config.segment_code] = config.questions_count;
-          return acc;
-        }, {} as Record<SegmentCode, number>);
-        
+        const configMap = fetchedConfig.reduce(
+          (acc, config) => {
+            acc[config.segment_code] = config.questions_count;
+            return acc;
+          },
+          {} as Record<SegmentCode, number>,
+        );
+
         // Update local state with fetched config
-        setSegments(prev => ({ ...prev, ...configMap }));
+        setSegments((prev) => ({ ...prev, ...configMap }));
       } catch (error) {
-        console.error('Failed to load segment config:', error);
+        console.error("Failed to load segment config:", error);
       }
     };
 
@@ -98,52 +115,67 @@ const GameSetup: React.FC = () => {
 
   // (removed duplicate effect)
 
-  const handleSegmentChange = async (segment: keyof typeof segments, value: string) => {
+  const handleSegmentChange = async (
+    segment: keyof typeof segments,
+    value: string,
+  ) => {
     const numValue = parseInt(value) || 0;
-    setSegments(prev => ({
+    setSegments((prev) => ({
       ...prev,
-      [segment]: numValue
+      [segment]: numValue,
     }));
 
     // If session exists, update the config in Supabase immediately
     if (sessionId) {
       try {
-        await setSegmentConfig(sessionId, [{
-          segment_code: segment as SegmentCode,
-          questions_count: numValue
-        }]);
+        await setSegmentConfig(sessionId, [
+          {
+            segment_code: segment as SegmentCode,
+            questions_count: numValue,
+          },
+        ]);
       } catch (error) {
-        console.error('Failed to update segment config:', error);
+        console.error("Failed to update segment config:", error);
       }
     }
   };
 
   const handleCreateDailyRoom = async () => {
     if (!sessionId) {
-      alert('No session available. Please go back to homepage and create a session.');
+      setNotice({
+        type: "error",
+        message:
+          "No session available. Please go back to homepage and create a session.",
+      });
       return;
     }
     if (!sessionCode) {
-      alert('Missing session code.');
+      setNotice({ type: "error", message: "Missing session code." });
       return;
     }
 
-  setIsLoading(true);
-  setNotice(null);
+    setIsLoading(true);
+    setNotice(null);
     try {
       const segmentConfigs = Object.entries(segments).map(([code, count]) => ({
         segment_code: code as SegmentCode,
-        questions_count: count
+        questions_count: count,
       }));
       await setSegmentConfig(sessionId, segmentConfigs);
       // Use the already-created session code from DB (in route params)
       const created = await createDailyRoom(sessionId, sessionCode);
       setIsDailyRoomCreated(true);
       setRoomInfo({ room_url: created.room_url });
-  setNotice({ type: 'success', message: 'Daily room created successfully.' });
+      setNotice({
+        type: "success",
+        message: "Daily room created successfully.",
+      });
     } catch (error) {
-      console.error('Error setting up game:', error);
-  setNotice({ type: 'error', message: error instanceof Error ? error.message : 'Unknown error' });
+      console.error("Error setting up game:", error);
+      setNotice({
+        type: "error",
+        message: error instanceof Error ? error.message : "Unknown error",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -151,39 +183,55 @@ const GameSetup: React.FC = () => {
 
   const handleStartQuiz = () => {
     if (!sessionId) {
-      setNotice({ type: 'error', message: 'No session available. Please go back to homepage and create a session.' });
+      setNotice({
+        type: "error",
+        message:
+          "No session available. Please go back to homepage and create a session.",
+      });
       return;
     }
     if (!isDailyRoomCreated) {
-      setNotice({ type: 'error', message: 'Please create a Daily room first by clicking "Create Daily Room"' });
+      setNotice({
+        type: "error",
+        message:
+          'Please create a Daily room first by clicking "Create Daily Room"',
+      });
       return;
     }
     // Navigate to the quiz with the session code
     navigate(`/quiz/${sessionCode}`);
   };
 
-  const handleLobbyUpdate = useCallback((info: { participantCount: number; roomReady: boolean }) => {
-  setParticipantCount(info.participantCount);
-    if (info.roomReady && !isDailyRoomCreated) {
-      setIsDailyRoomCreated(true);
-    }
-  }, [isDailyRoomCreated]);
+  const handleLobbyUpdate = useCallback(
+    (info: { participantCount: number; roomReady: boolean }) => {
+      setParticipantCount(info.participantCount);
+      if (info.roomReady && !isDailyRoomCreated) {
+        setIsDailyRoomCreated(true);
+      }
+    },
+    [isDailyRoomCreated],
+  );
 
   const handleEndSession = async () => {
     if (!sessionId) {
-      setNotice({ type: 'error', message: 'No session available.' });
+      setNotice({ type: "error", message: "No session available." });
       return;
     }
 
-    const confirmed = confirm('Are you sure you want to end this session? This action cannot be undone.');
+    const confirmed = confirm(
+      "Are you sure you want to end this session? This action cannot be undone.",
+    );
     if (confirmed) {
       try {
-  await endSession(sessionId);
-  setNotice({ type: 'success', message: 'Session ended successfully.' });
-        navigate('/');
+        await endSession(sessionId);
+        setNotice({ type: "success", message: "Session ended successfully." });
+        navigate("/");
       } catch (error) {
-        console.error('Error ending session:', error);
-  setNotice({ type: 'error', message: `Error ending session: ${error instanceof Error ? error.message : 'Unknown error'}` });
+        console.error("Error ending session:", error);
+        setNotice({
+          type: "error",
+          message: `Error ending session: ${error instanceof Error ? error.message : "Unknown error"}`,
+        });
       }
     }
   };
@@ -221,13 +269,14 @@ const GameSetup: React.FC = () => {
         <h1 className="text-4xl md:text-5xl font-black text-white mb-2 drop-shadow-2xl">
           🎮 Game Setup
         </h1>
-        <p className="text-green-100 text-lg drop-shadow-lg">Manager's Tactical Board</p>
+        <p className="text-green-100 text-lg drop-shadow-lg">
+          Manager's Tactical Board
+        </p>
       </div>
 
       {/* Main content container */}
       <div className="relative z-10 flex-1 max-w-7xl mx-auto w-full">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full">
-          
           {/* Left side - Game Configuration */}
           <div className="flex items-start justify-center">
             <div className="w-full max-w-lg bg-white rounded-xl shadow-lg p-6">
@@ -242,22 +291,27 @@ const GameSetup: React.FC = () => {
                   onClose={() => setNotice(null)}
                 />
               )}
-              
+
               {/* Live lobby summary */}
               <div className="mb-4 p-3 bg-gray-50 border rounded text-sm text-gray-700 flex items-center justify-between">
                 <span>Participants joined:</span>
                 <span className="font-semibold">{participantCount}/3</span>
               </div>
-              
+
               {/* session code moved to LobbyStatus */}
 
               <form className="space-y-6">
                 {/* Segment Settings */}
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Question Counts</h3>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                    Question Counts
+                  </h3>
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4 items-center">
-                      <label htmlFor="wdyk" className="text-sm font-medium text-gray-700">
+                      <label
+                        htmlFor="wdyk"
+                        className="text-sm font-medium text-gray-700"
+                      >
                         WDYK (What Do You Know)
                       </label>
                       <input
@@ -265,13 +319,18 @@ const GameSetup: React.FC = () => {
                         id="wdyk"
                         min="0"
                         value={segments.WDYK}
-                        onChange={(e) => handleSegmentChange('WDYK', e.target.value)}
+                        onChange={(e) =>
+                          handleSegmentChange("WDYK", e.target.value)
+                        }
                         className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
                       />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4 items-center">
-                      <label htmlFor="auct" className="text-sm font-medium text-gray-700">
+                      <label
+                        htmlFor="auct"
+                        className="text-sm font-medium text-gray-700"
+                      >
                         AUCT (Auction)
                       </label>
                       <input
@@ -279,13 +338,18 @@ const GameSetup: React.FC = () => {
                         id="auct"
                         min="0"
                         value={segments.AUCT}
-                        onChange={(e) => handleSegmentChange('AUCT', e.target.value)}
+                        onChange={(e) =>
+                          handleSegmentChange("AUCT", e.target.value)
+                        }
                         className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
                       />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4 items-center">
-                      <label htmlFor="bell" className="text-sm font-medium text-gray-700">
+                      <label
+                        htmlFor="bell"
+                        className="text-sm font-medium text-gray-700"
+                      >
                         BELL (Bell)
                       </label>
                       <input
@@ -293,13 +357,18 @@ const GameSetup: React.FC = () => {
                         id="bell"
                         min="0"
                         value={segments.BELL}
-                        onChange={(e) => handleSegmentChange('BELL', e.target.value)}
+                        onChange={(e) =>
+                          handleSegmentChange("BELL", e.target.value)
+                        }
                         className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
                       />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4 items-center">
-                      <label htmlFor="updw" className="text-sm font-medium text-gray-700">
+                      <label
+                        htmlFor="updw"
+                        className="text-sm font-medium text-gray-700"
+                      >
                         UPDW (Up Down)
                       </label>
                       <input
@@ -307,13 +376,18 @@ const GameSetup: React.FC = () => {
                         id="updw"
                         min="0"
                         value={segments.UPDW}
-                        onChange={(e) => handleSegmentChange('UPDW', e.target.value)}
+                        onChange={(e) =>
+                          handleSegmentChange("UPDW", e.target.value)
+                        }
                         className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
                       />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4 items-center">
-                      <label htmlFor="remo" className="text-sm font-medium text-gray-700">
+                      <label
+                        htmlFor="remo"
+                        className="text-sm font-medium text-gray-700"
+                      >
                         REMO (Remontada)
                       </label>
                       <input
@@ -321,7 +395,9 @@ const GameSetup: React.FC = () => {
                         id="remo"
                         min="0"
                         value={segments.REMO}
-                        onChange={(e) => handleSegmentChange('REMO', e.target.value)}
+                        onChange={(e) =>
+                          handleSegmentChange("REMO", e.target.value)
+                        }
                         className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
                       />
                     </div>
@@ -341,7 +417,7 @@ const GameSetup: React.FC = () => {
                         <strong>Daily Room Created!</strong>
                       </p>
                       <p className="text-green-600 text-xs mt-1">
-        Room URL: {roomInfo.room_url}
+                        Room URL: {roomInfo.room_url}
                       </p>
                     </motion.div>
                   ) : (
@@ -351,7 +427,7 @@ const GameSetup: React.FC = () => {
                       disabled={isLoading}
                       className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200 transform hover:scale-105 disabled:transform-none"
                     >
-                      {isLoading ? '⏳ Creating...' : '📹 Create Daily Room'}
+                      {isLoading ? "⏳ Creating..." : "📹 Create Daily Room"}
                     </button>
                   )}
 
@@ -372,9 +448,9 @@ const GameSetup: React.FC = () => {
           <div className="flex items-start justify-center">
             <div className="w-full max-w-2xl">
               {sessionId && (
-                <LobbyStatus 
-                  sessionId={sessionId} 
-                  sessionCode={sessionCode || ''} 
+                <LobbyStatus
+                  sessionId={sessionId}
+                  sessionCode={sessionCode || ""}
                   hostPassword={hostPasswordFromState}
                   onEndSession={handleEndSession}
                   onLobbyUpdate={handleLobbyUpdate}
@@ -382,7 +458,6 @@ const GameSetup: React.FC = () => {
               )}
             </div>
           </div>
-
         </div>
       </div>
 

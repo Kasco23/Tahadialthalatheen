@@ -1,167 +1,175 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { supabase } from '../lib/supabaseClient';
-import { joinAsHostWithCode, joinAsPlayerWithCode } from '../lib/mutations';
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { supabase } from "../lib/supabaseClient";
+import { joinAsHost, joinAsPlayerWithCode } from "../lib/mutations";
+import { Alert } from "../components/Alert";
 
 const Join: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [activeTab, setActiveTab] = useState<'host' | 'player'>('host');
+  const [activeTab, setActiveTab] = useState<"host" | "player">("host");
+
+  // Alert state
+  const [alert, setAlert] = useState<{
+    type: "error" | "success" | "info";
+    message: string;
+  } | null>(null);
 
   // Host form state
-  const [sessionCode, setSessionCode] = useState('');
-  const [hostPassword, setHostPassword] = useState('');
+  const [sessionCode, setSessionCode] = useState("");
+  const [hostPassword, setHostPassword] = useState("");
   const [hostLoading, setHostLoading] = useState(false);
 
   // Player form state
-  const [playerSessionCode, setPlayerSessionCode] = useState('');
-  const [playerName, setPlayerName] = useState('');
-  const [selectedFlag, setSelectedFlag] = useState('');
-  const [flagSearch, setFlagSearch] = useState('');
-  const [teamLogoUrl, setTeamLogoUrl] = useState('');
+  const [playerSessionCode, setPlayerSessionCode] = useState("");
+  const [playerName, setPlayerName] = useState("");
+  const [selectedFlag, setSelectedFlag] = useState("");
+  const [flagSearch, setFlagSearch] = useState("");
+  const [teamLogoUrl, setTeamLogoUrl] = useState("");
   const [playerLoading, setPlayerLoading] = useState(false);
 
   const allFlags = [
     // Arabic/Middle Eastern countries
-    { code: 'sa', name: 'Saudi Arabia' },
-    { code: 'eg', name: 'Egypt' },
-    { code: 'ae', name: 'United Arab Emirates' },
-    { code: 'qa', name: 'Qatar' },
-    { code: 'kw', name: 'Kuwait' },
-    { code: 'bh', name: 'Bahrain' },
-    { code: 'om', name: 'Oman' },
-    { code: 'jo', name: 'Jordan' },
-    { code: 'lb', name: 'Lebanon' },
-    { code: 'iq', name: 'Iraq' },
-    { code: 'sy', name: 'Syria' },
-    { code: 'ye', name: 'Yemen' },
-    { code: 'ps', name: 'Palestine' },
-    { code: 'tn', name: 'Tunisia' },
-    { code: 'ma', name: 'Morocco' },
-    { code: 'dz', name: 'Algeria' },
-    { code: 'ly', name: 'Libya' },
-    { code: 'sd', name: 'Sudan' },
+    { code: "sa", name: "Saudi Arabia" },
+    { code: "eg", name: "Egypt" },
+    { code: "ae", name: "United Arab Emirates" },
+    { code: "qa", name: "Qatar" },
+    { code: "kw", name: "Kuwait" },
+    { code: "bh", name: "Bahrain" },
+    { code: "om", name: "Oman" },
+    { code: "jo", name: "Jordan" },
+    { code: "lb", name: "Lebanon" },
+    { code: "iq", name: "Iraq" },
+    { code: "sy", name: "Syria" },
+    { code: "ye", name: "Yemen" },
+    { code: "ps", name: "Palestine" },
+    { code: "tn", name: "Tunisia" },
+    { code: "ma", name: "Morocco" },
+    { code: "dz", name: "Algeria" },
+    { code: "ly", name: "Libya" },
+    { code: "sd", name: "Sudan" },
 
     // European countries (popular for football)
-    { code: 'es', name: 'Spain' },
-    { code: 'gb-eng', name: 'England' },
-    { code: 'fr', name: 'France' },
-    { code: 'de', name: 'Germany' },
-    { code: 'it', name: 'Italy' },
-    { code: 'pt', name: 'Portugal' },
-    { code: 'nl', name: 'Netherlands' },
-    { code: 'be', name: 'Belgium' },
-    { code: 'tr', name: 'Turkey' },
-    { code: 'pl', name: 'Poland' },
-    { code: 'ua', name: 'Ukraine' },
-    { code: 'rs', name: 'Serbia' },
-    { code: 'hr', name: 'Croatia' },
-    { code: 'cz', name: 'Czech Republic' },
-    { code: 'gr', name: 'Greece' },
-    { code: 'ro', name: 'Romania' },
-    { code: 'hu', name: 'Hungary' },
-    { code: 'sk', name: 'Slovakia' },
-    { code: 'si', name: 'Slovenia' },
-    { code: 'me', name: 'Montenegro' },
-    { code: 'al', name: 'Albania' },
-    { code: 'mk', name: 'North Macedonia' },
-    { code: 'ba', name: 'Bosnia and Herzegovina' },
-    { code: 'xk', name: 'Kosovo' },
+    { code: "es", name: "Spain" },
+    { code: "gb-eng", name: "England" },
+    { code: "fr", name: "France" },
+    { code: "de", name: "Germany" },
+    { code: "it", name: "Italy" },
+    { code: "pt", name: "Portugal" },
+    { code: "nl", name: "Netherlands" },
+    { code: "be", name: "Belgium" },
+    { code: "tr", name: "Turkey" },
+    { code: "pl", name: "Poland" },
+    { code: "ua", name: "Ukraine" },
+    { code: "rs", name: "Serbia" },
+    { code: "hr", name: "Croatia" },
+    { code: "cz", name: "Czech Republic" },
+    { code: "gr", name: "Greece" },
+    { code: "ro", name: "Romania" },
+    { code: "hu", name: "Hungary" },
+    { code: "sk", name: "Slovakia" },
+    { code: "si", name: "Slovenia" },
+    { code: "me", name: "Montenegro" },
+    { code: "al", name: "Albania" },
+    { code: "mk", name: "North Macedonia" },
+    { code: "ba", name: "Bosnia and Herzegovina" },
+    { code: "xk", name: "Kosovo" },
 
     // South American countries
-    { code: 'br', name: 'Brazil' },
-    { code: 'ar', name: 'Argentina' },
-    { code: 'uy', name: 'Uruguay' },
-    { code: 'co', name: 'Colombia' },
-    { code: 'cl', name: 'Chile' },
-    { code: 'pe', name: 'Peru' },
-    { code: 'ec', name: 'Ecuador' },
-    { code: 'py', name: 'Paraguay' },
-    { code: 'bo', name: 'Bolivia' },
-    { code: 've', name: 'Venezuela' },
+    { code: "br", name: "Brazil" },
+    { code: "ar", name: "Argentina" },
+    { code: "uy", name: "Uruguay" },
+    { code: "co", name: "Colombia" },
+    { code: "cl", name: "Chile" },
+    { code: "pe", name: "Peru" },
+    { code: "ec", name: "Ecuador" },
+    { code: "py", name: "Paraguay" },
+    { code: "bo", name: "Bolivia" },
+    { code: "ve", name: "Venezuela" },
 
     // North American countries
-    { code: 'us', name: 'United States' },
-    { code: 'mx', name: 'Mexico' },
-    { code: 'ca', name: 'Canada' },
-    { code: 'cr', name: 'Costa Rica' },
-    { code: 'pa', name: 'Panama' },
-    { code: 'jm', name: 'Jamaica' },
-    { code: 'ht', name: 'Haiti' },
+    { code: "us", name: "United States" },
+    { code: "mx", name: "Mexico" },
+    { code: "ca", name: "Canada" },
+    { code: "cr", name: "Costa Rica" },
+    { code: "pa", name: "Panama" },
+    { code: "jm", name: "Jamaica" },
+    { code: "ht", name: "Haiti" },
 
     // African countries (beyond Arabic)
-    { code: 'za', name: 'South Africa' },
-    { code: 'ng', name: 'Nigeria' },
-    { code: 'gh', name: 'Ghana' },
-    { code: 'ci', name: 'Ivory Coast' },
-    { code: 'cm', name: 'Cameroon' },
-    { code: 'sn', name: 'Senegal' },
-    { code: 'ml', name: 'Mali' },
-    { code: 'bf', name: 'Burkina Faso' },
-    { code: 'tg', name: 'Togo' },
-    { code: 'bj', name: 'Benin' },
-    { code: 'ne', name: 'Niger' },
-    { code: 'td', name: 'Chad' },
-    { code: 'cf', name: 'Central African Republic' },
-    { code: 'gq', name: 'Equatorial Guinea' },
-    { code: 'ga', name: 'Gabon' },
-    { code: 'cg', name: 'Republic of the Congo' },
-    { code: 'cd', name: 'Democratic Republic of the Congo' },
-    { code: 'ao', name: 'Angola' },
-    { code: 'mz', name: 'Mozambique' },
-    { code: 'zw', name: 'Zimbabwe' },
-    { code: 'zm', name: 'Zambia' },
-    { code: 'bw', name: 'Botswana' },
-    { code: 'na', name: 'Namibia' },
-    { code: 'zw', name: 'Zimbabwe' },
-    { code: 'tz', name: 'Tanzania' },
-    { code: 'ke', name: 'Kenya' },
-    { code: 'ug', name: 'Uganda' },
-    { code: 'rw', name: 'Rwanda' },
-    { code: 'bi', name: 'Burundi' },
-    { code: 'et', name: 'Ethiopia' },
-    { code: 'so', name: 'Somalia' },
-    { code: 'dj', name: 'Djibouti' },
-    { code: 'er', name: 'Eritrea' },
+    { code: "za", name: "South Africa" },
+    { code: "ng", name: "Nigeria" },
+    { code: "gh", name: "Ghana" },
+    { code: "ci", name: "Ivory Coast" },
+    { code: "cm", name: "Cameroon" },
+    { code: "sn", name: "Senegal" },
+    { code: "ml", name: "Mali" },
+    { code: "bf", name: "Burkina Faso" },
+    { code: "tg", name: "Togo" },
+    { code: "bj", name: "Benin" },
+    { code: "ne", name: "Niger" },
+    { code: "td", name: "Chad" },
+    { code: "cf", name: "Central African Republic" },
+    { code: "gq", name: "Equatorial Guinea" },
+    { code: "ga", name: "Gabon" },
+    { code: "cg", name: "Republic of the Congo" },
+    { code: "cd", name: "Democratic Republic of the Congo" },
+    { code: "ao", name: "Angola" },
+    { code: "mz", name: "Mozambique" },
+    { code: "zw", name: "Zimbabwe" },
+    { code: "zm", name: "Zambia" },
+    { code: "bw", name: "Botswana" },
+    { code: "na", name: "Namibia" },
+    { code: "zw", name: "Zimbabwe" },
+    { code: "tz", name: "Tanzania" },
+    { code: "ke", name: "Kenya" },
+    { code: "ug", name: "Uganda" },
+    { code: "rw", name: "Rwanda" },
+    { code: "bi", name: "Burundi" },
+    { code: "et", name: "Ethiopia" },
+    { code: "so", name: "Somalia" },
+    { code: "dj", name: "Djibouti" },
+    { code: "er", name: "Eritrea" },
 
     // Asian countries (beyond Arabic)
-    { code: 'jp', name: 'Japan' },
-    { code: 'kr', name: 'South Korea' },
-    { code: 'cn', name: 'China' },
-    { code: 'in', name: 'India' },
-    { code: 'th', name: 'Thailand' },
-    { code: 'vn', name: 'Vietnam' },
-    { code: 'my', name: 'Malaysia' },
-    { code: 'sg', name: 'Singapore' },
-    { code: 'id', name: 'Indonesia' },
-    { code: 'ph', name: 'Philippines' },
-    { code: 'au', name: 'Australia' },
-    { code: 'nz', name: 'New Zealand' },
-    { code: 'ir', name: 'Iran' },
-    { code: 'pk', name: 'Pakistan' },
-    { code: 'bd', name: 'Bangladesh' },
-    { code: 'lk', name: 'Sri Lanka' },
-    { code: 'np', name: 'Nepal' },
-    { code: 'bt', name: 'Bhutan' },
-    { code: 'mv', name: 'Maldives' },
+    { code: "jp", name: "Japan" },
+    { code: "kr", name: "South Korea" },
+    { code: "cn", name: "China" },
+    { code: "in", name: "India" },
+    { code: "th", name: "Thailand" },
+    { code: "vn", name: "Vietnam" },
+    { code: "my", name: "Malaysia" },
+    { code: "sg", name: "Singapore" },
+    { code: "id", name: "Indonesia" },
+    { code: "ph", name: "Philippines" },
+    { code: "au", name: "Australia" },
+    { code: "nz", name: "New Zealand" },
+    { code: "ir", name: "Iran" },
+    { code: "pk", name: "Pakistan" },
+    { code: "bd", name: "Bangladesh" },
+    { code: "lk", name: "Sri Lanka" },
+    { code: "np", name: "Nepal" },
+    { code: "bt", name: "Bhutan" },
+    { code: "mv", name: "Maldives" },
 
     // Other notable countries
-    { code: 'ru', name: 'Russia' },
-    { code: 'by', name: 'Belarus' },
-    { code: 'am', name: 'Armenia' },
-    { code: 'az', name: 'Azerbaijan' },
-    { code: 'ge', name: 'Georgia' },
-    { code: 'kz', name: 'Kazakhstan' },
-    { code: 'uz', name: 'Uzbekistan' },
-    { code: 'tm', name: 'Turkmenistan' },
-    { code: 'tj', name: 'Tajikistan' },
-    { code: 'kg', name: 'Kyrgyzstan' }
+    { code: "ru", name: "Russia" },
+    { code: "by", name: "Belarus" },
+    { code: "am", name: "Armenia" },
+    { code: "az", name: "Azerbaijan" },
+    { code: "ge", name: "Georgia" },
+    { code: "kz", name: "Kazakhstan" },
+    { code: "uz", name: "Uzbekistan" },
+    { code: "tm", name: "Turkmenistan" },
+    { code: "tj", name: "Tajikistan" },
+    { code: "kg", name: "Kyrgyzstan" },
   ];
 
   // Filter flags based on search
-  const filteredFlags = allFlags.filter(flag =>
-    flag.name.toLowerCase().includes(flagSearch.toLowerCase()) ||
-    flag.code.toLowerCase().includes(flagSearch.toLowerCase())
+  const filteredFlags = allFlags.filter(
+    (flag) =>
+      flag.name.toLowerCase().includes(flagSearch.toLowerCase()) ||
+      flag.code.toLowerCase().includes(flagSearch.toLowerCase()),
   );
 
   // Load team logo from Supabase
@@ -170,14 +178,14 @@ const Join: React.FC = () => {
       try {
         // List files in logos/La Liga folder
         const { data: files, error: listError } = await supabase.storage
-          .from('logos')
-          .list('La Liga', {
+          .from("logos")
+          .list("La Liga", {
             limit: 1,
-            sortBy: { column: 'name', order: 'asc' }
+            sortBy: { column: "name", order: "asc" },
           });
 
         if (listError) {
-          console.error('Error listing logos:', listError);
+          console.error("Error listing logos:", listError);
           return;
         }
 
@@ -185,7 +193,7 @@ const Join: React.FC = () => {
           const logoFile = files[0];
           // Get public URL for the logo
           const { data: urlData } = supabase.storage
-            .from('logos')
+            .from("logos")
             .getPublicUrl(`La Liga/${logoFile.name}`);
 
           if (urlData?.publicUrl) {
@@ -193,23 +201,23 @@ const Join: React.FC = () => {
           }
         }
       } catch (error) {
-        console.error('Error loading team logo:', error);
+        console.error("Error loading team logo:", error);
       }
     };
 
-    if (activeTab === 'player') {
+    if (activeTab === "player") {
       loadTeamLogo();
     }
   }, [activeTab]);
 
   // Auto-fill session code from query parameters
   useEffect(() => {
-    const sessionCodeParam = searchParams.get('sessionCode');
+    const sessionCodeParam = searchParams.get("sessionCode");
     if (sessionCodeParam) {
       setSessionCode(sessionCodeParam);
       setPlayerSessionCode(sessionCodeParam);
       // Auto-switch to player tab if coming from quick join
-      setActiveTab('player');
+      setActiveTab("player");
     }
   }, [searchParams]);
 
@@ -217,7 +225,7 @@ const Join: React.FC = () => {
     e.preventDefault();
 
     if (!sessionCode.trim() || !hostPassword.trim()) {
-      alert('Please fill in all fields');
+      setAlert({ type: "error", message: "Please fill in all fields" });
       return;
     }
 
@@ -225,16 +233,24 @@ const Join: React.FC = () => {
 
     try {
       // Join as host using session code
-      const participantId = await joinAsHostWithCode(sessionCode, hostPassword);
+      const participantId = await joinAsHost(sessionCode, hostPassword, "Host");
 
       // Persist participant id for presence updates
-      try { localStorage.setItem('tt_participant_id', participantId); } catch { /* ignore */ }
-      
-      console.log('Joined as host:', { sessionCode, participantId });
+      try {
+        localStorage.setItem("tt_participant_id", participantId);
+      } catch {
+        /* ignore */
+      }
+
+      console.log("Joined as host:", { sessionCode, participantId });
       navigate(`/lobby/${sessionCode}`);
     } catch (error) {
-      console.error('Error joining as host:', error);
-      alert('Failed to join session. Please check your session code and password.');
+      console.error("Error joining as host:", error);
+      setAlert({
+        type: "error",
+        message:
+          "Failed to join session. Please check your session code and password.",
+      });
     } finally {
       setHostLoading(false);
     }
@@ -244,7 +260,7 @@ const Join: React.FC = () => {
     e.preventDefault();
 
     if (!playerSessionCode.trim() || !playerName.trim() || !selectedFlag) {
-      alert('Please fill in all fields');
+      setAlert({ type: "error", message: "Please fill in all fields" });
       return;
     }
 
@@ -252,16 +268,34 @@ const Join: React.FC = () => {
 
     try {
       // Join as player using session code
-      const participantId = await joinAsPlayerWithCode(playerSessionCode, playerName, selectedFlag, teamLogoUrl);
+      const participantId = await joinAsPlayerWithCode(
+        playerSessionCode,
+        playerName,
+        selectedFlag,
+        teamLogoUrl,
+      );
 
       // Persist participant id for presence updates
-      try { localStorage.setItem('tt_participant_id', participantId); } catch { /* ignore */ }
-      
-      console.log('Joined as player:', { sessionCode: playerSessionCode, participantId, playerName, selectedFlag, teamLogoUrl });
+      try {
+        localStorage.setItem("tt_participant_id", participantId);
+      } catch {
+        /* ignore */
+      }
+
+      console.log("Joined as player:", {
+        sessionCode: playerSessionCode,
+        participantId,
+        playerName,
+        selectedFlag,
+        teamLogoUrl,
+      });
       navigate(`/lobby/${playerSessionCode}`);
     } catch (error) {
-      console.error('Error joining as player:', error);
-      alert('Failed to join session. Please check your session code.');
+      console.error("Error joining as player:", error);
+      setAlert({
+        type: "error",
+        message: "Failed to join session. Please check your session code.",
+      });
     } finally {
       setPlayerLoading(false);
     }
@@ -277,21 +311,21 @@ const Join: React.FC = () => {
         {/* Tab Navigation */}
         <div className="flex mb-6 bg-gray-100 rounded-lg p-1">
           <button
-            onClick={() => setActiveTab('host')}
+            onClick={() => setActiveTab("host")}
             className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-              activeTab === 'host'
-                ? 'bg-white text-gray-800 shadow-sm'
-                : 'text-gray-600 hover:text-gray-800'
+              activeTab === "host"
+                ? "bg-white text-gray-800 shadow-sm"
+                : "text-gray-600 hover:text-gray-800"
             }`}
           >
             👑 Join as Host
           </button>
           <button
-            onClick={() => setActiveTab('player')}
+            onClick={() => setActiveTab("player")}
             className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-              activeTab === 'player'
-                ? 'bg-white text-gray-800 shadow-sm'
-                : 'text-gray-600 hover:text-gray-800'
+              activeTab === "player"
+                ? "bg-white text-gray-800 shadow-sm"
+                : "text-gray-600 hover:text-gray-800"
             }`}
           >
             ⚽ Join as Player
@@ -299,10 +333,13 @@ const Join: React.FC = () => {
         </div>
 
         {/* Host Form */}
-        {activeTab === 'host' && (
+        {activeTab === "host" && (
           <form onSubmit={handleHostSubmit} className="space-y-6">
             <div>
-              <label htmlFor="sessionCode" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="sessionCode"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Session Code
               </label>
               <input
@@ -318,7 +355,10 @@ const Join: React.FC = () => {
             </div>
 
             <div>
-              <label htmlFor="hostPassword" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="hostPassword"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Host Password
               </label>
               <input
@@ -337,32 +377,40 @@ const Join: React.FC = () => {
               disabled={hostLoading}
               className="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200 transform hover:scale-105 disabled:transform-none"
             >
-              {hostLoading ? 'Joining...' : '👑 Join as Host'}
+              {hostLoading ? "Joining..." : "👑 Join as Host"}
             </button>
           </form>
         )}
 
         {/* Player Form */}
-        {activeTab === 'player' && (
+        {activeTab === "player" && (
           <form onSubmit={handlePlayerSubmit} className="space-y-6">
             <div>
-              <label htmlFor="playerSessionCode" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="playerSessionCode"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Session Code
               </label>
               <input
                 type="text"
                 id="playerSessionCode"
                 value={playerSessionCode}
-                onChange={(e) => setPlayerSessionCode(e.target.value.toUpperCase())}
+                onChange={(e) =>
+                  setPlayerSessionCode(e.target.value.toUpperCase())
+                }
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
                 placeholder="Enter session code (e.g., ABC123)"
                 required
                 maxLength={6}
               />
             </div>
-            
+
             <div>
-              <label htmlFor="playerName" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="playerName"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Player Name
               </label>
               <input
@@ -377,7 +425,10 @@ const Join: React.FC = () => {
             </div>
 
             <div>
-              <label htmlFor="flag" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="flag"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Select Your Flag
               </label>
 
@@ -418,7 +469,10 @@ const Join: React.FC = () => {
                   <div className="flex items-center space-x-2 bg-gray-50 px-4 py-2 rounded-lg">
                     <span className={`fi fi-${selectedFlag} text-2xl`}></span>
                     <span className="text-sm font-medium text-gray-700">
-                      {filteredFlags.find(flag => flag.code === selectedFlag)?.name}
+                      {
+                        filteredFlags.find((flag) => flag.code === selectedFlag)
+                          ?.name
+                      }
                     </span>
                   </div>
                 </div>
@@ -437,8 +491,8 @@ const Join: React.FC = () => {
                     alt="Team Logo"
                     className="w-24 h-24 object-contain border-2 border-gray-200 rounded-lg"
                     onError={(e) => {
-                      console.error('Failed to load team logo');
-                      e.currentTarget.style.display = 'none';
+                      console.error("Failed to load team logo");
+                      e.currentTarget.style.display = "none";
                     }}
                   />
                 </div>
@@ -450,11 +504,22 @@ const Join: React.FC = () => {
               disabled={playerLoading}
               className="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200 transform hover:scale-105 disabled:transform-none"
             >
-              {playerLoading ? 'Joining...' : '⚽ Join as Player'}
+              {playerLoading ? "Joining..." : "⚽ Join as Player"}
             </button>
           </form>
         )}
       </div>
+
+      {/* Alert Component */}
+      {alert && (
+        <div className="fixed top-4 right-4 z-50">
+          <Alert
+            type={alert.type}
+            message={alert.message}
+            onClose={() => setAlert(null)}
+          />
+        </div>
+      )}
     </div>
   );
 };

@@ -5,8 +5,8 @@
 > **Prompt:**
 > "In `src/lib/mutations.ts`, add a function `createSession(hostPassword: string)` that:
 >
-> * Inserts a new row into `Session` with `host_password` and defaults (`phase='GameSetup'`, `game_state='pre-quiz'`).
-> * Returns the `session_id`.
+> - Inserts a new row into `Session` with `host_password` and defaults (`phase='GameSetup'`, `game_state='pre-quiz'`).
+> - Returns the `session_id`.
 >   Replace file if exists."
 
 ---
@@ -25,8 +25,8 @@
 > **Prompt:**
 > "In `src/lib/mutations.ts`, add a function `createDailyRoom(sessionId: string)` that:
 >
-> * Calls Netlify function `/api/createDailyRoom` with `{ sessionId }`.
-> * Inserts/updates `DailyRoom` table with the returned `room_url`.
+> - Calls Netlify function `/api/createDailyRoom` with `{ sessionId }`.
+> - Inserts/updates `DailyRoom` table with the returned `room_url`.
 >   Replace if exists."
 
 ---
@@ -36,9 +36,9 @@
 > **Prompt:**
 > "In `src/lib/mutations.ts`, add a function `joinAsHost(sessionId: string, password: string, hostName: string)` that:
 >
-> * Calls Supabase RPC `verify_host_password(sessionId, password)`.
-> * If valid, inserts into `Participant` with `role='Host'`, `name=hostName`.
-> * Returns participant\_id.
+> - Calls Supabase RPC `verify_host_password(sessionId, password)`.
+> - If valid, inserts into `Participant` with `role='Host'`, `name=hostName`.
+> - Returns participant_id.
 >   Replace if exists."
 
 ---
@@ -48,9 +48,9 @@
 > **Prompt:**
 > "In `src/lib/mutations.ts`, add a function `joinAsPlayer(sessionId: string, name: string, flag: string, logoUrl: string)` that:
 >
-> * Checks how many players exist for that session. Assign role='Player1' if none, else 'Player2'.
-> * Inserts into `Participant` with `name`, `role`, `flag`, `team_logo_url`.
-> * Returns participant\_id.
+> - Checks how many players exist for that session. Assign role='Player1' if none, else 'Player2'.
+> - Inserts into `Participant` with `name`, `role`, `flag`, `team_logo_url`.
+> - Returns participant_id.
 >   Replace if exists."
 
 ---
@@ -60,8 +60,8 @@
 > **Prompt:**
 > "In `src/lib/mutations.ts`, add functions:
 >
-> * `updateLobbyPresence(participantId: string, status: 'NotJoined' | 'Joined' | 'Disconnected')` → updates `lobby_presence`.
-> * `updateVideoPresence(participantId: string, connected: boolean)` → updates `video_presence`.
+> - `updateLobbyPresence(participantId: string, status: 'NotJoined' | 'Joined' | 'Disconnected')` → updates `lobby_presence`.
+> - `updateVideoPresence(participantId: string, connected: boolean)` → updates `video_presence`.
 >   Replace if exists."
 
 ---
@@ -80,8 +80,8 @@
 > **Prompt:**
 > "In `src/lib/mutations.ts`, add a function `updateScore(sessionId: string, participantId: string, segmentCode: string, points: number)` that:
 >
-> * Uses Supabase `.upsert()` into `Score` with `(session_id, participant_id, segment_code)`.
-> * Adds the new points to existing points.
+> - Uses Supabase `.upsert()` into `Score` with `(session_id, participant_id, segment_code)`.
+> - Adds the new points to existing points.
 >   Replace if exists."
 
 ---

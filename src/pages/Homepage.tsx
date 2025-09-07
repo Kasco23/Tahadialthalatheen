@@ -1,12 +1,17 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import PasswordModal from '../components/PasswordModal';
-import ActiveGames from '../components/ActiveGames';
-import { createSession } from '../lib/mutations';
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import PasswordModal from "../components/PasswordModal";
+import ActiveGames from "../components/ActiveGames";
+import { createSession } from "../lib/mutations";
+import { Alert } from "../components/Alert";
 
 const Homepage: React.FC = () => {
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [isCreatingSession, setIsCreatingSession] = useState(false);
+  const [alert, setAlert] = useState<{
+    type: "error" | "success" | "info";
+    message: string;
+  } | null>(null);
   const navigate = useNavigate();
 
   const handleCreateSession = () => {
@@ -16,13 +21,18 @@ const Homepage: React.FC = () => {
   const handlePasswordConfirm = async (password: string, hostName: string) => {
     setIsCreatingSession(true);
     try {
-  const { sessionCode } = await createSession(password, hostName);
-  setIsPasswordModalOpen(false);
-  // Navigate to game setup and pass the plaintext host password in location state
-  navigate(`/gamesetup/${sessionCode}`, { state: { hostPassword: password } });
+      const { sessionCode } = await createSession(password, hostName);
+      setIsPasswordModalOpen(false);
+      // Navigate to game setup and pass the plaintext host password in location state
+      navigate(`/gamesetup/${sessionCode}`, {
+        state: { hostPassword: password },
+      });
     } catch (error) {
-      console.error('Error creating session:', error);
-      alert(`Error creating session: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error("Error creating session:", error);
+      setAlert({
+        type: "error",
+        message: `Error creating session: ${error instanceof Error ? error.message : "Unknown error"}`,
+      });
     } finally {
       setIsCreatingSession(false);
     }
@@ -44,7 +54,6 @@ const Homepage: React.FC = () => {
       {/* Main content container */}
       <div className="relative z-10 flex-1 max-w-7xl mx-auto w-full">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full">
-          
           {/* Left side - Main content */}
           <div className="flex flex-col items-center justify-center text-center">
             {/* Arabic Title */}
@@ -77,8 +86,18 @@ const Homepage: React.FC = () => {
             {/* Football-themed decorations */}
             <div className="mt-8 flex justify-center space-x-8 opacity-60">
               <div className="text-4xl animate-bounce">⚽</div>
-              <div className="text-4xl animate-bounce" style={{ animationDelay: '0.2s' }}>🏆</div>
-              <div className="text-4xl animate-bounce" style={{ animationDelay: '0.4s' }}>🎯</div>
+              <div
+                className="text-4xl animate-bounce"
+                style={{ animationDelay: "0.2s" }}
+              >
+                🏆
+              </div>
+              <div
+                className="text-4xl animate-bounce"
+                style={{ animationDelay: "0.4s" }}
+              >
+                🎯
+              </div>
             </div>
           </div>
 
@@ -88,13 +107,12 @@ const Homepage: React.FC = () => {
               <ActiveGames />
             </div>
           </div>
-
         </div>
       </div>
 
       {/* Stadium atmosphere effects */}
       <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black via-transparent to-transparent opacity-30"></div>
-      
+
       {/* Password Modal */}
       <PasswordModal
         isOpen={isPasswordModalOpen}
@@ -102,6 +120,17 @@ const Homepage: React.FC = () => {
         onConfirm={handlePasswordConfirm}
         isLoading={isCreatingSession}
       />
+
+      {/* Alert Component */}
+      {alert && (
+        <div className="fixed top-4 right-4 z-50">
+          <Alert
+            type={alert.type}
+            message={alert.message}
+            onClose={() => setAlert(null)}
+          />
+        </div>
+      )}
     </div>
   );
 };

@@ -2,11 +2,11 @@ name: Performance
 on:
   pull_request:
     types: [opened, synchronize, reopened]
-    branches: [ minimal ]
+    branches: [minimal]
 
 permissions:
   contents: read
-  statuses: write    # allows lighthouse-ci to post a status check
+  statuses: write # allows lighthouse-ci to post a status check
 
 jobs:
   lhci:

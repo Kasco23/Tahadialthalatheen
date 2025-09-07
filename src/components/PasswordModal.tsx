@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
+import { useState } from "react";
+import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 
 interface PasswordModalProps {
   isOpen: boolean;
@@ -12,10 +12,10 @@ const PasswordModal: React.FC<PasswordModalProps> = ({
   isOpen,
   onClose,
   onConfirm,
-  isLoading = false
+  isLoading = false,
 }) => {
-  const [password, setPassword] = useState('');
-  const [hostName, setHostName] = useState('');
+  const [password, setPassword] = useState("");
+  const [hostName, setHostName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
 
@@ -25,15 +25,15 @@ const PasswordModal: React.FC<PasswordModalProps> = ({
     const newErrors: string[] = [];
 
     if (!password.trim()) {
-      newErrors.push('Password is required');
+      newErrors.push("Password is required");
     }
 
     if (password.length < 3) {
-      newErrors.push('Password must be at least 3 characters long');
+      newErrors.push("Password must be at least 3 characters long");
     }
 
     if (!hostName.trim()) {
-      newErrors.push('Host name is required');
+      newErrors.push("Host name is required");
     }
 
     setErrors(newErrors);
@@ -44,8 +44,8 @@ const PasswordModal: React.FC<PasswordModalProps> = ({
   };
 
   const handleClose = () => {
-    setPassword('');
-    setHostName('');
+    setPassword("");
+    setHostName("");
     setShowPassword(false);
     setErrors([]);
     onClose();
@@ -59,14 +59,18 @@ const PasswordModal: React.FC<PasswordModalProps> = ({
         <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
           🔐 Set Host Password
         </h2>
-        
+
         <p className="text-gray-600 text-center mb-6">
-          Create a password for your session. This will be used by hosts to join the game.
+          Create a password for your session. This will be used by hosts to join
+          the game.
         </p>
-        
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="hostName" className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="hostName"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
               Host Name
             </label>
             <input
@@ -81,7 +85,10 @@ const PasswordModal: React.FC<PasswordModalProps> = ({
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
               Password
             </label>
             <div className="relative">
@@ -108,7 +115,7 @@ const PasswordModal: React.FC<PasswordModalProps> = ({
               </button>
             </div>
           </div>
-          
+
           {errors.length > 0 && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4">
               <ul className="text-red-600 text-sm space-y-1">
@@ -118,7 +125,7 @@ const PasswordModal: React.FC<PasswordModalProps> = ({
               </ul>
             </div>
           )}
-          
+
           <div className="flex space-x-4 mt-6">
             <button
               type="button"
@@ -133,7 +140,7 @@ const PasswordModal: React.FC<PasswordModalProps> = ({
               disabled={isLoading}
               className="flex-1 px-4 py-3 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white rounded-lg transition-colors"
             >
-              {isLoading ? '⏳ Creating...' : '✅ Confirm'}
+              {isLoading ? "⏳ Creating..." : "✅ Confirm"}
             </button>
           </div>
         </form>

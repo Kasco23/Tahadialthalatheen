@@ -1,10 +1,10 @@
 name: Format
 on:
   workflow_run:
-    workflows: ["Lint"]     # ← name of the workflow that contains your Prettier check
+    workflows: ["Lint"] # ← name of the workflow that contains your Prettier check
     types: [completed]
 
-permissions:  
+permissions:
   contents: write
   pull-requests: write
 
@@ -29,4 +29,3 @@ jobs:
         with:
           commit_message: "style(prettier): auto-format after failed lint run"
           branch: ${{ github.event.workflow_run.head_branch }}
-

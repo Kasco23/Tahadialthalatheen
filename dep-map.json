@@ -1,50 +1,27 @@
 {
   "netlify/functions/create-daily-token.ts": [],
   "netlify/functions/createDailyRoom.ts": [],
-  "src/components/ActiveGames.tsx": [
-    "src/lib/mutations.ts"
-  ],
-  "src/components/LobbyStatus.tsx": [
-    "src/lib/supabaseClient.ts"
-  ],
-  "src/components/PasswordModal.test.tsx": [
-    "src/components/PasswordModal.tsx"
-  ],
+  "src/components/ActiveGames.tsx": ["src/lib/mutations.ts"],
+  "src/components/LobbyStatus.tsx": ["src/lib/supabaseClient.ts"],
+  "src/components/PasswordModal.test.tsx": ["src/components/PasswordModal.tsx"],
   "src/components/PasswordModal.tsx": [],
   "src/lib/createSession.test.ts": [
     "src/lib/mutations.ts",
     "src/lib/supabaseClient.ts"
   ],
-  "src/lib/mutations.test.ts": [
-    "src/lib/mutations.ts",
-    "src/lib/types.ts"
-  ],
-  "src/lib/mutations.ts": [
-    "src/lib/supabaseClient.ts",
-    "src/lib/types.ts"
-  ],
+  "src/lib/mutations.test.ts": ["src/lib/mutations.ts", "src/lib/types.ts"],
+  "src/lib/mutations.ts": ["src/lib/supabaseClient.ts", "src/lib/types.ts"],
   "src/lib/mutations.validation.ts": [],
-  "src/lib/presence.ts": [
-    "src/lib/supabaseClient.ts"
-  ],
-  "src/lib/realtimeHooks.ts": [
-    "src/lib/supabaseClient.ts",
-    "src/lib/types.ts"
-  ],
+  "src/lib/presence.ts": ["src/lib/supabaseClient.ts"],
+  "src/lib/realtimeHooks.ts": ["src/lib/supabaseClient.ts", "src/lib/types.ts"],
   "src/lib/sessionCode.test.ts": [
     "src/lib/mutations.ts",
     "src/lib/supabaseClient.ts"
   ],
-  "src/lib/sessionHooks.ts": [
-    "src/lib/supabaseClient.ts"
-  ],
+  "src/lib/sessionHooks.ts": ["src/lib/supabaseClient.ts"],
   "src/lib/supabaseClient.ts": [],
-  "src/lib/types.ts": [
-    "src/lib/types/index.ts"
-  ],
-  "src/lib/types/index.ts": [
-    "src/lib/types/supabase.ts"
-  ],
+  "src/lib/types.ts": ["src/lib/types/index.ts"],
+  "src/lib/types/index.ts": ["src/lib/types/supabase.ts"],
   "src/lib/types/supabase.ts": [],
   "src/pages/GameSetup.tsx": [
     "src/components/LobbyStatus.tsx",
@@ -57,10 +34,7 @@
     "src/components/PasswordModal.tsx",
     "src/lib/mutations.ts"
   ],
-  "src/pages/Join.tsx": [
-    "src/lib/mutations.ts",
-    "src/lib/supabaseClient.ts"
-  ],
+  "src/pages/Join.tsx": ["src/lib/mutations.ts", "src/lib/supabaseClient.ts"],
   "src/pages/Lobby.tsx": [
     "src/lib/mutations.ts",
     "src/lib/sessionHooks.ts",

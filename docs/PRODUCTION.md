@@ -21,7 +21,7 @@ Create the following environment variables in your Netlify dashboard:
 VITE_SUPABASE_DATABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=your_anon_key
 
-# Daily.co Configuration  
+# Daily.co Configuration
 DAILY_API_KEY=your_daily_api_key
 VITE_DAILY_API_KEY=your_daily_api_key
 ```
@@ -40,7 +40,7 @@ The project is configured for optimal production builds:
 ✅ **Security Headers**: Comprehensive CSP, XSS protection, and frame options  
 ✅ **Asset Caching**: Static assets cached for 1 year with immutable flag  
 ✅ **SPA Routing**: Proper client-side routing support  
-✅ **API Proxy**: Serverless functions accessible via `/api/*`  
+✅ **API Proxy**: Serverless functions accessible via `/api/*`
 
 ### Performance Optimizations
 
@@ -91,16 +91,19 @@ netlify deploy --prod --dir=dist --functions=netlify/functions
 ### Troubleshooting
 
 **Build Failures:**
+
 - Check Node.js version (must be 22+)
 - Verify all environment variables are set
 - Ensure pnpm lockfile is committed
 
 **Function Errors:**
+
 - Verify DAILY_API_KEY is set in environment
 - Check function logs in Netlify dashboard
 - Ensure Supabase connection is working
 
 **Runtime Issues:**
+
 - Check browser console for client-side errors
 - Verify CSP headers aren't blocking resources
 - Test WebSocket connections for real-time features

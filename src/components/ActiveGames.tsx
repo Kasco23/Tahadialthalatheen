@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { getActiveSessions, type ActiveSession } from '../lib/mutations';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { getActiveSessions, type ActiveSession } from "../lib/mutations";
 
 const ActiveGames: React.FC = () => {
   const [activeSessions, setActiveSessions] = useState<ActiveSession[]>([]);
@@ -16,18 +16,20 @@ const ActiveGames: React.FC = () => {
         setActiveSessions(sessions);
         setError(null);
       } catch (err) {
-        console.error('Failed to fetch active sessions:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load active games');
+        console.error("Failed to fetch active sessions:", err);
+        setError(
+          err instanceof Error ? err.message : "Failed to load active games",
+        );
       } finally {
         setLoading(false);
       }
     };
 
     fetchActiveSessions();
-    
+
     // Refresh every 30 seconds
     const interval = setInterval(fetchActiveSessions, 30000);
-    
+
     return () => clearInterval(interval);
   }, []);
 
@@ -39,22 +41,27 @@ const ActiveGames: React.FC = () => {
   const formatDateTime = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleString(undefined, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      timeZoneName: 'short'
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZoneName: "short",
     });
   };
 
   const getPhaseColor = (phase: string) => {
     switch (phase) {
-      case 'Setup': return 'bg-yellow-100 text-yellow-800';
-      case 'Lobby': return 'bg-blue-100 text-blue-800';
-      case 'Full Lobby': return 'bg-green-100 text-green-800';
-      case 'In-Progress': return 'bg-purple-100 text-purple-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case "Setup":
+        return "bg-yellow-100 text-yellow-800";
+      case "Lobby":
+        return "bg-blue-100 text-blue-800";
+      case "Full Lobby":
+        return "bg-green-100 text-green-800";
+      case "In-Progress":
+        return "bg-purple-100 text-purple-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
@@ -90,12 +97,14 @@ const ActiveGames: React.FC = () => {
       <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
         🎮 Active Games
       </h2>
-      
+
       {activeSessions.length === 0 ? (
         <div className="text-center py-8">
           <div className="text-gray-400 text-6xl mb-4">⚽</div>
           <p className="text-gray-600 text-lg">No active games at the moment</p>
-          <p className="text-gray-500 text-sm mt-2">Create a session to get started!</p>
+          <p className="text-gray-500 text-sm mt-2">
+            Create a session to get started!
+          </p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -110,38 +119,46 @@ const ActiveGames: React.FC = () => {
                     <span className="font-mono text-lg font-bold text-green-600">
                       {session.session_code}
                     </span>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPhaseColor(session.phase)}`}>
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${getPhaseColor(session.phase)}`}
+                    >
                       {session.phase}
                     </span>
                   </div>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                     <div>
                       <span className="text-gray-500">Host:</span>
-                      <span className="ml-2 font-medium">{session.host_name}</span>
+                      <span className="ml-2 font-medium">
+                        {session.host_name}
+                      </span>
                     </div>
-                    
+
                     <div>
                       <span className="text-gray-500">Created:</span>
-                      <span className="ml-2">{formatDateTime(session.created_at)}</span>
+                      <span className="ml-2">
+                        {formatDateTime(session.created_at)}
+                      </span>
                     </div>
-                    
+
                     <div>
                       <span className="text-gray-500">Players:</span>
                       <span className="ml-2 font-medium">
                         {session.participant_count}/2
                       </span>
                     </div>
-                    
+
                     <div>
                       <span className="text-gray-500">Daily Room:</span>
-                      <span className={`ml-2 font-medium ${session.has_daily_room ? 'text-green-600' : 'text-gray-400'}`}>
-                        {session.has_daily_room ? '✅ Ready' : '⏳ Not Created'}
+                      <span
+                        className={`ml-2 font-medium ${session.has_daily_room ? "text-green-600" : "text-gray-400"}`}
+                      >
+                        {session.has_daily_room ? "✅ Ready" : "⏳ Not Created"}
                       </span>
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="ml-4">
                   <button
                     onClick={() => handleQuickJoin(session.session_code)}

@@ -4,4 +4,4 @@
  */
 
 // Validation export to confirm compilation is working
-export const typeValidation = 'OK'
+export const typeValidation = "OK";

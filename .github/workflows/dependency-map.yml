@@ -8,13 +8,13 @@ on:
     workflows: ["CI", "Lint", "CodeQL"]
     types:
       - completed
-    branches: [ minimal]
+    branches: [minimal]
     # only run if they finished successfully
     # (GitHub adds `conclusion: success` automatically for "completed")
     # no extra filter needed
 
 permissions:
-  contents: write     # allow committing map files back
+  contents: write # allow committing map files back
 
 env:
   MADGE_EXCLUDES: 'ignored|\\.test'
@@ -30,7 +30,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
-
 
       # pnpm 10
       - uses: pnpm/action-setup@v4
@@ -77,4 +76,3 @@ jobs:
           commit_message: "chore(deps-map): update dependency graph (auto)"
           branch: ${{ github.event.workflow_run.head_branch }}
           file_pattern: dep-map.json dep-graph.svg circular.txt
-
