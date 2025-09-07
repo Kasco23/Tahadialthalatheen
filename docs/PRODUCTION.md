@@ -48,7 +48,25 @@ The project is configured for optimal production builds:
 - CSS and JS minification
 - Gzip compression
 - Image optimization
-- Font preloading
+
+### Build Optimization
+
+The project includes advanced bundle optimization techniques:
+
+- **Route-level code splitting**: Each page is lazy-loaded to reduce initial bundle size
+- **Manual vendor chunking**: React, Supabase, and Daily.co libraries are separated into dedicated chunks
+- **Brotli compression**: Superior compression for modern browsers
+- **CSS minification**: cssnano optimization with default preset
+- **Size monitoring**: Automated size checks ensure main chunks stay under 250kB gzipped
+
+Build commands:
+
+- `pnpm build`: Standard production build
+- `pnpm build:prod`: Build with size validation (fails if chunks exceed 250kB)
+
+---
+
+## 📊 Production Deployment Checklist
 
 ### CI/CD Pipeline
 

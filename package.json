@@ -10,6 +10,7 @@
     "dev": "vite",
     "dev:netlify": "netlify dev",
     "build": "tsc -b && vite build",
+    "build:prod": "pnpm build && node scripts/size-check.mjs",
     "test": "jest --passWithNoTests",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
@@ -65,6 +66,7 @@
     "@types/react-window": "^1.8.8",
     "autoprefixer": "^10.4.21",
     "babel-jest": "^29.7.0",
+    "cssnano": "^7.1.1",
     "eslint": "^9.34.0",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
@@ -85,6 +87,7 @@
     "typescript-eslint": "^8.41.0",
     "vite-bundle-analyzer": "^0.13.1",
     "vite-plugin-bundlesize": "^0.2.0",
+    "vite-plugin-compression": "^0.5.1",
     "vite-plugin-node": "^7.0.0"
   },
   "packageManager": "pnpm@10.15.1+sha512.34e538c329b5553014ca8e8f4535997f96180a1d0f614339357449935350d924e22f8614682191264ec33d1462ac21561aff97f6bb18065351c162c7e8f6de67"

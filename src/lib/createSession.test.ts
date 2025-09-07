@@ -16,12 +16,10 @@ describe("createSession uses DB trigger to create session_code", () => {
     const fromMock = (supabase as unknown as { from: jest.Mock }).from;
 
     // Session insert -> select -> single returns session with session_code set by trigger
-    const singleInsert = jest
-      .fn()
-      .mockResolvedValue({
-        data: { session_id: "new-id", session_code: "A1B2C3!" },
-        error: null,
-      });
+    const singleInsert = jest.fn().mockResolvedValue({
+      data: { session_id: "new-id", session_code: "A1B2C3!" },
+      error: null,
+    });
     const insertSelect = jest.fn().mockReturnValue({ single: singleInsert });
     const insertMockSession = jest
       .fn()

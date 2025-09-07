@@ -1,23 +1,28 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Homepage from "./pages/Homepage";
-import GameSetup from "./pages/GameSetup";
-import Join from "./pages/Join";
-import Lobby from "./pages/Lobby";
-import Quiz from "./pages/Quiz";
-import Results from "./pages/Results";
+import { Suspense, lazy } from "react";
+
+// Lazy load all page components for better code splitting
+const Homepage = lazy(() => import("./pages/Homepage"));
+const GameSetup = lazy(() => import("./pages/GameSetup"));
+const Join = lazy(() => import("./pages/Join"));
+const Lobby = lazy(() => import("./pages/Lobby"));
+const Quiz = lazy(() => import("./pages/Quiz"));
+const Results = lazy(() => import("./pages/Results"));
 
 function App() {
   return (
     <Router>
-      <Routes>
-        <Route path="/" element={<Homepage />} />
-        <Route path="/gamesetup/:sessionCode" element={<GameSetup />} />
-        <Route path="/join" element={<Join />} />
-        <Route path="/lobby/:sessionCode" element={<Lobby />} />
-        <Route path="/quiz/:sessionCode" element={<Quiz />} />
-        <Route path="/results/:sessionCode" element={<Results />} />
-        <Route path="/results" element={<Results />} />
-      </Routes>
+      <Suspense fallback={<div className="p-6">Loading…</div>}>
+        <Routes>
+          <Route path="/" element={<Homepage />} />
+          <Route path="/gamesetup/:sessionCode" element={<GameSetup />} />
+          <Route path="/join" element={<Join />} />
+          <Route path="/lobby/:sessionCode" element={<Lobby />} />
+          <Route path="/quiz/:sessionCode" element={<Quiz />} />
+          <Route path="/results/:sessionCode" element={<Results />} />
+          <Route path="/results" element={<Results />} />
+        </Routes>
+      </Suspense>
     </Router>
   );
 }

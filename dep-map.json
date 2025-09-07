@@ -4,16 +4,10 @@
   "src/components/ActiveGames.tsx": ["src/lib/mutations.ts"],
   "src/components/LobbyStatus.tsx": ["src/lib/supabaseClient.ts"],
   "src/components/PasswordModal.test.tsx": ["src/components/PasswordModal.tsx"],
-  "src/components/ActiveGames.tsx": [
-    "src/lib/mutations.ts"
-  ],
+  "src/components/ActiveGames.tsx": ["src/lib/mutations.ts"],
   "src/components/Alert.tsx": [],
-  "src/components/LobbyStatus.tsx": [
-    "src/lib/supabaseClient.ts"
-  ],
-  "src/components/PasswordModal.test.tsx": [
-    "src/components/PasswordModal.tsx"
-  ],
+  "src/components/LobbyStatus.tsx": ["src/lib/supabaseClient.ts"],
+  "src/components/PasswordModal.test.tsx": ["src/components/PasswordModal.tsx"],
   "src/components/PasswordModal.tsx": [],
   "src/lib/createSession.test.ts": [
     "src/lib/mutations.ts",
