@@ -42,7 +42,7 @@ describe("Mutations", () => {
     it("should set join_at timestamp and clear disconnect_at when updating existing host", async () => {
       const mockUpdate = jest.fn().mockReturnThis();
       const mockEq = jest.fn().mockResolvedValue({ error: null });
-      
+
       mockUpdate.mockReturnValue({ eq: mockEq });
 
       const mockFromMethods = {
@@ -55,15 +55,18 @@ describe("Mutations", () => {
         update: mockUpdate,
       };
 
-      (supabase.rpc as jest.Mock).mockResolvedValue({ data: true, error: null });
+      (supabase.rpc as jest.Mock).mockResolvedValue({
+        data: true,
+        error: null,
+      });
       (supabase.from as jest.Mock).mockReturnValue(mockFromMethods);
-      
+
       // Mock session lookup
       mockFromMethods.single.mockResolvedValueOnce({
         data: { session_id: "session-123" },
         error: null,
       });
-      
+
       // Mock existing host lookup
       mockFromMethods.maybeSingle.mockResolvedValueOnce({
         data: { participant_id: "host-456" },
@@ -79,15 +82,15 @@ describe("Mutations", () => {
           lobby_presence: "Joined",
           join_at: expect.any(String),
           disconnect_at: null,
-        })
+        }),
       );
-      
+
       // Verify the eq method was called to target the specific participant
       expect(mockEq).toHaveBeenCalledWith("participant_id", "host-456");
     });
   });
 
-  // Note: This is a compilation test only. 
+  // Note: This is a compilation test only.
   // Integration tests that create actual sessions and check lobby_presence
   // would require a test database setup and are beyond the scope of this fix.
   // The manual testing should verify:

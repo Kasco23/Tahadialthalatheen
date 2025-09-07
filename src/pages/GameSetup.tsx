@@ -34,9 +34,11 @@ const GameSetup: React.FC = () => {
   const [roomInfo, setRoomInfo] = useState<{ room_url: string } | null>(null);
   const [participantCount, setParticipantCount] = useState(0);
   const [hostParticipantId, setHostParticipantId] = useState<string | null>(
-    () => localStorage.getItem('hostParticipantId')
+    () => localStorage.getItem("hostParticipantId"),
   );
-  const [presenceHelper, setPresenceHelper] = useState<PresenceHelper | null>(null);
+  const [presenceHelper, setPresenceHelper] = useState<PresenceHelper | null>(
+    null,
+  );
   const [heartbeat, setHeartbeat] = useState<NodeJS.Timeout | null>(null);
   const [notice, setNotice] = useState<{
     type: "success" | "error";
@@ -73,7 +75,12 @@ const GameSetup: React.FC = () => {
   // Join as host when sessionId is available and host password is provided
   useEffect(() => {
     const joinAsHostEffect = async () => {
-      if (!sessionId || !sessionCode || !hostPasswordFromState || hostParticipantId) {
+      if (
+        !sessionId ||
+        !sessionCode ||
+        !hostPasswordFromState ||
+        hostParticipantId
+      ) {
         return; // Don't join if already joined or missing required data
       }
 
@@ -82,14 +89,14 @@ const GameSetup: React.FC = () => {
         const participantId = await joinAsHost(
           sessionCode,
           hostPasswordFromState,
-          "Host"
+          "Host",
         );
-        
+
         setHostParticipantId(participantId);
-        
+
         // Store in localStorage for persistence
-        localStorage.setItem('hostParticipantId', participantId);
-        
+        localStorage.setItem("hostParticipantId", participantId);
+
         console.log("Successfully joined as host:", participantId);
 
         // Set up presence tracking for the host

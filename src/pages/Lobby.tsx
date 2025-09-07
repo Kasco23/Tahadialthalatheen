@@ -242,7 +242,7 @@ const Lobby: React.FC = () => {
       if (pid) {
         await supabase
           .from("Participant")
-          .update({ 
+          .update({
             lobby_presence: "Disconnected",
             disconnect_at: new Date().toISOString(),
           })
@@ -329,9 +329,9 @@ const Lobby: React.FC = () => {
                             className={`fi fi-${player.flag || "sa"} text-2xl`}
                           ></span>
                           {player.team_logo_url && (
-                            <img 
-                              src={player.team_logo_url} 
-                              alt={`${player.name} team logo`} 
+                            <img
+                              src={player.team_logo_url}
+                              alt={`${player.name} team logo`}
                               className="w-8 h-8 object-contain rounded"
                               onError={(e) => {
                                 e.currentTarget.style.display = "none";
