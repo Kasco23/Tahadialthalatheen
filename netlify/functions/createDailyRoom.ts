@@ -176,5 +176,5 @@ export default async (req: Request, _context: Context) => {
 };
 
 export const config: Config = {
-  path: "/create-daily-room",
+  path: "/api/create-daily-room",
 };

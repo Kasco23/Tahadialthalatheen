@@ -295,7 +295,7 @@ export async function createDailyRoom(
     console.log("Creating Daily room with:", { sessionId, sessionCode });
 
     // Call Netlify function with session_code for room name
-    const response = await fetch("/create-daily-room", {
+    const response = await fetch("/api/create-daily-room", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

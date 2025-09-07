@@ -65,12 +65,12 @@ export const TeamLogoPicker: React.FC<TeamLogoPickerProps> = ({
               if (!leagueError && leagueData) {
                 for (const logoFile of leagueData) {
                   if (logoFile.name && logoFile.name.endsWith('.svg')) {
-                    const fullPath = `${item.name}/${logoFile.name}`;
+                    const encodedPath = `${encodeURIComponent(item.name)}/${encodeURIComponent(logoFile.name)}`;
                     
                     // Get public URL
                     const { data: urlData } = supabase.storage
                       .from('logos')
-                      .getPublicUrl(fullPath);
+                      .getPublicUrl(encodedPath);
 
                     if (urlData?.publicUrl) {
                       logoFiles.push({

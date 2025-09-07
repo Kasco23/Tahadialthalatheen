@@ -26,6 +26,15 @@ DAILY_API_KEY=your_daily_api_key
 VITE_DAILY_API_KEY=your_daily_api_key
 ```
 
+### API Routes
+
+The application uses the following Netlify Function routes:
+
+- `/api/create-daily-room` - Creates Daily.co video call rooms for quiz sessions
+  - Method: POST
+  - Body: `{ session_code: string }`
+  - Returns: `{ room_url: string }`
+
 ### Build Configuration
 
 The project is configured for optimal production builds:

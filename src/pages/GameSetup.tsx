@@ -7,6 +7,7 @@ import {
   getSegmentConfig,
   getSessionIdByCode,
   endSession,
+  joinAsHost,
 } from "../lib/mutations";
 import { supabase } from "../lib/supabaseClient";
 import LobbyStatus from "../components/LobbyStatus";
@@ -14,6 +15,7 @@ import { Alert } from "../components/Alert";
 import { motion } from "framer-motion";
 import { sessionAtom, sessionCodeAtom } from "../atoms";
 import type { SegmentCode } from "../lib/types";
+import PresenceHelper from "../lib/presence";
 
 const GameSetup: React.FC = () => {
   const navigate = useNavigate();
@@ -31,6 +33,11 @@ const GameSetup: React.FC = () => {
   const [isDailyRoomCreated, setIsDailyRoomCreated] = useState(false);
   const [roomInfo, setRoomInfo] = useState<{ room_url: string } | null>(null);
   const [participantCount, setParticipantCount] = useState(0);
+  const [hostParticipantId, setHostParticipantId] = useState<string | null>(
+    () => localStorage.getItem('hostParticipantId')
+  );
+  const [presenceHelper, setPresenceHelper] = useState<PresenceHelper | null>(null);
+  const [heartbeat, setHeartbeat] = useState<NodeJS.Timeout | null>(null);
   const [notice, setNotice] = useState<{
     type: "success" | "error";
     message: string;
@@ -62,6 +69,71 @@ const GameSetup: React.FC = () => {
       resolveSessionId();
     }
   }, [sessionCode, sessionId, setSessionId, setCurrentSessionCode, navigate]);
+
+  // Join as host when sessionId is available and host password is provided
+  useEffect(() => {
+    const joinAsHostEffect = async () => {
+      if (!sessionId || !sessionCode || !hostPasswordFromState || hostParticipantId) {
+        return; // Don't join if already joined or missing required data
+      }
+
+      try {
+        console.log("Joining as host...", { sessionCode, sessionId });
+        const participantId = await joinAsHost(
+          sessionCode,
+          hostPasswordFromState,
+          "Host"
+        );
+        
+        setHostParticipantId(participantId);
+        
+        // Store in localStorage for persistence
+        localStorage.setItem('hostParticipantId', participantId);
+        
+        console.log("Successfully joined as host:", participantId);
+
+        // Set up presence tracking for the host
+        const helper = new PresenceHelper(sessionId);
+        await helper.joinPresence({
+          user_id: participantId,
+          name: "Host",
+          flag: "", // Host doesn't need a flag
+          role: "Host",
+          timestamp: new Date().toISOString(),
+          is_active: true,
+        });
+
+        setPresenceHelper(helper);
+
+        // Start heartbeat to maintain presence
+        const heartbeatInterval = PresenceHelper.createHeartbeat(helper);
+        setHeartbeat(heartbeatInterval);
+
+        console.log("Host presence tracking started");
+      } catch (error) {
+        console.error("Failed to join as host:", error);
+        setNotice({
+          type: "error",
+          message: `Failed to join as host: ${error instanceof Error ? error.message : "Unknown error"}`,
+        });
+      }
+    };
+
+    joinAsHostEffect();
+  }, [sessionId, sessionCode, hostPasswordFromState, hostParticipantId]);
+
+  // Cleanup presence tracking on unmount
+  useEffect(() => {
+    return () => {
+      if (heartbeat) {
+        PresenceHelper.clearHeartbeat(heartbeat);
+      }
+      if (presenceHelper) {
+        presenceHelper.leavePresence().catch(console.error);
+      }
+    };
+  }, [heartbeat, presenceHelper]);
+
   const fetchRoomInfo = useCallback(async () => {
     if (!sessionId) return;
     try {
