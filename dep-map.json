@@ -1,9 +1,9 @@
 {
   "netlify/functions/create-daily-token.ts": [],
   "netlify/functions/createDailyRoom.ts": [],
-  "src/components/ActiveGames.tsx": ["src/lib/mutations.ts"],
-  "src/components/LobbyStatus.tsx": ["src/lib/supabaseClient.ts"],
-  "src/components/PasswordModal.test.tsx": ["src/components/PasswordModal.tsx"],
+  "src/atoms/index.ts": [
+    "src/lib/types/supabase.ts"
+  ],
   "src/components/ActiveGames.tsx": ["src/lib/mutations.ts"],
   "src/components/Alert.tsx": [],
   "src/components/LobbyStatus.tsx": ["src/lib/supabaseClient.ts"],
@@ -13,21 +13,39 @@
     "src/lib/mutations.ts",
     "src/lib/supabaseClient.ts"
   ],
-  "src/lib/mutations.test.ts": ["src/lib/mutations.ts", "src/lib/types.ts"],
-  "src/lib/mutations.ts": ["src/lib/supabaseClient.ts", "src/lib/types.ts"],
+  "src/lib/mutations.test.ts": [
+    "src/lib/mutations.ts",
+    "src/lib/types.ts"
+  ],
+  "src/lib/mutations.ts": [
+    "src/lib/supabaseClient.ts",
+    "src/lib/types.ts"
+  ],
   "src/lib/mutations.validation.ts": [],
-  "src/lib/presence.ts": ["src/lib/supabaseClient.ts"],
-  "src/lib/realtimeHooks.ts": ["src/lib/supabaseClient.ts", "src/lib/types.ts"],
+  "src/lib/presence.ts": [
+    "src/lib/supabaseClient.ts"
+  ],
+  "src/lib/realtimeHooks.ts": [
+    "src/lib/supabaseClient.ts",
+    "src/lib/types.ts"
+  ],
   "src/lib/sessionCode.test.ts": [
     "src/lib/mutations.ts",
     "src/lib/supabaseClient.ts"
   ],
-  "src/lib/sessionHooks.ts": ["src/lib/supabaseClient.ts"],
+  "src/lib/sessionHooks.ts": [
+    "src/lib/supabaseClient.ts"
+  ],
   "src/lib/supabaseClient.ts": [],
-  "src/lib/types.ts": ["src/lib/types/index.ts"],
-  "src/lib/types/index.ts": ["src/lib/types/supabase.ts"],
+  "src/lib/types.ts": [
+    "src/lib/types/index.ts"
+  ],
+  "src/lib/types/index.ts": [
+    "src/lib/types/supabase.ts"
+  ],
   "src/lib/types/supabase.ts": [],
   "src/pages/GameSetup.tsx": [
+    "src/atoms/index.ts",
     "src/components/Alert.tsx",
     "src/components/LobbyStatus.tsx",
     "src/lib/mutations.ts",
@@ -36,11 +54,17 @@
   ],
   "src/pages/Homepage.tsx": [
     "src/components/ActiveGames.tsx",
+    "src/components/Alert.tsx",
     "src/components/PasswordModal.tsx",
     "src/lib/mutations.ts"
   ],
-  "src/pages/Join.tsx": ["src/lib/mutations.ts", "src/lib/supabaseClient.ts"],
+  "src/pages/Join.tsx": [
+    "src/components/Alert.tsx",
+    "src/lib/mutations.ts",
+    "src/lib/supabaseClient.ts"
+  ],
   "src/pages/Lobby.tsx": [
+    "src/atoms/index.ts",
     "src/lib/mutations.ts",
     "src/lib/sessionHooks.ts",
     "src/lib/supabaseClient.ts",
