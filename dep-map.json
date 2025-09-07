@@ -18,6 +18,9 @@
     "src/components/PasswordModal.tsx"
   ],
   "src/components/PasswordModal.tsx": [],
+  "src/components/TeamLogoPicker.test.tsx": [
+    "src/components/TeamLogoPicker.tsx"
+  ],
   "src/components/TeamLogoPicker.tsx": [
     "src/lib/supabaseClient.ts"
   ],
@@ -62,6 +65,7 @@
     "src/components/Alert.tsx",
     "src/components/LobbyStatus.tsx",
     "src/lib/mutations.ts",
+    "src/lib/presence.ts",
     "src/lib/supabaseClient.ts",
     "src/lib/types.ts"
   ],
