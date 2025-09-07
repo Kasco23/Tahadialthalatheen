@@ -5,9 +5,11 @@ import { joinAsHost, joinAsPlayerWithCode } from "../lib/mutations";
 import { Alert } from "../components/Alert";
 
 // Lazy load TeamLogoPicker for better bundle splitting
-const TeamLogoPicker = lazy(() => import("../components/TeamLogoPicker").then(module => ({
-  default: module.TeamLogoPicker
-})));
+const TeamLogoPicker = lazy(() =>
+  import("../components/TeamLogoPicker").then((module) => ({
+    default: module.TeamLogoPicker,
+  })),
+);
 
 const Join: React.FC = () => {
   const navigate = useNavigate();
@@ -264,8 +266,15 @@ const Join: React.FC = () => {
   const handlePlayerSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!playerSessionCode.trim() || !playerName.trim() || !selectedFlag || !teamLogoUrl) {
-      setAlert({ type: "error", message: "Please fill in all fields and select a team logo" });
+    if (
+      !playerSessionCode.trim() ||
+      !playerName.trim() ||
+      (!selectedFlag && !teamLogoUrl)
+    ) {
+      setAlert({
+        type: "error",
+        message: "Please fill in all fields and select a flag or team logo",
+      });
       return;
     }
 
@@ -489,15 +498,17 @@ const Join: React.FC = () => {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Choose Your Team Logo
               </label>
-              <Suspense 
+              <Suspense
                 fallback={
                   <div className="p-4 text-center">
                     <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
-                    <p className="mt-2 text-sm text-gray-600">Loading team logos...</p>
+                    <p className="mt-2 text-sm text-gray-600">
+                      Loading team logos...
+                    </p>
                   </div>
                 }
               >
-                <TeamLogoPicker 
+                <TeamLogoPicker
                   selectedUrl={teamLogoUrl}
                   onSelect={setTeamLogoUrl}
                 />
@@ -526,7 +537,7 @@ const Join: React.FC = () => {
 
             <button
               type="submit"
-              disabled={playerLoading}
+              disabled={playerLoading || (!selectedFlag && !teamLogoUrl)}
               className="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200 transform hover:scale-105 disabled:transform-none"
             >
               {playerLoading ? "Joining..." : "⚽ Join as Player"}

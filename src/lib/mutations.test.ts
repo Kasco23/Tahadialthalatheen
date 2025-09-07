@@ -1,8 +1,21 @@
 /**
  * Basic test to ensure mutations compile and can be imported correctly
  */
+import { joinAsHost } from "./mutations";
+import { supabase } from "./supabaseClient";
+
+jest.mock("./supabaseClient", () => ({
+  supabase: {
+    rpc: jest.fn(),
+    from: jest.fn(),
+  },
+}));
 
 describe("Mutations", () => {
+  beforeEach(() => {
+    jest.resetAllMocks();
+  });
+
   it("should import all mutation functions without throwing", async () => {
     const mutations = await import("./mutations");
 
@@ -25,7 +38,59 @@ describe("Mutations", () => {
     expect(types).toBeDefined();
   });
 
-  // Note: This is a compilation test only. 
+  describe("joinAsHost", () => {
+    it("should set join_at timestamp and clear disconnect_at when updating existing host", async () => {
+      const mockUpdate = jest.fn().mockReturnThis();
+      const mockEq = jest.fn().mockResolvedValue({ error: null });
+
+      mockUpdate.mockReturnValue({ eq: mockEq });
+
+      const mockFromMethods = {
+        rpc: jest.fn().mockResolvedValue({ data: true, error: null }),
+        from: jest.fn().mockReturnThis(),
+        select: jest.fn().mockReturnThis(),
+        eq: jest.fn().mockReturnThis(),
+        single: jest.fn(),
+        maybeSingle: jest.fn(),
+        update: mockUpdate,
+      };
+
+      (supabase.rpc as jest.Mock).mockResolvedValue({
+        data: true,
+        error: null,
+      });
+      (supabase.from as jest.Mock).mockReturnValue(mockFromMethods);
+
+      // Mock session lookup
+      mockFromMethods.single.mockResolvedValueOnce({
+        data: { session_id: "session-123" },
+        error: null,
+      });
+
+      // Mock existing host lookup
+      mockFromMethods.maybeSingle.mockResolvedValueOnce({
+        data: { participant_id: "host-456" },
+        error: null,
+      });
+
+      await joinAsHost("TEST123", "password123", "Test Host");
+
+      // Verify update was called with timestamps
+      expect(mockUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: "Test Host",
+          lobby_presence: "Joined",
+          join_at: expect.any(String),
+          disconnect_at: null,
+        }),
+      );
+
+      // Verify the eq method was called to target the specific participant
+      expect(mockEq).toHaveBeenCalledWith("participant_id", "host-456");
+    });
+  });
+
+  // Note: This is a compilation test only.
   // Integration tests that create actual sessions and check lobby_presence
   // would require a test database setup and are beyond the scope of this fix.
   // The manual testing should verify:

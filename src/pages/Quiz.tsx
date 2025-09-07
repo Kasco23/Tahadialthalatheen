@@ -211,15 +211,17 @@ const Quiz: React.FC = () => {
                     <div className="flex items-center space-x-2">
                       <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">
                         {player.flag ? (
-                          <span className={`fi fi-${player.flag} text-lg`}></span>
+                          <span
+                            className={`fi fi-${player.flag} text-lg`}
+                          ></span>
                         ) : (
                           player.name.charAt(0)
                         )}
                       </div>
                       {player.team_logo_url && (
-                        <img 
-                          src={player.team_logo_url} 
-                          alt={`${player.name} team logo`} 
+                        <img
+                          src={player.team_logo_url}
+                          alt={`${player.name} team logo`}
                           className="w-10 h-10 object-contain rounded"
                           onError={(e) => {
                             e.currentTarget.style.display = "none";

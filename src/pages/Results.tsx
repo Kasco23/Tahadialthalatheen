@@ -97,7 +97,9 @@ const Results: React.FC = () => {
       try {
         const { data: playersData, error: playersError } = await supabase
           .from("Participant")
-          .select("participant_id, session_id, name, role, flag, team_logo_url, score, is_connected, is_host")
+          .select(
+            "participant_id, session_id, name, role, flag, team_logo_url, score, is_connected, is_host",
+          )
           .eq("session_id", sessionId);
 
         if (playersError) {
@@ -231,9 +233,9 @@ const Results: React.FC = () => {
                 <span className={`fi fi-${player1.flag} text-3xl mr-3`}></span>
               )}
               {player1?.team_logo_url && (
-                <img 
-                  src={player1.team_logo_url} 
-                  alt={`${player1.name} team logo`} 
+                <img
+                  src={player1.team_logo_url}
+                  alt={`${player1.name} team logo`}
                   className="w-8 h-8 object-contain rounded mr-3"
                   onError={(e) => {
                     e.currentTarget.style.display = "none";
@@ -252,9 +254,9 @@ const Results: React.FC = () => {
                 <span className={`fi fi-${player2.flag} text-3xl mr-3`}></span>
               )}
               {player2?.team_logo_url && (
-                <img 
-                  src={player2.team_logo_url} 
-                  alt={`${player2.name} team logo`} 
+                <img
+                  src={player2.team_logo_url}
+                  alt={`${player2.name} team logo`}
                   className="w-8 h-8 object-contain rounded mr-3"
                   onError={(e) => {
                     e.currentTarget.style.display = "none";
@@ -284,9 +286,9 @@ const Results: React.FC = () => {
                       <div className="flex items-center justify-center">
                         <span className={`fi fi-${player1.flag} mr-2`}></span>
                         {player1.team_logo_url && (
-                          <img 
-                            src={player1.team_logo_url} 
-                            alt={`${player1.name} team logo`} 
+                          <img
+                            src={player1.team_logo_url}
+                            alt={`${player1.name} team logo`}
                             className="w-6 h-6 object-contain rounded mr-2"
                             onError={(e) => {
                               e.currentTarget.style.display = "none";
@@ -302,9 +304,9 @@ const Results: React.FC = () => {
                       <div className="flex items-center justify-center">
                         <span className={`fi fi-${player2.flag} mr-2`}></span>
                         {player2.team_logo_url && (
-                          <img 
-                            src={player2.team_logo_url} 
-                            alt={`${player2.name} team logo`} 
+                          <img
+                            src={player2.team_logo_url}
+                            alt={`${player2.name} team logo`}
                             className="w-6 h-6 object-contain rounded mr-2"
                             onError={(e) => {
                               e.currentTarget.style.display = "none";

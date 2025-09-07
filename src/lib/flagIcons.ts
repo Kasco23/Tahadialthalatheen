@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
 let flagIconsLoaded = false;
 
@@ -12,9 +12,10 @@ export const useFlagIcons = () => {
     if (flagIconsLoaded) return;
 
     // Create and inject CSS link for flag-icons
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = 'https://cdn.jsdelivr.net/gh/lipis/flag-icons@7.3.2/css/flag-icons.min.css';
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href =
+      "https://cdn.jsdelivr.net/gh/lipis/flag-icons@7.3.2/css/flag-icons.min.css";
     link.onload = () => {
       flagIconsLoaded = true;
       setLoaded(true);

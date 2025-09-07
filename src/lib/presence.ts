@@ -180,15 +180,44 @@ export class PresenceHelper {
     isConnected: boolean,
   ): Promise<void> {
     try {
-      const { error } = await supabase
-        .from("Participant")
-        .update({
-          lobby_presence: isConnected ? "Joined" : "Disconnected",
-        })
-        .eq("participant_id", userId);
+      if (isConnected) {
+        // When connecting, check if user had NotJoined status and set join_at if so
+        const { data: currentData } = await supabase
+          .from("Participant")
+          .select("lobby_presence")
+          .eq("participant_id", userId)
+          .single();
 
-      if (error) {
-        console.error("Error updating presence in database:", error);
+        const updateData: any = {
+          lobby_presence: "Joined",
+        };
+
+        // Set join_at only if previously NotJoined
+        if (currentData?.lobby_presence === "NotJoined") {
+          updateData.join_at = new Date().toISOString();
+        }
+
+        const { error } = await supabase
+          .from("Participant")
+          .update(updateData)
+          .eq("participant_id", userId);
+
+        if (error) {
+          console.error("Error updating presence in database:", error);
+        }
+      } else {
+        // When disconnecting, set disconnect_at
+        const { error } = await supabase
+          .from("Participant")
+          .update({
+            lobby_presence: "Disconnected",
+            disconnect_at: new Date().toISOString(),
+          })
+          .eq("participant_id", userId);
+
+        if (error) {
+          console.error("Error updating presence in database:", error);
+        }
       }
     } catch (err) {
       console.error("Failed to update database presence:", err);
