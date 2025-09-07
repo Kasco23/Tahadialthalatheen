@@ -321,9 +321,21 @@ const Lobby: React.FC = () => {
                     {/* Player Header */}
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center space-x-3">
-                        <span
-                          className={`fi fi-${player.flag || "sa"} text-2xl`}
-                        ></span>
+                        <div className="flex items-center space-x-2">
+                          <span
+                            className={`fi fi-${player.flag || "sa"} text-2xl`}
+                          ></span>
+                          {player.team_logo_url && (
+                            <img 
+                              src={player.team_logo_url} 
+                              alt={`${player.name} team logo`} 
+                              className="w-8 h-8 object-contain rounded"
+                              onError={(e) => {
+                                e.currentTarget.style.display = "none";
+                              }}
+                            />
+                          )}
+                        </div>
                         <div>
                           <div className="text-xl font-bold text-white">
                             {player.name}

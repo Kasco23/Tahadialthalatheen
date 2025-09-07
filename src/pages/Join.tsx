@@ -1,8 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 import { joinAsHost, joinAsPlayerWithCode } from "../lib/mutations";
 import { Alert } from "../components/Alert";
+
+// Lazy load TeamLogoPicker for better bundle splitting
+const TeamLogoPicker = lazy(() => import("../components/TeamLogoPicker").then(module => ({
+  default: module.TeamLogoPicker
+})));
 
 const Join: React.FC = () => {
   const navigate = useNavigate();
@@ -259,8 +264,8 @@ const Join: React.FC = () => {
   const handlePlayerSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!playerSessionCode.trim() || !playerName.trim() || !selectedFlag) {
-      setAlert({ type: "error", message: "Please fill in all fields" });
+    if (!playerSessionCode.trim() || !playerName.trim() || !selectedFlag || !teamLogoUrl) {
+      setAlert({ type: "error", message: "Please fill in all fields and select a team logo" });
       return;
     }
 
@@ -477,6 +482,26 @@ const Join: React.FC = () => {
                   </div>
                 </div>
               )}
+            </div>
+
+            {/* Team Logo Picker */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Choose Your Team Logo
+              </label>
+              <Suspense 
+                fallback={
+                  <div className="p-4 text-center">
+                    <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
+                    <p className="mt-2 text-sm text-gray-600">Loading team logos...</p>
+                  </div>
+                }
+              >
+                <TeamLogoPicker 
+                  selectedUrl={teamLogoUrl}
+                  onSelect={setTeamLogoUrl}
+                />
+              </Suspense>
             </div>
 
             {/* Team Logo Display */}

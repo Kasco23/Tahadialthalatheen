@@ -5,11 +5,12 @@ import { useSession } from "../lib/sessionHooks";
 import { getSessionIdByCode } from "../lib/mutations";
 
 interface PlayerData {
-  player_id: string;
+  participant_id: string;
   session_id: string;
   name: string;
   role: string;
   flag: string;
+  team_logo_url?: string;
   score: number;
   is_connected: boolean;
   is_host: boolean;
@@ -79,7 +80,7 @@ const Results: React.FC = () => {
           {
             event: "*",
             schema: "public",
-            table: "players",
+            table: "Participant",
             filter: `session_id=eq.${sessionId}`,
           },
           (payload) => {
@@ -95,8 +96,8 @@ const Results: React.FC = () => {
     const loadPlayers = async () => {
       try {
         const { data: playersData, error: playersError } = await supabase
-          .from("players")
-          .select("*")
+          .from("Participant")
+          .select("participant_id, session_id, name, role, flag, team_logo_url, score, is_connected, is_host")
           .eq("session_id", sessionId);
 
         if (playersError) {
@@ -229,6 +230,16 @@ const Results: React.FC = () => {
               {player1 && (
                 <span className={`fi fi-${player1.flag} text-3xl mr-3`}></span>
               )}
+              {player1?.team_logo_url && (
+                <img 
+                  src={player1.team_logo_url} 
+                  alt={`${player1.name} team logo`} 
+                  className="w-8 h-8 object-contain rounded mr-3"
+                  onError={(e) => {
+                    e.currentTarget.style.display = "none";
+                  }}
+                />
+              )}
               <div className="text-2xl font-bold text-white">
                 {player1?.name || "Player 1"}
               </div>
@@ -239,6 +250,16 @@ const Results: React.FC = () => {
             <div className="flex items-center justify-center mb-4">
               {player2 && (
                 <span className={`fi fi-${player2.flag} text-3xl mr-3`}></span>
+              )}
+              {player2?.team_logo_url && (
+                <img 
+                  src={player2.team_logo_url} 
+                  alt={`${player2.name} team logo`} 
+                  className="w-8 h-8 object-contain rounded mr-3"
+                  onError={(e) => {
+                    e.currentTarget.style.display = "none";
+                  }}
+                />
               )}
               <div className="text-2xl font-bold text-white">
                 {player2?.name || "Player 2"}
@@ -262,6 +283,16 @@ const Results: React.FC = () => {
                     {player1 && (
                       <div className="flex items-center justify-center">
                         <span className={`fi fi-${player1.flag} mr-2`}></span>
+                        {player1.team_logo_url && (
+                          <img 
+                            src={player1.team_logo_url} 
+                            alt={`${player1.name} team logo`} 
+                            className="w-6 h-6 object-contain rounded mr-2"
+                            onError={(e) => {
+                              e.currentTarget.style.display = "none";
+                            }}
+                          />
+                        )}
                         {player1.name}
                       </div>
                     )}
@@ -270,6 +301,16 @@ const Results: React.FC = () => {
                     {player2 && (
                       <div className="flex items-center justify-center">
                         <span className={`fi fi-${player2.flag} mr-2`}></span>
+                        {player2.team_logo_url && (
+                          <img 
+                            src={player2.team_logo_url} 
+                            alt={`${player2.name} team logo`} 
+                            className="w-6 h-6 object-contain rounded mr-2"
+                            onError={(e) => {
+                              e.currentTarget.style.display = "none";
+                            }}
+                          />
+                        )}
                         {player2.name}
                       </div>
                     )}
