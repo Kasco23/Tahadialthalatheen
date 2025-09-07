@@ -12,12 +12,12 @@ jobs:
   prettier:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: pnpm/action-setup@v4
         with:
           # version removed to avoid mismatch
           run_install: false
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: pnpm
@@ -25,7 +25,7 @@ jobs:
       - run: pnpm exec prettier --check .
 
       - name: Commit formatted code
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v6
         with:
           commit_message: "style(prettier): auto-format after failed lint run"
           branch: ${{ github.event.workflow_run.head_branch }}
