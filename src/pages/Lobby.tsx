@@ -242,7 +242,10 @@ const Lobby: React.FC = () => {
       if (pid) {
         await supabase
           .from("Participant")
-          .update({ lobby_presence: "Disconnected" })
+          .update({ 
+            lobby_presence: "Disconnected",
+            disconnect_at: new Date().toISOString(),
+          })
           .eq("participant_id", pid);
       }
     } catch (e) {

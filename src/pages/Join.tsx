@@ -264,8 +264,8 @@ const Join: React.FC = () => {
   const handlePlayerSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!playerSessionCode.trim() || !playerName.trim() || !selectedFlag || !teamLogoUrl) {
-      setAlert({ type: "error", message: "Please fill in all fields and select a team logo" });
+    if (!playerSessionCode.trim() || !playerName.trim() || (!selectedFlag && !teamLogoUrl)) {
+      setAlert({ type: "error", message: "Please fill in all fields and select a flag or team logo" });
       return;
     }
 
@@ -526,7 +526,7 @@ const Join: React.FC = () => {
 
             <button
               type="submit"
-              disabled={playerLoading}
+              disabled={playerLoading || (!selectedFlag && !teamLogoUrl)}
               className="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200 transform hover:scale-105 disabled:transform-none"
             >
               {playerLoading ? "Joining..." : "⚽ Join as Player"}

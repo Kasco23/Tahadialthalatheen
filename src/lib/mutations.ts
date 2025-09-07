@@ -430,6 +430,8 @@ export async function joinAsHost(
       .update({
         name: hostName,
         lobby_presence: "Joined",
+        join_at: new Date().toISOString(),
+        disconnect_at: null,
       })
       .eq("participant_id", existingHost.participant_id);
 
@@ -448,6 +450,8 @@ export async function joinAsHost(
       name: hostName,
       role: "Host",
       lobby_presence: "Joined",
+      join_at: new Date().toISOString(),
+      disconnect_at: null,
     })
     .select("participant_id")
     .single();

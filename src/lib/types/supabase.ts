@@ -48,7 +48,9 @@ export type Database = {
       };
       Participant: {
         Row: {
+          disconnect_at: string | null;
           flag: string | null;
+          join_at: string | null;
           lobby_presence: string;
           name: string;
           participant_id: string;
@@ -62,7 +64,9 @@ export type Database = {
           video_presence: boolean | null;
         };
         Insert: {
+          disconnect_at?: string | null;
           flag?: string | null;
+          join_at?: string | null;
           lobby_presence?: string;
           name: string;
           participant_id?: string;
@@ -76,7 +80,9 @@ export type Database = {
           video_presence?: boolean | null;
         };
         Update: {
+          disconnect_at?: string | null;
           flag?: string | null;
+          join_at?: string | null;
           lobby_presence?: string;
           name?: string;
           participant_id?: string;
