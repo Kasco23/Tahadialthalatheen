@@ -40,6 +40,7 @@
   ],
   "src/lib/mutations.validation.ts": [],
   "src/lib/presence.ts": [
+    "src/lib/mutations.ts",
     "src/lib/supabaseClient.ts"
   ],
   "src/lib/realtimeHooks.ts": [
