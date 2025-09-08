@@ -8,6 +8,10 @@
     "src/lib/mutations.ts"
   ],
   "src/components/Alert.tsx": [],
+  "src/components/EnhancedLobby.tsx": [
+    "src/lib/enhancedPresence.ts",
+    "src/lib/enhancedRealtimeHooks.ts"
+  ],
   "src/components/Flag.tsx": [
     "src/lib/flagIcons.ts"
   ],
@@ -29,6 +33,14 @@
   "src/lib/createSession.test.ts": [
     "src/lib/mutations.ts",
     "src/lib/supabaseClient.ts"
+  ],
+  "src/lib/enhancedPresence.ts": [
+    "src/lib/mutations.ts",
+    "src/lib/supabaseClient.ts"
+  ],
+  "src/lib/enhancedRealtimeHooks.ts": [
+    "src/lib/supabaseClient.ts",
+    "src/lib/types.ts"
   ],
   "src/lib/flagIcons.ts": [],
   "src/lib/mutations.test.ts": [
