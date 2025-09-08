@@ -192,10 +192,14 @@ export async function joinAsPlayerWithCode(
 
     if (!existingErr && (existing as ExistingRow)) {
       const existingRow = existing as ExistingRow;
-      // Update presence and return existing id
+      // Update presence with timestamps and return existing id
       await supabase
         .from("Participant")
-        .update({ lobby_presence: "Joined" })
+        .update({ 
+          lobby_presence: "Joined",
+          join_at: new Date().toISOString(),
+          disconnect_at: null
+        })
         .eq("participant_id", existingRow!.participant_id);
       return existingRow!.participant_id;
     }
@@ -234,6 +238,8 @@ export async function joinAsPlayerWithCode(
       team_logo_url: logoUrl,
       role: assignedRole,
       lobby_presence: "Joined",
+      join_at: new Date().toISOString(),
+      disconnect_at: null,
     })
     .select("participant_id");
 
@@ -503,6 +509,9 @@ export async function joinAsPlayer(
       role: role,
       flag: flag,
       team_logo_url: logoUrl,
+      lobby_presence: "Joined",
+      join_at: new Date().toISOString(),
+      disconnect_at: null,
     })
     .select("participant_id")
     .single();
@@ -519,14 +528,29 @@ export async function updateLobbyPresence(
   participantId: string,
   status: LobbyPresence,
 ): Promise<void> {
+  const updateData: TablesUpdate<"Participant"> = { lobby_presence: status };
+
+  // Set timestamps based on status
+  if (status === "Joined") {
+    updateData.join_at = new Date().toISOString();
+    updateData.disconnect_at = null;
+  } else if (status === "Disconnected") {
+    updateData.disconnect_at = new Date().toISOString();
+  }
+
   const { error } = await supabase
     .from("Participant")
-    .update({ lobby_presence: status })
+    .update(updateData)
     .eq("participant_id", participantId);
 
   if (error) {
     throw new Error(`Failed to update lobby presence: ${error.message}`);
   }
+}
+
+// Helper function to leave the lobby (disconnect)
+export async function leaveLobby(participantId: string): Promise<void> {
+  await updateLobbyPresence(participantId, "Disconnected");
 }
 
 export async function updateVideoPresence(

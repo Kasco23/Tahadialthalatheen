@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useAtom } from "jotai";
 import { supabase } from "../lib/supabaseClient";
 import { useSession } from "../lib/sessionHooks";
-import { getSessionIdByCode, getDailyRoom } from "../lib/mutations";
+import { getSessionIdByCode, getDailyRoom, leaveLobby } from "../lib/mutations";
 import { sessionAtom, sessionCodeAtom, participantsAtom } from "../atoms";
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 import type { Database } from "../lib/types/supabase";
@@ -240,13 +240,7 @@ const Lobby: React.FC = () => {
     try {
       const pid = localStorage.getItem("tt_participant_id");
       if (pid) {
-        await supabase
-          .from("Participant")
-          .update({
-            lobby_presence: "Disconnected",
-            disconnect_at: new Date().toISOString(),
-          })
-          .eq("participant_id", pid);
+        await leaveLobby(pid);
       }
     } catch (e) {
       console.error("Failed to update presence on leave:", e);

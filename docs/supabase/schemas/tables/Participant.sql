@@ -11,6 +11,8 @@ create table public."Participant" (
   powerup_alhabeed boolean null default false,
   powerup_bellegoal boolean null default false,
   powerup_slippyg boolean null default false,
+  join_at timestamp with time zone null,
+  disconnect_at timestamp with time zone null,
   constraint Participant_pkey primary key (participant_id),
   constraint Participant_session_id_fkey foreign KEY (session_id) references "Session" (session_id) on delete CASCADE,
   constraint Participant_lobby_presence_check check (

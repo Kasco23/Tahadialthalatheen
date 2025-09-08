@@ -23,6 +23,8 @@ CREATE TABLE public.Participant (
   powerup_alhabeed boolean DEFAULT false,
   powerup_bellegoal boolean DEFAULT false,
   powerup_slippyg boolean DEFAULT false,
+  join_at timestamp with time zone,
+  disconnect_at timestamp with time zone,
   CONSTRAINT Participant_pkey PRIMARY KEY (participant_id),
   CONSTRAINT Participant_session_id_fkey FOREIGN KEY (session_id) REFERENCES public.Session(session_id)
 );

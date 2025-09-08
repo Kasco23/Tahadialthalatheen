@@ -1,6 +1,4 @@
-CREATE OR REPLACE FUNCTION public.generate_session_code()
-RETURNS trigger
-LANGUAGE plpgsql AS $$
+
 DECLARE
   nums text;
   letters text;
@@ -61,4 +59,3 @@ BEGIN
     -- otherwise repeat
   END LOOP;
 END;
-$$;
