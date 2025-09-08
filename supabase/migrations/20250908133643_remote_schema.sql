@@ -1,3 +1,5 @@
+
+
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -52,11 +54,66 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA "extensions";
 CREATE OR REPLACE FUNCTION "public"."generate_session_code"() RETURNS "trigger"
     LANGUAGE "plpgsql"
     AS $$
-begin
-  -- Ensure always 6 digits (zero-padded)
-  new.session_code := lpad((trunc(random() * 1000000))::text, 6, '0');
-  return new;
-end;
+DECLARE
+  nums text;
+  letters text;
+  all_chars text;
+  chars_array text[];
+  temp_code text;
+  i int;
+  j int;
+  tmp text;
+  array_len int;
+BEGIN
+  -- Generate until we find a unique code
+  LOOP
+    -- Generate 3 random digits
+    nums := '';
+    FOR i IN 1..3 LOOP
+      nums := nums || floor(random() * 10)::int::text;
+    END LOOP;
+
+    -- Generate 3 random uppercase letters
+    letters := '';
+    FOR i IN 1..3 LOOP
+      letters := letters || chr(65 + floor(random() * 26)::int);
+    END LOOP;
+
+    -- Combine digits + letters (6 chars total)
+    all_chars := nums || letters;
+
+    -- Build a 6-element array of single characters
+    chars_array := ARRAY[
+      substring(all_chars FROM 1 FOR 1),
+      substring(all_chars FROM 2 FOR 1),
+      substring(all_chars FROM 3 FOR 1),
+      substring(all_chars FROM 4 FOR 1),
+      substring(all_chars FROM 5 FOR 1),
+      substring(all_chars FROM 6 FOR 1)
+    ];
+
+    array_len := array_length(chars_array, 1);
+
+    -- Fisher–Yates shuffle to randomize order
+    IF array_len IS NOT NULL AND array_len > 1 THEN
+      FOR i IN REVERSE 2..array_len LOOP
+        j := 1 + floor(random() * i)::int;
+        tmp := chars_array[i];
+        chars_array[i] := chars_array[j];
+        chars_array[j] := tmp;
+      END LOOP;
+    END IF;
+
+    temp_code := array_to_string(chars_array, '');
+
+    -- Ensure uniqueness
+    IF NOT EXISTS (SELECT 1 FROM public."Session" WHERE session_code = temp_code) THEN
+      NEW.session_code := temp_code;
+      RETURN NEW;
+    END IF;
+    -- otherwise repeat
+  END LOOP;
+END;
 $$;
 
 
@@ -79,26 +136,29 @@ $_$;
 ALTER FUNCTION "public"."hash_host_password"() OWNER TO "postgres";
 
 
-CREATE OR REPLACE FUNCTION "public"."verify_host_password"("p_session" "uuid", "p_password" "text") RETURNS boolean
-    LANGUAGE "plpgsql"
+CREATE OR REPLACE FUNCTION "public"."verify_host_password"("session_code_input" "text", "password_input" "text") RETURNS boolean
+    LANGUAGE "plpgsql" SECURITY DEFINER
     AS $$
-declare
+DECLARE
   stored_password text;
-begin
-  select host_password into stored_password
-  from "Session"
-  where session_id = p_session;
-
-  if stored_password is null then
-    return false;
-  end if;
-
-  return stored_password = crypt(p_password, stored_password);
-end;
+BEGIN
+  -- Get the stored hashed password for the session
+  SELECT host_password INTO stored_password
+  FROM public."Session"
+  WHERE session_code = session_code_input;
+  
+  -- If session not found, return false
+  IF stored_password IS NULL THEN
+    RETURN FALSE;
+  END IF;
+  
+  -- Verify the password using crypt function
+  RETURN crypt(password_input, stored_password) = stored_password;
+END;
 $$;
 
 
-ALTER FUNCTION "public"."verify_host_password"("p_session" "uuid", "p_password" "text") OWNER TO "postgres";
+ALTER FUNCTION "public"."verify_host_password"("session_code_input" "text", "password_input" "text") OWNER TO "postgres";
 
 SET default_tablespace = '';
 
@@ -130,6 +190,8 @@ CREATE TABLE IF NOT EXISTS "public"."Participant" (
     "powerup_alhabeed" boolean DEFAULT false,
     "powerup_bellegoal" boolean DEFAULT false,
     "powerup_slippyg" boolean DEFAULT false,
+    "join_at" timestamp with time zone,
+    "disconnect_at" timestamp with time zone,
     CONSTRAINT "Participant_lobby_presence_check" CHECK (("lobby_presence" = ANY (ARRAY['NotJoined'::"text", 'Joined'::"text", 'Disconnected'::"text"]))),
     CONSTRAINT "Participant_role_check" CHECK (("role" = ANY (ARRAY['Host'::"text", 'Player1'::"text", 'Player2'::"text"])))
 );
@@ -170,7 +232,7 @@ CREATE TABLE IF NOT EXISTS "public"."Session" (
     "game_state" "text" NOT NULL,
     "created_at" timestamp with time zone DEFAULT "now"(),
     "ended_at" timestamp with time zone,
-    "session_code" "text",
+    "session_code" "text" NOT NULL,
     CONSTRAINT "Session_game_state_check" CHECK (("game_state" = ANY (ARRAY['pre-quiz'::"text", 'active'::"text", 'post-quiz'::"text", 'concluded'::"text"]))),
     CONSTRAINT "Session_phase_check" CHECK (("phase" = ANY (ARRAY['Setup'::"text", 'Lobby'::"text", 'Full Lobby'::"text", 'In-Progress'::"text", 'Tie-Breaker'::"text", 'Results'::"text", 'Review'::"text"])))
 );
@@ -397,6 +459,10 @@ ALTER TABLE "public"."Strikes" ENABLE ROW LEVEL SECURITY;
 ALTER PUBLICATION "supabase_realtime" OWNER TO "postgres";
 
 
+
+
+
+
 ALTER PUBLICATION "supabase_realtime" ADD TABLE ONLY "public"."DailyRoom";
 
 
@@ -590,9 +656,9 @@ GRANT ALL ON FUNCTION "public"."hash_host_password"() TO "service_role";
 
 
 
-GRANT ALL ON FUNCTION "public"."verify_host_password"("p_session" "uuid", "p_password" "text") TO "anon";
-GRANT ALL ON FUNCTION "public"."verify_host_password"("p_session" "uuid", "p_password" "text") TO "authenticated";
-GRANT ALL ON FUNCTION "public"."verify_host_password"("p_session" "uuid", "p_password" "text") TO "service_role";
+GRANT ALL ON FUNCTION "public"."verify_host_password"("session_code_input" "text", "password_input" "text") TO "anon";
+GRANT ALL ON FUNCTION "public"."verify_host_password"("session_code_input" "text", "password_input" "text") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."verify_host_password"("session_code_input" "text", "password_input" "text") TO "service_role";
 
 
 

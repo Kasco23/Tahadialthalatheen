@@ -43,6 +43,7 @@
     "node-vibrant": "^4.0.3",
     "pipx": "^1.0.1",
     "react": "^19.1.1",
+    "react-country-flag": "^3.1.0",
     "react-dom": "^19.1.1",
     "react-pro-sidebar": "^1.1.0",
     "react-router-dom": "^7.8.2",

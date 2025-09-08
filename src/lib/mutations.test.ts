@@ -73,12 +73,11 @@ describe("Mutations", () => {
         error: null,
       });
 
-      await joinAsHost("TEST123", "password123", "Test Host");
+      await joinAsHost("TEST123", "password123");
 
       // Verify update was called with timestamps
       expect(mockUpdate).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: "Test Host",
           lobby_presence: "Joined",
           join_at: expect.any(String),
           disconnect_at: null,

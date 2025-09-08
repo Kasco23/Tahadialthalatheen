@@ -25,9 +25,21 @@ jest.mock("../lib/supabaseClient", () => ({
 }));
 
 describe("TeamLogoPicker", () => {
+  const mockCategories = [
+    {
+      id: "la-liga",
+      displayName: "La Liga",
+      leagueLogo: "https://example.com/la-liga.svg",
+      teams: [
+        { name: "Real Madrid", url: "https://example.com/real-madrid.svg" },
+        { name: "Barcelona", url: "https://example.com/barcelona.svg" }
+      ]
+    }
+  ];
+
   it("should render without crashing", () => {
     const mockOnSelect = jest.fn();
-    render(<TeamLogoPicker onSelect={mockOnSelect} />);
+    render(<TeamLogoPicker onSelect={mockOnSelect} categories={mockCategories} />);
   });
 
   it("should handle folder names with spaces correctly", () => {
@@ -39,7 +51,7 @@ describe("TeamLogoPicker", () => {
     // 4. Select the logo and confirm it shows up in the UI
     const mockOnSelect = jest.fn();
     expect(() =>
-      render(<TeamLogoPicker onSelect={mockOnSelect} />),
+      render(<TeamLogoPicker onSelect={mockOnSelect} categories={mockCategories} />),
     ).not.toThrow();
   });
 });

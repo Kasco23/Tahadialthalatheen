@@ -73,11 +73,25 @@ export class PresenceHelper {
     await this.channel.subscribe(async (status: string) => {
       if (status === "SUBSCRIBED") {
         // Track the current user
-        await this.channel.track({
-          ...user,
+        const presenceData = {
+          user_id: user.user_id,
+          flag: user.flag,
           timestamp: new Date().toISOString(),
           is_active: true,
-        });
+          lobby_presence: "Joined",
+          join_at: new Date().toISOString(),
+          disconnect_at: null,
+        };
+
+        // For hosts, use Role instead of name
+        if (user.role === "Host") {
+          (presenceData as any).Role = user.role;
+        } else {
+          (presenceData as any).name = user.name;
+          (presenceData as any).role = user.role;
+        }
+
+        await this.channel.track(presenceData);
       }
     });
 

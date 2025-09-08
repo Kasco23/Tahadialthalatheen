@@ -383,7 +383,6 @@ export async function getDailyRoom(
 export async function joinAsHost(
   sessionCode: string,
   hostPassword: string,
-  hostName: string = "Host",
 ): Promise<string> {
   // Verify host password using RPC with new parameter names
   const { data: isValidPassword, error: rpcError } = await supabase.rpc(
@@ -430,11 +429,10 @@ export async function joinAsHost(
   }
 
   if (existingHost) {
-    // Update existing host to 'Joined' status
+    // Update existing host to 'Joined' status - DO NOT change the name
     const { error: updateError } = await supabase
       .from("Participant")
       .update({
-        name: hostName,
         lobby_presence: "Joined",
         join_at: new Date().toISOString(),
         disconnect_at: null,
@@ -448,25 +446,8 @@ export async function joinAsHost(
     return existingHost.participant_id;
   }
 
-  // Create new host participant
-  const { data, error } = await supabase
-    .from("Participant")
-    .insert({
-      session_id: sessionId,
-      name: hostName,
-      role: "Host",
-      lobby_presence: "Joined",
-      join_at: new Date().toISOString(),
-      disconnect_at: null,
-    })
-    .select("participant_id")
-    .single();
-
-  if (error) {
-    throw new Error(`Failed to join as host: ${error.message}`);
-  }
-
-  return data.participant_id;
+  // If no existing host found, this is an error - host should be created during session creation
+  throw new Error("No host participant found for this session. Host should be created during session setup.");
 }
 
 // 5. Join as Player (Phone → Join)

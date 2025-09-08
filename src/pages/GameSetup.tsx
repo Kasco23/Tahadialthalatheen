@@ -89,7 +89,6 @@ const GameSetup: React.FC = () => {
         const participantId = await joinAsHost(
           sessionCode,
           hostPasswordFromState,
-          "Host",
         );
 
         setHostParticipantId(participantId);
@@ -103,7 +102,7 @@ const GameSetup: React.FC = () => {
         const helper = new PresenceHelper(sessionId);
         await helper.joinPresence({
           user_id: participantId,
-          name: "Host",
+          name: "", // Don't use name for host - we'll use role instead
           flag: "", // Host doesn't need a flag
           role: "Host",
           timestamp: new Date().toISOString(),
