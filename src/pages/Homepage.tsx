@@ -43,7 +43,8 @@ const Homepage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-600 via-green-700 to-green-800 flex flex-col p-4 relative overflow-hidden pitch-lines center-circle goal-area">
+    <div className="relative">
+      <div className="min-h-screen bg-gradient-to-br from-green-700 to-green-900 bg-[linear-gradient(45deg,rgba(0,0,0,0.05)_25%,transparent_25%,transparent_75%,rgba(0,0,0,0.05)_75%,rgba(0,0,0,0.05)),linear-gradient(-45deg,rgba(0,0,0,0.05)_25%,transparent_25%,transparent_75%,rgba(0,0,0,0.05)_75%,rgba(0,0,0,0.05))] bg-[length:20px_20px] flex flex-col p-4 relative overflow-hidden pitch-lines center-circle goal-area">
       {/* Football pitch background elements */}
       <div className="absolute inset-0 opacity-20">
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 h-32 border-2 border-white rounded-full"></div>
@@ -131,6 +132,7 @@ const Homepage: React.FC = () => {
           />
         </div>
       )}
+    </div>
     </div>
   );
 };
