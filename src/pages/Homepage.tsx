@@ -43,13 +43,57 @@ const Homepage: React.FC = () => {
   };
 
   return (
-    <div className="relative">
-      <div className="min-h-screen bg-gradient-to-br from-green-700 to-green-900 bg-[linear-gradient(45deg,rgba(0,0,0,0.05)_25%,transparent_25%,transparent_75%,rgba(0,0,0,0.05)_75%,rgba(0,0,0,0.05)),linear-gradient(-45deg,rgba(0,0,0,0.05)_25%,transparent_25%,transparent_75%,rgba(0,0,0,0.05)_75%,rgba(0,0,0,0.05))] bg-[length:20px_20px] flex flex-col p-4 relative overflow-hidden pitch-lines center-circle goal-area">
-      {/* Football pitch background elements */}
-      <div className="absolute inset-0 opacity-20">
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 h-32 border-2 border-white rounded-full"></div>
-        <div className="absolute top-1/4 left-1/4 w-16 h-16 border-2 border-white rounded-full"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-16 h-16 border-2 border-white rounded-full"></div>
+    <div className="min-h-screen bg-gradient-to-br from-green-600 via-green-700 to-green-800 flex flex-col p-4 relative overflow-hidden">
+      {/* Football pitch grass pattern with horizontal stripes */}
+      <div className="absolute inset-0 bg-[repeating-linear-gradient(0deg,rgba(0,0,0,0.1)_0px,rgba(0,0,0,0.1)_30px,transparent_30px,transparent_60px)] opacity-60"></div>
+      
+      {/* Football pitch markings */}
+      <div className="absolute inset-0">
+        {/* Center line */}
+        <div className="absolute top-0 bottom-0 left-1/2 w-0.5 bg-white transform -translate-x-1/2 opacity-80"></div>
+        
+        {/* Center circle */}
+        <div className="absolute top-1/2 left-1/2 w-32 h-32 border-2 border-white rounded-full transform -translate-x-1/2 -translate-y-1/2 opacity-80"></div>
+        
+        {/* Center spot */}
+        <div className="absolute top-1/2 left-1/2 w-2 h-2 bg-white rounded-full transform -translate-x-1/2 -translate-y-1/2 opacity-80"></div>
+        
+        {/* Left penalty area (18-yard box) */}
+        <div className="absolute left-0 top-1/2 w-20 h-48 border-2 border-white border-l-0 transform -translate-y-1/2 opacity-80"></div>
+        
+        {/* Left goal area (6-yard box) */}
+        <div className="absolute left-0 top-1/2 w-8 h-20 border-2 border-white border-l-0 transform -translate-y-1/2 opacity-80"></div>
+        
+        {/* Left penalty spot */}
+        <div className="absolute left-14 top-1/2 w-2 h-2 bg-white rounded-full transform -translate-y-1/2 opacity-80"></div>
+        
+        {/* Left goal posts */}
+        <div className="absolute left-0 top-1/2 w-1 h-16 bg-white transform -translate-y-1/2 opacity-90"></div>
+        <div className="absolute left-0 top-1/2 w-4 h-1 bg-white transform -translate-y-8 opacity-90"></div>
+        <div className="absolute left-0 top-1/2 w-4 h-1 bg-white transform translate-y-7 opacity-90"></div>
+        
+        {/* Right penalty area (18-yard box) */}
+        <div className="absolute right-0 top-1/2 w-20 h-48 border-2 border-white border-r-0 transform -translate-y-1/2 opacity-80"></div>
+        
+        {/* Right goal area (6-yard box) */}
+        <div className="absolute right-0 top-1/2 w-8 h-20 border-2 border-white border-r-0 transform -translate-y-1/2 opacity-80"></div>
+        
+        {/* Right penalty spot */}
+        <div className="absolute right-14 top-1/2 w-2 h-2 bg-white rounded-full transform -translate-y-1/2 opacity-80"></div>
+        
+        {/* Right goal posts */}
+        <div className="absolute right-0 top-1/2 w-1 h-16 bg-white transform -translate-y-1/2 opacity-90"></div>
+        <div className="absolute right-0 top-1/2 w-4 h-1 bg-white transform -translate-y-8 opacity-90"></div>
+        <div className="absolute right-0 top-1/2 w-4 h-1 bg-white transform translate-y-7 opacity-90"></div>
+        
+        {/* Corner arcs */}
+        <div className="absolute top-0 left-0 w-8 h-8 border-2 border-white border-t-0 border-l-0 rounded-br-full opacity-80"></div>
+        <div className="absolute top-0 right-0 w-8 h-8 border-2 border-white border-t-0 border-r-0 rounded-bl-full opacity-80"></div>
+        <div className="absolute bottom-0 left-0 w-8 h-8 border-2 border-white border-b-0 border-l-0 rounded-tr-full opacity-80"></div>
+        <div className="absolute bottom-0 right-0 w-8 h-8 border-2 border-white border-b-0 border-r-0 rounded-tl-full opacity-80"></div>
+        
+        {/* Pitch boundary */}
+        <div className="absolute inset-4 border-2 border-white opacity-60 rounded-sm"></div>
       </div>
 
       {/* Main content container */}
@@ -132,7 +176,6 @@ const Homepage: React.FC = () => {
           />
         </div>
       )}
-    </div>
     </div>
   );
 };
