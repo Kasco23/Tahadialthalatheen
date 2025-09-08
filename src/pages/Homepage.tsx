@@ -100,19 +100,19 @@ const Homepage: React.FC = () => {
       <div className="relative z-10 flex-1 max-w-7xl mx-auto w-full">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full">
           {/* Left side - Main content */}
-          <div className="flex flex-col items-center justify-center text-center">
+          <div className="flex flex-col items-center justify-center text-center px-4">
             {/* Arabic Title */}
-            <h1 className="text-5xl md:text-7xl font-black text-white mb-4 drop-shadow-2xl animate-pulse">
+            <h1 className="text-5xl md:text-7xl font-black text-white mb-6 drop-shadow-[0_4px_20px_rgba(0,0,0,0.8)] filter contrast-125 brightness-110">
               تحدي الثلاثين ⚽
             </h1>
 
             {/* Tagline */}
-            <p className="text-xl md:text-2xl text-green-100 mb-8 font-medium drop-shadow-lg">
+            <p className="text-xl md:text-2xl text-green-100 mb-12 font-medium drop-shadow-lg">
               The ultimate football quiz showdown
             </p>
 
             {/* CTA Buttons */}
-            <div className="space-y-6 w-full max-w-sm">
+            <div className="space-y-8 w-full max-w-sm">
               <button
                 onClick={handleCreateSession}
                 className="block w-full bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 hover:from-yellow-500 hover:via-yellow-600 hover:to-yellow-700 text-black font-bold text-xl md:text-2xl py-6 px-8 rounded-2xl shadow-2xl transform transition-all duration-300 hover:scale-105 hover:shadow-3xl border-4 border-yellow-300"
@@ -127,23 +127,6 @@ const Homepage: React.FC = () => {
                 👥 Join Session
               </Link>
             </div>
-
-            {/* Football-themed decorations */}
-            <div className="mt-8 flex justify-center space-x-8 opacity-60">
-              <div className="text-4xl animate-bounce">⚽</div>
-              <div
-                className="text-4xl animate-bounce"
-                style={{ animationDelay: "0.2s" }}
-              >
-                🏆
-              </div>
-              <div
-                className="text-4xl animate-bounce"
-                style={{ animationDelay: "0.4s" }}
-              >
-                🎯
-              </div>
-            </div>
           </div>
 
           {/* Right side - Active Games */}
@@ -151,6 +134,25 @@ const Homepage: React.FC = () => {
             <div className="w-full max-w-2xl">
               <ActiveGames />
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Football-themed decorations - positioned lower and more central */}
+      <div className="relative z-10 pb-8">
+        <div className="flex justify-center space-x-8 opacity-70">
+          <div className="text-5xl animate-bounce">⚽</div>
+          <div
+            className="text-5xl animate-bounce"
+            style={{ animationDelay: "0.2s" }}
+          >
+            🏆
+          </div>
+          <div
+            className="text-5xl animate-bounce"
+            style={{ animationDelay: "0.4s" }}
+          >
+            🎯
           </div>
         </div>
       </div>
