@@ -3,6 +3,10 @@
 @tailwind utilities;
 
 /* Football pitch background pattern */
+.pitch-lines {
+  position: relative;
+}
+
 .pitch-lines::before {
   content: "";
   position: absolute;
@@ -15,9 +19,14 @@
     linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px);
   background-size: 50px 50px;
   pointer-events: none;
+  z-index: -1;
 }
 
 /* Center circle */
+.center-circle {
+  position: relative;
+}
+
 .center-circle::after {
   content: "";
   position: absolute;
@@ -29,9 +38,14 @@
   border: 2px solid rgba(255, 255, 255, 0.3);
   border-radius: 50%;
   pointer-events: none;
+  z-index: -1;
 }
 
 /* Goal areas */
+.goal-area {
+  position: relative;
+}
+
 .goal-area::before {
   content: "";
   position: absolute;
@@ -42,4 +56,5 @@
   border: 2px solid rgba(255, 255, 255, 0.2);
   border-radius: 10px;
   pointer-events: none;
+  z-index: -1;
 }

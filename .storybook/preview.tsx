@@ -2,7 +2,6 @@ import type { Preview } from '@storybook/react-vite';
 import React from 'react';
 import '../src/index.css'; // Import Tailwind CSS and global styles
 
-
 const preview: Preview = {
   parameters: {
     actions: { argTypesRegex: '^on[A-Z].*' },

@@ -7,12 +7,7 @@ const config: StorybookConfig = {
   ],
 
   addons: [
-    '@storybook/addon-docs',         // autodocs is now opt-in (see below)
-    '@storybook/addon-a11y',
-    '@storybook/addon-onboarding',
-    '@storybook/addon-vitest',       // replaces “interactions” in SB 9 :contentReference[oaicite:2]{index=2}
-    '@storybook/addon-themes',       // new dark/light switcher
-    '@chromatic-com/storybook',
+    '@storybook/addon-essentials',   // includes docs, controls, actions, viewport, backgrounds, etc.
   ],
 
   framework: {
@@ -22,6 +17,15 @@ const config: StorybookConfig = {
 
   docs: {
     autodocs: 'tag',                 // auto-generate docs when a story/tag says so
+  },
+
+  typescript: {
+    check: false,
+    reactDocgen: 'react-docgen-typescript',
+    reactDocgenTypescriptOptions: {
+      shouldExtractLiteralValuesFromEnum: true,
+      propFilter: (prop) => (prop.parent ? !/node_modules/.test(prop.parent.fileName) : true),
+    },
   },
 };
 
