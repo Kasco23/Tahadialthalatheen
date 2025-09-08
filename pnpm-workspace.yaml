@@ -1,8 +1,10 @@
 onlyBuiltDependencies:
-  - "@parcel/watcher"
-  - "@sentry/cli"
+  - '@parcel/watcher'
+  - '@sentry/cli'
+  - '@swc/core'
   - esbuild
   - inotify
+  - msw
   - netlify
   - netlify-cli
   - puppeteer

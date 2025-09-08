@@ -19,6 +19,13 @@ Core references (open first when exploring):
 
 Always typecheck and test after structural or schema changes. If tests are missing for a behavior you modify, add a minimal one.
 
+# Storybook conventions for this repo
+
+- Every React component should have a sibling `<Component>.stories.tsx` file using CSF 3.
+- Use:  
+  ```ts
+  import type { Meta, StoryObj } from '@storybook/react';
+```
 ## Architecture snapshot
 
 - Frontend: React + Vite + Tailwind
