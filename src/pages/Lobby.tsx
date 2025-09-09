@@ -326,10 +326,8 @@ const Lobby: React.FC = () => {
         error instanceof Error ? error.message : "Failed to join video call"
       );
       // Clean up call object if join failed
-      if (callObject) {
-        callObject.destroy();
-        setCallObject(null);
-      }
+      newCallObject.destroy();
+      setCallObject(null);
     } finally {
       setIsJoiningCall(false);
     }
