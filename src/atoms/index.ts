@@ -8,6 +8,11 @@ export const sessionCodeAtom = atom<string | null>(null);
 // Participants atom - keyed by participant_id
 export const participantsAtom = atom<Record<string, Tables<"Participant">>>({});
 
+// Daily.co atoms
+export const dailyRoomUrlAtom = atom<string | null>(null);
+export const dailyTokenAtom = atom<string | null>(null);
+export const dailyUserNameAtom = atom<string | null>(null);
+
 // Derived atoms
 export const hostParticipantAtom = atom((get) => {
   const participants = get(participantsAtom);

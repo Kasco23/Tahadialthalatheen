@@ -534,6 +534,53 @@ export async function leaveLobby(participantId: string): Promise<void> {
   await updateLobbyPresence(participantId, "Disconnected");
 }
 
+// Daily token retrieval
+export async function createDailyToken(
+  roomName: string,
+  userName: string,
+): Promise<{ token: string }> {
+  try {
+    console.log("Creating Daily token for:", { roomName, userName });
+
+    const response = await fetch("/api/create-daily-token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        room_name: roomName,
+        user_name: userName,
+      }),
+    });
+
+    console.log("Daily token creation response status:", response.status);
+
+    if (!response.ok) {
+      try {
+        const errorData = await response.json();
+        console.error("Daily token creation error details:", errorData);
+        throw new Error(
+          `HTTP error! status: ${response.status}, details: ${JSON.stringify(errorData)}`,
+        );
+      } catch (_parseError) {
+        const errorText = await response.text();
+        console.error("Daily token creation error (raw):", errorText);
+        throw new Error(
+          `HTTP error! status: ${response.status}, response: ${errorText}`,
+        );
+      }
+    }
+
+    const data = await response.json();
+    console.log("Daily token created successfully:", data);
+    return data;
+  } catch (error) {
+    throw new Error(
+      `Failed to create Daily token: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
+  }
+}
+
 export async function updateVideoPresence(
   participantId: string,
   connected: boolean,
