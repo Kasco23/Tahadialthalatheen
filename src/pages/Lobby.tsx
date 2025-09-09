@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAtom } from "jotai";
+import { useDaily } from "@daily-co/daily-react";
 import { supabase } from "../lib/supabaseClient";
 import { useSession } from "../lib/sessionHooks";
 import { getSessionIdByCode, getDailyRoom, leaveLobby } from "../lib/mutations";
-import { sessionAtom, sessionCodeAtom, participantsAtom } from "../atoms";
+import { sessionAtom, sessionCodeAtom, participantsAtom, dailyRoomUrlAtom } from "../atoms";
+import { DailyJoinButton } from "../components/DailyJoinButton";
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 import type { Database } from "../lib/types/supabase";
 
@@ -18,6 +20,10 @@ const Lobby: React.FC = () => {
   const [sessionId, setSessionId] = useAtom(sessionAtom);
   const [_currentSessionCode, setCurrentSessionCode] = useAtom(sessionCodeAtom);
   const [_participants, _setParticipants] = useAtom(participantsAtom);
+  const [dailyRoomUrl] = useAtom(dailyRoomUrlAtom);
+
+  // Daily React hooks
+  const daily = useDaily();
 
   const {
     session,
@@ -65,6 +71,9 @@ const Lobby: React.FC = () => {
       try {
         const roomData = await getDailyRoom(sessionId);
         setDailyRoom(roomData);
+        // Log Daily context for debugging
+        console.log("Daily context available:", !!daily);
+        console.log("Daily room URL from atom:", dailyRoomUrl);
       } catch (error) {
         console.error("Failed to load Daily room data:", error);
       }
@@ -73,7 +82,7 @@ const Lobby: React.FC = () => {
     if (sessionId) {
       loadDailyRoom();
     }
-  }, [sessionId]);
+  }, [sessionId, daily, dailyRoomUrl]);
 
   useEffect(() => {
     if (!sessionId) {
@@ -419,22 +428,17 @@ const Lobby: React.FC = () => {
           </button>
         </div>
 
-        {/* Session Info */}
-        <div className="text-center mt-8">
-          <div className="text-sm text-blue-200">
-            Video Room: {dailyRoom?.ready ? "✅ Created" : "⏳ Pending"}
+        {/* Video Room Section */}
+        <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 mb-6 text-center">
+          <h3 className="text-xl font-bold text-white mb-4">🎥 Video Communication</h3>
+          <div className="text-sm text-blue-200 mb-4">
+            Video Room: {dailyRoom?.ready ? "✅ Ready" : "⏳ Waiting for host"}
           </div>
-          {dailyRoom?.room_url && (
-            <div className="text-sm text-blue-200 mt-1">
-              <a
-                href={dailyRoom.room_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-300 hover:text-blue-100 underline"
-              >
-                🎥 Join Video Room
-              </a>
-            </div>
+          {sessionCode && (
+            <DailyJoinButton 
+              sessionCode={sessionCode} 
+              participantName={localStorage.getItem("tt_participant_name") || "Player"} 
+            />
           )}
         </div>
       </div>

@@ -13,7 +13,7 @@ import { supabase } from "../lib/supabaseClient";
 import LobbyStatus from "../components/LobbyStatus";
 import { Alert } from "../components/Alert";
 import { motion } from "framer-motion";
-import { sessionAtom, sessionCodeAtom } from "../atoms";
+import { sessionAtom, sessionCodeAtom, dailyRoomUrlAtom } from "../atoms";
 import type { SegmentCode } from "../lib/types";
 import PresenceHelper from "../lib/presence";
 
@@ -28,6 +28,7 @@ const GameSetup: React.FC = () => {
   // Use Jotai atoms instead of local state
   const [sessionId, setSessionId] = useAtom(sessionAtom);
   const [_currentSessionCode, setCurrentSessionCode] = useAtom(sessionCodeAtom);
+  const [, setDailyRoomUrl] = useAtom(dailyRoomUrlAtom);
 
   const [isLoading, setIsLoading] = useState(false);
   const [isDailyRoomCreated, setIsDailyRoomCreated] = useState(false);
@@ -244,6 +245,7 @@ const GameSetup: React.FC = () => {
       const created = await createDailyRoom(sessionId, sessionCode);
       setIsDailyRoomCreated(true);
       setRoomInfo({ room_url: created.room_url });
+      setDailyRoomUrl(created.room_url); // Store in global atom
       setNotice({
         type: "success",
         message: "Daily room created successfully.",
