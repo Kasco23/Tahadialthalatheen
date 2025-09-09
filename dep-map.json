@@ -29,6 +29,9 @@
   "src/components/LogoSelector.tsx": [
     "src/lib/supabaseClient.ts"
   ],
+  "src/components/ParticipantTile.tsx": [
+    "src/lib/types/supabase.ts"
+  ],
   "src/components/PasswordModal.test.tsx": [
     "src/components/PasswordModal.tsx"
   ],
@@ -37,6 +40,10 @@
     "src/components/TeamLogoPicker.tsx"
   ],
   "src/components/TeamLogoPicker.tsx": [],
+  "src/components/VideoCall.tsx": [
+    "src/components/ParticipantTile.tsx",
+    "src/lib/types/supabase.ts"
+  ],
   "src/lib/createSession.test.ts": [
     "src/lib/mutations.ts",
     "src/lib/supabaseClient.ts"
@@ -106,6 +113,7 @@
   ],
   "src/pages/Lobby.tsx": [
     "src/atoms/index.ts",
+    "src/components/VideoCall.tsx",
     "src/lib/mutations.ts",
     "src/lib/sessionHooks.ts",
     "src/lib/supabaseClient.ts",
