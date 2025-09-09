@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAtom } from "jotai";
-import DailyIframe from "@daily-co/daily-js";
+import DailyIframe, { DailyCall } from "@daily-co/daily-js";
 import { supabase } from "../lib/supabaseClient";
 import { useSession } from "../lib/sessionHooks";
 import { getSessionIdByCode, getDailyRoom, leaveLobby, createDailyToken } from "../lib/mutations";
 import { sessionAtom, sessionCodeAtom, participantsAtom, dailyRoomUrlAtom } from "../atoms";
+import { VideoCall } from "../components/VideoCall";
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 import type { Database } from "../lib/types/supabase";
 
@@ -22,7 +23,7 @@ const Lobby: React.FC = () => {
   const [dailyRoomUrl] = useAtom(dailyRoomUrlAtom);
 
   // Daily call object state
-  const [callObject, setCallObject] = useState<any>(null);
+  const [callObject, setCallObject] = useState<DailyCall | null>(null);
   const [isJoiningCall, setIsJoiningCall] = useState(false);
   const [callError, setCallError] = useState<string | null>(null);
   const [isInCall, setIsInCall] = useState(false);
@@ -326,8 +327,10 @@ const Lobby: React.FC = () => {
         error instanceof Error ? error.message : "Failed to join video call"
       );
       // Clean up call object if join failed
-      newCallObject.destroy();
-      setCallObject(null);
+      if (callObject) {
+        callObject.destroy();
+        setCallObject(null);
+      }
     } finally {
       setIsJoiningCall(false);
     }
@@ -492,6 +495,11 @@ const Lobby: React.FC = () => {
             </div>
           )}
         </div>
+
+        {/* Video Call Component - shown when in call */}
+        {isInCall && (
+          <VideoCall players={players} />
+        )}
 
         {/* Action Buttons */}
         <div className="text-center space-x-4">
