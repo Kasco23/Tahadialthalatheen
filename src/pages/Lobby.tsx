@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAtom } from "jotai";
-import { useDaily } from "@daily-co/daily-react";
+import DailyIframe from "@daily-co/daily-js";
 import { supabase } from "../lib/supabaseClient";
 import { useSession } from "../lib/sessionHooks";
-import { getSessionIdByCode, getDailyRoom, leaveLobby } from "../lib/mutations";
+import { getSessionIdByCode, getDailyRoom, leaveLobby, createDailyToken } from "../lib/mutations";
 import { sessionAtom, sessionCodeAtom, participantsAtom, dailyRoomUrlAtom } from "../atoms";
-import { DailyJoinButton } from "../components/DailyJoinButton";
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 import type { Database } from "../lib/types/supabase";
 
@@ -22,8 +21,11 @@ const Lobby: React.FC = () => {
   const [_participants, _setParticipants] = useAtom(participantsAtom);
   const [dailyRoomUrl] = useAtom(dailyRoomUrlAtom);
 
-  // Daily React hooks
-  const daily = useDaily();
+  // Daily call object state
+  const [callObject, setCallObject] = useState<any>(null);
+  const [isJoiningCall, setIsJoiningCall] = useState(false);
+  const [callError, setCallError] = useState<string | null>(null);
+  const [isInCall, setIsInCall] = useState(false);
 
   const {
     session,
@@ -71,8 +73,6 @@ const Lobby: React.FC = () => {
       try {
         const roomData = await getDailyRoom(sessionId);
         setDailyRoom(roomData);
-        // Log Daily context for debugging
-        console.log("Daily context available:", !!daily);
         console.log("Daily room URL from atom:", dailyRoomUrl);
       } catch (error) {
         console.error("Failed to load Daily room data:", error);
@@ -82,7 +82,7 @@ const Lobby: React.FC = () => {
     if (sessionId) {
       loadDailyRoom();
     }
-  }, [sessionId, daily, dailyRoomUrl]);
+  }, [sessionId, dailyRoomUrl]);
 
   useEffect(() => {
     if (!sessionId) {
@@ -187,6 +187,15 @@ const Lobby: React.FC = () => {
     };
   }, [sessionId]);
 
+  // Cleanup call object on unmount
+  useEffect(() => {
+    return () => {
+      if (callObject) {
+        callObject.destroy();
+      }
+    };
+  }, [callObject]);
+
   const getPresenceStatus = (p: ParticipantRow) => {
     const lobbyPresence =
       p.lobby_presence === "Joined"
@@ -255,6 +264,88 @@ const Lobby: React.FC = () => {
       console.error("Failed to update presence on leave:", e);
     } finally {
       navigate("/");
+    }
+  };
+
+  // Daily call management functions
+  const handleJoinDailyCall = async () => {
+    if (!dailyRoom?.room_url) {
+      setCallError("No Daily room available. Host needs to create a room first.");
+      return;
+    }
+
+    if (!sessionCode) {
+      setCallError("No session code available.");
+      return;
+    }
+
+    setIsJoiningCall(true);
+    setCallError(null);
+
+    try {
+      // Create Daily call object
+      const newCallObject = DailyIframe.createCallObject();
+      setCallObject(newCallObject);
+
+      // Get participant name from localStorage
+      const participantName = localStorage.getItem("tt_participant_name") || "Player";
+
+      // Fetch the token for joining the Daily room
+      const tokenResponse = await createDailyToken(sessionCode, participantName);
+
+      // Set up event listeners
+      newCallObject.on("joined-meeting", () => {
+        console.log("Successfully joined Daily meeting");
+        setIsInCall(true);
+      });
+
+      newCallObject.on("left-meeting", () => {
+        console.log("Left Daily meeting");
+        setIsInCall(false);
+      });
+
+      newCallObject.on("error", (error) => {
+        console.error("Daily call object error:", error);
+        setCallError(typeof error === 'string' ? error : "An error occurred during the call");
+      });
+
+      // Join the Daily room
+      await newCallObject.join({
+        url: dailyRoom.room_url,
+        token: tokenResponse.token,
+        userName: participantName,
+      });
+
+      console.log("Successfully joined Daily room:", {
+        roomUrl: dailyRoom.room_url,
+        userName: participantName,
+      });
+    } catch (error) {
+      console.error("Failed to join Daily room:", error);
+      setCallError(
+        error instanceof Error ? error.message : "Failed to join video call"
+      );
+      // Clean up call object if join failed
+      if (callObject) {
+        callObject.destroy();
+        setCallObject(null);
+      }
+    } finally {
+      setIsJoiningCall(false);
+    }
+  };
+
+  const handleLeaveDailyCall = async () => {
+    if (callObject) {
+      try {
+        await callObject.leave();
+        callObject.destroy();
+        setCallObject(null);
+        setIsInCall(false);
+        console.log("Left and destroyed Daily call object");
+      } catch (error) {
+        console.error("Error leaving Daily call:", error);
+      }
     }
   };
 
@@ -434,12 +525,48 @@ const Lobby: React.FC = () => {
           <div className="text-sm text-blue-200 mb-4">
             Video Room: {dailyRoom?.ready ? "✅ Ready" : "⏳ Waiting for host"}
           </div>
-          {sessionCode && (
-            <DailyJoinButton 
-              sessionCode={sessionCode} 
-              participantName={localStorage.getItem("tt_participant_name") || "Player"} 
-            />
+          
+          {/* Error message */}
+          {callError && (
+            <div className="p-3 mb-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+              {callError}
+            </div>
           )}
+
+          {/* Join/Leave button */}
+          <div className="space-y-2">
+            {!isInCall ? (
+              <button
+                onClick={handleJoinDailyCall}
+                disabled={isJoiningCall || !dailyRoom?.room_url}
+                className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+                  isJoiningCall || !dailyRoom?.room_url
+                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    : "bg-blue-600 text-white hover:bg-blue-700"
+                }`}
+              >
+                {isJoiningCall ? "Joining..." : "🎥 Join Video Call"}
+              </button>
+            ) : (
+              <div className="space-y-2">
+                <div className="text-green-400 font-medium mb-2">
+                  ✅ Connected to video call
+                </div>
+                <button
+                  onClick={handleLeaveDailyCall}
+                  className="px-6 py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors"
+                >
+                  📞 Leave Video Call
+                </button>
+              </div>
+            )}
+
+            {!dailyRoom?.room_url && (
+              <p className="text-sm text-blue-300 mt-2">
+                Waiting for host to create video room...
+              </p>
+            )}
+          </div>
         </div>
       </div>
     </div>
