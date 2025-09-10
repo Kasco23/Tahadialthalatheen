@@ -1,4 +1,3 @@
-import React from "react";
 import { render, screen } from "@testing-library/react";
 import { ParticipantTile } from "./ParticipantTile";
 import type { Database } from "../lib/types/supabase";
@@ -27,6 +26,10 @@ describe("ParticipantTile", () => {
         video_presence: false,
         join_at: new Date().toISOString(),
         disconnect_at: null,
+        powerup_alhabeed: null,
+        powerup_bellegoal: null,
+        powerup_pass_used: null,
+        powerup_slippyg: null,
       },
     ],
   ]);

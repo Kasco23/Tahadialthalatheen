@@ -48,3 +48,24 @@ export interface StrikeData {
   segment_code: "WDYK";
   strikes: number;
 }
+
+// Daily.co token management types
+export interface DailyTokenData {
+  token: string;
+  room_name: string;
+  user_name: string;
+  created_at: number; // timestamp in milliseconds
+  expires_at: number; // timestamp in milliseconds
+  refresh_threshold: number; // milliseconds before expiry to refresh
+}
+
+export interface DailyTokenCache {
+  [key: string]: DailyTokenData; // key format: `${room_name}:${user_name}`
+}
+
+export interface DailyTokenRefreshConfig {
+  maxRetries: number;
+  baseDelay: number; // milliseconds
+  maxDelay: number; // milliseconds
+  refreshThresholdMinutes: number; // minutes before expiry to refresh
+}

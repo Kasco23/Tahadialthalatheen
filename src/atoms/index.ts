@@ -13,6 +13,10 @@ export const dailyRoomUrlAtom = atom<string | null>(null);
 export const dailyTokenAtom = atom<string | null>(null);
 export const dailyUserNameAtom = atom<string | null>(null);
 
+// Enhanced Daily.co token management atoms
+export const dailyTokenExpiryAtom = atom<number | null>(null); // timestamp when token expires
+export const dailyTokenRefreshingAtom = atom<boolean>(false); // whether token is being refreshed
+
 // Derived atoms
 export const hostParticipantAtom = atom((get) => {
   const participants = get(participantsAtom);
