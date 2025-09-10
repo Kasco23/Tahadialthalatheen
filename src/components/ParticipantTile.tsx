@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import { 
   useParticipantProperty, 
   useVideoTrack, 
   DailyVideo 
 } from "@daily-co/daily-react";
+import type { DailyCall } from "@daily-co/daily-js";
 import type { Database } from "../lib/types/supabase";
 
 type ParticipantRow = Database["public"]["Tables"]["Participant"]["Row"];
@@ -11,6 +12,9 @@ type ParticipantRow = Database["public"]["Tables"]["Participant"]["Row"];
 interface ParticipantTileProps {
   participantId: string;
   playersByName: Map<string, ParticipantRow>;
+  isHost?: boolean;
+  currentUserParticipantId?: string;
+  callObject?: DailyCall | null;
 }
 
 // Helper function to get role display (copied from Lobby logic)
@@ -29,8 +33,13 @@ const getRoleDisplay = (player: ParticipantRow) => {
 
 const ParticipantTile: React.FC<ParticipantTileProps> = ({ 
   participantId, 
-  playersByName 
+  playersByName,
+  isHost = false,
+  currentUserParticipantId,
+  callObject
 }) => {
+  const [isActioning, setIsActioning] = useState(false);
+  
   // Get participant's display name and video track state
   const userName = useParticipantProperty(participantId, "user_name");
   const videoTrack = useVideoTrack(participantId);
@@ -48,6 +57,43 @@ const ParticipantTile: React.FC<ParticipantTileProps> = ({
   
   // Check if video is available
   const hasVideo = videoTrack?.track && videoTrack.state === "playable";
+  
+  // Determine if this is the current user's tile
+  const isCurrentUser = participantId === currentUserParticipantId;
+  
+  // Show moderation controls only if user is host and this is not their own tile
+  const showModerationControls = isHost && !isCurrentUser && callObject;
+
+  const handleMute = async () => {
+    if (!callObject || isActioning) return;
+    
+    setIsActioning(true);
+    try {
+      await callObject.updateParticipant(participantId, { setAudio: false });
+      console.log(`Muted participant: ${displayName}`);
+    } catch (error) {
+      console.error("Failed to mute participant:", error);
+    } finally {
+      setIsActioning(false);
+    }
+  };
+
+  const handleEject = async () => {
+    if (!callObject || isActioning) return;
+    
+    const confirmEject = confirm(`Are you sure you want to remove ${displayName} from the call?`);
+    if (!confirmEject) return;
+    
+    setIsActioning(true);
+    try {
+      await callObject.updateParticipant(participantId, { eject: true });
+      console.log(`Ejected participant: ${displayName}`);
+    } catch (error) {
+      console.error("Failed to eject participant:", error);
+    } finally {
+      setIsActioning(false);
+    }
+  };
 
   return (
     <div className="relative bg-gray-800 rounded-lg overflow-hidden aspect-video">
@@ -100,6 +146,32 @@ const ParticipantTile: React.FC<ParticipantTileProps> = ({
       <div className="absolute top-2 right-2">
         <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
       </div>
+      
+      {/* Host Moderation Controls */}
+      {showModerationControls && (
+        <div className="absolute top-2 left-2 flex space-x-1">
+          <button
+            onClick={handleMute}
+            disabled={isActioning}
+            className={`p-2 rounded-full bg-orange-500 hover:bg-orange-600 text-white text-sm transition-all duration-200 ${
+              isActioning ? 'opacity-50 cursor-not-allowed' : 'shadow-lg hover:shadow-xl'
+            }`}
+            title={`Mute ${displayName}`}
+          >
+            🔈
+          </button>
+          <button
+            onClick={handleEject}
+            disabled={isActioning}
+            className={`p-2 rounded-full bg-red-500 hover:bg-red-600 text-white text-sm transition-all duration-200 ${
+              isActioning ? 'opacity-50 cursor-not-allowed' : 'shadow-lg hover:shadow-xl'
+            }`}
+            title={`Remove ${displayName} from call`}
+          >
+            ❌
+          </button>
+        </div>
+      )}
     </div>
   );
 };

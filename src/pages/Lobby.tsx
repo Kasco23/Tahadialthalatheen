@@ -300,14 +300,38 @@ const Lobby: React.FC = () => {
         setIsInCall(true);
       });
 
-      newCallObject.on("left-meeting", () => {
-        console.log("Left Daily meeting");
+      newCallObject.on("left-meeting", (event) => {
+        console.log("Left Daily meeting", event);
         setIsInCall(false);
+        
+        // Check if user was ejected (Daily uses different event structure)
+        if (event && 'reason' in event) {
+          const reason = (event as any).reason;
+          if (reason === "ejected" || reason === "hidden") {
+            setCallError("You have been removed from the call by the host.");
+            // Optional: redirect to home page after some delay
+            setTimeout(() => {
+              navigate("/");
+            }, 3000);
+          }
+        }
       });
 
       newCallObject.on("error", (error) => {
         console.error("Daily call object error:", error);
         setCallError(typeof error === 'string' ? error : "An error occurred during the call");
+      });
+
+      // Listen for participant events (useful for hosts to see ejections)
+      newCallObject.on("participant-left", (event) => {
+        console.log("Participant left:", event);
+        if (event && 'reason' in event) {
+          const reason = (event as any).reason;
+          if (reason === "ejected" || reason === "hidden") {
+            const participantName = (event as any).participant?.user_name || 'unknown';
+            console.log(`Participant ${participantName} was ejected from the call`);
+          }
+        }
       });
 
       // Join the Daily room
@@ -504,6 +528,7 @@ const Lobby: React.FC = () => {
             participantName={localStorage.getItem("tt_participant_name") || "Player"} 
             onJoinCall={handleJoinDailyCall}
             onLeaveCall={handleLeaveDailyCall}
+            callObject={callObject}
           />
         )}
 
