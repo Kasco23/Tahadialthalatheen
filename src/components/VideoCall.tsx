@@ -1,5 +1,6 @@
 import React from "react";
-import { useParticipantIds, DailyAudio } from "@daily-co/daily-react";
+import { useParticipantIds, DailyAudio, useLocalParticipant } from "@daily-co/daily-react";
+import type { DailyCall } from "@daily-co/daily-js";
 import { ParticipantTile } from "./ParticipantTile";
 import { ControlsBar } from "./ControlsBar";
 import type { Database } from "../lib/types/supabase";
@@ -12,6 +13,7 @@ interface VideoCallProps {
   participantName: string;
   onJoinCall?: () => void;
   onLeaveCall?: () => void;
+  callObject?: DailyCall | null;
 }
 
 export const VideoCall: React.FC<VideoCallProps> = ({ 
@@ -19,10 +21,18 @@ export const VideoCall: React.FC<VideoCallProps> = ({
   sessionCode, 
   participantName, 
   onJoinCall, 
-  onLeaveCall 
+  onLeaveCall,
+  callObject
 }) => {
   // Get all participant IDs in the call (including local user)
   const participantIds = useParticipantIds();
+  const localParticipant = useLocalParticipant();
+  
+  // Determine if current user is host
+  const isHost = localStorage.getItem("isHost") === "true";
+  
+  // Get current user's participant ID
+  const currentUserParticipantId = localParticipant?.session_id;
 
   // Create a lookup map for player data by name
   const playersByName = React.useMemo(() => {
@@ -49,6 +59,9 @@ export const VideoCall: React.FC<VideoCallProps> = ({
             key={participantId}
             participantId={participantId}
             playersByName={playersByName}
+            isHost={isHost}
+            currentUserParticipantId={currentUserParticipantId}
+            callObject={callObject}
           />
         ))}
       </div>
