@@ -118,7 +118,7 @@ Deno.serve(async (req: Request) => {
     console.error("Error in list-logos function:", err);
     return new Response(
       JSON.stringify({
-        error: String(err),
+        error: "Internal server error",
       }),
       {
         status: 500,
