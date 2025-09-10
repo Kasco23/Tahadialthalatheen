@@ -376,31 +376,55 @@ const Lobby: React.FC = () => {
 
   if (sessionLoading || loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 flex items-center justify-center">
-        <div className="text-white text-xl">Loading Lobby...</div>
+      <div className="dugout-background">
+        <div className="dugout-seating"></div>
+        <div className="dugout-canopy"></div>
+        <div className="dugout-pitch"></div>
+        
+        <div className="dugout-content flex items-center justify-center">
+          <div className="text-white text-xl">Loading Lobby...</div>
+        </div>
       </div>
     );
   }
 
   if (sessionError || error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-red-600 via-red-700 to-red-800 flex items-center justify-center">
-        <div className="text-white text-xl">{sessionError || error}</div>
+      <div className="dugout-background">
+        <div className="dugout-seating"></div>
+        <div className="dugout-canopy"></div>
+        <div className="dugout-pitch"></div>
+        
+        <div className="dugout-content flex items-center justify-center">
+          <div className="text-white text-xl">{sessionError || error}</div>
+        </div>
       </div>
     );
   }
 
   if (!session) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-600 via-gray-700 to-gray-800 flex items-center justify-center">
-        <div className="text-white text-xl">Session not found</div>
+      <div className="dugout-background">
+        <div className="dugout-seating"></div>
+        <div className="dugout-canopy"></div>
+        <div className="dugout-pitch"></div>
+        
+        <div className="dugout-content flex items-center justify-center">
+          <div className="text-white text-xl">Session not found</div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 p-4">
-      <div className="max-w-4xl mx-auto">
+    <div className="dugout-background">
+      {/* Stadium lighting effect */}
+      <div className="dugout-seating"></div>
+      <div className="dugout-canopy"></div>
+      <div className="dugout-pitch"></div>
+      
+      <div className="dugout-content p-4">
+        <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-white mb-2">🎮 Game Lobby</h1>
@@ -604,6 +628,7 @@ const Lobby: React.FC = () => {
               </p>
             )}
           </div>
+        </div>
         </div>
       </div>
     </div>
