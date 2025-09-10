@@ -6,7 +6,9 @@ import type { Database } from "../lib/types/supabase";
 jest.mock("@daily-co/daily-react", () => ({
   useParticipantProperty: jest.fn(() => "Test User"),
   useVideoTrack: jest.fn(() => ({ track: null, state: "off" })),
-  DailyVideo: ({ sessionId }: { sessionId: string }) => <div data-testid={`video-${sessionId}`}>Video</div>,
+  DailyVideo: ({ sessionId }: { sessionId: string }) => (
+    <div data-testid={`video-${sessionId}`}>Video</div>
+  ),
 }));
 
 type ParticipantRow = Database["public"]["Tables"]["Participant"]["Row"];
@@ -50,7 +52,7 @@ describe("ParticipantTile", () => {
         isHost={false}
         currentUserParticipantId="test-participant"
         callObject={mockCallObject}
-      />
+      />,
     );
 
     expect(screen.queryByTitle(/Mute/)).not.toBeInTheDocument();
@@ -65,7 +67,7 @@ describe("ParticipantTile", () => {
         isHost={true}
         currentUserParticipantId="test-participant"
         callObject={mockCallObject}
-      />
+      />,
     );
 
     expect(screen.queryByTitle(/Mute/)).not.toBeInTheDocument();
@@ -80,11 +82,13 @@ describe("ParticipantTile", () => {
         isHost={true}
         currentUserParticipantId="test-participant"
         callObject={mockCallObject}
-      />
+      />,
     );
 
     expect(screen.getByTitle(/Mute.*Test User/)).toBeInTheDocument();
-    expect(screen.getByTitle(/Remove.*Test User.*from call/)).toBeInTheDocument();
+    expect(
+      screen.getByTitle(/Remove.*Test User.*from call/),
+    ).toBeInTheDocument();
   });
 
   it("should not show moderation controls without call object", () => {
@@ -95,7 +99,7 @@ describe("ParticipantTile", () => {
         isHost={true}
         currentUserParticipantId="test-participant"
         callObject={null}
-      />
+      />,
     );
 
     expect(screen.queryByTitle(/Mute/)).not.toBeInTheDocument();

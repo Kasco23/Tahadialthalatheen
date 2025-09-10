@@ -8,39 +8,43 @@ import reactRefresh from "eslint-plugin-react-refresh";
 import react from "eslint-plugin-react";
 import tseslint from "typescript-eslint";
 
-export default tseslint.config({ ignores: ["dist", "node_modules", ".netlify", "supabase/.temp"] }, {
-  extends: [js.configs.recommended, ...tseslint.configs.recommended],
-  files: ["**/*.{ts,tsx}"],
-  languageOptions: {
-    ecmaVersion: 2020,
-    globals: globals.browser,
-  },
-  plugins: {
-    "react-hooks": reactHooks,
-    "react-refresh": reactRefresh,
-    react,
-  },
-  rules: {
-    ...reactHooks.configs.recommended.rules,
-    "react-refresh/only-export-components": [
-      "warn",
-      { allowConstantExport: true },
-    ],
-    "@typescript-eslint/no-unused-vars": [
-      "error",
-      {
-        argsIgnorePattern: "^_",
-        varsIgnorePattern: "^_",
-        caughtErrorsIgnorePattern: "^_",
+export default tseslint.config(
+  { ignores: ["dist", "node_modules", ".netlify", "supabase/.temp"] },
+  {
+    extends: [js.configs.recommended, ...tseslint.configs.recommended],
+    files: ["**/*.{ts,tsx}"],
+    languageOptions: {
+      ecmaVersion: 2020,
+      globals: globals.browser,
+    },
+    plugins: {
+      "react-hooks": reactHooks,
+      "react-refresh": reactRefresh,
+      react,
+    },
+    rules: {
+      ...reactHooks.configs.recommended.rules,
+      "react-refresh/only-export-components": [
+        "warn",
+        { allowConstantExport: true },
+      ],
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+        },
+      ],
+      "@typescript-eslint/no-explicit-any": "warn",
+      "react/prop-types": "off",
+      "react/react-in-jsx-scope": "off",
+    },
+    settings: {
+      react: {
+        version: "detect",
       },
-    ],
-    "@typescript-eslint/no-explicit-any": "warn",
-    "react/prop-types": "off",
-    "react/react-in-jsx-scope": "off",
-  },
-  settings: {
-    react: {
-      version: "detect",
     },
   },
-}, storybook.configs["flat/recommended"]);
+  storybook.configs["flat/recommended"],
+);

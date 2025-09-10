@@ -4,8 +4,18 @@ import { useAtom } from "jotai";
 import DailyIframe, { DailyCall } from "@daily-co/daily-js";
 import { supabase } from "../lib/supabaseClient";
 import { useSession } from "../lib/sessionHooks";
-import { getSessionIdByCode, getDailyRoom, leaveLobby, createDailyToken } from "../lib/mutations";
-import { sessionAtom, sessionCodeAtom, participantsAtom, dailyRoomUrlAtom } from "../atoms";
+import {
+  getSessionIdByCode,
+  getDailyRoom,
+  leaveLobby,
+  createDailyToken,
+} from "../lib/mutations";
+import {
+  sessionAtom,
+  sessionCodeAtom,
+  participantsAtom,
+  dailyRoomUrlAtom,
+} from "../atoms";
 import { VideoCall } from "../components/VideoCall";
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 import type { Database } from "../lib/types/supabase";
@@ -271,7 +281,9 @@ const Lobby: React.FC = () => {
   // Daily call management functions
   const handleJoinDailyCall = async () => {
     if (!dailyRoom?.room_url) {
-      setCallError("No Daily room available. Host needs to create a room first.");
+      setCallError(
+        "No Daily room available. Host needs to create a room first.",
+      );
       return;
     }
 
@@ -289,10 +301,14 @@ const Lobby: React.FC = () => {
       setCallObject(newCallObject);
 
       // Get participant name from localStorage
-      const participantName = localStorage.getItem("tt_participant_name") || "Player";
+      const participantName =
+        localStorage.getItem("tt_participant_name") || "Player";
 
       // Fetch the token for joining the Daily room
-      const tokenResponse = await createDailyToken(sessionCode, participantName);
+      const tokenResponse = await createDailyToken(
+        sessionCode,
+        participantName,
+      );
 
       // Set up event listeners
       newCallObject.on("joined-meeting", () => {
@@ -303,9 +319,9 @@ const Lobby: React.FC = () => {
       newCallObject.on("left-meeting", (event) => {
         console.log("Left Daily meeting", event);
         setIsInCall(false);
-        
+
         // Check if user was ejected (Daily uses different event structure)
-        if (event && 'reason' in event) {
+        if (event && "reason" in event) {
           const reason = (event as any).reason;
           if (reason === "ejected" || reason === "hidden") {
             setCallError("You have been removed from the call by the host.");
@@ -319,17 +335,24 @@ const Lobby: React.FC = () => {
 
       newCallObject.on("error", (error) => {
         console.error("Daily call object error:", error);
-        setCallError(typeof error === 'string' ? error : "An error occurred during the call");
+        setCallError(
+          typeof error === "string"
+            ? error
+            : "An error occurred during the call",
+        );
       });
 
       // Listen for participant events (useful for hosts to see ejections)
       newCallObject.on("participant-left", (event) => {
         console.log("Participant left:", event);
-        if (event && 'reason' in event) {
+        if (event && "reason" in event) {
           const reason = (event as any).reason;
           if (reason === "ejected" || reason === "hidden") {
-            const participantName = (event as any).participant?.user_name || 'unknown';
-            console.log(`Participant ${participantName} was ejected from the call`);
+            const participantName =
+              (event as any).participant?.user_name || "unknown";
+            console.log(
+              `Participant ${participantName} was ejected from the call`,
+            );
           }
         }
       });
@@ -348,7 +371,7 @@ const Lobby: React.FC = () => {
     } catch (error) {
       console.error("Failed to join Daily room:", error);
       setCallError(
-        error instanceof Error ? error.message : "Failed to join video call"
+        error instanceof Error ? error.message : "Failed to join video call",
       );
       // Clean up call object if join failed
       if (callObject) {
@@ -380,7 +403,7 @@ const Lobby: React.FC = () => {
         <div className="dugout-seating"></div>
         <div className="dugout-canopy"></div>
         <div className="dugout-pitch"></div>
-        
+
         <div className="dugout-content flex items-center justify-center">
           <div className="text-white text-xl">Loading Lobby...</div>
         </div>
@@ -394,7 +417,7 @@ const Lobby: React.FC = () => {
         <div className="dugout-seating"></div>
         <div className="dugout-canopy"></div>
         <div className="dugout-pitch"></div>
-        
+
         <div className="dugout-content flex items-center justify-center">
           <div className="text-white text-xl">{sessionError || error}</div>
         </div>
@@ -408,7 +431,7 @@ const Lobby: React.FC = () => {
         <div className="dugout-seating"></div>
         <div className="dugout-canopy"></div>
         <div className="dugout-pitch"></div>
-        
+
         <div className="dugout-content flex items-center justify-center">
           <div className="text-white text-xl">Session not found</div>
         </div>
@@ -422,213 +445,220 @@ const Lobby: React.FC = () => {
       <div className="dugout-seating"></div>
       <div className="dugout-canopy"></div>
       <div className="dugout-pitch"></div>
-      
+
       <div className="dugout-content p-4">
         <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">🎮 Game Lobby</h1>
-          <div className="text-xl text-blue-100">
-            Session:{" "}
-            <span className="font-bold text-yellow-300">{sessionCode}</span>
-          </div>
-          <div className="text-sm text-blue-200 mt-2">
-            Phase: <span className="font-bold">{session.phase}</span> | Game
-            State: <span className="font-bold">{session.game_state}</span>
-          </div>
-        </div>
-
-        {/* Players List */}
-        <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 mb-6">
-          <h2 className="text-2xl font-bold text-white mb-4 text-center">
-            👥 Participants ({players.length})
-          </h2>
-
-          {players.length === 0 ? (
-            <div className="text-center text-blue-200 py-8">
-              <div className="text-4xl mb-4">👤</div>
-              <div>No players have joined yet</div>
-              <div className="text-sm mt-2">Waiting for participants...</div>
+          {/* Header */}
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold text-white mb-2">
+              🎮 Game Lobby
+            </h1>
+            <div className="text-xl text-blue-100">
+              Session:{" "}
+              <span className="font-bold text-yellow-300">{sessionCode}</span>
             </div>
-          ) : (
-            <div className="grid gap-4 md:grid-cols-2">
-              {players.map((player) => {
-                const { lobbyPresence, videoPresence } =
-                  getPresenceStatus(player);
-                return (
-                  <div
-                    key={player.participant_id}
-                    className={`bg-white/10 backdrop-blur-sm rounded-lg p-6 border-2 transition-all duration-300 ${
-                      player.lobby_presence === "Joined"
-                        ? "border-green-400 bg-green-500/10"
-                        : "border-red-400 bg-red-500/10"
-                    }`}
-                  >
-                    {/* Player Header */}
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center space-x-3">
-                        <div className="flex items-center space-x-2">
-                          <span
-                            className={`fi fi-${player.flag || "sa"} text-2xl`}
-                          ></span>
-                          {player.team_logo_url && (
-                            <img
-                              src={player.team_logo_url}
-                              alt={`${player.name} team logo`}
-                              className="w-8 h-8 object-contain rounded"
-                              onError={(e) => {
-                                e.currentTarget.style.display = "none";
-                              }}
-                            />
-                          )}
-                        </div>
-                        <div>
-                          <div className="text-xl font-bold text-white">
-                            {player.name}
-                          </div>
-                          <div className="text-sm text-blue-200">
-                            {getRoleDisplay(player)}
-                          </div>
-                        </div>
-                      </div>
-                      <div
-                        className={`text-2xl ${player.lobby_presence === "Joined" ? "animate-pulse text-green-500" : "text-red-500"}`}
-                      >
-                        {player.lobby_presence === "Joined" ? "🟢" : "🔴"}
-                      </div>
-                    </div>
-
-                    {/* Presence Status */}
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-blue-200">Lobby:</span>
-                        <span
-                          className={`text-sm font-medium ${
-                            player.lobby_presence === "Joined"
-                              ? "text-green-400"
-                              : "text-red-400"
-                          }`}
-                        >
-                          {lobbyPresence}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-blue-200">Video:</span>
-                        <span
-                          className={`text-sm font-medium ${
-                            player.video_presence
-                              ? "text-blue-400"
-                              : "text-gray-400"
-                          }`}
-                        >
-                          {videoPresence}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Join Time */}
-                    <div className="mt-4 pt-4 border-t border-white/20">
-                      <div className="text-xs text-blue-300">
-                        Role: {player.role}
-                      </div>
-                      {player.lobby_presence === "Joined" && (
-                        <div className="text-xs text-green-400 mt-1">
-                          Video: {player.video_presence ? "On" : "Off"}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
+            <div className="text-sm text-blue-200 mt-2">
+              Phase: <span className="font-bold">{session.phase}</span> | Game
+              State: <span className="font-bold">{session.game_state}</span>
             </div>
-          )}
-        </div>
-
-        {/* Video Call Component - shown when dailyRoom exists */}
-        {dailyRoom && (
-          <VideoCall 
-            players={players} 
-            sessionCode={sessionCode || ""} 
-            participantName={localStorage.getItem("tt_participant_name") || "Player"} 
-            onJoinCall={handleJoinDailyCall}
-            onLeaveCall={handleLeaveDailyCall}
-            callObject={callObject}
-          />
-        )}
-
-        {/* Action Buttons */}
-        <div className="text-center space-x-4">
-          {canStartQuiz() && (
-            <button
-              onClick={handleStartQuiz}
-              className="px-8 py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-lg transition-colors duration-200 transform hover:scale-105"
-            >
-              🚀 Start Quiz
-            </button>
-          )}
-          <button
-            onClick={handleRefresh}
-            className="px-8 py-3 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-lg transition-colors duration-200"
-          >
-            🔄 Refresh
-          </button>
-          <button
-            onClick={handleLeaveLobby}
-            className="px-8 py-3 bg-red-500 hover:bg-red-600 text-white font-bold rounded-lg transition-colors duration-200"
-          >
-            🚪 Leave Lobby
-          </button>
-        </div>
-
-        {/* Video Room Section */}
-        <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 mb-6 text-center">
-          <h3 className="text-xl font-bold text-white mb-4">🎥 Video Communication</h3>
-          <div className="text-sm text-blue-200 mb-4">
-            Video Room: {dailyRoom?.ready ? "✅ Ready" : "⏳ Waiting for host"}
           </div>
-          
-          {/* Error message */}
-          {callError && (
-            <div className="p-3 mb-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-              {callError}
-            </div>
-          )}
 
-          {/* Join/Leave button */}
-          <div className="space-y-2">
-            {!isInCall ? (
-              <button
-                onClick={handleJoinDailyCall}
-                disabled={isJoiningCall || !dailyRoom?.room_url}
-                className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-                  isJoiningCall || !dailyRoom?.room_url
-                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    : "bg-blue-600 text-white hover:bg-blue-700"
-                }`}
-              >
-                {isJoiningCall ? "Joining..." : "🎥 Join Video Call"}
-              </button>
+          {/* Players List */}
+          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 mb-6">
+            <h2 className="text-2xl font-bold text-white mb-4 text-center">
+              👥 Participants ({players.length})
+            </h2>
+
+            {players.length === 0 ? (
+              <div className="text-center text-blue-200 py-8">
+                <div className="text-4xl mb-4">👤</div>
+                <div>No players have joined yet</div>
+                <div className="text-sm mt-2">Waiting for participants...</div>
+              </div>
             ) : (
-              <div className="space-y-2">
-                <div className="text-green-400 font-medium mb-2">
-                  ✅ Connected to video call
-                </div>
-                <button
-                  onClick={handleLeaveDailyCall}
-                  className="px-6 py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors"
-                >
-                  📞 Leave Video Call
-                </button>
+              <div className="grid gap-4 md:grid-cols-2">
+                {players.map((player) => {
+                  const { lobbyPresence, videoPresence } =
+                    getPresenceStatus(player);
+                  return (
+                    <div
+                      key={player.participant_id}
+                      className={`bg-white/10 backdrop-blur-sm rounded-lg p-6 border-2 transition-all duration-300 ${
+                        player.lobby_presence === "Joined"
+                          ? "border-green-400 bg-green-500/10"
+                          : "border-red-400 bg-red-500/10"
+                      }`}
+                    >
+                      {/* Player Header */}
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center space-x-3">
+                          <div className="flex items-center space-x-2">
+                            <span
+                              className={`fi fi-${player.flag || "sa"} text-2xl`}
+                            ></span>
+                            {player.team_logo_url && (
+                              <img
+                                src={player.team_logo_url}
+                                alt={`${player.name} team logo`}
+                                className="w-8 h-8 object-contain rounded"
+                                onError={(e) => {
+                                  e.currentTarget.style.display = "none";
+                                }}
+                              />
+                            )}
+                          </div>
+                          <div>
+                            <div className="text-xl font-bold text-white">
+                              {player.name}
+                            </div>
+                            <div className="text-sm text-blue-200">
+                              {getRoleDisplay(player)}
+                            </div>
+                          </div>
+                        </div>
+                        <div
+                          className={`text-2xl ${player.lobby_presence === "Joined" ? "animate-pulse text-green-500" : "text-red-500"}`}
+                        >
+                          {player.lobby_presence === "Joined" ? "🟢" : "🔴"}
+                        </div>
+                      </div>
+
+                      {/* Presence Status */}
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-blue-200">Lobby:</span>
+                          <span
+                            className={`text-sm font-medium ${
+                              player.lobby_presence === "Joined"
+                                ? "text-green-400"
+                                : "text-red-400"
+                            }`}
+                          >
+                            {lobbyPresence}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-blue-200">Video:</span>
+                          <span
+                            className={`text-sm font-medium ${
+                              player.video_presence
+                                ? "text-blue-400"
+                                : "text-gray-400"
+                            }`}
+                          >
+                            {videoPresence}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Join Time */}
+                      <div className="mt-4 pt-4 border-t border-white/20">
+                        <div className="text-xs text-blue-300">
+                          Role: {player.role}
+                        </div>
+                        {player.lobby_presence === "Joined" && (
+                          <div className="text-xs text-green-400 mt-1">
+                            Video: {player.video_presence ? "On" : "Off"}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Video Call Component - shown when dailyRoom exists */}
+          {dailyRoom && (
+            <VideoCall
+              players={players}
+              sessionCode={sessionCode || ""}
+              participantName={
+                localStorage.getItem("tt_participant_name") || "Player"
+              }
+              onJoinCall={handleJoinDailyCall}
+              onLeaveCall={handleLeaveDailyCall}
+              callObject={callObject}
+            />
+          )}
+
+          {/* Action Buttons */}
+          <div className="text-center space-x-4">
+            {canStartQuiz() && (
+              <button
+                onClick={handleStartQuiz}
+                className="px-8 py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-lg transition-colors duration-200 transform hover:scale-105"
+              >
+                🚀 Start Quiz
+              </button>
+            )}
+            <button
+              onClick={handleRefresh}
+              className="px-8 py-3 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-lg transition-colors duration-200"
+            >
+              🔄 Refresh
+            </button>
+            <button
+              onClick={handleLeaveLobby}
+              className="px-8 py-3 bg-red-500 hover:bg-red-600 text-white font-bold rounded-lg transition-colors duration-200"
+            >
+              🚪 Leave Lobby
+            </button>
+          </div>
+
+          {/* Video Room Section */}
+          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 mb-6 text-center">
+            <h3 className="text-xl font-bold text-white mb-4">
+              🎥 Video Communication
+            </h3>
+            <div className="text-sm text-blue-200 mb-4">
+              Video Room:{" "}
+              {dailyRoom?.ready ? "✅ Ready" : "⏳ Waiting for host"}
+            </div>
+
+            {/* Error message */}
+            {callError && (
+              <div className="p-3 mb-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+                {callError}
               </div>
             )}
 
-            {!dailyRoom?.room_url && (
-              <p className="text-sm text-blue-300 mt-2">
-                Waiting for host to create video room...
-              </p>
-            )}
+            {/* Join/Leave button */}
+            <div className="space-y-2">
+              {!isInCall ? (
+                <button
+                  onClick={handleJoinDailyCall}
+                  disabled={isJoiningCall || !dailyRoom?.room_url}
+                  className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+                    isJoiningCall || !dailyRoom?.room_url
+                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      : "bg-blue-600 text-white hover:bg-blue-700"
+                  }`}
+                >
+                  {isJoiningCall ? "Joining..." : "🎥 Join Video Call"}
+                </button>
+              ) : (
+                <div className="space-y-2">
+                  <div className="text-green-400 font-medium mb-2">
+                    ✅ Connected to video call
+                  </div>
+                  <button
+                    onClick={handleLeaveDailyCall}
+                    className="px-6 py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors"
+                  >
+                    📞 Leave Video Call
+                  </button>
+                </div>
+              )}
+
+              {!dailyRoom?.room_url && (
+                <p className="text-sm text-blue-300 mt-2">
+                  Waiting for host to create video room...
+                </p>
+              )}
+            </div>
           </div>
-        </div>
         </div>
       </div>
     </div>

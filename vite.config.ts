@@ -6,9 +6,13 @@ import tailwindcss from "@tailwindcss/vite";
 
 // More info at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon
 export default defineConfig({
-  plugins: [react(), tailwindcss(), compression({
-    algorithm: "brotliCompress"
-  })],
+  plugins: [
+    react(),
+    tailwindcss(),
+    compression({
+      algorithm: "brotliCompress",
+    }),
+  ],
   build: {
     chunkSizeWarningLimit: 800,
     rollupOptions: {
@@ -19,12 +23,12 @@ export default defineConfig({
           if (/@supabase/.test(id)) return "vendor-supabase";
           if (/@daily-co/.test(id)) return "vendor-daily";
           return "vendor";
-        }
-      }
-    }
+        },
+      },
+    },
   },
   test: {
     environment: "jsdom",
     setupFiles: ["./src/setupTests.ts"],
-  }
+  },
 });

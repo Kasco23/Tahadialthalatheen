@@ -75,6 +75,7 @@ const response = await createDailyRoom(sessionId, sessionCode);
 ```
 
 **Flow:**
+
 1. Host clicks "Create Video Room" in GameSetup
 2. `createDailyRoom()` calls `/api/create-daily-room`
 3. Netlify function creates room via Daily.co API
@@ -94,6 +95,7 @@ await daily?.join({
 ```
 
 **Flow:**
+
 1. Participant clicks "Join Video Call" in Lobby
 2. `createDailyToken()` calls `/create-daily-token`
 3. Netlify function creates meeting token via Daily.co API
@@ -105,12 +107,14 @@ await daily?.join({
 ### Environment Variables
 
 #### Frontend (Vite - exposed to browser)
+
 ```bash
 # Optional: If Daily domain needs to be configurable
 VITE_DAILY_DOMAIN=your-daily-domain
 ```
 
 #### Backend (Netlify Functions - server-only)
+
 ```bash
 # Required: Daily.co REST API key
 DAILY_API_KEY=your_daily_api_key
@@ -150,11 +154,12 @@ export const dailyTokenAtom = atom<string | null>(null);
 export const dailyUserNameAtom = atom<string | null>(null);
 
 // ✅ Enhanced Token Management Atoms (Added for token caching system)
-export const dailyTokenExpiryAtom = atom<number | null>(null);     // Token expiration timestamp
-export const dailyTokenRefreshingAtom = atom<boolean>(false);     // Token refresh in progress
+export const dailyTokenExpiryAtom = atom<number | null>(null); // Token expiration timestamp
+export const dailyTokenRefreshingAtom = atom<boolean>(false); // Token refresh in progress
 ```
 
 **State Flow:**
+
 1. **Room Creation**: `dailyRoomUrlAtom` set when host creates room
 2. **Token Management**: `dailyTokenAtom` + `dailyTokenExpiryAtom` track active token and expiry
 3. **Refresh Status**: `dailyTokenRefreshingAtom` provides UI feedback during token refresh
@@ -169,17 +174,16 @@ The app uses `DailyProvider` at the root level:
 function App() {
   return (
     <DailyProvider>
-      <Router>
-        {/* Routes */}
-      </Router>
+      <Router>{/* Routes */}</Router>
     </DailyProvider>
   );
 }
 ```
 
 **Daily.co Integration Benefits:**
+
 - Automatic participant tracking
-- Built-in audio/video controls  
+- Built-in audio/video controls
 - Cross-browser WebRTC compatibility
 - Real-time connection status monitoring
 
@@ -190,17 +194,18 @@ function App() {
 Main container managing participant grid and controls:
 
 ```tsx
-<VideoCall 
-  players={players}           // Supabase participant data
-  sessionCode={sessionCode}   // Session identifier
-  participantName={name}      // Current user name
-  onJoinCall={handleJoin}     // Optional join callback
-  onLeaveCall={handleLeave}   // Optional leave callback
-  callObject={callObject}     // Daily call instance
+<VideoCall
+  players={players} // Supabase participant data
+  sessionCode={sessionCode} // Session identifier
+  participantName={name} // Current user name
+  onJoinCall={handleJoin} // Optional join callback
+  onLeaveCall={handleLeave} // Optional leave callback
+  callObject={callObject} // Daily call instance
 />
 ```
 
 **Features:**
+
 - Responsive grid layout (1-3 columns based on screen size)
 - Audio handling via `DailyAudio` component
 - Participant count display
@@ -212,15 +217,16 @@ Individual video tiles with moderation controls:
 
 ```tsx
 <ParticipantTile
-  participantId={participantId}       // Daily participant ID
-  playersByName={playersByName}       // Map of Supabase player data
-  isHost={isHost}                     // Current user host status
-  currentUserParticipantId={userId}   // Current user's participant ID
-  callObject={callObject}             // Daily call instance for controls
+  participantId={participantId} // Daily participant ID
+  playersByName={playersByName} // Map of Supabase player data
+  isHost={isHost} // Current user host status
+  currentUserParticipantId={userId} // Current user's participant ID
+  callObject={callObject} // Daily call instance for controls
 />
 ```
 
 **Features:**
+
 - Video display with `DailyVideo` component
 - Player role indicators (👑 Host, ⚽ Player 1, etc.)
 - Host-only moderation controls (mute, remove)
@@ -232,12 +238,13 @@ Join/leave call functionality:
 
 ```tsx
 <DailyJoinButton
-  sessionCode={sessionCode}     // Session identifier
-  participantName={userName}    // User's display name
+  sessionCode={sessionCode} // Session identifier
+  participantName={userName} // User's display name
 />
 ```
 
 **Features:**
+
 - Token creation and room joining
 - Loading states and error handling
 - Join/leave button with status indicator
@@ -257,7 +264,7 @@ const roomResponse = await fetch("https://api.daily.co/v1/rooms", {
     "Content-Type": "application/json",
   },
   body: JSON.stringify({
-    name: session_code,              // Room name = session code
+    name: session_code, // Room name = session code
     privacy: "public",
     properties: {
       max_participants: 10,
@@ -277,11 +284,15 @@ const roomResponse = await fetch("https://api.daily.co/v1/rooms", {
 **Enhanced Token System** with caching and automatic refresh:
 
 **Frontend API** (with caching):
+
 ```typescript
 // src/lib/mutations.ts - Enhanced token functions
 
 // ✅ Get cached token or create new (primary function)
-export async function createDailyToken(roomName: string, userName: string): Promise<{ token: string }> {
+export async function createDailyToken(
+  roomName: string,
+  userName: string,
+): Promise<{ token: string }> {
   const token = await dailyTokenManager.getToken(roomName, userName);
   return { token };
 }
@@ -303,6 +314,7 @@ export function clearRoomTokens(roomName: string): void {
 ```
 
 **Backend API** (Netlify Function):
+
 ```typescript
 // netlify/functions/create-daily-token.ts
 const tokenResponse = await fetch("https://api.daily.co/v1/meeting-tokens", {
@@ -313,9 +325,9 @@ const tokenResponse = await fetch("https://api.daily.co/v1/meeting-tokens", {
   },
   body: JSON.stringify({
     properties: {
-      room_name: roomIdentifier,     // Session code
-      user_name: user_name,          // Participant name
-      is_owner: false,               // Non-owner by default
+      room_name: roomIdentifier, // Session code
+      user_name: user_name, // Participant name
+      is_owner: false, // Non-owner by default
       enable_recording: false,
       start_video_off: false,
       start_audio_off: false,
@@ -333,40 +345,47 @@ const tokenResponse = await fetch("https://api.daily.co/v1/meeting-tokens", {
 The `DailyTokenManager` class provides comprehensive token management:
 
 ```typescript
-import { dailyTokenManager } from '../lib/dailyTokenManager';
+import { dailyTokenManager } from "../lib/dailyTokenManager";
 
 // Get cached token or create new one
-const token = await dailyTokenManager.getToken('roomName', 'userName');
+const token = await dailyTokenManager.getToken("roomName", "userName");
 
 // Force refresh token
-const refreshedToken = await dailyTokenManager.refreshToken('roomName', 'userName');
+const refreshedToken = await dailyTokenManager.refreshToken(
+  "roomName",
+  "userName",
+);
 
 // Get token metadata
-const tokenInfo = dailyTokenManager.getTokenInfo('roomName', 'userName');
-console.log('Token expires at:', new Date(tokenInfo?.expires_at));
+const tokenInfo = dailyTokenManager.getTokenInfo("roomName", "userName");
+console.log("Token expires at:", new Date(tokenInfo?.expires_at));
 
 // Clean up tokens when session ends
-dailyTokenManager.clearRoomTokens('roomName');
+dailyTokenManager.clearRoomTokens("roomName");
 ```
 
 #### Key Features
 
 **🔄 Automatic Refresh**
+
 - Schedules refresh 5 minutes before token expiry
 - Background refresh maintains active sessions
 - Transparent to user experience
 
 **💾 Persistent Caching**
+
 - localStorage storage survives browser refreshes
 - Per-user, per-room token isolation
 - Automatic cleanup of expired tokens
 
 **🔧 Error Recovery**
+
 - Exponential backoff with jitter (1s → 2s → 4s → 8s)
 - Maximum 3 retry attempts for failed requests
 - Graceful handling of network failures
 
 **📊 Real-time Status**
+
 - Token expiry warnings (5-minute threshold)
 - Refresh progress indicators
 - Manual refresh capability for users
@@ -375,29 +394,39 @@ dailyTokenManager.clearRoomTokens('roomName');
 
 ```typescript
 const tokenManager = new DailyTokenManager({
-  maxRetries: 3,                    // Maximum retry attempts
-  baseDelay: 1000,                  // Initial retry delay (1 second)
-  maxDelay: 30000,                  // Maximum retry delay (30 seconds)
-  refreshThresholdMinutes: 5,       // Refresh 5 minutes before expiry
+  maxRetries: 3, // Maximum retry attempts
+  baseDelay: 1000, // Initial retry delay (1 second)
+  maxDelay: 30000, // Maximum retry delay (30 seconds)
+  refreshThresholdMinutes: 5, // Refresh 5 minutes before expiry
 });
 ```
 
 #### Integration with Components
 
 **Enhanced DailyJoinButton**:
+
 ```tsx
 const DailyJoinButton = ({ sessionCode, participantName }) => {
   // ✅ Automatic token refresh monitoring
-  const isTokenExpiringSoon = tokenExpiry && (tokenExpiry - Date.now()) < 5 * 60 * 1000;
-  
+  const isTokenExpiringSoon =
+    tokenExpiry && tokenExpiry - Date.now() < 5 * 60 * 1000;
+
   // ✅ Proactive token refresh
-  const refreshTokenIfNeeded = useCallback(async () => {
-    if (isTokenExpiringSoon || isTokenExpired || !dailyToken) {
-      const tokenResponse = await createDailyToken(sessionCode, participantName);
-      setDailyToken(tokenResponse.token);
-    }
-  }, [/* dependencies */]);
-  
+  const refreshTokenIfNeeded = useCallback(
+    async () => {
+      if (isTokenExpiringSoon || isTokenExpired || !dailyToken) {
+        const tokenResponse = await createDailyToken(
+          sessionCode,
+          participantName,
+        );
+        setDailyToken(tokenResponse.token);
+      }
+    },
+    [
+      /* dependencies */
+    ],
+  );
+
   // ✅ Cleanup on leave
   const handleLeaveDaily = async () => {
     await daily.leave();
@@ -407,11 +436,15 @@ const DailyJoinButton = ({ sessionCode, participantName }) => {
 ```
 
 **Session Cleanup**:
+
 ```typescript
 // In endSession mutation - automatically clean up all tokens
-export async function endSession(sessionId: string, sessionCode?: string): Promise<void> {
+export async function endSession(
+  sessionId: string,
+  sessionCode?: string,
+): Promise<void> {
   // ... existing session cleanup
-  
+
   // ✅ Clean up Daily.co tokens for this session
   if (sessionCode) {
     clearRoomTokens(sessionCode);
@@ -430,7 +463,7 @@ CREATE TABLE "DailyRoom" (
   ready BOOLEAN DEFAULT false,        -- Room readiness status
   active_participants JSONB,          -- Current participants
   host_permissions JSONB,             -- Host control settings
-  
+
   FOREIGN KEY (room_id) REFERENCES "Session"(session_id)
 );
 ```
@@ -440,31 +473,41 @@ CREATE TABLE "DailyRoom" (
 ### Common Error Scenarios
 
 1. **Missing API Key**
+
    ```typescript
    if (!process.env.DAILY_API_KEY) {
-     return new Response(JSON.stringify({ error: "Server configuration error" }), {
-       status: 500
-     });
+     return new Response(
+       JSON.stringify({ error: "Server configuration error" }),
+       {
+         status: 500,
+       },
+     );
    }
    ```
 
 2. **Room Creation Conflicts**
+
    ```typescript
    if (roomResponse.status === 409) {
      // Fetch existing room instead of failing
-     const getResp = await fetch(`https://api.daily.co/v1/rooms/${session_code}`);
+     const getResp = await fetch(
+       `https://api.daily.co/v1/rooms/${session_code}`,
+     );
    }
    ```
 
 3. **Token Creation Failures**
+
    ```typescript
    if (!tokenResponse.ok) {
      const errorData = await tokenResponse.text();
      console.error("Daily.co API error:", errorData);
-     return new Response(JSON.stringify({
-       error: "Failed to create meeting token",
-       details: errorData,
-     }));
+     return new Response(
+       JSON.stringify({
+         error: "Failed to create meeting token",
+         details: errorData,
+       }),
+     );
    }
    ```
 
@@ -474,7 +517,7 @@ CREATE TABLE "DailyRoom" (
      await daily?.join({ url: dailyRoomUrl, token, userName });
    } catch (error) {
      setJoinError(
-       error instanceof Error ? error.message : "Failed to join video call"
+       error instanceof Error ? error.message : "Failed to join video call",
      );
    }
    ```
@@ -495,13 +538,15 @@ Video components are only rendered when needed:
 
 ```tsx
 // Only render VideoCall when Daily room is available
-{dailyRoom && (
-  <VideoCall 
-    players={players}
-    sessionCode={sessionCode}
-    participantName={participantName}
-  />
-)}
+{
+  dailyRoom && (
+    <VideoCall
+      players={players}
+      sessionCode={sessionCode}
+      participantName={participantName}
+    />
+  );
+}
 ```
 
 ### Cleanup
@@ -552,7 +597,7 @@ describe("DailyJoinButton", () => {
   it("should handle join call success", async () => {
     // Mock successful token creation and room join
   });
-  
+
   it("should handle join call failure", async () => {
     // Mock failed token creation or network error
   });
@@ -602,7 +647,7 @@ Enable Daily.co debug logging:
 
 ```typescript
 // Add to development environment
-if (process.env.NODE_ENV === 'development') {
+if (process.env.NODE_ENV === "development") {
   window.DailyIframe?.setDebug(true);
 }
 ```
@@ -612,7 +657,7 @@ if (process.env.NODE_ENV === 'development') {
 Key metrics to monitor:
 
 - Room creation success rate
-- Token generation latency  
+- Token generation latency
 - Join success rate
 - Active participant counts
 - Daily.co API error rates
@@ -633,10 +678,12 @@ The existing Daily.co integration demonstrates several best practices:
 ### Identified Improvement Opportunities
 
 #### 1. Token Management Enhancements ✅ **IMPLEMENTED**
+
 **Previous**: New token created on each join attempt  
 **✅ Current**: Comprehensive token caching and refresh system implemented
 
 **Implementation Details:**
+
 - **Token Manager**: `DailyTokenManager` class with caching, automatic refresh, and error recovery
 - **localStorage Persistence**: Tokens cached across browser sessions
 - **Automatic Refresh**: Tokens refreshed 5 minutes before expiry
@@ -647,16 +694,20 @@ The existing Daily.co integration demonstrates several best practices:
 // Implemented in src/lib/dailyTokenManager.ts
 export class DailyTokenManager {
   // ✅ Token caching with expiration tracking
-  async getToken(roomName: string, userName: string): Promise<string>
-  
-  // ✅ Automatic refresh before expiry  
-  async refreshToken(roomName: string, userName: string): Promise<string>
-  
+  async getToken(roomName: string, userName: string): Promise<string>;
+
+  // ✅ Automatic refresh before expiry
+  async refreshToken(roomName: string, userName: string): Promise<string>;
+
   // ✅ Room-level token cleanup
-  clearRoomTokens(roomName: string): void
-  
+  clearRoomTokens(roomName: string): void;
+
   // ✅ Error recovery with exponential backoff
-  private async createTokenWithRetry(roomName: string, userName: string, attempt: number): Promise<{token: string}>
+  private async createTokenWithRetry(
+    roomName: string,
+    userName: string,
+    attempt: number,
+  ): Promise<{ token: string }>;
 }
 
 // Enhanced DailyJoinButton with token lifecycle management
@@ -669,12 +720,14 @@ const DailyJoinButton = ({ sessionCode, participantName }) => {
 ```
 
 **Benefits:**
+
 - **Reduced API Calls**: Cached tokens prevent unnecessary Daily.co API requests
 - **Better UX**: Users stay in calls longer without token expiration interruptions
 - **Resilient**: Automatic retry with exponential backoff handles network issues
 - **Transparent**: Clear UI indicators for token status and refresh progress
 
 #### 2. Enhanced Error Recovery ✅ **PARTIALLY IMPLEMENTED**
+
 **Previous**: Basic error handling without retry logic  
 **✅ Current**: Exponential backoff implemented for token creation
 **Future**: Extend to room creation and other API calls
@@ -688,13 +741,13 @@ private async createTokenWithRetry(roomName: string, userName: string, attempt: 
     if (attempt >= this.config.maxRetries) {
       throw new Error(`Failed after ${this.config.maxRetries} attempts: ${error.message}`);
     }
-    
+
     // ✅ Exponential backoff with jitter
     const delay = Math.min(
       this.config.baseDelay * Math.pow(2, attempt - 1) + Math.random() * 1000,
       this.config.maxDelay
     );
-    
+
     await new Promise(resolve => setTimeout(resolve, delay));
     return this.createTokenWithRetry(roomName, userName, attempt + 1);
   }
@@ -702,8 +755,10 @@ private async createTokenWithRetry(roomName: string, userName: string, attempt: 
 ```
 
 #### 3. Room Configuration Flexibility
+
 **Current**: Hardcoded room properties (max_participants: 10)
 **Improvement**: Make room settings configurable per session
+
 ```typescript
 // Potential enhancement
 interface RoomConfig {
@@ -715,14 +770,18 @@ interface RoomConfig {
 ```
 
 #### 4. User Experience Enhancements
+
 **Areas for improvement**:
+
 - Loading states during room creation in GameSetup
 - Participant presence indicators (in call vs available)
 - Audio/video mute status indicators
 - Connection quality feedback
 
 #### 5. Monitoring & Analytics
+
 **Missing capabilities**:
+
 - Video usage metrics
 - Call quality monitoring
 - Participant engagement tracking
@@ -731,16 +790,19 @@ interface RoomConfig {
 ### Recommended Prioritization
 
 **High Priority** (Production readiness):
+
 1. Enhanced error recovery with retry logic
 2. Token refresh mechanism for long sessions
 3. Room cleanup when sessions end
 
 **Medium Priority** (User experience):
+
 1. Loading indicators and better status feedback
 2. Participant presence indicators
 3. Connection quality monitoring
 
 **Low Priority** (Future enhancements):
+
 1. Advanced moderation features
 2. Recording capabilities
 3. Analytics and metrics collection
@@ -793,6 +855,7 @@ If migrating away from Daily.co:
 The Daily.co integration provides robust video calling functionality for the quiz application. The architecture prioritizes security, performance, and maintainability while providing a smooth user experience. The separation of concerns between frontend components, state management, and backend API functions makes the system both testable and extensible.
 
 For questions or issues with the video integration, refer to:
+
 - [Daily.co Documentation](https://docs.daily.co/)
 - [Daily.co React Documentation](https://docs.daily.co/reference/daily-react)
 - This project's implementation in the files listed above
