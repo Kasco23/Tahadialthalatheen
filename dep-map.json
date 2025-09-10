@@ -30,6 +30,10 @@
   "src/components/LogoSelector.tsx": [
     "src/lib/supabaseClient.ts"
   ],
+  "src/components/ParticipantTile.test.tsx": [
+    "src/components/ParticipantTile.tsx",
+    "src/lib/types/supabase.ts"
+  ],
   "src/components/ParticipantTile.tsx": [
     "src/lib/types/supabase.ts"
   ],
