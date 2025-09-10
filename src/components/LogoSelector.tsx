@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabaseClient';
+import React, { useState, useEffect } from "react";
+import { supabase } from "../lib/supabaseClient";
 
 interface League {
   name: string;
@@ -14,11 +14,14 @@ interface Team {
 }
 
 interface LogoResponse {
-  categories: Record<string, {
-    displayName: string;
-    leagueLogo?: string;
-    teams: { name: string; url: string }[];
-  }>;
+  categories: Record<
+    string,
+    {
+      displayName: string;
+      leagueLogo?: string;
+      teams: { name: string; url: string }[];
+    }
+  >;
 }
 
 interface LogoSelectorProps {
@@ -32,12 +35,12 @@ const LogoSelector: React.FC<LogoSelectorProps> = ({
   selectedLogoUrl,
   onLogoSelect,
   title = "Choose Your Team Logo",
-  className = ""
+  className = "",
 }) => {
   const [leagues, setLeagues] = useState<League[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [expandedLeague, setExpandedLeague] = useState<string | null>(null);
 
   useEffect(() => {
@@ -47,42 +50,49 @@ const LogoSelector: React.FC<LogoSelectorProps> = ({
   const fetchLogos = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase.functions.invoke('list-logos');
-      
+      const { data, error } = await supabase.functions.invoke("list-logos");
+
       if (error) {
-        throw new Error(error.message || 'Failed to fetch logos');
+        throw new Error(error.message || "Failed to fetch logos");
       }
 
       const response = data as LogoResponse;
-      
+
       // Convert categories to leagues format
-      const leaguesArray: League[] = Object.entries(response.categories || {}).map(([key, value]) => ({
+      const leaguesArray: League[] = Object.entries(
+        response.categories || {},
+      ).map(([key, value]) => ({
         name: key,
         displayName: value.displayName,
-        teams: value.teams.map(team => ({
-          name: team.name.toLowerCase().replace(/\s+/g, '-'), // Create a consistent name format
+        teams: value.teams.map((team) => ({
+          name: team.name.toLowerCase().replace(/\s+/g, "-"), // Create a consistent name format
           displayName: team.name,
-          logoUrl: team.url
-        }))
+          logoUrl: team.url,
+        })),
       }));
-      
+
       setLeagues(leaguesArray);
     } catch (err) {
-      console.error('Error fetching logos:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load team logos');
+      console.error("Error fetching logos:", err);
+      setError(
+        err instanceof Error ? err.message : "Failed to load team logos",
+      );
     } finally {
       setLoading(false);
     }
   };
 
   // Filter teams based on search term
-  const filteredLeagues = leagues.map(league => ({
-    ...league,
-    teams: league.teams.filter(team =>
-      team.displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      league.displayName.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-  })).filter(league => league.teams.length > 0);
+  const filteredLeagues = leagues
+    .map((league) => ({
+      ...league,
+      teams: league.teams.filter(
+        (team) =>
+          team.displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          league.displayName.toLowerCase().includes(searchTerm.toLowerCase()),
+      ),
+    }))
+    .filter((league) => league.teams.length > 0);
 
   // Auto-expand functionality removed per user request
 
@@ -175,17 +185,22 @@ const LogoSelector: React.FC<LogoSelectorProps> = ({
       <div className="space-y-2 max-h-80 overflow-y-auto border border-gray-200 rounded-lg">
         {filteredLeagues.length === 0 ? (
           <div className="p-4 text-gray-500 text-center">
-            {searchTerm ? 'No teams found' : 'No teams available'}
+            {searchTerm ? "No teams found" : "No teams available"}
           </div>
         ) : (
           filteredLeagues.map((league) => (
-            <div key={league.name} className="border-b border-gray-100 last:border-b-0">
+            <div
+              key={league.name}
+              className="border-b border-gray-100 last:border-b-0"
+            >
               {/* League Header */}
               <button
                 type="button"
-                onClick={() => setExpandedLeague(
-                  expandedLeague === league.name ? null : league.name
-                )}
+                onClick={() =>
+                  setExpandedLeague(
+                    expandedLeague === league.name ? null : league.name,
+                  )
+                }
                 className="w-full px-4 py-3 bg-gray-50 hover:bg-gray-100 flex items-center justify-between transition-colors duration-150"
                 aria-expanded={expandedLeague === league.name}
               >
@@ -198,7 +213,7 @@ const LogoSelector: React.FC<LogoSelectorProps> = ({
                   </span>
                   <svg
                     className={`w-4 h-4 text-gray-400 transform transition-transform duration-200 ${
-                      expandedLeague === league.name ? 'rotate-180' : ''
+                      expandedLeague === league.name ? "rotate-180" : ""
                     }`}
                     fill="none"
                     stroke="currentColor"
@@ -222,11 +237,13 @@ const LogoSelector: React.FC<LogoSelectorProps> = ({
                       <button
                         key={team.name}
                         type="button"
-                        onClick={() => onLogoSelect(team.logoUrl, team.displayName)}
+                        onClick={() =>
+                          onLogoSelect(team.logoUrl, team.displayName)
+                        }
                         className={`p-3 border rounded-lg hover:shadow-md transition-all duration-150 ${
                           selectedLogoUrl === team.logoUrl
-                            ? 'border-blue-500 bg-blue-50 shadow-md'
-                            : 'border-gray-200 hover:border-gray-300'
+                            ? "border-blue-500 bg-blue-50 shadow-md"
+                            : "border-gray-200 hover:border-gray-300"
                         }`}
                         title={team.displayName}
                       >

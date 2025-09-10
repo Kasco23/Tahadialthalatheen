@@ -171,10 +171,10 @@ const Join: React.FC = () => {
       <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-black">
         {/* Tunnel lines effect */}
         <div className="absolute inset-0 bg-tunnel-lines opacity-20"></div>
-        
+
         {/* Central spotlight */}
         <div className="absolute inset-0 bg-spotlight animate-tunnel-glow"></div>
-        
+
         {/* Atmospheric particles/dust effect */}
         <div className="absolute inset-0">
           {[...Array(20)].map((_, i) => (
@@ -182,19 +182,22 @@ const Join: React.FC = () => {
               key={i}
               className="absolute bg-white rounded-full opacity-10 animate-pulse-slow"
               style={{
-                width: Math.random() * 4 + 1 + 'px',
-                height: Math.random() * 4 + 1 + 'px',
-                left: Math.random() * 100 + '%',
-                top: Math.random() * 100 + '%',
-                animationDelay: Math.random() * 3 + 's',
-                animationDuration: (Math.random() * 2 + 2) + 's',
+                width: Math.random() * 4 + 1 + "px",
+                height: Math.random() * 4 + 1 + "px",
+                left: Math.random() * 100 + "%",
+                top: Math.random() * 100 + "%",
+                animationDelay: Math.random() * 3 + "s",
+                animationDuration: Math.random() * 2 + 2 + "s",
               }}
             ></div>
           ))}
         </div>
 
         {/* Converging perspective lines */}
-        <svg className="absolute inset-0 w-full h-full opacity-10" preserveAspectRatio="none">
+        <svg
+          className="absolute inset-0 w-full h-full opacity-10"
+          preserveAspectRatio="none"
+        >
           <defs>
             <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
               <stop offset="0%" stopColor="transparent" />
@@ -202,28 +205,28 @@ const Join: React.FC = () => {
               <stop offset="100%" stopColor="transparent" />
             </linearGradient>
           </defs>
-          
+
           {/* Top converging lines */}
-          <polygon 
-            points="0,0 50,200 100,200 100,0" 
-            fill="url(#lineGrad)" 
+          <polygon
+            points="0,0 50,200 100,200 100,0"
+            fill="url(#lineGrad)"
             transform="scale(100 1)"
           />
-          <polygon 
-            points="0,100 100,100 80,300 20,300" 
-            fill="url(#lineGrad)" 
+          <polygon
+            points="0,100 100,100 80,300 20,300"
+            fill="url(#lineGrad)"
             transform="scale(100 1)"
           />
-          
+
           {/* Side tunnel walls */}
-          <polygon 
-            points="0,0 0,100 30,80 30,20" 
-            fill="rgba(255,255,255,0.05)" 
+          <polygon
+            points="0,0 0,100 30,80 30,20"
+            fill="rgba(255,255,255,0.05)"
             transform="scale(100 1)"
           />
-          <polygon 
-            points="100,0 100,100 70,80 70,20" 
-            fill="rgba(255,255,255,0.05)" 
+          <polygon
+            points="100,0 100,100 70,80 70,20"
+            fill="rgba(255,255,255,0.05)"
             transform="scale(100 1)"
           />
         </svg>
@@ -234,7 +237,6 @@ const Join: React.FC = () => {
         {/* Mobile-first responsive container */}
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col lg:flex-row gap-6 items-start justify-center min-h-screen py-8">
-            
             {/* Main Form Card */}
             <div className="w-full lg:w-1/3 lg:max-w-md">
               <div className="bg-white/95 backdrop-blur-sm rounded-lg shadow-xl p-6 lg:p-8 border border-white/20">
@@ -268,7 +270,10 @@ const Join: React.FC = () => {
 
                 {/* Host Form */}
                 {activeTab === "host" && (
-                  <form onSubmit={handleHostSubmit} className="space-y-4 lg:space-y-6">
+                  <form
+                    onSubmit={handleHostSubmit}
+                    className="space-y-4 lg:space-y-6"
+                  >
                     <div>
                       <label
                         htmlFor="sessionCode"
@@ -280,7 +285,9 @@ const Join: React.FC = () => {
                         type="text"
                         id="sessionCode"
                         value={sessionCode}
-                        onChange={(e) => setSessionCode(e.target.value.toUpperCase())}
+                        onChange={(e) =>
+                          setSessionCode(e.target.value.toUpperCase())
+                        }
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
                         placeholder="Enter session code (e.g., ABC123)"
                         required
@@ -318,7 +325,10 @@ const Join: React.FC = () => {
 
                 {/* Player Form */}
                 {activeTab === "player" && (
-                  <form onSubmit={handlePlayerSubmit} className="space-y-4 lg:space-y-6">
+                  <form
+                    onSubmit={handlePlayerSubmit}
+                    className="space-y-4 lg:space-y-6"
+                  >
                     <div>
                       <label
                         htmlFor="playerSessionCode"
@@ -374,8 +384,14 @@ const Join: React.FC = () => {
             <div className="w-full lg:w-1/3 lg:max-w-md">
               <div className="bg-white/95 backdrop-blur-sm rounded-lg shadow-xl p-6 border border-white/20">
                 <FlagSelector
-                  selectedFlag={activeTab === "host" ? hostSelectedFlag : selectedFlag}
-                  onFlagSelect={activeTab === "host" ? handleHostFlagSelect : handlePlayerFlagSelect}
+                  selectedFlag={
+                    activeTab === "host" ? hostSelectedFlag : selectedFlag
+                  }
+                  onFlagSelect={
+                    activeTab === "host"
+                      ? handleHostFlagSelect
+                      : handlePlayerFlagSelect
+                  }
                   title="Select Your Flag"
                 />
               </div>
@@ -385,8 +401,14 @@ const Join: React.FC = () => {
             <div className="w-full lg:w-1/3 lg:max-w-md">
               <div className="bg-white/95 backdrop-blur-sm rounded-lg shadow-xl p-6 border border-white/20">
                 <LogoSelector
-                  selectedLogoUrl={activeTab === "host" ? hostTeamLogoUrl : teamLogoUrl}
-                  onLogoSelect={activeTab === "host" ? handleHostLogoSelect : handlePlayerLogoSelect}
+                  selectedLogoUrl={
+                    activeTab === "host" ? hostTeamLogoUrl : teamLogoUrl
+                  }
+                  onLogoSelect={
+                    activeTab === "host"
+                      ? handleHostLogoSelect
+                      : handlePlayerLogoSelect
+                  }
                   title="Choose Your Team Logo"
                 />
               </div>

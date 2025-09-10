@@ -4,8 +4,18 @@ import { useAtom } from "jotai";
 import DailyIframe, { DailyCall } from "@daily-co/daily-js";
 import { supabase } from "../lib/supabaseClient";
 import { useSession } from "../lib/sessionHooks";
-import { getSessionIdByCode, getDailyRoom, leaveLobby, createDailyToken } from "../lib/mutations";
-import { sessionAtom, sessionCodeAtom, participantsAtom, dailyRoomUrlAtom } from "../atoms";
+import {
+  getSessionIdByCode,
+  getDailyRoom,
+  leaveLobby,
+  createDailyToken,
+} from "../lib/mutations";
+import {
+  sessionAtom,
+  sessionCodeAtom,
+  participantsAtom,
+  dailyRoomUrlAtom,
+} from "../atoms";
 import { VideoCall } from "../components/VideoCall";
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 import type { Database } from "../lib/types/supabase";
@@ -271,7 +281,9 @@ const Lobby: React.FC = () => {
   // Daily call management functions
   const handleJoinDailyCall = async () => {
     if (!dailyRoom?.room_url) {
-      setCallError("No Daily room available. Host needs to create a room first.");
+      setCallError(
+        "No Daily room available. Host needs to create a room first.",
+      );
       return;
     }
 
@@ -289,10 +301,14 @@ const Lobby: React.FC = () => {
       setCallObject(newCallObject);
 
       // Get participant name from localStorage
-      const participantName = localStorage.getItem("tt_participant_name") || "Player";
+      const participantName =
+        localStorage.getItem("tt_participant_name") || "Player";
 
       // Fetch the token for joining the Daily room
-      const tokenResponse = await createDailyToken(sessionCode, participantName);
+      const tokenResponse = await createDailyToken(
+        sessionCode,
+        participantName,
+      );
 
       // Set up event listeners
       newCallObject.on("joined-meeting", () => {
@@ -303,9 +319,9 @@ const Lobby: React.FC = () => {
       newCallObject.on("left-meeting", (event) => {
         console.log("Left Daily meeting", event);
         setIsInCall(false);
-        
+
         // Check if user was ejected (Daily uses different event structure)
-        if (event && 'reason' in event) {
+        if (event && "reason" in event) {
           const reason = (event as any).reason;
           if (reason === "ejected" || reason === "hidden") {
             setCallError("You have been removed from the call by the host.");
@@ -319,17 +335,24 @@ const Lobby: React.FC = () => {
 
       newCallObject.on("error", (error) => {
         console.error("Daily call object error:", error);
-        setCallError(typeof error === 'string' ? error : "An error occurred during the call");
+        setCallError(
+          typeof error === "string"
+            ? error
+            : "An error occurred during the call",
+        );
       });
 
       // Listen for participant events (useful for hosts to see ejections)
       newCallObject.on("participant-left", (event) => {
         console.log("Participant left:", event);
-        if (event && 'reason' in event) {
+        if (event && "reason" in event) {
           const reason = (event as any).reason;
           if (reason === "ejected" || reason === "hidden") {
-            const participantName = (event as any).participant?.user_name || 'unknown';
-            console.log(`Participant ${participantName} was ejected from the call`);
+            const participantName =
+              (event as any).participant?.user_name || "unknown";
+            console.log(
+              `Participant ${participantName} was ejected from the call`,
+            );
           }
         }
       });
@@ -348,7 +371,7 @@ const Lobby: React.FC = () => {
     } catch (error) {
       console.error("Failed to join Daily room:", error);
       setCallError(
-        error instanceof Error ? error.message : "Failed to join video call"
+        error instanceof Error ? error.message : "Failed to join video call",
       );
       // Clean up call object if join failed
       if (callObject) {
@@ -522,10 +545,12 @@ const Lobby: React.FC = () => {
 
         {/* Video Call Component - shown when dailyRoom exists */}
         {dailyRoom && (
-          <VideoCall 
-            players={players} 
-            sessionCode={sessionCode || ""} 
-            participantName={localStorage.getItem("tt_participant_name") || "Player"} 
+          <VideoCall
+            players={players}
+            sessionCode={sessionCode || ""}
+            participantName={
+              localStorage.getItem("tt_participant_name") || "Player"
+            }
             onJoinCall={handleJoinDailyCall}
             onLeaveCall={handleLeaveDailyCall}
             callObject={callObject}
@@ -558,11 +583,13 @@ const Lobby: React.FC = () => {
 
         {/* Video Room Section */}
         <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 mb-6 text-center">
-          <h3 className="text-xl font-bold text-white mb-4">🎥 Video Communication</h3>
+          <h3 className="text-xl font-bold text-white mb-4">
+            🎥 Video Communication
+          </h3>
           <div className="text-sm text-blue-200 mb-4">
             Video Room: {dailyRoom?.ready ? "✅ Ready" : "⏳ Waiting for host"}
           </div>
-          
+
           {/* Error message */}
           {callError && (
             <div className="p-3 mb-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">

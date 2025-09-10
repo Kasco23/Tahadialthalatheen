@@ -12,7 +12,7 @@ jest.mock("../lib/mutations", () => ({
     room_name: "ABC123",
     user_name: "Test User",
     created_at: Date.now(),
-    expires_at: Date.now() + (2 * 60 * 60 * 1000), // 2 hours from now
+    expires_at: Date.now() + 2 * 60 * 60 * 1000, // 2 hours from now
     refresh_threshold: 5 * 60 * 1000, // 5 minutes
   }),
 }));
@@ -34,13 +34,13 @@ describe("DailyJoinButton", () => {
     return render(
       <Provider>
         <DailyProvider>{component}</DailyProvider>
-      </Provider>
+      </Provider>,
     );
   };
 
   it("renders join button when not in call", () => {
     renderWithProviders(
-      <DailyJoinButton sessionCode="ABC123" participantName="Test User" />
+      <DailyJoinButton sessionCode="ABC123" participantName="Test User" />,
     );
 
     expect(screen.getByText("Join Video Call")).toBeInTheDocument();
@@ -48,17 +48,17 @@ describe("DailyJoinButton", () => {
 
   it("shows waiting message when no Daily room URL is available", () => {
     renderWithProviders(
-      <DailyJoinButton sessionCode="ABC123" participantName="Test User" />
+      <DailyJoinButton sessionCode="ABC123" participantName="Test User" />,
     );
 
     expect(
-      screen.getByText("Waiting for host to create video room...")
+      screen.getByText("Waiting for host to create video room..."),
     ).toBeInTheDocument();
   });
 
   it("disables join button when no room URL", () => {
     renderWithProviders(
-      <DailyJoinButton sessionCode="ABC123" participantName="Test User" />
+      <DailyJoinButton sessionCode="ABC123" participantName="Test User" />,
     );
 
     const joinButton = screen.getByText("Join Video Call");

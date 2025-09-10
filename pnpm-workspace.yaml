@@ -1,7 +1,7 @@
 onlyBuiltDependencies:
-  - '@parcel/watcher'
-  - '@sentry/cli'
-  - '@swc/core'
+  - "@parcel/watcher"
+  - "@sentry/cli"
+  - "@swc/core"
   - esbuild
   - inotify
   - msw

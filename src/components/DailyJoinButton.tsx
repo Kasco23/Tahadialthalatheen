@@ -1,14 +1,18 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAtom } from "jotai";
 import { useDaily } from "@daily-co/daily-react";
-import { 
-  dailyRoomUrlAtom, 
-  dailyTokenAtom, 
+import {
+  dailyRoomUrlAtom,
+  dailyTokenAtom,
   dailyUserNameAtom,
   dailyTokenExpiryAtom,
-  dailyTokenRefreshingAtom 
+  dailyTokenRefreshingAtom,
 } from "../atoms";
-import { createDailyToken, clearDailyToken, getDailyTokenInfo } from "../lib/mutations";
+import {
+  createDailyToken,
+  clearDailyToken,
+  getDailyTokenInfo,
+} from "../lib/mutations";
 
 interface DailyJoinButtonProps {
   sessionCode: string;
@@ -25,48 +29,52 @@ export const DailyJoinButton: React.FC<DailyJoinButtonProps> = ({
   const [, setDailyUserName] = useAtom(dailyUserNameAtom);
   const [tokenExpiry, setTokenExpiry] = useAtom(dailyTokenExpiryAtom);
   const [isRefreshing, setIsRefreshing] = useAtom(dailyTokenRefreshingAtom);
-  
+
   const [isJoining, setIsJoining] = useState(false);
   const [joinError, setJoinError] = useState<string | null>(null);
 
   // Check for token expiry and show warning
-  const isTokenExpiringSoon = tokenExpiry && (tokenExpiry - Date.now()) < 5 * 60 * 1000; // 5 minutes
+  const isTokenExpiringSoon =
+    tokenExpiry && tokenExpiry - Date.now() < 5 * 60 * 1000; // 5 minutes
   const isTokenExpired = tokenExpiry && Date.now() >= tokenExpiry;
 
   // Refresh token if it's expiring soon or expired
   const refreshTokenIfNeeded = useCallback(async () => {
     if (!dailyRoomUrl || !sessionCode || !participantName) return;
-    
+
     if (isTokenExpiringSoon || isTokenExpired || !dailyToken) {
       setIsRefreshing(true);
       try {
-        const tokenResponse = await createDailyToken(sessionCode, participantName);
+        const tokenResponse = await createDailyToken(
+          sessionCode,
+          participantName,
+        );
         setDailyToken(tokenResponse.token);
-        
+
         // Get token info to set expiry
         const tokenInfo = getDailyTokenInfo(sessionCode, participantName);
         if (tokenInfo) {
           setTokenExpiry(tokenInfo.expires_at);
         }
-        
-        console.log('Token refreshed successfully');
+
+        console.log("Token refreshed successfully");
       } catch (error) {
-        console.error('Failed to refresh token:', error);
-        setJoinError('Failed to refresh video token. Please try again.');
+        console.error("Failed to refresh token:", error);
+        setJoinError("Failed to refresh video token. Please try again.");
       } finally {
         setIsRefreshing(false);
       }
     }
   }, [
-    dailyRoomUrl, 
-    sessionCode, 
-    participantName, 
-    isTokenExpiringSoon, 
-    isTokenExpired, 
+    dailyRoomUrl,
+    sessionCode,
+    participantName,
+    isTokenExpiringSoon,
+    isTokenExpired,
     dailyToken,
     setDailyToken,
     setTokenExpiry,
-    setIsRefreshing
+    setIsRefreshing,
   ]);
 
   // Auto-refresh token when needed
@@ -78,7 +86,9 @@ export const DailyJoinButton: React.FC<DailyJoinButtonProps> = ({
 
   const handleJoinDaily = async () => {
     if (!dailyRoomUrl) {
-      setJoinError("No Daily room available. Host needs to create a room first.");
+      setJoinError(
+        "No Daily room available. Host needs to create a room first.",
+      );
       return;
     }
 
@@ -88,9 +98,11 @@ export const DailyJoinButton: React.FC<DailyJoinButtonProps> = ({
     try {
       // Ensure we have a fresh token
       await refreshTokenIfNeeded();
-      
+
       // Get the current token (might be refreshed)
-      const currentToken = dailyToken || (await createDailyToken(sessionCode, participantName)).token;
+      const currentToken =
+        dailyToken ||
+        (await createDailyToken(sessionCode, participantName)).token;
       setDailyToken(currentToken);
       setDailyUserName(participantName);
 
@@ -115,7 +127,7 @@ export const DailyJoinButton: React.FC<DailyJoinButtonProps> = ({
     } catch (error) {
       console.error("Failed to join Daily room:", error);
       setJoinError(
-        error instanceof Error ? error.message : "Failed to join video call"
+        error instanceof Error ? error.message : "Failed to join video call",
       );
     } finally {
       setIsJoining(false);
@@ -125,13 +137,13 @@ export const DailyJoinButton: React.FC<DailyJoinButtonProps> = ({
   const handleLeaveDaily = async () => {
     if (daily) {
       await daily.leave();
-      
+
       // Clear token cache and atoms
       clearDailyToken(sessionCode, participantName);
       setDailyToken(null);
       setDailyUserName(null);
       setTokenExpiry(null);
-      
+
       console.log("Left Daily room and cleared token cache");
     }
   };
@@ -152,7 +164,7 @@ export const DailyJoinButton: React.FC<DailyJoinButtonProps> = ({
           Refreshing video token...
         </div>
       )}
-      
+
       {isTokenExpiringSoon && !isRefreshing && (
         <div className="p-2 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded text-sm">
           Video token expires soon. It will be refreshed automatically.
@@ -164,7 +176,7 @@ export const DailyJoinButton: React.FC<DailyJoinButtonProps> = ({
           Video token has expired. Please refresh or rejoin.
         </div>
       )}
-      
+
       {!isInCall ? (
         <button
           onClick={handleJoinDaily}
@@ -175,7 +187,11 @@ export const DailyJoinButton: React.FC<DailyJoinButtonProps> = ({
               : "bg-blue-600 text-white hover:bg-blue-700"
           }`}
         >
-          {isJoining ? "Joining..." : isRefreshing ? "Refreshing..." : "Join Video Call"}
+          {isJoining
+            ? "Joining..."
+            : isRefreshing
+              ? "Refreshing..."
+              : "Join Video Call"}
         </button>
       ) : (
         <div className="space-y-2">
@@ -185,7 +201,7 @@ export const DailyJoinButton: React.FC<DailyJoinButtonProps> = ({
           >
             Leave Video Call
           </button>
-          
+
           {/* Refresh token button for manual refresh */}
           <button
             onClick={refreshTokenIfNeeded}
@@ -204,7 +220,7 @@ export const DailyJoinButton: React.FC<DailyJoinButtonProps> = ({
       )}
 
       {/* Debug info in development */}
-      {process.env.NODE_ENV === 'development' && tokenExpiry && (
+      {process.env.NODE_ENV === "development" && tokenExpiry && (
         <div className="text-xs text-gray-400 mt-2">
           Token expires: {new Date(tokenExpiry).toLocaleTimeString()}
         </div>

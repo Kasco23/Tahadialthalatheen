@@ -37,12 +37,14 @@ TypeScript, React (Vite), Tailwind, Supabase, Daily.co (video), Socket.io. Tests
 Requirements: Node.js >= 22, pnpm
 
 Install and run:
+
 ```bash
 pnpm install
 pnpm dev
 ```
 
 Common scripts:
+
 - pnpm dev — start dev server
 - pnpm build — build production
 - pnpm test — run unit tests
@@ -63,6 +65,3 @@ VITE_DAILY_API_KEY=
 - sessions: id, host_name, host_password, phase
 - participants: session_id, name, role, flag, logo, connected
 - rounds: session_id, segment_code, question_count, powerup_used
-
-
-

@@ -1,8 +1,12 @@
-import type { DailyTokenData, DailyTokenCache, DailyTokenRefreshConfig } from "./types";
+import type {
+  DailyTokenData,
+  DailyTokenCache,
+  DailyTokenRefreshConfig,
+} from "./types";
 
 /**
  * Daily.co Token Manager
- * 
+ *
  * Provides token caching, automatic refresh, and lifecycle management
  * for Daily.co meeting tokens to support longer video sessions.
  */
@@ -14,7 +18,7 @@ const DEFAULT_CONFIG: DailyTokenRefreshConfig = {
   refreshThresholdMinutes: 5, // refresh 5 minutes before expiry
 };
 
-const STORAGE_KEY = 'daily_token_cache';
+const STORAGE_KEY = "daily_token_cache";
 const TOKEN_EXPIRY_HOURS = 2; // Daily.co tokens typically expire in 2 hours
 
 class DailyTokenManager {
@@ -37,20 +41,20 @@ class DailyTokenManager {
 
     // Check if we have a valid cached token
     if (cachedToken && this.isTokenValid(cachedToken)) {
-      console.log('Using cached Daily token for:', { roomName, userName });
+      console.log("Using cached Daily token for:", { roomName, userName });
       return cachedToken.token;
     }
 
     // Create new token
-    console.log('Creating new Daily token for:', { roomName, userName });
+    console.log("Creating new Daily token for:", { roomName, userName });
     const tokenData = await this.createToken(roomName, userName);
-    
+
     // Cache the token
     this.cacheToken(tokenData);
-    
+
     // Schedule refresh before expiry
     this.scheduleTokenRefresh(tokenData);
-    
+
     return tokenData.token;
   }
 
@@ -58,7 +62,7 @@ class DailyTokenManager {
    * Refresh a token before it expires
    */
   async refreshToken(roomName: string, userName: string): Promise<string> {
-    console.log('Refreshing Daily token for:', { roomName, userName });
+    console.log("Refreshing Daily token for:", { roomName, userName });
 
     try {
       const tokenData = await this.createToken(roomName, userName);
@@ -66,7 +70,7 @@ class DailyTokenManager {
       this.scheduleTokenRefresh(tokenData);
       return tokenData.token;
     } catch (error) {
-      console.error('Failed to refresh Daily token:', error);
+      console.error("Failed to refresh Daily token:", error);
       throw error;
     }
   }
@@ -77,14 +81,14 @@ class DailyTokenManager {
   clearToken(roomName: string, userName: string): void {
     const cacheKey = this.getCacheKey(roomName, userName);
     delete this.cache[cacheKey];
-    
+
     // Clear any scheduled refresh
     const timeoutId = this.refreshTimeouts.get(cacheKey);
     if (timeoutId) {
       clearTimeout(timeoutId);
       this.refreshTimeouts.delete(cacheKey);
     }
-    
+
     this.saveCacheToStorage();
   }
 
@@ -92,13 +96,13 @@ class DailyTokenManager {
    * Clear all tokens for a room (when session ends)
    */
   clearRoomTokens(roomName: string): void {
-    const keysToDelete = Object.keys(this.cache).filter(key => 
-      key.startsWith(`${roomName}:`)
+    const keysToDelete = Object.keys(this.cache).filter((key) =>
+      key.startsWith(`${roomName}:`),
     );
-    
-    keysToDelete.forEach(key => {
+
+    keysToDelete.forEach((key) => {
       delete this.cache[key];
-      
+
       // Clear any scheduled refresh
       const timeoutId = this.refreshTimeouts.get(key);
       if (timeoutId) {
@@ -106,7 +110,7 @@ class DailyTokenManager {
         this.refreshTimeouts.delete(key);
       }
     });
-    
+
     this.saveCacheToStorage();
   }
 
@@ -118,11 +122,14 @@ class DailyTokenManager {
     return this.cache[cacheKey] || null;
   }
 
-  private async createToken(roomName: string, userName: string): Promise<DailyTokenData> {
+  private async createToken(
+    roomName: string,
+    userName: string,
+  ): Promise<DailyTokenData> {
     const response = await this.createTokenWithRetry(roomName, userName);
-    
+
     const now = Date.now();
-    const expiresAt = now + (TOKEN_EXPIRY_HOURS * 60 * 60 * 1000);
+    const expiresAt = now + TOKEN_EXPIRY_HOURS * 60 * 60 * 1000;
     const refreshThreshold = this.config.refreshThresholdMinutes * 60 * 1000;
 
     return {
@@ -136,9 +143,9 @@ class DailyTokenManager {
   }
 
   private async createTokenWithRetry(
-    roomName: string, 
-    userName: string, 
-    attempt: number = 1
+    roomName: string,
+    userName: string,
+    attempt: number = 1,
   ): Promise<{ token: string }> {
     try {
       const response = await fetch("/api/create-daily-token", {
@@ -153,8 +160,12 @@ class DailyTokenManager {
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
-        throw new Error(`HTTP ${response.status}: ${JSON.stringify(errorData)}`);
+        const errorData = await response
+          .json()
+          .catch(() => ({ error: "Unknown error" }));
+        throw new Error(
+          `HTTP ${response.status}: ${JSON.stringify(errorData)}`,
+        );
       }
 
       return await response.json();
@@ -163,19 +174,22 @@ class DailyTokenManager {
         throw new Error(
           `Failed to create Daily token after ${this.config.maxRetries} attempts: ${
             error instanceof Error ? error.message : "Unknown error"
-          }`
+          }`,
         );
       }
 
       // Exponential backoff with jitter
       const delay = Math.min(
         this.config.baseDelay * Math.pow(2, attempt - 1) + Math.random() * 1000,
-        this.config.maxDelay
+        this.config.maxDelay,
       );
 
-      console.warn(`Daily token creation attempt ${attempt} failed, retrying in ${delay}ms:`, error);
-      await new Promise(resolve => setTimeout(resolve, delay));
-      
+      console.warn(
+        `Daily token creation attempt ${attempt} failed, retrying in ${delay}ms:`,
+        error,
+      );
+      await new Promise((resolve) => setTimeout(resolve, delay));
+
       return this.createTokenWithRetry(roomName, userName, attempt + 1);
     }
   }
@@ -202,12 +216,12 @@ class DailyTokenManager {
       const timeoutId = setTimeout(async () => {
         try {
           await this.refreshToken(tokenData.room_name, tokenData.user_name);
-          console.log('Successfully refreshed Daily token for:', {
+          console.log("Successfully refreshed Daily token for:", {
             roomName: tokenData.room_name,
             userName: tokenData.user_name,
           });
         } catch (error) {
-          console.error('Failed to auto-refresh Daily token:', error);
+          console.error("Failed to auto-refresh Daily token:", error);
         }
       }, delay);
 
@@ -226,25 +240,25 @@ class DailyTokenManager {
 
   private loadCacheFromStorage(): void {
     try {
-      if (typeof window !== 'undefined' && window.localStorage) {
+      if (typeof window !== "undefined" && window.localStorage) {
         const cached = localStorage.getItem(STORAGE_KEY);
         if (cached) {
           this.cache = JSON.parse(cached);
         }
       }
     } catch (error) {
-      console.warn('Failed to load Daily token cache from storage:', error);
+      console.warn("Failed to load Daily token cache from storage:", error);
       this.cache = {};
     }
   }
 
   private saveCacheToStorage(): void {
     try {
-      if (typeof window !== 'undefined' && window.localStorage) {
+      if (typeof window !== "undefined" && window.localStorage) {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(this.cache));
       }
     } catch (error) {
-      console.warn('Failed to save Daily token cache to storage:', error);
+      console.warn("Failed to save Daily token cache to storage:", error);
     }
   }
 
@@ -252,7 +266,7 @@ class DailyTokenManager {
     const now = Date.now();
     let hasExpired = false;
 
-    Object.keys(this.cache).forEach(key => {
+    Object.keys(this.cache).forEach((key) => {
       const tokenData = this.cache[key];
       if (now >= tokenData.expires_at) {
         delete this.cache[key];
@@ -277,9 +291,9 @@ class DailyTokenManager {
    */
   dispose(): void {
     // Clear all scheduled timeouts
-    this.refreshTimeouts.forEach(timeoutId => clearTimeout(timeoutId));
+    this.refreshTimeouts.forEach((timeoutId) => clearTimeout(timeoutId));
     this.refreshTimeouts.clear();
-    
+
     // Clear cache
     this.cache = {};
     this.saveCacheToStorage();

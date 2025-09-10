@@ -5,18 +5,21 @@ This document explains how to use the enhanced realtime functionality that lever
 ## Overview
 
 Your realtime policies enable:
+
 1. **Broadcasts** - Real-time messages between clients
-2. **Presence** - Real-time user presence tracking  
+2. **Presence** - Real-time user presence tracking
 3. **Postgres Changes** - Database change subscriptions
 
 ## Key Files
 
 ### Core Functionality
+
 - `src/lib/enhancedRealtimeHooks.ts` - Enhanced hooks combining broadcasts, presence, and postgres changes
 - `src/lib/enhancedPresence.ts` - Advanced presence helper with broadcasting
 - `src/components/EnhancedLobby.tsx` - Example component using all features
 
 ### Database
+
 - `supabase/migrations/20250908160000_add_realtime_policies.sql` - Migration with realtime policies
 
 ## Usage Examples
@@ -24,38 +27,38 @@ Your realtime policies enable:
 ### 1. Enhanced Realtime Hook
 
 ```tsx
-import { useEnhancedRealtime } from '../lib/enhancedRealtimeHooks';
+import { useEnhancedRealtime } from "../lib/enhancedRealtimeHooks";
 
 function MyComponent({ sessionId }) {
-  const { 
-    isConnected, 
-    sendGameAction, 
+  const {
+    isConnected,
+    sendGameAction,
     sendChatMessage,
     trackPresence,
-    untrackPresence 
+    untrackPresence,
   } = useEnhancedRealtime(sessionId);
 
   // Send game actions via broadcast
   const handlePlayerAction = () => {
-    sendGameAction('player_ready', { 
-      playerId: 'user123',
-      ready: true 
+    sendGameAction("player_ready", {
+      playerId: "user123",
+      ready: true,
     });
   };
 
   // Send chat messages via broadcast
   const handleSendMessage = () => {
-    sendChatMessage('Hello everyone!', 'user123');
+    sendChatMessage("Hello everyone!", "user123");
   };
 
   // Track user presence
   useEffect(() => {
     trackPresence({
-      user_id: 'user123',
-      name: 'John Doe',
-      role: 'Player',
-      flag: '🌍',
-      last_seen: new Date().toISOString()
+      user_id: "user123",
+      name: "John Doe",
+      role: "Player",
+      flag: "🌍",
+      last_seen: new Date().toISOString(),
     });
 
     return () => untrackPresence();
@@ -66,19 +69,21 @@ function MyComponent({ sessionId }) {
 ### 2. Enhanced Participants with Presence
 
 ```tsx
-import { useParticipants } from '../lib/enhancedRealtimeHooks';
+import { useParticipants } from "../lib/enhancedRealtimeHooks";
 
 function ParticipantsList({ sessionId }) {
   const { participantsWithPresence, loading } = useParticipants(sessionId);
 
   return (
     <div>
-      {participantsWithPresence.map(participant => (
+      {participantsWithPresence.map((participant) => (
         <div key={participant.participant_id}>
           <span>{participant.name}</span>
           <span>{participant.lobby_presence}</span> {/* DB status */}
           {participant.realtimePresence && (
-            <span>{participant.realtimePresence.is_active ? 'Online' : 'Offline'}</span>
+            <span>
+              {participant.realtimePresence.is_active ? "Online" : "Offline"}
+            </span>
           )}
         </div>
       ))}
@@ -90,7 +95,7 @@ function ParticipantsList({ sessionId }) {
 ### 3. Real-time Chat
 
 ```tsx
-import { useChat } from '../lib/enhancedRealtimeHooks';
+import { useChat } from "../lib/enhancedRealtimeHooks";
 
 function ChatComponent({ sessionId }) {
   const { messages, sendMessage } = useChat(sessionId);
@@ -98,18 +103,18 @@ function ChatComponent({ sessionId }) {
   return (
     <div>
       <div className="messages">
-        {messages.map(msg => (
+        {messages.map((msg) => (
           <div key={msg.id}>
             <strong>{msg.userName}:</strong> {msg.message}
           </div>
         ))}
       </div>
-      
-      <input 
+
+      <input
         onKeyPress={(e) => {
-          if (e.key === 'Enter') {
-            sendMessage(e.target.value, 'currentUserId');
-            e.target.value = '';
+          if (e.key === "Enter") {
+            sendMessage(e.target.value, "currentUserId");
+            e.target.value = "";
           }
         }}
       />
@@ -121,26 +126,26 @@ function ChatComponent({ sessionId }) {
 ### 4. Enhanced Presence Helper
 
 ```tsx
-import { EnhancedPresenceHelper } from '../lib/enhancedPresence';
+import { EnhancedPresenceHelper } from "../lib/enhancedPresence";
 
 function GameLobby({ sessionId, userId }) {
   const [presenceHelper, setPresenceHelper] = useState(null);
 
   useEffect(() => {
     const helper = new EnhancedPresenceHelper(sessionId);
-    
+
     helper.joinPresence({
       user_id: userId,
-      name: 'Player Name',
-      flag: '🌍',
-      role: 'Player',
+      name: "Player Name",
+      flag: "🌍",
+      role: "Player",
       timestamp: new Date().toISOString(),
-      is_active: true
+      is_active: true,
     });
 
     // Listen for presence updates
     helper.onPresenceUpdate((presenceState) => {
-      console.log('Active users:', Object.keys(presenceState));
+      console.log("Active users:", Object.keys(presenceState));
     });
 
     setPresenceHelper(helper);
@@ -150,10 +155,10 @@ function GameLobby({ sessionId, userId }) {
 
   // Update lobby status with broadcast
   const joinLobby = () => {
-    presenceHelper?.updateLobbyStatus('Joined');
+    presenceHelper?.updateLobbyStatus("Joined");
   };
 
-  // Update video status with broadcast  
+  // Update video status with broadcast
   const joinVideo = () => {
     presenceHelper?.updateVideoStatus(true);
   };
@@ -163,16 +168,19 @@ function GameLobby({ sessionId, userId }) {
 ## Benefits Over Previous Implementation
 
 ### 1. **Improved Performance**
+
 - **Broadcasts**: Instant UI updates without waiting for DB round-trips
 - **Native Presence**: Built-in Supabase presence is more efficient than manual tracking
 - **Reduced DB Load**: Less frequent database updates for transient state
 
 ### 2. **Better Real-time Experience**
+
 - **Immediate Feedback**: Actions broadcast instantly to all clients
 - **Dual Updates**: Database for persistence + broadcast for immediate UI
 - **Heartbeat Management**: Automatic presence heartbeat with cleanup
 
 ### 3. **Enhanced Features**
+
 - **Chat**: Real-time chat via broadcasts
 - **Game Actions**: Instant game state broadcasts
 - **Presence Events**: Granular presence event handling (join/leave/activity)
@@ -180,18 +188,21 @@ function GameLobby({ sessionId, userId }) {
 ## Migration Strategy
 
 ### Phase 1: Add Enhanced Hooks (Current)
+
 - ✅ Created enhanced realtime hooks
 - ✅ Added enhanced presence helper
 - ✅ Created example components
 - ✅ Applied realtime policies
 
 ### Phase 2: Gradual Migration
+
 1. Update `LobbyStatus.tsx` to use `useParticipants` from enhanced hooks
 2. Replace `PresenceHelper` usage with `EnhancedPresenceHelper`
 3. Add chat functionality to lobby
 4. Migrate other components as needed
 
 ### Phase 3: Cleanup
+
 1. Remove old `realtimeHooks.ts` once fully migrated
 2. Remove old `presence.ts` once enhanced version is stable
 3. Optimize policies for production (tighten security)
@@ -199,6 +210,7 @@ function GameLobby({ sessionId, userId }) {
 ## Security Considerations
 
 ### Current Policies (Development)
+
 ```sql
 -- Very permissive for development
 USING (true)
@@ -206,6 +218,7 @@ WITH CHECK (true)
 ```
 
 ### Production Recommendations
+
 ```sql
 -- Restrict to authenticated users
 USING (auth.role() = 'authenticated')
@@ -213,8 +226,8 @@ WITH CHECK (auth.role() = 'authenticated')
 
 -- Or restrict to session participants
 USING (EXISTS (
-  SELECT 1 FROM participants 
-  WHERE session_id = extract_session_from_topic(topic) 
+  SELECT 1 FROM participants
+  WHERE session_id = extract_session_from_topic(topic)
   AND user_id = auth.uid()
 ))
 ```
@@ -252,6 +265,7 @@ USING (EXISTS (
 ## Performance Monitoring
 
 Monitor these metrics:
+
 - **Realtime connections**: Supabase dashboard
 - **Message volume**: Check broadcast frequency
 - **Presence updates**: Monitor heartbeat intervals
