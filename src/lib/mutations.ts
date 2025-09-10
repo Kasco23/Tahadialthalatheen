@@ -1,4 +1,5 @@
 import { supabase } from "./supabaseClient";
+import { dailyTokenManager } from "./dailyTokenManager";
 import type {
   TablesUpdate,
   SegmentCode,
@@ -534,51 +535,34 @@ export async function leaveLobby(participantId: string): Promise<void> {
   await updateLobbyPresence(participantId, "Disconnected");
 }
 
-// Daily token retrieval
+// Daily token retrieval with caching and refresh
 export async function createDailyToken(
   roomName: string,
   userName: string,
 ): Promise<{ token: string }> {
   try {
-    console.log("Creating Daily token for:", { roomName, userName });
-
-    const response = await fetch("/api/create-daily-token", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        room_name: roomName,
-        user_name: userName,
-      }),
-    });
-
-    console.log("Daily token creation response status:", response.status);
-
-    if (!response.ok) {
-      try {
-        const errorData = await response.json();
-        console.error("Daily token creation error details:", errorData);
-        throw new Error(
-          `HTTP error! status: ${response.status}, details: ${JSON.stringify(errorData)}`,
-        );
-      } catch (_parseError) {
-        const errorText = await response.text();
-        console.error("Daily token creation error (raw):", errorText);
-        throw new Error(
-          `HTTP error! status: ${response.status}, response: ${errorText}`,
-        );
-      }
-    }
-
-    const data = await response.json();
-    console.log("Daily token created successfully:", data);
-    return data;
+    const token = await dailyTokenManager.getToken(roomName, userName);
+    return { token };
   } catch (error) {
     throw new Error(
-      `Failed to create Daily token: ${error instanceof Error ? error.message : "Unknown error"}`,
+      `Failed to get Daily token: ${error instanceof Error ? error.message : "Unknown error"}`,
     );
   }
+}
+
+// Get cached token info for debugging/monitoring
+export function getDailyTokenInfo(roomName: string, userName: string) {
+  return dailyTokenManager.getTokenInfo(roomName, userName);
+}
+
+// Clear token cache for a specific user
+export function clearDailyToken(roomName: string, userName: string): void {
+  dailyTokenManager.clearToken(roomName, userName);
+}
+
+// Clear all tokens for a room (when session ends)
+export function clearRoomTokens(roomName: string): void {
+  dailyTokenManager.clearRoomTokens(roomName);
 }
 
 export async function updateVideoPresence(
@@ -683,7 +667,7 @@ export async function activatePowerup(
 }
 
 // 10. End Session
-export async function endSession(sessionId: string): Promise<void> {
+export async function endSession(sessionId: string, sessionCode?: string): Promise<void> {
   const { error } = await supabase
     .from("Session")
     .update({
@@ -694,6 +678,11 @@ export async function endSession(sessionId: string): Promise<void> {
 
   if (error) {
     throw new Error(`Failed to end session: ${error.message}`);
+  }
+
+  // Clean up Daily.co tokens for this session
+  if (sessionCode) {
+    clearRoomTokens(sessionCode);
   }
 }
 

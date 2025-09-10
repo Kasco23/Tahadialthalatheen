@@ -5,7 +5,16 @@ import { DailyJoinButton } from "./DailyJoinButton";
 
 // Mock the mutations module
 jest.mock("../lib/mutations", () => ({
-  createDailyToken: jest.fn(),
+  createDailyToken: jest.fn().mockResolvedValue({ token: "mock-token" }),
+  clearDailyToken: jest.fn(),
+  getDailyTokenInfo: jest.fn().mockReturnValue({
+    token: "mock-token",
+    room_name: "ABC123",
+    user_name: "Test User",
+    created_at: Date.now(),
+    expires_at: Date.now() + (2 * 60 * 60 * 1000), // 2 hours from now
+    refresh_threshold: 5 * 60 * 1000, // 5 minutes
+  }),
 }));
 
 // Mock Daily.co

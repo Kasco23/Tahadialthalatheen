@@ -144,11 +144,21 @@ manualChunks(id) {
 ### Jotai Atoms
 
 ```typescript
-// src/atoms/index.ts
+// src/atoms/index.ts - Daily.co Video State Management
 export const dailyRoomUrlAtom = atom<string | null>(null);
 export const dailyTokenAtom = atom<string | null>(null);
 export const dailyUserNameAtom = atom<string | null>(null);
+
+// ✅ Enhanced Token Management Atoms (Added for token caching system)
+export const dailyTokenExpiryAtom = atom<number | null>(null);     // Token expiration timestamp
+export const dailyTokenRefreshingAtom = atom<boolean>(false);     // Token refresh in progress
 ```
+
+**State Flow:**
+1. **Room Creation**: `dailyRoomUrlAtom` set when host creates room
+2. **Token Management**: `dailyTokenAtom` + `dailyTokenExpiryAtom` track active token and expiry
+3. **Refresh Status**: `dailyTokenRefreshingAtom` provides UI feedback during token refresh
+4. **User Context**: `dailyUserNameAtom` maintains participant identity
 
 ### Daily React Context
 
@@ -166,6 +176,12 @@ function App() {
   );
 }
 ```
+
+**Daily.co Integration Benefits:**
+- Automatic participant tracking
+- Built-in audio/video controls  
+- Cross-browser WebRTC compatibility
+- Real-time connection status monitoring
 
 ## Key Components
 
@@ -256,10 +272,37 @@ const roomResponse = await fetch("https://api.daily.co/v1/rooms", {
 
 **Idempotent behavior**: If room already exists (409 conflict), fetches existing room.
 
-### Token Creation
+### Token Creation & Management
 
-**Endpoint:** `POST https://api.daily.co/v1/meeting-tokens`
+**Enhanced Token System** with caching and automatic refresh:
 
+**Frontend API** (with caching):
+```typescript
+// src/lib/mutations.ts - Enhanced token functions
+
+// ✅ Get cached token or create new (primary function)
+export async function createDailyToken(roomName: string, userName: string): Promise<{ token: string }> {
+  const token = await dailyTokenManager.getToken(roomName, userName);
+  return { token };
+}
+
+// ✅ Get token metadata for monitoring
+export function getDailyTokenInfo(roomName: string, userName: string) {
+  return dailyTokenManager.getTokenInfo(roomName, userName);
+}
+
+// ✅ Clear specific user token
+export function clearDailyToken(roomName: string, userName: string): void {
+  dailyTokenManager.clearToken(roomName, userName);
+}
+
+// ✅ Clear all tokens for room (session cleanup)
+export function clearRoomTokens(roomName: string): void {
+  dailyTokenManager.clearRoomTokens(roomName);
+}
+```
+
+**Backend API** (Netlify Function):
 ```typescript
 // netlify/functions/create-daily-token.ts
 const tokenResponse = await fetch("https://api.daily.co/v1/meeting-tokens", {
@@ -279,6 +322,101 @@ const tokenResponse = await fetch("https://api.daily.co/v1/meeting-tokens", {
     },
   }),
 });
+```
+
+### Token Caching & Refresh System
+
+**Overview**: Advanced token lifecycle management system that eliminates token expiration issues during long video sessions.
+
+#### DailyTokenManager
+
+The `DailyTokenManager` class provides comprehensive token management:
+
+```typescript
+import { dailyTokenManager } from '../lib/dailyTokenManager';
+
+// Get cached token or create new one
+const token = await dailyTokenManager.getToken('roomName', 'userName');
+
+// Force refresh token
+const refreshedToken = await dailyTokenManager.refreshToken('roomName', 'userName');
+
+// Get token metadata
+const tokenInfo = dailyTokenManager.getTokenInfo('roomName', 'userName');
+console.log('Token expires at:', new Date(tokenInfo?.expires_at));
+
+// Clean up tokens when session ends
+dailyTokenManager.clearRoomTokens('roomName');
+```
+
+#### Key Features
+
+**🔄 Automatic Refresh**
+- Schedules refresh 5 minutes before token expiry
+- Background refresh maintains active sessions
+- Transparent to user experience
+
+**💾 Persistent Caching**
+- localStorage storage survives browser refreshes
+- Per-user, per-room token isolation
+- Automatic cleanup of expired tokens
+
+**🔧 Error Recovery**
+- Exponential backoff with jitter (1s → 2s → 4s → 8s)
+- Maximum 3 retry attempts for failed requests
+- Graceful handling of network failures
+
+**📊 Real-time Status**
+- Token expiry warnings (5-minute threshold)
+- Refresh progress indicators
+- Manual refresh capability for users
+
+#### Configuration Options
+
+```typescript
+const tokenManager = new DailyTokenManager({
+  maxRetries: 3,                    // Maximum retry attempts
+  baseDelay: 1000,                  // Initial retry delay (1 second)
+  maxDelay: 30000,                  // Maximum retry delay (30 seconds)
+  refreshThresholdMinutes: 5,       // Refresh 5 minutes before expiry
+});
+```
+
+#### Integration with Components
+
+**Enhanced DailyJoinButton**:
+```tsx
+const DailyJoinButton = ({ sessionCode, participantName }) => {
+  // ✅ Automatic token refresh monitoring
+  const isTokenExpiringSoon = tokenExpiry && (tokenExpiry - Date.now()) < 5 * 60 * 1000;
+  
+  // ✅ Proactive token refresh
+  const refreshTokenIfNeeded = useCallback(async () => {
+    if (isTokenExpiringSoon || isTokenExpired || !dailyToken) {
+      const tokenResponse = await createDailyToken(sessionCode, participantName);
+      setDailyToken(tokenResponse.token);
+    }
+  }, [/* dependencies */]);
+  
+  // ✅ Cleanup on leave
+  const handleLeaveDaily = async () => {
+    await daily.leave();
+    clearDailyToken(sessionCode, participantName); // Clears cache
+  };
+};
+```
+
+**Session Cleanup**:
+```typescript
+// In endSession mutation - automatically clean up all tokens
+export async function endSession(sessionId: string, sessionCode?: string): Promise<void> {
+  // ... existing session cleanup
+  
+  // ✅ Clean up Daily.co tokens for this session
+  if (sessionCode) {
+    clearRoomTokens(sessionCode);
+  }
+}
 ```
 
 ## Database Schema
@@ -494,28 +632,73 @@ The existing Daily.co integration demonstrates several best practices:
 
 ### Identified Improvement Opportunities
 
-#### 1. Token Management Enhancements
-**Current**: New token created on each join attempt
-**Improvement**: Implement token caching and refresh logic
+#### 1. Token Management Enhancements ✅ **IMPLEMENTED**
+**Previous**: New token created on each join attempt  
+**✅ Current**: Comprehensive token caching and refresh system implemented
+
+**Implementation Details:**
+- **Token Manager**: `DailyTokenManager` class with caching, automatic refresh, and error recovery
+- **localStorage Persistence**: Tokens cached across browser sessions
+- **Automatic Refresh**: Tokens refreshed 5 minutes before expiry
+- **Exponential Backoff**: Retry logic with jitter for network failures
+- **Enhanced UI**: Real-time token status indicators and manual refresh capability
+
 ```typescript
-// Potential enhancement for DailyJoinButton.tsx
-const useTokenCache = (sessionCode: string, userName: string) => {
-  // Cache tokens with expiration tracking
-  // Refresh tokens before expiry
-  // Handle token validation failures
+// Implemented in src/lib/dailyTokenManager.ts
+export class DailyTokenManager {
+  // ✅ Token caching with expiration tracking
+  async getToken(roomName: string, userName: string): Promise<string>
+  
+  // ✅ Automatic refresh before expiry  
+  async refreshToken(roomName: string, userName: string): Promise<string>
+  
+  // ✅ Room-level token cleanup
+  clearRoomTokens(roomName: string): void
+  
+  // ✅ Error recovery with exponential backoff
+  private async createTokenWithRetry(roomName: string, userName: string, attempt: number): Promise<{token: string}>
+}
+
+// Enhanced DailyJoinButton with token lifecycle management
+const DailyJoinButton = ({ sessionCode, participantName }) => {
+  // ✅ Token expiry monitoring and automatic refresh
+  // ✅ User-friendly status indicators
+  // ✅ Manual refresh capability
+  // ✅ Graceful error handling
 };
 ```
 
-#### 2. Enhanced Error Recovery
-**Current**: Basic error handling without retry logic
-**Improvement**: Add exponential backoff and connection recovery
+**Benefits:**
+- **Reduced API Calls**: Cached tokens prevent unnecessary Daily.co API requests
+- **Better UX**: Users stay in calls longer without token expiration interruptions
+- **Resilient**: Automatic retry with exponential backoff handles network issues
+- **Transparent**: Clear UI indicators for token status and refresh progress
+
+#### 2. Enhanced Error Recovery ✅ **PARTIALLY IMPLEMENTED**
+**Previous**: Basic error handling without retry logic  
+**✅ Current**: Exponential backoff implemented for token creation
+**Future**: Extend to room creation and other API calls
+
 ```typescript
-// Potential enhancement for mutations.ts
-const createDailyTokenWithRetry = async (roomName: string, userName: string, maxRetries = 3) => {
-  // Implement exponential backoff
-  // Handle rate limiting (429 responses)
-  // Retry on network failures
-};
+// ✅ Implemented in DailyTokenManager
+private async createTokenWithRetry(roomName: string, userName: string, attempt: number = 1) {
+  try {
+    // ... token creation logic
+  } catch (error) {
+    if (attempt >= this.config.maxRetries) {
+      throw new Error(`Failed after ${this.config.maxRetries} attempts: ${error.message}`);
+    }
+    
+    // ✅ Exponential backoff with jitter
+    const delay = Math.min(
+      this.config.baseDelay * Math.pow(2, attempt - 1) + Math.random() * 1000,
+      this.config.maxDelay
+    );
+    
+    await new Promise(resolve => setTimeout(resolve, delay));
+    return this.createTokenWithRetry(roomName, userName, attempt + 1);
+  }
+}
 ```
 
 #### 3. Room Configuration Flexibility
