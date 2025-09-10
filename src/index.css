@@ -6,12 +6,12 @@
   .tunnel-mobile-compress {
     transform: perspective(200px) rotateX(5deg);
   }
-  
+
   .light-bands-mobile {
     opacity: 0.6;
     transform: scale(0.8);
   }
-  
+
   .tunnel-perspective-mobile {
     perspective: 300px;
   }
@@ -21,7 +21,7 @@
   .tunnel-desktop-enhance {
     perspective: 800px;
   }
-  
+
   .light-bands-desktop {
     opacity: 0.8;
   }
@@ -101,7 +101,11 @@
   transform: translateX(-50%);
   width: 200%;
   height: 60%;
-  background: radial-gradient(circle at top center, rgba(255,255,255,0.05) 0%, transparent 80%);
+  background: radial-gradient(
+    circle at top center,
+    rgba(255, 255, 255, 0.05) 0%,
+    transparent 80%
+  );
   pointer-events: none;
   z-index: 1;
 }
@@ -187,7 +191,7 @@
       #7f1d1d 36px
     );
   }
-  
+
   .dugout-canopy {
     height: 20%;
     clip-path: ellipse(90% 100% at 50% 0%);
@@ -208,7 +212,7 @@
       #7f1d1d 48px
     );
   }
-  
+
   .dugout-canopy {
     background: rgba(255, 255, 255, 0.12);
     backdrop-filter: blur(12px);

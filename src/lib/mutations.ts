@@ -196,10 +196,10 @@ export async function joinAsPlayerWithCode(
       // Update presence with timestamps and return existing id
       await supabase
         .from("Participant")
-        .update({ 
+        .update({
           lobby_presence: "Joined",
           join_at: new Date().toISOString(),
-          disconnect_at: null
+          disconnect_at: null,
         })
         .eq("participant_id", existingRow!.participant_id);
       return existingRow!.participant_id;
@@ -448,7 +448,9 @@ export async function joinAsHost(
   }
 
   // If no existing host found, this is an error - host should be created during session creation
-  throw new Error("No host participant found for this session. Host should be created during session setup.");
+  throw new Error(
+    "No host participant found for this session. Host should be created during session setup.",
+  );
 }
 
 // 5. Join as Player (Phone → Join)
@@ -667,7 +669,10 @@ export async function activatePowerup(
 }
 
 // 10. End Session
-export async function endSession(sessionId: string, sessionCode?: string): Promise<void> {
+export async function endSession(
+  sessionId: string,
+  sessionCode?: string,
+): Promise<void> {
   const { error } = await supabase
     .from("Session")
     .update({

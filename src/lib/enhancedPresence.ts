@@ -48,7 +48,7 @@ export class EnhancedPresenceHelper {
         presence: {
           key: user.user_id,
         },
-        broadcast: { self: true }
+        broadcast: { self: true },
       },
     });
 
@@ -62,12 +62,12 @@ export class EnhancedPresenceHelper {
       })
       .on("presence", { event: "join" }, ({ key, newPresences }) => {
         console.log("Enhanced presence - User joined:", key, newPresences);
-        
+
         // Broadcast user join event for immediate UI updates
         this.broadcastPresenceEvent("user_joined", {
           userId: key,
           userData: newPresences[0],
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
 
         const presenceState = this.channel?.presenceState();
@@ -77,12 +77,12 @@ export class EnhancedPresenceHelper {
       })
       .on("presence", { event: "leave" }, ({ key, leftPresences }) => {
         console.log("Enhanced presence - User left:", key, leftPresences);
-        
+
         // Broadcast user leave event
         this.broadcastPresenceEvent("user_left", {
           userId: key,
           userData: leftPresences[0],
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
 
         const presenceState = this.channel?.presenceState();
@@ -99,7 +99,7 @@ export class EnhancedPresenceHelper {
     // Subscribe and track presence
     await this.channel.subscribe(async (status: string) => {
       console.log("Enhanced presence subscription status:", status);
-      
+
       if (status === "SUBSCRIBED") {
         const presenceData = {
           user_id: user.user_id,
@@ -136,7 +136,7 @@ export class EnhancedPresenceHelper {
       // Broadcast leave event before actually leaving
       this.broadcastPresenceEvent("user_leaving", {
         userId: this.currentUser.user_id,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
 
       // Update database to mark as disconnected
@@ -162,7 +162,7 @@ export class EnhancedPresenceHelper {
         ...this.currentUser,
         timestamp: new Date().toISOString(),
         is_active: true,
-        last_activity: new Date().toISOString()
+        last_activity: new Date().toISOString(),
       };
 
       await this.channel.track(activityData);
@@ -170,7 +170,7 @@ export class EnhancedPresenceHelper {
       // Broadcast activity update for real-time UI updates
       this.broadcastPresenceEvent("activity_update", {
         userId: this.currentUser.user_id,
-        timestamp: activityData.timestamp
+        timestamp: activityData.timestamp,
       });
     }
   }
@@ -178,12 +178,14 @@ export class EnhancedPresenceHelper {
   /**
    * Update lobby presence status with broadcast
    */
-  async updateLobbyStatus(status: "Joined" | "NotJoined" | "Disconnected"): Promise<void> {
+  async updateLobbyStatus(
+    status: "Joined" | "NotJoined" | "Disconnected",
+  ): Promise<void> {
     if (this.channel && this.currentUser) {
       const updatedData = {
         ...this.currentUser,
         lobby_presence: status,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
 
       await this.channel.track(updatedData);
@@ -192,7 +194,7 @@ export class EnhancedPresenceHelper {
       this.broadcastPresenceEvent("lobby_status_changed", {
         userId: this.currentUser.user_id,
         status,
-        timestamp: updatedData.timestamp
+        timestamp: updatedData.timestamp,
       });
 
       // Update database
@@ -208,7 +210,7 @@ export class EnhancedPresenceHelper {
       const updatedData = {
         ...this.currentUser,
         video_presence: inVideo,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
 
       await this.channel.track(updatedData);
@@ -217,7 +219,7 @@ export class EnhancedPresenceHelper {
       this.broadcastPresenceEvent("video_status_changed", {
         userId: this.currentUser.user_id,
         inVideo,
-        timestamp: updatedData.timestamp
+        timestamp: updatedData.timestamp,
       });
     }
   }
@@ -225,7 +227,10 @@ export class EnhancedPresenceHelper {
   /**
    * Send a custom presence broadcast
    */
-  private broadcastPresenceEvent(event: string, data: Record<string, unknown>): void {
+  private broadcastPresenceEvent(
+    event: string,
+    data: Record<string, unknown>,
+  ): void {
     if (!this.channel) return;
 
     this.channel.send({
@@ -235,8 +240,8 @@ export class EnhancedPresenceHelper {
         event,
         data,
         sessionId: this.sessionId,
-        timestamp: new Date().toISOString()
-      }
+        timestamp: new Date().toISOString(),
+      },
     });
   }
 
@@ -277,7 +282,7 @@ export class EnhancedPresenceHelper {
    */
   private startHeartbeat(): void {
     this.stopHeartbeat(); // Ensure no duplicate intervals
-    
+
     this.heartbeatInterval = setInterval(() => {
       this.updateActivity();
     }, 30000); // 30 seconds
@@ -334,7 +339,9 @@ export class EnhancedPresenceHelper {
   /**
    * Private method to format presence state
    */
-  private formatPresenceState(rawState: Record<string, unknown[]>): PresenceState {
+  private formatPresenceState(
+    rawState: Record<string, unknown[]>,
+  ): PresenceState {
     const formatted: PresenceState = {};
 
     Object.keys(rawState).forEach((key) => {
@@ -371,7 +378,10 @@ export class EnhancedPresenceHelper {
 /**
  * React hook for enhanced presence
  */
-export const useEnhancedPresence = (sessionId: string, user: PresenceUser | null) => {
+export const useEnhancedPresence = (
+  sessionId: string,
+  user: PresenceUser | null,
+) => {
   let presenceHelper: EnhancedPresenceHelper | null = null;
 
   const initialize = async () => {

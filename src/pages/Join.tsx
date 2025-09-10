@@ -169,31 +169,37 @@ const Join: React.FC = () => {
     <div className="min-h-screen relative overflow-hidden">
       {/* Champions League Stadium Tunnel Background */}
       <div className="absolute inset-0 bg-[#0A1B51] tunnel-perspective-mobile lg:tunnel-desktop-enhance">
-        
         {/* Base Champions League gradient */}
         <div className="absolute inset-0 bg-champions-tunnel"></div>
-        
+
         {/* Angled geometric light bands - Left side */}
         <div className="absolute inset-0 light-bands-mobile lg:light-bands-desktop before:content-[''] before:absolute before:top-0 before:left-0 before:w-full before:h-full before:bg-gradient-to-br before:from-transparent before:via-cyan-400/20 before:to-transparent before:transform before:skew-x-12 before:animate-light-sweep before:blur-sm"></div>
-        
+
         {/* Angled geometric light bands - Right side */}
-        <div className="absolute inset-0 light-bands-mobile lg:light-bands-desktop after:content-[''] after:absolute after:top-0 after:right-0 after:w-full after:h-full after:bg-gradient-to-bl after:from-transparent after:via-pink-400/20 after:to-transparent after:transform after:-skew-x-12 after:animate-light-sweep after:blur-sm" style={{ animationDelay: '3s' }}></div>
-        
+        <div
+          className="absolute inset-0 light-bands-mobile lg:light-bands-desktop after:content-[''] after:absolute after:top-0 after:right-0 after:w-full after:h-full after:bg-gradient-to-bl after:from-transparent after:via-pink-400/20 after:to-transparent after:transform after:-skew-x-12 after:animate-light-sweep after:blur-sm"
+          style={{ animationDelay: "3s" }}
+        ></div>
+
         {/* Perspective tunnel walls with Champions League colors */}
         <div className="absolute inset-0 opacity-30 tunnel-mobile-compress lg:opacity-40">
           <div className="absolute top-0 left-0 w-1/4 h-full bg-gradient-to-r from-cyan-500/10 to-transparent transform skew-y-2 origin-top"></div>
           <div className="absolute top-0 right-0 w-1/4 h-full bg-gradient-to-l from-pink-500/10 to-transparent transform -skew-y-2 origin-top"></div>
           <div className="absolute bottom-0 left-1/4 right-1/4 h-1/3 bg-gradient-to-t from-cyan-300/5 to-transparent"></div>
         </div>
-        
+
         {/* Champions League star pattern overlay */}
         <div className="absolute inset-0 bg-champions-stars animate-champions-pulse opacity-60 lg:opacity-80"></div>
-        
+
         {/* Stadium spotlight at the end of tunnel */}
         <div className="absolute inset-0 bg-stadium-spotlight animate-tunnel-glow"></div>
-        
+
         {/* Enhanced perspective lines with Champions League accent colors */}
-        <svg className="absolute inset-0 w-full h-full opacity-15 lg:opacity-20" preserveAspectRatio="none" viewBox="0 0 100 100">
+        <svg
+          className="absolute inset-0 w-full h-full opacity-15 lg:opacity-20"
+          preserveAspectRatio="none"
+          viewBox="0 0 100 100"
+        >
           <defs>
             <linearGradient id="cyanGrad" x1="0%" y1="0%" x2="100%" y2="0%">
               <stop offset="0%" stopColor="transparent" />
@@ -208,45 +214,72 @@ const Join: React.FC = () => {
               <stop offset="100%" stopColor="transparent" />
             </linearGradient>
           </defs>
-          
+
           {/* Converging tunnel ceiling */}
           <polygon points="0,0 100,0 85,30 15,30" fill="url(#cyanGrad)" />
           <polygon points="0,5 100,5 85,35 15,35" fill="url(#magentaGrad)" />
-          
+
           {/* Converging tunnel floor */}
           <polygon points="15,70 85,70 100,100 0,100" fill="url(#cyanGrad)" />
-          <polygon points="15,75 85,75 100,100 0,100" fill="url(#magentaGrad)" />
-          
+          <polygon
+            points="15,75 85,75 100,100 0,100"
+            fill="url(#magentaGrad)"
+          />
+
           {/* Side walls with perspective */}
-          <polygon points="0,0 15,30 15,70 0,100" fill="rgba(51, 239, 255, 0.1)" />
-          <polygon points="100,0 85,30 85,70 100,100" fill="rgba(246, 89, 253, 0.1)" />
-          
+          <polygon
+            points="0,0 15,30 15,70 0,100"
+            fill="rgba(51, 239, 255, 0.1)"
+          />
+          <polygon
+            points="100,0 85,30 85,70 100,100"
+            fill="rgba(246, 89, 253, 0.1)"
+          />
+
           {/* Central converging lines */}
-          <line x1="50" y1="0" x2="50" y2="100" stroke="rgba(255,255,255,0.1)" strokeWidth="0.5" />
-          <line x1="0" y1="50" x2="100" y2="50" stroke="rgba(255,255,255,0.05)" strokeWidth="0.3" />
+          <line
+            x1="50"
+            y1="0"
+            x2="50"
+            y2="100"
+            stroke="rgba(255,255,255,0.1)"
+            strokeWidth="0.5"
+          />
+          <line
+            x1="0"
+            y1="50"
+            x2="100"
+            y2="50"
+            stroke="rgba(255,255,255,0.05)"
+            strokeWidth="0.3"
+          />
         </svg>
-        
+
         {/* Atmospheric light particles */}
         <div className="absolute inset-0">
           {[...Array(25)].map((_, i) => (
             <div
               key={i}
               className={`absolute rounded-full animate-pulse-slow ${
-                i % 3 === 0 ? 'bg-cyan-300' : i % 3 === 1 ? 'bg-pink-300' : 'bg-white'
+                i % 3 === 0
+                  ? "bg-cyan-300"
+                  : i % 3 === 1
+                    ? "bg-pink-300"
+                    : "bg-white"
               }`}
               style={{
-                width: Math.random() * 3 + 1 + 'px',
-                height: Math.random() * 3 + 1 + 'px',
-                left: Math.random() * 100 + '%',
-                top: Math.random() * 100 + '%',
+                width: Math.random() * 3 + 1 + "px",
+                height: Math.random() * 3 + 1 + "px",
+                left: Math.random() * 100 + "%",
+                top: Math.random() * 100 + "%",
                 opacity: Math.random() * 0.6 + 0.1,
-                animationDelay: Math.random() * 4 + 's',
-                animationDuration: (Math.random() * 3 + 2) + 's',
+                animationDelay: Math.random() * 4 + "s",
+                animationDuration: Math.random() * 3 + 2 + "s",
               }}
             ></div>
           ))}
         </div>
-        
+
         {/* Semi-transparent dark overlay for text legibility */}
         <div className="absolute inset-0 bg-black/30"></div>
       </div>
@@ -256,7 +289,6 @@ const Join: React.FC = () => {
         {/* Mobile-first responsive container */}
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col lg:flex-row gap-6 items-start justify-center min-h-screen py-8">
-            
             {/* Main Form Card */}
             <div className="w-full lg:w-1/3 lg:max-w-md">
               <div className="bg-white/95 backdrop-blur-sm rounded-lg shadow-xl p-6 lg:p-8 border border-white/20">
@@ -290,7 +322,10 @@ const Join: React.FC = () => {
 
                 {/* Host Form */}
                 {activeTab === "host" && (
-                  <form onSubmit={handleHostSubmit} className="space-y-4 lg:space-y-6">
+                  <form
+                    onSubmit={handleHostSubmit}
+                    className="space-y-4 lg:space-y-6"
+                  >
                     <div>
                       <label
                         htmlFor="sessionCode"
@@ -302,7 +337,9 @@ const Join: React.FC = () => {
                         type="text"
                         id="sessionCode"
                         value={sessionCode}
-                        onChange={(e) => setSessionCode(e.target.value.toUpperCase())}
+                        onChange={(e) =>
+                          setSessionCode(e.target.value.toUpperCase())
+                        }
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                         placeholder="Enter session code (e.g., ABC123)"
                         required
@@ -340,7 +377,10 @@ const Join: React.FC = () => {
 
                 {/* Player Form */}
                 {activeTab === "player" && (
-                  <form onSubmit={handlePlayerSubmit} className="space-y-4 lg:space-y-6">
+                  <form
+                    onSubmit={handlePlayerSubmit}
+                    className="space-y-4 lg:space-y-6"
+                  >
                     <div>
                       <label
                         htmlFor="playerSessionCode"
@@ -396,8 +436,14 @@ const Join: React.FC = () => {
             <div className="w-full lg:w-1/3 lg:max-w-md">
               <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-xl p-6 border border-white/30">
                 <FlagSelector
-                  selectedFlag={activeTab === "host" ? hostSelectedFlag : selectedFlag}
-                  onFlagSelect={activeTab === "host" ? handleHostFlagSelect : handlePlayerFlagSelect}
+                  selectedFlag={
+                    activeTab === "host" ? hostSelectedFlag : selectedFlag
+                  }
+                  onFlagSelect={
+                    activeTab === "host"
+                      ? handleHostFlagSelect
+                      : handlePlayerFlagSelect
+                  }
                   title="Select Your Flag"
                 />
               </div>
@@ -407,8 +453,14 @@ const Join: React.FC = () => {
             <div className="w-full lg:w-1/3 lg:max-w-md">
               <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-xl p-6 border border-white/30">
                 <LogoSelector
-                  selectedLogoUrl={activeTab === "host" ? hostTeamLogoUrl : teamLogoUrl}
-                  onLogoSelect={activeTab === "host" ? handleHostLogoSelect : handlePlayerLogoSelect}
+                  selectedLogoUrl={
+                    activeTab === "host" ? hostTeamLogoUrl : teamLogoUrl
+                  }
+                  onLogoSelect={
+                    activeTab === "host"
+                      ? handleHostLogoSelect
+                      : handlePlayerLogoSelect
+                  }
                   title="Choose Your Team Logo"
                 />
               </div>

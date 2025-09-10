@@ -19,20 +19,24 @@ const TeamLogoPicker: React.FC<TeamLogoPickerProps> = ({
   selectedUrl,
   onSelect,
   searchQuery = "",
-  categories
+  categories,
 }) => {
-  const [expandedLeagues, setExpandedLeagues] = useState<Set<string>>(new Set());
+  const [expandedLeagues, setExpandedLeagues] = useState<Set<string>>(
+    new Set(),
+  );
 
   // Filter teams based on search query
-  const filteredCategories = categories.map(category => ({
-    ...category,
-    teams: category.teams.filter(team => 
-      team.name.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-  })).filter(category => category.teams.length > 0);
+  const filteredCategories = categories
+    .map((category) => ({
+      ...category,
+      teams: category.teams.filter((team) =>
+        team.name.toLowerCase().includes(searchQuery.toLowerCase()),
+      ),
+    }))
+    .filter((category) => category.teams.length > 0);
 
   const toggleLeague = (leagueId: string) => {
-    setExpandedLeagues(prev => {
+    setExpandedLeagues((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(leagueId)) {
         newSet.delete(leagueId);
@@ -54,7 +58,7 @@ const TeamLogoPicker: React.FC<TeamLogoPickerProps> = ({
   return (
     <div className="space-y-4">
       {/* Search input handled by parent */}
-      
+
       {/* League sections */}
       <div className="space-y-4">
         {filteredCategories.map((category) => (

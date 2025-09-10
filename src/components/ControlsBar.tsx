@@ -23,7 +23,9 @@ export const ControlsBar: React.FC<ControlsBarProps> = ({
   const [isJoining, setIsJoining] = React.useState(false);
 
   // Use demo state or actual Daily.co state
-  const isInCall = demoMode ? demoIsInCall : daily?.meetingState() === "joined-meeting";
+  const isInCall = demoMode
+    ? demoIsInCall
+    : daily?.meetingState() === "joined-meeting";
 
   // Get current audio/video state from Daily
   React.useEffect(() => {

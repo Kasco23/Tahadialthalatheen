@@ -37,8 +37,8 @@ export function useEnhancedRealtime(sessionId: string | null) {
     const sessionChannel = supabase.channel(`session_${sessionId}`, {
       config: {
         presence: { key: sessionId },
-        broadcast: { self: true }
-      }
+        broadcast: { self: true },
+      },
     });
 
     sessionChannel
@@ -66,39 +66,48 @@ export function useEnhancedRealtime(sessionId: string | null) {
   }, [sessionId]);
 
   // Broadcast helpers
-  const sendGameAction = useCallback((action: string, data: Record<string, unknown>) => {
-    if (!channel) return;
-    
-    channel.send({
-      type: "broadcast",
-      event: "game_action",
-      payload: { action, data, timestamp: new Date().toISOString() }
-    });
-  }, [channel]);
+  const sendGameAction = useCallback(
+    (action: string, data: Record<string, unknown>) => {
+      if (!channel) return;
 
-  const sendChatMessage = useCallback((message: string, userId: string) => {
-    if (!channel) return;
-    
-    channel.send({
-      type: "broadcast", 
-      event: "chat_message",
-      payload: { message, userId, timestamp: new Date().toISOString() }
-    });
-  }, [channel]);
+      channel.send({
+        type: "broadcast",
+        event: "game_action",
+        payload: { action, data, timestamp: new Date().toISOString() },
+      });
+    },
+    [channel],
+  );
+
+  const sendChatMessage = useCallback(
+    (message: string, userId: string) => {
+      if (!channel) return;
+
+      channel.send({
+        type: "broadcast",
+        event: "chat_message",
+        payload: { message, userId, timestamp: new Date().toISOString() },
+      });
+    },
+    [channel],
+  );
 
   // Presence helpers
-  const trackPresence = useCallback((presenceData: PresenceData) => {
-    if (!channel) return;
-    
-    return channel.track({
-      ...presenceData,
-      last_seen: new Date().toISOString()
-    });
-  }, [channel]);
+  const trackPresence = useCallback(
+    (presenceData: PresenceData) => {
+      if (!channel) return;
+
+      return channel.track({
+        ...presenceData,
+        last_seen: new Date().toISOString(),
+      });
+    },
+    [channel],
+  );
 
   const untrackPresence = useCallback(() => {
     if (!channel) return;
-    
+
     return channel.untrack();
   }, [channel]);
 
@@ -108,7 +117,7 @@ export function useEnhancedRealtime(sessionId: string | null) {
     sendGameAction,
     sendChatMessage,
     trackPresence,
-    untrackPresence
+    untrackPresence,
   };
 }
 
@@ -167,10 +176,13 @@ export function useStrikes(sessionId: string | null) {
         (payload) => {
           console.log("Strikes DB update:", payload);
 
-          if (payload.eventType === "INSERT" || payload.eventType === "UPDATE") {
+          if (
+            payload.eventType === "INSERT" ||
+            payload.eventType === "UPDATE"
+          ) {
             type StrikeRow = { participant_id: string; strikes: number };
             const newData = payload.new as unknown as StrikeRow;
-            
+
             setStrikes((prev) => ({
               ...prev,
               [newData.participant_id]: newData.strikes,
@@ -179,12 +191,12 @@ export function useStrikes(sessionId: string | null) {
             // Broadcast strike change for immediate UI updates
             sendGameAction("strike_updated", {
               participantId: newData.participant_id,
-              strikes: newData.strikes
+              strikes: newData.strikes,
             });
           } else if (payload.eventType === "DELETE") {
             type StrikeRow = { participant_id: string; strikes: number };
             const oldData = payload.old as unknown as StrikeRow;
-            
+
             setStrikes((prev) => {
               const updated = { ...prev };
               delete updated[oldData.participant_id];
@@ -192,14 +204,14 @@ export function useStrikes(sessionId: string | null) {
             });
 
             sendGameAction("strike_removed", {
-              participantId: oldData.participant_id
+              participantId: oldData.participant_id,
             });
           }
         },
       )
       .on("broadcast", { event: "game_action" }, (payload) => {
         const { action, data } = payload.payload;
-        
+
         // Handle real-time strike updates via broadcast
         if (action === "strike_updated") {
           setStrikes((prev) => ({
@@ -226,7 +238,9 @@ export function useStrikes(sessionId: string | null) {
 
 // Enhanced segment config hook
 export function useSegmentConfig(sessionId: string | null) {
-  const [segmentConfig, setSegmentConfig] = useState<Tables<"SegmentConfig">[]>([]);
+  const [segmentConfig, setSegmentConfig] = useState<Tables<"SegmentConfig">[]>(
+    [],
+  );
   const [loading, setLoading] = useState(true);
   const { sendGameAction } = useEnhancedRealtime(sessionId);
 
@@ -272,7 +286,7 @@ export function useSegmentConfig(sessionId: string | null) {
           if (payload.eventType === "INSERT") {
             const newData = payload.new as Tables<"SegmentConfig">;
             setSegmentConfig((prev) => [...prev, newData]);
-            
+
             sendGameAction("segment_config_added", newData);
           } else if (payload.eventType === "UPDATE") {
             const newData = payload.new as Tables<"SegmentConfig">;
@@ -281,21 +295,23 @@ export function useSegmentConfig(sessionId: string | null) {
                 config.config_id === newData.config_id ? newData : config,
               ),
             );
-            
+
             sendGameAction("segment_config_updated", newData);
           } else if (payload.eventType === "DELETE") {
             const oldData = payload.old as Tables<"SegmentConfig">;
             setSegmentConfig((prev) =>
               prev.filter((config) => config.config_id !== oldData.config_id),
             );
-            
-            sendGameAction("segment_config_removed", { configId: oldData.config_id });
+
+            sendGameAction("segment_config_removed", {
+              configId: oldData.config_id,
+            });
           }
         },
       )
       .on("broadcast", { event: "game_action" }, (payload) => {
         const { action, data } = payload.payload;
-        
+
         // Handle broadcast updates for immediate UI sync
         if (action === "segment_config_added") {
           setSegmentConfig((prev) => [...prev, data]);
@@ -324,7 +340,9 @@ export function useSegmentConfig(sessionId: string | null) {
 // Enhanced participants hook with native presence
 export function useParticipants(sessionId: string | null) {
   const [participants, setParticipants] = useState<Tables<"Participant">[]>([]);
-  const [presenceState, setPresenceState] = useState<Record<string, PresenceData>>({});
+  const [presenceState, setPresenceState] = useState<
+    Record<string, PresenceData>
+  >({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -392,7 +410,7 @@ export function useParticipants(sessionId: string | null) {
       .on("presence", { event: "sync" }, () => {
         const newState = channel.presenceState();
         console.log("Presence sync:", newState);
-        
+
         // Convert RealtimePresenceState to our typed format
         const typedState: Record<string, PresenceData> = {};
         Object.entries(newState).forEach(([key, presences]) => {
@@ -426,28 +444,30 @@ export function useParticipants(sessionId: string | null) {
     };
   }, [sessionId]);
 
-  return { 
-    participants, 
-    presenceState, 
+  return {
+    participants,
+    presenceState,
     loading,
     // Helper to get combined participant + presence data
-    participantsWithPresence: participants.map(participant => ({
+    participantsWithPresence: participants.map((participant) => ({
       ...participant,
-      realtimePresence: presenceState[participant.participant_id] || null
-    }))
+      realtimePresence: presenceState[participant.participant_id] || null,
+    })),
   };
 }
 
 // Chat functionality using broadcasts
 export function useChat(sessionId: string | null) {
-  const [messages, setMessages] = useState<Array<{
-    id: string;
-    message: string;
-    userId: string;
-    timestamp: string;
-    userName?: string;
-  }>>([]);
-  
+  const [messages, setMessages] = useState<
+    Array<{
+      id: string;
+      message: string;
+      userId: string;
+      timestamp: string;
+      userName?: string;
+    }>
+  >([]);
+
   const { sendChatMessage } = useEnhancedRealtime(sessionId);
 
   useEffect(() => {
@@ -457,13 +477,16 @@ export function useChat(sessionId: string | null) {
       .channel(`chat_${sessionId}`)
       .on("broadcast", { event: "chat_message" }, (payload) => {
         const { message, userId, timestamp } = payload.payload;
-        
-        setMessages((prev) => [...prev, {
-          id: crypto.randomUUID(),
-          message,
-          userId,
-          timestamp,
-        }]);
+
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: crypto.randomUUID(),
+            message,
+            userId,
+            timestamp,
+          },
+        ]);
       })
       .subscribe();
 
@@ -472,9 +495,12 @@ export function useChat(sessionId: string | null) {
     };
   }, [sessionId]);
 
-  const sendMessage = useCallback((message: string, userId: string) => {
-    sendChatMessage(message, userId);
-  }, [sendChatMessage]);
+  const sendMessage = useCallback(
+    (message: string, userId: string) => {
+      sendChatMessage(message, userId);
+    },
+    [sendChatMessage],
+  );
 
   return { messages, sendMessage };
 }

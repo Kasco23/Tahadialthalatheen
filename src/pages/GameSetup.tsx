@@ -317,9 +317,10 @@ const GameSetup: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden flex flex-col p-4" 
-         style={{
-           background: `
+    <div
+      className="min-h-screen relative overflow-hidden flex flex-col p-4"
+      style={{
+        background: `
              radial-gradient(circle at 20% 30%, rgba(0, 100, 0, 0.3) 0%, transparent 40%),
              radial-gradient(circle at 80% 70%, rgba(0, 80, 0, 0.2) 0%, transparent 40%),
              linear-gradient(135deg, 
@@ -329,11 +330,11 @@ const GameSetup: React.FC = () => {
                #0a1a12 75%,
                #000000 100%
              )
-           `
-         }}>
-      
+           `,
+      }}
+    >
       {/* Chalkboard grid overlay */}
-      <div 
+      <div
         className="absolute inset-0 opacity-15"
         style={{
           backgroundImage: `
@@ -349,95 +350,255 @@ const GameSetup: React.FC = () => {
               transparent 1px, 
               transparent 40px
             )
-          `
-        }}>
-      </div>
+          `,
+        }}
+      ></div>
 
       {/* Enhanced tactical board background */}
       <div className="absolute inset-0 opacity-25">
         {/* SVG tactical patterns */}
-        <svg className="absolute inset-0 w-full h-full" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice">
+        <svg
+          className="absolute inset-0 w-full h-full"
+          viewBox="0 0 1200 800"
+          preserveAspectRatio="xMidYMid slice"
+        >
           <defs>
             {/* X pattern */}
             <g id="tacticalX">
-              <path d="M-5,-5 L5,5 M5,-5 L-5,5" stroke="rgba(255,255,255,0.6)" strokeWidth="2" strokeLinecap="round"/>
+              <path
+                d="M-5,-5 L5,5 M5,-5 L-5,5"
+                stroke="rgba(255,255,255,0.6)"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
             </g>
-            
+
             {/* O pattern */}
             <g id="tacticalO">
-              <circle cx="0" cy="0" r="4" fill="none" stroke="rgba(255,255,255,0.6)" strokeWidth="2"/>
+              <circle
+                cx="0"
+                cy="0"
+                r="4"
+                fill="none"
+                stroke="rgba(255,255,255,0.6)"
+                strokeWidth="2"
+              />
             </g>
 
             {/* 4-2-3-1 Formation pattern */}
             <g id="formation">
               {/* Goalkeeper */}
-              <circle cx="600" cy="750" r="8" fill="rgba(255,255,255,0.8)" stroke="rgba(0,100,0,0.8)" strokeWidth="2"/>
-              
+              <circle
+                cx="600"
+                cy="750"
+                r="8"
+                fill="rgba(255,255,255,0.8)"
+                stroke="rgba(0,100,0,0.8)"
+                strokeWidth="2"
+              />
+
               {/* Defense (4) */}
-              <circle cx="450" cy="600" r="6" fill="rgba(255,255,255,0.7)" stroke="rgba(0,100,0,0.7)" strokeWidth="2"/>
-              <circle cx="520" cy="580" r="6" fill="rgba(255,255,255,0.7)" stroke="rgba(0,100,0,0.7)" strokeWidth="2"/>
-              <circle cx="680" cy="580" r="6" fill="rgba(255,255,255,0.7)" stroke="rgba(0,100,0,0.7)" strokeWidth="2"/>
-              <circle cx="750" cy="600" r="6" fill="rgba(255,255,255,0.7)" stroke="rgba(0,100,0,0.7)" strokeWidth="2"/>
-              
+              <circle
+                cx="450"
+                cy="600"
+                r="6"
+                fill="rgba(255,255,255,0.7)"
+                stroke="rgba(0,100,0,0.7)"
+                strokeWidth="2"
+              />
+              <circle
+                cx="520"
+                cy="580"
+                r="6"
+                fill="rgba(255,255,255,0.7)"
+                stroke="rgba(0,100,0,0.7)"
+                strokeWidth="2"
+              />
+              <circle
+                cx="680"
+                cy="580"
+                r="6"
+                fill="rgba(255,255,255,0.7)"
+                stroke="rgba(0,100,0,0.7)"
+                strokeWidth="2"
+              />
+              <circle
+                cx="750"
+                cy="600"
+                r="6"
+                fill="rgba(255,255,255,0.7)"
+                stroke="rgba(0,100,0,0.7)"
+                strokeWidth="2"
+              />
+
               {/* Midfield (2) */}
-              <circle cx="520" cy="450" r="6" fill="rgba(255,255,255,0.7)" stroke="rgba(0,100,0,0.7)" strokeWidth="2"/>
-              <circle cx="680" cy="450" r="6" fill="rgba(255,255,255,0.7)" stroke="rgba(0,100,0,0.7)" strokeWidth="2"/>
-              
+              <circle
+                cx="520"
+                cy="450"
+                r="6"
+                fill="rgba(255,255,255,0.7)"
+                stroke="rgba(0,100,0,0.7)"
+                strokeWidth="2"
+              />
+              <circle
+                cx="680"
+                cy="450"
+                r="6"
+                fill="rgba(255,255,255,0.7)"
+                stroke="rgba(0,100,0,0.7)"
+                strokeWidth="2"
+              />
+
               {/* Attacking midfield (3) */}
-              <circle cx="450" cy="320" r="6" fill="rgba(255,255,255,0.7)" stroke="rgba(0,100,0,0.7)" strokeWidth="2"/>
-              <circle cx="600" cy="300" r="6" fill="rgba(255,255,255,0.7)" stroke="rgba(0,100,0,0.7)" strokeWidth="2"/>
-              <circle cx="750" cy="320" r="6" fill="rgba(255,255,255,0.7)" stroke="rgba(0,100,0,0.7)" strokeWidth="2"/>
-              
+              <circle
+                cx="450"
+                cy="320"
+                r="6"
+                fill="rgba(255,255,255,0.7)"
+                stroke="rgba(0,100,0,0.7)"
+                strokeWidth="2"
+              />
+              <circle
+                cx="600"
+                cy="300"
+                r="6"
+                fill="rgba(255,255,255,0.7)"
+                stroke="rgba(0,100,0,0.7)"
+                strokeWidth="2"
+              />
+              <circle
+                cx="750"
+                cy="320"
+                r="6"
+                fill="rgba(255,255,255,0.7)"
+                stroke="rgba(0,100,0,0.7)"
+                strokeWidth="2"
+              />
+
               {/* Striker (1) */}
-              <circle cx="600" cy="180" r="8" fill="rgba(255,255,255,0.8)" stroke="rgba(0,100,0,0.8)" strokeWidth="2"/>
+              <circle
+                cx="600"
+                cy="180"
+                r="8"
+                fill="rgba(255,255,255,0.8)"
+                stroke="rgba(0,100,0,0.8)"
+                strokeWidth="2"
+              />
 
               {/* Attack arrows */}
               <defs>
-                <marker id="arrowhead" markerWidth="10" markerHeight="7" 
-                 refX="10" refY="3.5" orient="auto">
-                  <polygon points="0 0, 10 3.5, 0 7" fill="rgba(255,255,255,0.6)" />
+                <marker
+                  id="arrowhead"
+                  markerWidth="10"
+                  markerHeight="7"
+                  refX="10"
+                  refY="3.5"
+                  orient="auto"
+                >
+                  <polygon
+                    points="0 0, 10 3.5, 0 7"
+                    fill="rgba(255,255,255,0.6)"
+                  />
                 </marker>
               </defs>
-              
+
               {/* Forward passes */}
-              <path d="M520,450 Q580,380 600,300" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="2" markerEnd="url(#arrowhead)" strokeDasharray="5,5"/>
-              <path d="M680,450 Q620,380 600,300" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="2" markerEnd="url(#arrowhead)" strokeDasharray="5,5"/>
-              
+              <path
+                d="M520,450 Q580,380 600,300"
+                fill="none"
+                stroke="rgba(255,255,255,0.5)"
+                strokeWidth="2"
+                markerEnd="url(#arrowhead)"
+                strokeDasharray="5,5"
+              />
+              <path
+                d="M680,450 Q620,380 600,300"
+                fill="none"
+                stroke="rgba(255,255,255,0.5)"
+                strokeWidth="2"
+                markerEnd="url(#arrowhead)"
+                strokeDasharray="5,5"
+              />
+
               {/* Wing attacks */}
-              <path d="M450,320 Q400,250 450,180" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="2" markerEnd="url(#arrowhead)" strokeDasharray="5,5"/>
-              <path d="M750,320 Q800,250 750,180" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="2" markerEnd="url(#arrowhead)" strokeDasharray="5,5"/>
-              
+              <path
+                d="M450,320 Q400,250 450,180"
+                fill="none"
+                stroke="rgba(255,255,255,0.5)"
+                strokeWidth="2"
+                markerEnd="url(#arrowhead)"
+                strokeDasharray="5,5"
+              />
+              <path
+                d="M750,320 Q800,250 750,180"
+                fill="none"
+                stroke="rgba(255,255,255,0.5)"
+                strokeWidth="2"
+                markerEnd="url(#arrowhead)"
+                strokeDasharray="5,5"
+              />
+
               {/* Central attack */}
-              <path d="M600,300 L600,180" stroke="rgba(255,255,255,0.6)" strokeWidth="3" markerEnd="url(#arrowhead)"/>
+              <path
+                d="M600,300 L600,180"
+                stroke="rgba(255,255,255,0.6)"
+                strokeWidth="3"
+                markerEnd="url(#arrowhead)"
+              />
             </g>
           </defs>
 
           {/* Scattered tactical Xs */}
-          <use href="#tacticalX" x="150" y="200" transform="rotate(15)"/>
-          <use href="#tacticalX" x="950" y="300" transform="rotate(-20)"/>
-          <use href="#tacticalX" x="200" y="500" transform="rotate(45)"/>
-          <use href="#tacticalX" x="1000" y="600" transform="rotate(-30)"/>
-          
+          <use href="#tacticalX" x="150" y="200" transform="rotate(15)" />
+          <use href="#tacticalX" x="950" y="300" transform="rotate(-20)" />
+          <use href="#tacticalX" x="200" y="500" transform="rotate(45)" />
+          <use href="#tacticalX" x="1000" y="600" transform="rotate(-30)" />
+
           {/* Scattered tactical Os */}
-          <use href="#tacticalO" x="100" y="350"/>
-          <use href="#tacticalO" x="1050" y="450"/>
-          <use href="#tacticalO" x="250" y="650"/>
-          <use href="#tacticalO" x="950" y="150"/>
+          <use href="#tacticalO" x="100" y="350" />
+          <use href="#tacticalO" x="1050" y="450" />
+          <use href="#tacticalO" x="250" y="650" />
+          <use href="#tacticalO" x="950" y="150" />
 
           {/* Center pitch circle */}
-          <circle cx="600" cy="400" r="80" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="2"/>
-          
+          <circle
+            cx="600"
+            cy="400"
+            r="80"
+            fill="none"
+            stroke="rgba(255,255,255,0.3)"
+            strokeWidth="2"
+          />
+
           {/* Formation diagram */}
-          <use href="#formation"/>
-          
+          <use href="#formation" />
+
           {/* Penalty areas */}
-          <rect x="500" y="50" width="200" height="100" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="2" rx="10"/>
-          <rect x="500" y="650" width="200" height="100" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="2" rx="10"/>
+          <rect
+            x="500"
+            y="50"
+            width="200"
+            height="100"
+            fill="none"
+            stroke="rgba(255,255,255,0.2)"
+            strokeWidth="2"
+            rx="10"
+          />
+          <rect
+            x="500"
+            y="650"
+            width="200"
+            height="100"
+            fill="none"
+            stroke="rgba(255,255,255,0.2)"
+            strokeWidth="2"
+            rx="10"
+          />
         </svg>
       </div>
 
       {/* Subtle chalk dust texture overlay */}
-      <div 
+      <div
         className="absolute inset-0 opacity-10 pointer-events-none"
         style={{
           backgroundImage: `
@@ -445,18 +606,25 @@ const GameSetup: React.FC = () => {
             radial-gradient(circle at 75% 75%, rgba(255,255,255,0.1) 0%, transparent 2%),
             radial-gradient(circle at 50% 50%, rgba(255,255,255,0.05) 0%, transparent 3%)
           `,
-          backgroundSize: '200px 200px, 150px 150px, 300px 300px'
-        }}>
-      </div>
+          backgroundSize: "200px 200px, 150px 150px, 300px 300px",
+        }}
+      ></div>
 
       {/* Header */}
       <div className="relative z-10 text-center mb-6">
-        <h1 className="text-4xl md:text-5xl font-black text-white mb-2 drop-shadow-2xl filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)]" 
-            style={{textShadow: '2px 2px 4px rgba(0,0,0,0.8), 0 0 10px rgba(255,255,255,0.3)'}}>
+        <h1
+          className="text-4xl md:text-5xl font-black text-white mb-2 drop-shadow-2xl filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)]"
+          style={{
+            textShadow:
+              "2px 2px 4px rgba(0,0,0,0.8), 0 0 10px rgba(255,255,255,0.3)",
+          }}
+        >
           🎮 Game Setup
         </h1>
-        <p className="text-green-100 text-lg drop-shadow-lg font-medium" 
-           style={{textShadow: '1px 1px 3px rgba(0,0,0,0.7)'}}>
+        <p
+          className="text-green-100 text-lg drop-shadow-lg font-medium"
+          style={{ textShadow: "1px 1px 3px rgba(0,0,0,0.7)" }}
+        >
           Manager's Tactical Board
         </p>
       </div>
