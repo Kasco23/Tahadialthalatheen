@@ -1,6 +1,32 @@
 @import "tailwindcss";
 @config "../tailwind.config.js";
 
+/* Champions League Tunnel Mobile Responsive Adjustments */
+@media (max-width: 768px) {
+  .tunnel-mobile-compress {
+    transform: perspective(200px) rotateX(5deg);
+  }
+  
+  .light-bands-mobile {
+    opacity: 0.6;
+    transform: scale(0.8);
+  }
+  
+  .tunnel-perspective-mobile {
+    perspective: 300px;
+  }
+}
+
+@media (min-width: 769px) {
+  .tunnel-desktop-enhance {
+    perspective: 800px;
+  }
+  
+  .light-bands-desktop {
+    opacity: 0.8;
+  }
+}
+
 /* Football pitch background pattern */
 .pitch-lines {
   position: relative;

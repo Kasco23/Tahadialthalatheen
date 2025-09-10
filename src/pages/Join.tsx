@@ -167,66 +167,88 @@ const Join: React.FC = () => {
 
   return (
     <div className="min-h-screen relative overflow-hidden">
-      {/* Stadium Tunnel Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-black">
-        {/* Tunnel lines effect */}
-        <div className="absolute inset-0 bg-tunnel-lines opacity-20"></div>
+      {/* Champions League Stadium Tunnel Background */}
+      <div className="absolute inset-0 bg-[#0A1B51] tunnel-perspective-mobile lg:tunnel-desktop-enhance">
         
-        {/* Central spotlight */}
-        <div className="absolute inset-0 bg-spotlight animate-tunnel-glow"></div>
+        {/* Base Champions League gradient */}
+        <div className="absolute inset-0 bg-champions-tunnel"></div>
         
-        {/* Atmospheric particles/dust effect */}
-        <div className="absolute inset-0">
-          {[...Array(20)].map((_, i) => (
-            <div
-              key={i}
-              className="absolute bg-white rounded-full opacity-10 animate-pulse-slow"
-              style={{
-                width: Math.random() * 4 + 1 + 'px',
-                height: Math.random() * 4 + 1 + 'px',
-                left: Math.random() * 100 + '%',
-                top: Math.random() * 100 + '%',
-                animationDelay: Math.random() * 3 + 's',
-                animationDuration: (Math.random() * 2 + 2) + 's',
-              }}
-            ></div>
-          ))}
+        {/* Angled geometric light bands - Left side */}
+        <div className="absolute inset-0 light-bands-mobile lg:light-bands-desktop before:content-[''] before:absolute before:top-0 before:left-0 before:w-full before:h-full before:bg-gradient-to-br before:from-transparent before:via-cyan-400/20 before:to-transparent before:transform before:skew-x-12 before:animate-light-sweep before:blur-sm"></div>
+        
+        {/* Angled geometric light bands - Right side */}
+        <div className="absolute inset-0 light-bands-mobile lg:light-bands-desktop after:content-[''] after:absolute after:top-0 after:right-0 after:w-full after:h-full after:bg-gradient-to-bl after:from-transparent after:via-pink-400/20 after:to-transparent after:transform after:-skew-x-12 after:animate-light-sweep after:blur-sm" style={{ animationDelay: '3s' }}></div>
+        
+        {/* Perspective tunnel walls with Champions League colors */}
+        <div className="absolute inset-0 opacity-30 tunnel-mobile-compress lg:opacity-40">
+          <div className="absolute top-0 left-0 w-1/4 h-full bg-gradient-to-r from-cyan-500/10 to-transparent transform skew-y-2 origin-top"></div>
+          <div className="absolute top-0 right-0 w-1/4 h-full bg-gradient-to-l from-pink-500/10 to-transparent transform -skew-y-2 origin-top"></div>
+          <div className="absolute bottom-0 left-1/4 right-1/4 h-1/3 bg-gradient-to-t from-cyan-300/5 to-transparent"></div>
         </div>
-
-        {/* Converging perspective lines */}
-        <svg className="absolute inset-0 w-full h-full opacity-10" preserveAspectRatio="none">
+        
+        {/* Champions League star pattern overlay */}
+        <div className="absolute inset-0 bg-champions-stars animate-champions-pulse opacity-60 lg:opacity-80"></div>
+        
+        {/* Stadium spotlight at the end of tunnel */}
+        <div className="absolute inset-0 bg-stadium-spotlight animate-tunnel-glow"></div>
+        
+        {/* Enhanced perspective lines with Champions League accent colors */}
+        <svg className="absolute inset-0 w-full h-full opacity-15 lg:opacity-20" preserveAspectRatio="none" viewBox="0 0 100 100">
           <defs>
-            <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <linearGradient id="cyanGrad" x1="0%" y1="0%" x2="100%" y2="0%">
               <stop offset="0%" stopColor="transparent" />
-              <stop offset="50%" stopColor="rgba(255,255,255,0.3)" />
+              <stop offset="30%" stopColor="rgba(51, 239, 255, 0.6)" />
+              <stop offset="70%" stopColor="rgba(51, 239, 255, 0.3)" />
+              <stop offset="100%" stopColor="transparent" />
+            </linearGradient>
+            <linearGradient id="magentaGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="transparent" />
+              <stop offset="30%" stopColor="rgba(246, 89, 253, 0.6)" />
+              <stop offset="70%" stopColor="rgba(246, 89, 253, 0.3)" />
               <stop offset="100%" stopColor="transparent" />
             </linearGradient>
           </defs>
           
-          {/* Top converging lines */}
-          <polygon 
-            points="0,0 50,200 100,200 100,0" 
-            fill="url(#lineGrad)" 
-            transform="scale(100 1)"
-          />
-          <polygon 
-            points="0,100 100,100 80,300 20,300" 
-            fill="url(#lineGrad)" 
-            transform="scale(100 1)"
-          />
+          {/* Converging tunnel ceiling */}
+          <polygon points="0,0 100,0 85,30 15,30" fill="url(#cyanGrad)" />
+          <polygon points="0,5 100,5 85,35 15,35" fill="url(#magentaGrad)" />
           
-          {/* Side tunnel walls */}
-          <polygon 
-            points="0,0 0,100 30,80 30,20" 
-            fill="rgba(255,255,255,0.05)" 
-            transform="scale(100 1)"
-          />
-          <polygon 
-            points="100,0 100,100 70,80 70,20" 
-            fill="rgba(255,255,255,0.05)" 
-            transform="scale(100 1)"
-          />
+          {/* Converging tunnel floor */}
+          <polygon points="15,70 85,70 100,100 0,100" fill="url(#cyanGrad)" />
+          <polygon points="15,75 85,75 100,100 0,100" fill="url(#magentaGrad)" />
+          
+          {/* Side walls with perspective */}
+          <polygon points="0,0 15,30 15,70 0,100" fill="rgba(51, 239, 255, 0.1)" />
+          <polygon points="100,0 85,30 85,70 100,100" fill="rgba(246, 89, 253, 0.1)" />
+          
+          {/* Central converging lines */}
+          <line x1="50" y1="0" x2="50" y2="100" stroke="rgba(255,255,255,0.1)" strokeWidth="0.5" />
+          <line x1="0" y1="50" x2="100" y2="50" stroke="rgba(255,255,255,0.05)" strokeWidth="0.3" />
         </svg>
+        
+        {/* Atmospheric light particles */}
+        <div className="absolute inset-0">
+          {[...Array(25)].map((_, i) => (
+            <div
+              key={i}
+              className={`absolute rounded-full animate-pulse-slow ${
+                i % 3 === 0 ? 'bg-cyan-300' : i % 3 === 1 ? 'bg-pink-300' : 'bg-white'
+              }`}
+              style={{
+                width: Math.random() * 3 + 1 + 'px',
+                height: Math.random() * 3 + 1 + 'px',
+                left: Math.random() * 100 + '%',
+                top: Math.random() * 100 + '%',
+                opacity: Math.random() * 0.6 + 0.1,
+                animationDelay: Math.random() * 4 + 's',
+                animationDuration: (Math.random() * 3 + 2) + 's',
+              }}
+            ></div>
+          ))}
+        </div>
+        
+        {/* Semi-transparent dark overlay for text legibility */}
+        <div className="absolute inset-0 bg-black/30"></div>
       </div>
 
       {/* Content with proper z-index */}
@@ -281,7 +303,7 @@ const Join: React.FC = () => {
                         id="sessionCode"
                         value={sessionCode}
                         onChange={(e) => setSessionCode(e.target.value.toUpperCase())}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                         placeholder="Enter session code (e.g., ABC123)"
                         required
                         maxLength={6}
@@ -300,7 +322,7 @@ const Join: React.FC = () => {
                         id="hostPassword"
                         value={hostPassword}
                         onChange={(e) => setHostPassword(e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                         placeholder="Enter host password"
                         required
                       />
@@ -309,7 +331,7 @@ const Join: React.FC = () => {
                     <button
                       type="submit"
                       disabled={hostLoading}
-                      className="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200 transform hover:scale-105 disabled:transform-none"
+                      className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:from-blue-400 disabled:to-blue-400 text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:transform-none shadow-lg"
                     >
                       {hostLoading ? "Joining..." : "👑 Join as Host"}
                     </button>
@@ -333,7 +355,7 @@ const Join: React.FC = () => {
                         onChange={(e) =>
                           setPlayerSessionCode(e.target.value.toUpperCase())
                         }
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                         placeholder="Enter session code (e.g., ABC123)"
                         required
                         maxLength={6}
@@ -352,7 +374,7 @@ const Join: React.FC = () => {
                         id="playerName"
                         value={playerName}
                         onChange={(e) => setPlayerName(e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                         placeholder="Enter your name"
                         required
                       />
@@ -361,7 +383,7 @@ const Join: React.FC = () => {
                     <button
                       type="submit"
                       disabled={playerLoading}
-                      className="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200 transform hover:scale-105 disabled:transform-none"
+                      className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:from-blue-400 disabled:to-blue-400 text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:transform-none shadow-lg"
                     >
                       {playerLoading ? "Joining..." : "⚽ Join as Player"}
                     </button>
@@ -372,7 +394,7 @@ const Join: React.FC = () => {
 
             {/* Flag Selector - Right side on desktop, below form on mobile */}
             <div className="w-full lg:w-1/3 lg:max-w-md">
-              <div className="bg-white/95 backdrop-blur-sm rounded-lg shadow-xl p-6 border border-white/20">
+              <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-xl p-6 border border-white/30">
                 <FlagSelector
                   selectedFlag={activeTab === "host" ? hostSelectedFlag : selectedFlag}
                   onFlagSelect={activeTab === "host" ? handleHostFlagSelect : handlePlayerFlagSelect}
@@ -383,7 +405,7 @@ const Join: React.FC = () => {
 
             {/* Logo Selector - Right side on desktop, below flag on mobile */}
             <div className="w-full lg:w-1/3 lg:max-w-md">
-              <div className="bg-white/95 backdrop-blur-sm rounded-lg shadow-xl p-6 border border-white/20">
+              <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-xl p-6 border border-white/30">
                 <LogoSelector
                   selectedLogoUrl={activeTab === "host" ? hostTeamLogoUrl : teamLogoUrl}
                   onLogoSelect={activeTab === "host" ? handleHostLogoSelect : handlePlayerLogoSelect}
