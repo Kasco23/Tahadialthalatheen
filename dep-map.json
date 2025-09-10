@@ -8,6 +8,7 @@
     "src/lib/mutations.ts"
   ],
   "src/components/Alert.tsx": [],
+  "src/components/ControlsBar.tsx": [],
   "src/components/DailyJoinButton.test.tsx": [
     "src/components/DailyJoinButton.tsx"
   ],
@@ -41,6 +42,7 @@
   ],
   "src/components/TeamLogoPicker.tsx": [],
   "src/components/VideoCall.tsx": [
+    "src/components/ControlsBar.tsx",
     "src/components/ParticipantTile.tsx",
     "src/lib/types/supabase.ts"
   ],
