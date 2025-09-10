@@ -54,6 +54,9 @@
     "src/lib/mutations.ts",
     "src/lib/supabaseClient.ts"
   ],
+  "src/lib/dailyTokenManager.ts": [
+    "src/lib/types.ts"
+  ],
   "src/lib/enhancedPresence.ts": [
     "src/lib/mutations.ts",
     "src/lib/supabaseClient.ts"
@@ -69,6 +72,7 @@
     "src/lib/types.ts"
   ],
   "src/lib/mutations.ts": [
+    "src/lib/dailyTokenManager.ts",
     "src/lib/supabaseClient.ts",
     "src/lib/types.ts"
   ],
