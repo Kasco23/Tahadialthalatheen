@@ -1,15 +1,26 @@
 import React from "react";
 import { useParticipantIds, DailyAudio } from "@daily-co/daily-react";
 import { ParticipantTile } from "./ParticipantTile";
+import { ControlsBar } from "./ControlsBar";
 import type { Database } from "../lib/types/supabase";
 
 type ParticipantRow = Database["public"]["Tables"]["Participant"]["Row"];
 
 interface VideoCallProps {
   players: ParticipantRow[];
+  sessionCode: string;
+  participantName: string;
+  onJoinCall?: () => void;
+  onLeaveCall?: () => void;
 }
 
-export const VideoCall: React.FC<VideoCallProps> = ({ players }) => {
+export const VideoCall: React.FC<VideoCallProps> = ({ 
+  players, 
+  sessionCode, 
+  participantName, 
+  onJoinCall, 
+  onLeaveCall 
+}) => {
   // Get all participant IDs in the call (including local user)
   const participantIds = useParticipantIds();
 
@@ -23,7 +34,7 @@ export const VideoCall: React.FC<VideoCallProps> = ({ players }) => {
   }, [players]);
 
   return (
-    <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 mb-6">
+    <div className="relative bg-white/10 backdrop-blur-sm rounded-lg p-6 mb-6">
       <h3 className="text-xl font-bold text-white mb-4 text-center">
         🎥 Video Call ({participantIds.length} participants)
       </h3>
@@ -49,6 +60,14 @@ export const VideoCall: React.FC<VideoCallProps> = ({ players }) => {
           <div className="text-sm mt-2">Waiting for participants to join...</div>
         </div>
       )}
+
+      {/* Controls Bar - Fixed at bottom */}
+      <ControlsBar
+        sessionCode={sessionCode}
+        participantName={participantName}
+        onJoinCall={onJoinCall}
+        onLeaveCall={onLeaveCall}
+      />
     </div>
   );
 };

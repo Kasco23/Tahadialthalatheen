@@ -496,9 +496,15 @@ const Lobby: React.FC = () => {
           )}
         </div>
 
-        {/* Video Call Component - shown when in call */}
-        {isInCall && (
-          <VideoCall players={players} />
+        {/* Video Call Component - shown when dailyRoom exists */}
+        {dailyRoom && (
+          <VideoCall 
+            players={players} 
+            sessionCode={sessionCode || ""} 
+            participantName={localStorage.getItem("tt_participant_name") || "Player"} 
+            onJoinCall={handleJoinDailyCall}
+            onLeaveCall={handleLeaveDailyCall}
+          />
         )}
 
         {/* Action Buttons */}
