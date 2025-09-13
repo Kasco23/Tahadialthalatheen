@@ -3,8 +3,8 @@ import {
   useParticipantIds,
   DailyAudio,
   useLocalParticipant,
+  useDailyError,
 } from "@daily-co/daily-react";
-import type { DailyCall } from "@daily-co/daily-js";
 import { ParticipantTile } from "./ParticipantTile";
 import { ControlsBar } from "./ControlsBar";
 import type { Database } from "../lib/types/supabase";
@@ -17,7 +17,6 @@ interface VideoCallProps {
   participantName: string;
   onJoinCall?: () => void;
   onLeaveCall?: () => void;
-  callObject?: DailyCall | null;
 }
 
 export const VideoCall: React.FC<VideoCallProps> = ({
@@ -26,8 +25,10 @@ export const VideoCall: React.FC<VideoCallProps> = ({
   participantName,
   onJoinCall,
   onLeaveCall,
-  callObject,
 }) => {
+  // Use modern Daily React hooks
+  const { meetingError } = useDailyError();
+  
   // Get all participant IDs in the call (including local user)
   const participantIds = useParticipantIds();
   const localParticipant = useLocalParticipant();
@@ -37,6 +38,13 @@ export const VideoCall: React.FC<VideoCallProps> = ({
 
   // Get current user's participant ID
   const currentUserParticipantId = localParticipant?.session_id;
+
+  // Log errors if they occur
+  React.useEffect(() => {
+    if (meetingError) {
+      console.error("Daily meeting error:", meetingError);
+    }
+  }, [meetingError]);
 
   // Create a lookup map for player data by name
   const playersByName = React.useMemo(() => {
@@ -65,7 +73,6 @@ export const VideoCall: React.FC<VideoCallProps> = ({
             playersByName={playersByName}
             isHost={isHost}
             currentUserParticipantId={currentUserParticipantId}
-            callObject={callObject}
           />
         ))}
       </div>

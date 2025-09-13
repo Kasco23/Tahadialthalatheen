@@ -12,6 +12,7 @@ vi.mock("react-country-flag", () => ({
   }: {
     countryCode: string;
     title?: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [key: string]: any;
   }) => (
     <div data-testid="flag" data-country={countryCode} title={title} {...props}>

@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "../lib/supabaseClient";
+import ChromaLogo from "./ChromaLogo";
 
 interface League {
   name: string;
   displayName: string;
+  leagueLogo?: string;
   teams: Team[];
 }
 
@@ -29,6 +31,8 @@ interface LogoSelectorProps {
   onLogoSelect: (logoUrl: string, teamName: string) => void;
   title?: string;
   className?: string;
+  useChromaGrid?: boolean;
+  "data-testid"?: string;
 }
 
 const LogoSelector: React.FC<LogoSelectorProps> = ({
@@ -36,6 +40,8 @@ const LogoSelector: React.FC<LogoSelectorProps> = ({
   onLogoSelect,
   title = "Choose Your Team Logo",
   className = "",
+  useChromaGrid = false,
+  "data-testid": testId,
 }) => {
   const [leagues, setLeagues] = useState<League[]>([]);
   const [loading, setLoading] = useState(true);
@@ -64,6 +70,7 @@ const LogoSelector: React.FC<LogoSelectorProps> = ({
       ).map(([key, value]) => ({
         name: key,
         displayName: value.displayName,
+        leagueLogo: value.leagueLogo,
         teams: value.teams.map((team) => ({
           name: team.name.toLowerCase().replace(/\s+/g, "-"), // Create a consistent name format
           displayName: team.name,
@@ -144,7 +151,10 @@ const LogoSelector: React.FC<LogoSelectorProps> = ({
   }
 
   return (
-    <div className={`w-full max-w-md mx-auto ${className}`}>
+    <div
+      className={`w-full max-w-md mx-auto ${className}`}
+      data-testid={testId}
+    >
       <h3 className="text-lg font-semibold text-gray-800 mb-3 text-center">
         {title}
       </h3>
@@ -204,9 +214,19 @@ const LogoSelector: React.FC<LogoSelectorProps> = ({
                 className="w-full px-4 py-3 bg-gray-50 hover:bg-gray-100 flex items-center justify-between transition-colors duration-150"
                 aria-expanded={expandedLeague === league.name}
               >
-                <span className="font-medium text-gray-800">
-                  {league.displayName}
-                </span>
+                <div className="flex items-center space-x-3">
+                  {league.leagueLogo && (
+                    <img
+                      src={league.leagueLogo}
+                      alt={`${league.displayName} logo`}
+                      className="w-6 h-6 object-contain"
+                      loading="lazy"
+                    />
+                  )}
+                  <span className="font-medium text-gray-800">
+                    {league.displayName}
+                  </span>
+                </div>
                 <div className="flex items-center space-x-2">
                   <span className="text-sm text-gray-500">
                     {league.teams.length} teams
@@ -232,48 +252,60 @@ const LogoSelector: React.FC<LogoSelectorProps> = ({
               {/* Teams Grid */}
               {expandedLeague === league.name && (
                 <div className="p-4 bg-white">
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3" data-testid={useChromaGrid ? "chroma-grid" : "standard-grid"}>
                     {league.teams.map((team) => (
-                      <button
-                        key={team.name}
-                        type="button"
-                        onClick={() =>
-                          onLogoSelect(team.logoUrl, team.displayName)
-                        }
-                        className={`p-3 border rounded-lg hover:shadow-md transition-all duration-150 ${
-                          selectedLogoUrl === team.logoUrl
-                            ? "border-blue-500 bg-blue-50 shadow-md"
-                            : "border-gray-200 hover:border-gray-300"
-                        }`}
-                        title={team.displayName}
-                      >
-                        <div className="flex flex-col items-center space-y-2">
-                          <img
-                            src={team.logoUrl}
-                            alt={team.displayName}
-                            className="w-10 h-10 object-contain"
-                            loading="lazy"
-                          />
-                          <span className="text-xs text-center text-gray-700 font-medium leading-tight">
-                            {team.displayName}
-                          </span>
-                        </div>
-                        {selectedLogoUrl === team.logoUrl && (
-                          <div className="mt-2 flex justify-center">
-                            <svg
-                              className="w-4 h-4 text-blue-600"
-                              fill="currentColor"
-                              viewBox="0 0 20 20"
-                            >
-                              <path
-                                fillRule="evenodd"
-                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                clipRule="evenodd"
-                              />
-                            </svg>
+                      useChromaGrid ? (
+                        <ChromaLogo
+                          key={team.name}
+                          logoUrl={team.logoUrl}
+                          teamName={team.displayName}
+                          isSelected={selectedLogoUrl === team.logoUrl}
+                          onClick={() => onLogoSelect(team.logoUrl, team.displayName)}
+                          size="md"
+                          className="mx-auto"
+                        />
+                      ) : (
+                        <button
+                          key={team.name}
+                          type="button"
+                          onClick={() =>
+                            onLogoSelect(team.logoUrl, team.displayName)
+                          }
+                          className={`p-3 border rounded-lg hover:shadow-md transition-all duration-150 ${
+                            selectedLogoUrl === team.logoUrl
+                              ? "border-blue-500 bg-blue-50 shadow-md"
+                              : "border-gray-200 hover:border-gray-300"
+                          }`}
+                          title={team.displayName}
+                        >
+                          <div className="flex flex-col items-center space-y-2">
+                            <img
+                              src={team.logoUrl}
+                              alt={team.displayName}
+                              className="w-10 h-10 object-contain"
+                              loading="lazy"
+                            />
+                            <span className="text-xs text-center text-gray-700 font-medium leading-tight">
+                              {team.displayName}
+                            </span>
                           </div>
-                        )}
-                      </button>
+                          {selectedLogoUrl === team.logoUrl && (
+                            <div className="mt-2 flex justify-center">
+                              <svg
+                                className="w-4 h-4 text-blue-600"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                              >
+                                <path
+                                  fillRule="evenodd"
+                                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                  clipRule="evenodd"
+                                />
+                              </svg>
+                            </div>
+                          )}
+                        </button>
+                      )
                     ))}
                   </div>
                 </div>

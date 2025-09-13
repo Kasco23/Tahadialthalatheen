@@ -121,6 +121,12 @@ pnpm lint && pnpm format && pnpm build
 - **createDailyRoom.ts** — Video room creation via Daily.co API
 - **create-daily-token.ts** — Authentication tokens for video calls
 
+### Integration Points
+
+- **Supabase**: Handles database operations for sessions, participants, and scoring. Key file: `src/lib/mutations.ts`.
+- **Daily.co**: Provides video call functionality. Key file: `src/components/VideoCall.tsx`.
+- **Netlify**: Hosts serverless functions for backend operations. Key directory: `netlify/functions/`.
+
 ## Environment Configuration
 
 ### Required Variables (Development)
@@ -173,7 +179,7 @@ DAILY_API_KEY=your_daily_api_key
 
 ### Runtime Issues
 
-- **Database errors**: Check VITE*SUPABASE*\* environment variables
+- **Database errors**: Check VITE*SUPABASE* environment variables
 - **Video issues**: Verify DAILY_API_KEY and domain configuration
 - **Navigation issues**: Clear browser cache and check React Router setup
 

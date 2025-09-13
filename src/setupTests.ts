@@ -1,6 +1,7 @@
 import "@testing-library/jest-dom";
+import { vi } from "vitest";
 
-// Mock import.meta.env for Jest tests
+// Mock import.meta.env for Vitest tests
 Object.defineProperty(globalThis, "import", {
   value: {
     meta: {
@@ -15,19 +16,19 @@ Object.defineProperty(globalThis, "import", {
 });
 
 // Mock Supabase client for tests
-jest.mock("./lib/supabaseClient", () => ({
+vi.mock("./lib/supabaseClient", () => ({
   supabase: {
-    from: jest.fn(() => ({
-      select: jest.fn(() => Promise.resolve({ data: [], error: null })),
-      insert: jest.fn(() => Promise.resolve({ data: [], error: null })),
-      update: jest.fn(() => Promise.resolve({ data: [], error: null })),
-      delete: jest.fn(() => Promise.resolve({ data: [], error: null })),
-      upsert: jest.fn(() => Promise.resolve({ data: [], error: null })),
+    from: vi.fn(() => ({
+      select: vi.fn(() => Promise.resolve({ data: [], error: null })),
+      insert: vi.fn(() => Promise.resolve({ data: [], error: null })),
+      update: vi.fn(() => Promise.resolve({ data: [], error: null })),
+      delete: vi.fn(() => Promise.resolve({ data: [], error: null })),
+      upsert: vi.fn(() => Promise.resolve({ data: [], error: null })),
     })),
-    channel: jest.fn(() => ({
-      on: jest.fn(() => ({ subscribe: jest.fn() })),
-      subscribe: jest.fn(),
-      unsubscribe: jest.fn(),
+    channel: vi.fn(() => ({
+      on: vi.fn(() => ({ subscribe: vi.fn() })),
+      subscribe: vi.fn(),
+      unsubscribe: vi.fn(),
     })),
   },
 }));

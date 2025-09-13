@@ -1,5 +1,10 @@
 import React from "react";
-import { useDaily } from "@daily-co/daily-react";
+import { 
+  useDaily, 
+  useMeetingState,
+  useLocalParticipant,
+  // useDevices
+} from "@daily-co/daily-react";
 import { Mic, MicOff, Video, VideoOff, Phone, PhoneOff } from "lucide-react";
 
 interface ControlsBarProps {
@@ -18,42 +23,36 @@ export const ControlsBar: React.FC<ControlsBarProps> = ({
   demoIsInCall = false,
 }) => {
   const daily = useDaily();
-  const [isMuted, setIsMuted] = React.useState(false);
-  const [isCameraOff, setIsCameraOff] = React.useState(false);
+  const meetingState = useMeetingState();
+  const localParticipant = useLocalParticipant();
+  // Device management (can be expanded later for device switching)
+  // const { currentCam, currentMic } = useDevices();
   const [isJoining, setIsJoining] = React.useState(false);
 
   // Use demo state or actual Daily.co state
   const isInCall = demoMode
     ? demoIsInCall
-    : daily?.meetingState() === "joined-meeting";
+    : meetingState === "joined-meeting";
 
-  // Get current audio/video state from Daily
-  React.useEffect(() => {
-    if (daily && isInCall && !demoMode) {
-      const participants = daily.participants();
-      const localParticipant = participants.local;
-      if (localParticipant) {
-        setIsMuted(!localParticipant.audio);
-        setIsCameraOff(!localParticipant.video);
-      }
-    }
-  }, [daily, isInCall, demoMode]);
+  // Get current audio/video state from local participant
+  const isMuted = localParticipant?.tracks?.audio?.state !== "playable";
+  const isCameraOff = localParticipant?.tracks?.video?.state !== "playable";
 
   const handleToggleMute = async () => {
     if (demoMode) {
-      setIsMuted(!isMuted);
+      // In demo mode, we can't actually change state
+      return;
     } else if (daily && isInCall) {
-      await daily.setLocalAudio(!isMuted);
-      setIsMuted(!isMuted);
+      await daily.setLocalAudio(isMuted); // Toggle opposite of current state
     }
   };
 
   const handleToggleCamera = async () => {
     if (demoMode) {
-      setIsCameraOff(!isCameraOff);
+      // In demo mode, we can't actually change state
+      return;
     } else if (daily && isInCall) {
-      await daily.setLocalVideo(!isCameraOff);
-      setIsCameraOff(!isCameraOff);
+      await daily.setLocalVideo(isCameraOff); // Toggle opposite of current state
     }
   };
 

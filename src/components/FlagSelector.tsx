@@ -11,6 +11,7 @@ interface FlagSelectorProps {
   onFlagSelect: (flagCode: string) => void;
   title?: string;
   className?: string;
+  "data-testid"?: string;
 }
 
 const COUNTRIES: Country[] = [
@@ -267,6 +268,7 @@ const FlagSelector: React.FC<FlagSelectorProps> = ({
   onFlagSelect,
   title = "Select Your Flag",
   className = "",
+  "data-testid": testId,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isOpen, setIsOpen] = useState(false);
@@ -280,7 +282,10 @@ const FlagSelector: React.FC<FlagSelectorProps> = ({
   const selectedCountry = COUNTRIES.find((c) => c.code === selectedFlag);
 
   return (
-    <div className={`w-full max-w-md mx-auto ${className}`}>
+    <div
+      className={`w-full max-w-md mx-auto ${className}`}
+      data-testid={testId}
+    >
       <h3 className="text-lg font-semibold text-gray-800 mb-3 text-center">
         {title}
       </h3>
@@ -327,7 +332,7 @@ const FlagSelector: React.FC<FlagSelectorProps> = ({
 
         {/* Dropdown Panel */}
         {isOpen && (
-          <div className="absolute z-10 w-full mt-2 bg-white border border-gray-300 rounded-lg shadow-lg max-h-80 overflow-hidden">
+          <div className="absolute z-50 w-full mt-2 bg-white border border-gray-300 rounded-lg shadow-lg max-h-80 overflow-hidden">
             {/* Search Input */}
             <div className="p-3 border-b border-gray-200">
               <input

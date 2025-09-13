@@ -1,11 +1,15 @@
 import { render, screen } from "@testing-library/react";
+import { vi, beforeEach } from "vitest";
 import { ParticipantTile } from "./ParticipantTile";
 import type { Database } from "../lib/types/supabase";
 
 // Mock Daily React hooks
-jest.mock("@daily-co/daily-react", () => ({
-  useParticipantProperty: jest.fn(() => "Test User"),
-  useVideoTrack: jest.fn(() => ({ track: null, state: "off" })),
+vi.mock("@daily-co/daily-react", () => ({
+  useParticipantProperty: vi.fn(() => "Test User"),
+  useVideoTrack: vi.fn(() => ({ track: null, state: "off" })),
+  useDaily: vi.fn(() => ({
+    updateParticipant: vi.fn(),
+  })),
   DailyVideo: ({ sessionId }: { sessionId: string }) => (
     <div data-testid={`video-${sessionId}`}>Video</div>
   ),
@@ -36,12 +40,10 @@ describe("ParticipantTile", () => {
     ],
   ]);
 
-  const mockCallObject = {
-    updateParticipant: jest.fn(),
-  } as any;
+
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it("should not show moderation controls when user is not host", () => {
@@ -51,7 +53,6 @@ describe("ParticipantTile", () => {
         playersByName={mockPlayersByName}
         isHost={false}
         currentUserParticipantId="test-participant"
-        callObject={mockCallObject}
       />,
     );
 
@@ -66,7 +67,6 @@ describe("ParticipantTile", () => {
         playersByName={mockPlayersByName}
         isHost={true}
         currentUserParticipantId="test-participant"
-        callObject={mockCallObject}
       />,
     );
 
@@ -81,7 +81,6 @@ describe("ParticipantTile", () => {
         playersByName={mockPlayersByName}
         isHost={true}
         currentUserParticipantId="test-participant"
-        callObject={mockCallObject}
       />,
     );
 
@@ -97,7 +96,6 @@ describe("ParticipantTile", () => {
         playersByName={mockPlayersByName}
         isHost={true}
         currentUserParticipantId="test-participant"
-        callObject={null}
       />,
     );
 

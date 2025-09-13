@@ -2,16 +2,22 @@ import { supabase } from "./supabaseClient";
 import { updateLobbyPresence } from "./mutations";
 
 export interface PresenceUser {
-  user_id: string;
+  id: string;
   name: string;
   flag: string;
-  role: string;
-  timestamp: string;
-  is_active: boolean;
+  isHost: boolean;
+  isReady: boolean;
+  lastSeen: Date;
+  team_logo_url?: string; // Team logo URL for display
+  // Legacy compatibility properties
+  user_id?: string;
+  role?: string;
+  is_active?: boolean;
+  timestamp?: string;
 }
 
 export interface PresenceState {
-  [key: string]: PresenceUser;
+  [userId: string]: PresenceUser;
 }
 
 /**
@@ -19,6 +25,7 @@ export interface PresenceState {
  * Manages realtime presence tracking for players in a session
  */
 export class PresenceHelper {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private channel: any = null;
   private sessionId: string;
   private currentUser: PresenceUser | null = null;
@@ -54,6 +61,7 @@ export class PresenceHelper {
           this.onPresenceChange(this.formatPresenceState(presenceState));
         }
       })
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .on("presence", { event: "join" }, ({ key, newPresences }: any) => {
         console.log("User joined:", key, newPresences);
         const presenceState = this.channel.presenceState();
@@ -61,6 +69,7 @@ export class PresenceHelper {
           this.onPresenceChange(this.formatPresenceState(presenceState));
         }
       })
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .on("presence", { event: "leave" }, ({ key, leftPresences }: any) => {
         console.log("User left:", key, leftPresences);
         const presenceState = this.channel.presenceState();
@@ -85,9 +94,10 @@ export class PresenceHelper {
 
         // For hosts, use Role instead of name
         if (user.role === "Host") {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (presenceData as any).Role = user.role;
         } else {
-          (presenceData as any).name = user.name;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (presenceData as any).role = user.role;
         }
 
@@ -96,7 +106,9 @@ export class PresenceHelper {
     });
 
     // Update database presence status
-    await this.updateDatabasePresence(user.user_id, true);
+    if (user.user_id) {
+      await this.updateDatabasePresence(user.user_id, true);
+    }
   }
 
   /**
@@ -105,7 +117,9 @@ export class PresenceHelper {
   async leavePresence(): Promise<void> {
     if (this.channel && this.currentUser) {
       // Update database to mark as disconnected
-      await this.updateDatabasePresence(this.currentUser.user_id, false);
+      if (this.currentUser.user_id) {
+        await this.updateDatabasePresence(this.currentUser.user_id, false);
+      }
 
       // Untrack presence
       await this.channel.untrack();
@@ -172,6 +186,7 @@ export class PresenceHelper {
   /**
    * Private method to format presence state
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private formatPresenceState(rawState: any): PresenceState {
     const formatted: PresenceState = {};
 

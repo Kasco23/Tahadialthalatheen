@@ -167,121 +167,138 @@ const Join: React.FC = () => {
 
   return (
     <div className="min-h-screen relative overflow-hidden">
-      {/* Champions League Stadium Tunnel Background */}
-      <div className="absolute inset-0 bg-[#0A1B51] tunnel-perspective-mobile lg:tunnel-desktop-enhance">
-        {/* Base Champions League gradient */}
-        <div className="absolute inset-0 bg-champions-tunnel"></div>
+      {/* Champions League "Kick of Light" Stadium Tunnel Background */}
+      <div className="absolute inset-0 bg-gray-900">
+        {/* Base Champions League tunnel with enhanced visibility */}
+        <div className="absolute inset-0 bg-kick-of-light"></div>
+        
+        {/* Prism rainbow effects along tunnel edges */}
+        <div className="absolute inset-0 bg-prism-rainbow opacity-40 animate-champions-pulse"></div>
 
-        {/* Angled geometric light bands - Left side */}
-        <div className="absolute inset-0 light-bands-mobile lg:light-bands-desktop before:content-[''] before:absolute before:top-0 before:left-0 before:w-full before:h-full before:bg-gradient-to-br before:from-transparent before:via-cyan-400/20 before:to-transparent before:transform before:skew-x-12 before:animate-light-sweep before:blur-sm"></div>
+        {/* Glass starball effects */}
+        <div className="absolute inset-0 bg-glass-starball animate-light-sweep"></div>
 
-        {/* Angled geometric light bands - Right side */}
-        <div
-          className="absolute inset-0 light-bands-mobile lg:light-bands-desktop after:content-[''] after:absolute after:top-0 after:right-0 after:w-full after:h-full after:bg-gradient-to-bl after:from-transparent after:via-pink-400/20 after:to-transparent after:transform after:-skew-x-12 after:animate-light-sweep after:blur-sm"
-          style={{ animationDelay: "3s" }}
-        ></div>
+        {/* Enhanced tunnel walls with Champions League navy */}
+        <div className="absolute inset-0 bg-tunnel-walls opacity-80"></div>
 
-        {/* Perspective tunnel walls with Champions League colors */}
-        <div className="absolute inset-0 opacity-30 tunnel-mobile-compress lg:opacity-40">
-          <div className="absolute top-0 left-0 w-1/4 h-full bg-gradient-to-r from-cyan-500/10 to-transparent transform skew-y-2 origin-top"></div>
-          <div className="absolute top-0 right-0 w-1/4 h-full bg-gradient-to-l from-pink-500/10 to-transparent transform -skew-y-2 origin-top"></div>
-          <div className="absolute bottom-0 left-1/4 right-1/4 h-1/3 bg-gradient-to-t from-cyan-300/5 to-transparent"></div>
-        </div>
+        {/* Brighter tunnel lighting effects */}
+        <div className="absolute inset-0 bg-tunnel-lighting opacity-90"></div>
 
-        {/* Champions League star pattern overlay */}
-        <div className="absolute inset-0 bg-champions-stars animate-champions-pulse opacity-60 lg:opacity-80"></div>
-
-        {/* Stadium spotlight at the end of tunnel */}
-        <div className="absolute inset-0 bg-stadium-spotlight animate-tunnel-glow"></div>
-
-        {/* Enhanced perspective lines with Champions League accent colors */}
+        {/* Perspective tunnel structure with realistic geometry */}
         <svg
-          className="absolute inset-0 w-full h-full opacity-15 lg:opacity-20"
+          className="absolute inset-0 w-full h-full opacity-20"
           preserveAspectRatio="none"
           viewBox="0 0 100 100"
         >
           <defs>
-            <linearGradient id="cyanGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="transparent" />
-              <stop offset="30%" stopColor="rgba(51, 239, 255, 0.6)" />
-              <stop offset="70%" stopColor="rgba(51, 239, 255, 0.3)" />
-              <stop offset="100%" stopColor="transparent" />
+            <linearGradient id="wallGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="rgba(21, 35, 91, 0.9)" />
+              <stop offset="25%" stopColor="rgba(255, 0, 127, 0.3)" />
+              <stop offset="50%" stopColor="rgba(12, 20, 55, 0.6)" />
+              <stop offset="75%" stopColor="rgba(0, 255, 255, 0.3)" />
+              <stop offset="100%" stopColor="rgba(21, 35, 91, 0.9)" />
             </linearGradient>
-            <linearGradient id="magentaGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="transparent" />
-              <stop offset="30%" stopColor="rgba(246, 89, 253, 0.6)" />
-              <stop offset="70%" stopColor="rgba(246, 89, 253, 0.3)" />
-              <stop offset="100%" stopColor="transparent" />
+            <linearGradient
+              id="ceilingGradient"
+              x1="0%"
+              y1="0%"
+              x2="0%"
+              y2="100%"
+            >
+              <stop offset="0%" stopColor="rgba(21, 35, 91, 0.95)" />
+              <stop offset="50%" stopColor="rgba(255, 255, 0, 0.2)" />
+              <stop offset="100%" stopColor="rgba(5, 10, 25, 0.8)" />
+            </linearGradient>
+            <linearGradient
+              id="floorGradient"
+              x1="0%"
+              y1="0%"
+              x2="0%"
+              y2="100%"
+            >
+              <stop offset="0%" stopColor="rgba(5, 10, 25, 0.8)" />
+              <stop offset="50%" stopColor="rgba(127, 0, 255, 0.2)" />
+              <stop offset="100%" stopColor="rgba(21, 35, 91, 0.95)" />
+            </linearGradient>
+            <linearGradient id="prismEdge" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="rgba(255, 0, 127, 0.6)" />
+              <stop offset="20%" stopColor="rgba(0, 255, 255, 0.6)" />
+              <stop offset="40%" stopColor="rgba(127, 255, 0, 0.6)" />
+              <stop offset="60%" stopColor="rgba(255, 127, 0, 0.6)" />
+              <stop offset="80%" stopColor="rgba(127, 0, 255, 0.6)" />
+              <stop offset="100%" stopColor="rgba(255, 255, 0, 0.6)" />
             </linearGradient>
           </defs>
 
-          {/* Converging tunnel ceiling */}
-          <polygon points="0,0 100,0 85,30 15,30" fill="url(#cyanGrad)" />
-          <polygon points="0,5 100,5 85,35 15,35" fill="url(#magentaGrad)" />
-
-          {/* Converging tunnel floor */}
-          <polygon points="15,70 85,70 100,100 0,100" fill="url(#cyanGrad)" />
+          {/* Tunnel ceiling with perspective */}
           <polygon
-            points="15,75 85,75 100,100 0,100"
-            fill="url(#magentaGrad)"
+            points="0,0 100,0 80,25 20,25"
+            fill="url(#ceilingGradient)"
           />
 
-          {/* Side walls with perspective */}
+          {/* Tunnel floor with perspective */}
           <polygon
-            points="0,0 15,30 15,70 0,100"
-            fill="rgba(51, 239, 255, 0.1)"
-          />
-          <polygon
-            points="100,0 85,30 85,70 100,100"
-            fill="rgba(246, 89, 253, 0.1)"
+            points="20,75 80,75 100,100 0,100"
+            fill="url(#floorGradient)"
           />
 
-          {/* Central converging lines */}
+          {/* Left wall */}
+          <polygon points="0,0 20,25 20,75 0,100" fill="url(#wallGradient)" />
+
+          {/* Right wall */}
+          <polygon
+            points="100,0 80,25 80,75 100,100"
+            fill="url(#wallGradient)"
+          />
+
+          {/* Central perspective lines with prism effects */}
           <line
             x1="50"
             y1="0"
             x2="50"
             y2="100"
-            stroke="rgba(255,255,255,0.1)"
-            strokeWidth="0.5"
+            stroke="url(#prismEdge)"
+            strokeWidth="1"
           />
-          <line
-            x1="0"
-            y1="50"
-            x2="100"
-            y2="50"
-            stroke="rgba(255,255,255,0.05)"
-            strokeWidth="0.3"
-          />
+          
+          {/* Prism light rays */}
+          <line x1="20" y1="25" x2="80" y2="25" stroke="rgba(255, 0, 127, 0.4)" strokeWidth="0.5" />
+          <line x1="20" y1="50" x2="80" y2="50" stroke="rgba(0, 255, 255, 0.4)" strokeWidth="0.5" />
+          <line x1="20" y1="75" x2="80" y2="75" stroke="rgba(127, 255, 0, 0.4)" strokeWidth="0.5" />
         </svg>
 
-        {/* Atmospheric light particles */}
+        {/* Champions League prism light fixtures */}
         <div className="absolute inset-0">
-          {[...Array(25)].map((_, i) => (
-            <div
-              key={i}
-              className={`absolute rounded-full animate-pulse-slow ${
-                i % 3 === 0
-                  ? "bg-cyan-300"
-                  : i % 3 === 1
-                    ? "bg-pink-300"
-                    : "bg-white"
-              }`}
-              style={{
-                width: Math.random() * 3 + 1 + "px",
-                height: Math.random() * 3 + 1 + "px",
-                left: Math.random() * 100 + "%",
-                top: Math.random() * 100 + "%",
-                opacity: Math.random() * 0.6 + 0.1,
-                animationDelay: Math.random() * 4 + "s",
-                animationDuration: Math.random() * 3 + 2 + "s",
-              }}
-            ></div>
-          ))}
+          {[...Array(8)].map((_, i) => {
+            const colors = [
+              "rgba(255, 0, 127, 0.8)", // Magenta
+              "rgba(0, 255, 255, 0.8)", // Cyan
+              "rgba(127, 255, 0, 0.8)", // Lime
+              "rgba(255, 127, 0, 0.8)", // Orange
+              "rgba(127, 0, 255, 0.8)", // Purple
+              "rgba(255, 255, 0, 0.8)", // Yellow
+            ];
+            return (
+              <div
+                key={i}
+                className="absolute w-3 h-6 rounded-sm animate-champions-pulse"
+                style={{
+                  left: i % 2 === 0 ? "12%" : "88%",
+                  top: `${15 + i * 10}%`,
+                  background: colors[i % colors.length],
+                  animationDelay: `${i * 0.3}s`,
+                  boxShadow: `0 0 15px ${colors[i % colors.length]}, 0 0 30px ${colors[i % colors.length].replace('0.8', '0.4')}`,
+                }}
+              ></div>
+            );
+          })}
         </div>
 
-        {/* Semi-transparent dark overlay for text legibility */}
-        <div className="absolute inset-0 bg-black/30"></div>
+        {/* Stadium light at the end of tunnel */}
+        <div className="absolute inset-0 bg-stadium-spotlight animate-tunnel-glow"></div>
+
+        {/* Lighter overlay for improved visibility */}
+        <div className="absolute inset-0 bg-black/25"></div>
       </div>
 
       {/* Content with proper z-index */}
@@ -290,7 +307,7 @@ const Join: React.FC = () => {
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col lg:flex-row gap-6 items-start justify-center min-h-screen py-8">
             {/* Main Form Card */}
-            <div className="w-full lg:w-1/3 lg:max-w-md">
+            <div className="w-full lg:w-1/3 lg:max-w-md order-1">
               <div className="bg-white/95 backdrop-blur-sm rounded-lg shadow-xl p-6 lg:p-8 border border-white/20">
                 <h1 className="text-2xl lg:text-3xl font-bold text-center text-gray-800 mb-6 lg:mb-8">
                   🎮 Join Game
@@ -299,6 +316,7 @@ const Join: React.FC = () => {
                 {/* Tab Navigation */}
                 <div className="flex mb-6 bg-gray-100 rounded-lg p-1">
                   <button
+                    data-testid="host-tab"
                     onClick={() => setActiveTab("host")}
                     className={`flex-1 py-2 px-3 lg:px-4 rounded-md text-sm font-medium transition-colors ${
                       activeTab === "host"
@@ -309,6 +327,7 @@ const Join: React.FC = () => {
                     👑 Join as Host
                   </button>
                   <button
+                    data-testid="player-tab"
                     onClick={() => setActiveTab("player")}
                     className={`flex-1 py-2 px-3 lg:px-4 rounded-md text-sm font-medium transition-colors ${
                       activeTab === "player"
@@ -432,37 +451,45 @@ const Join: React.FC = () => {
               </div>
             </div>
 
-            {/* Flag Selector - Right side on desktop, below form on mobile */}
-            <div className="w-full lg:w-1/3 lg:max-w-md">
-              <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-xl p-6 border border-white/30">
-                <FlagSelector
-                  selectedFlag={
-                    activeTab === "host" ? hostSelectedFlag : selectedFlag
-                  }
-                  onFlagSelect={
-                    activeTab === "host"
-                      ? handleHostFlagSelect
-                      : handlePlayerFlagSelect
-                  }
-                  title="Select Your Flag"
-                />
-              </div>
-            </div>
+            {/* Flag and Logo Selectors Container */}
+            <div className="w-full lg:w-2/3 order-2">
+              <div className="flex flex-col md:flex-row gap-6">
+                {/* Flag Selector */}
+                <div className="w-full md:w-1/2 relative">
+                  <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-xl p-6 border border-white/30">
+                    <FlagSelector
+                      selectedFlag={
+                        activeTab === "host" ? hostSelectedFlag : selectedFlag
+                      }
+                      onFlagSelect={
+                        activeTab === "host"
+                          ? handleHostFlagSelect
+                          : handlePlayerFlagSelect
+                      }
+                      title="Select Your Flag"
+                      data-testid="flag-selector"
+                    />
+                  </div>
+                </div>
 
-            {/* Logo Selector - Right side on desktop, below flag on mobile */}
-            <div className="w-full lg:w-1/3 lg:max-w-md">
-              <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-xl p-6 border border-white/30">
-                <LogoSelector
-                  selectedLogoUrl={
-                    activeTab === "host" ? hostTeamLogoUrl : teamLogoUrl
-                  }
-                  onLogoSelect={
-                    activeTab === "host"
-                      ? handleHostLogoSelect
-                      : handlePlayerLogoSelect
-                  }
-                  title="Choose Your Team Logo"
-                />
+                {/* Logo Selector */}
+                <div className="w-full md:w-1/2 relative">
+                  <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-xl p-6 border border-white/30">
+                    <LogoSelector
+                      selectedLogoUrl={
+                        activeTab === "host" ? hostTeamLogoUrl : teamLogoUrl
+                      }
+                      onLogoSelect={
+                        activeTab === "host"
+                          ? handleHostLogoSelect
+                          : handlePlayerLogoSelect
+                      }
+                      title="Choose Your Team Logo"
+                      useChromaGrid={true}
+                      data-testid="logo-selector"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           </div>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAtom } from "jotai";
-import DailyIframe, { DailyCall } from "@daily-co/daily-js";
+import { useDaily, useDailyEvent } from "@daily-co/daily-react";
 import { supabase } from "../lib/supabaseClient";
 import { useSession } from "../lib/sessionHooks";
 import {
@@ -33,7 +33,8 @@ const Lobby: React.FC = () => {
   const [dailyRoomUrl] = useAtom(dailyRoomUrlAtom);
 
   // Daily call object state
-  const [callObject, setCallObject] = useState<DailyCall | null>(null);
+  // Use modern Daily hooks
+  const callObject = useDaily();
   const [isJoiningCall, setIsJoiningCall] = useState(false);
   const [callError, setCallError] = useState<string | null>(null);
   const [isInCall, setIsInCall] = useState(false);
@@ -198,14 +199,52 @@ const Lobby: React.FC = () => {
     };
   }, [sessionId]);
 
-  // Cleanup call object on unmount
-  useEffect(() => {
-    return () => {
-      if (callObject) {
-        callObject.destroy();
+  // Use Daily events with hooks for better integration
+  useDailyEvent("joined-meeting", () => {
+    console.log("✅ Successfully joined Daily call");
+    setIsInCall(true);
+  });
+
+  useDailyEvent("left-meeting", (event) => {
+    console.log("👋 Left Daily call:", event);
+    setIsInCall(false);
+    
+    // Check if user was ejected
+    if (event && "reason" in event) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const reason = (event as any).reason;
+      if (reason === "ejected" || reason === "hidden") {
+        setCallError("You have been removed from the call by the host.");
+        setTimeout(() => {
+          navigate("/");
+        }, 3000);
       }
-    };
-  }, [callObject]);
+    }
+  });
+
+  useDailyEvent("participant-left", (event) => {
+    console.log("👋 Participant left Daily call:", event.participant);
+    
+    if (event && "reason" in event) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const reason = (event as any).reason;
+      if (reason === "ejected" || reason === "hidden") {
+        const participantName =
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (event as any).participant?.user_name || "unknown";
+        console.log(
+          `Participant ${participantName} was ejected from the call`,
+        );
+      }
+    }
+  });
+
+  useDailyEvent("error", (error) => {
+    console.error("❌ Daily call error:", error);
+    setCallError(
+      typeof error === "string" ? error : "An error occurred during the call",
+    );
+  });
 
   const getPresenceStatus = (p: ParticipantRow) => {
     const lobbyPresence =
@@ -278,7 +317,7 @@ const Lobby: React.FC = () => {
     }
   };
 
-  // Daily call management functions
+  // Modern Daily call management using hooks
   const handleJoinDailyCall = async () => {
     if (!dailyRoom?.room_url) {
       setCallError(
@@ -287,8 +326,8 @@ const Lobby: React.FC = () => {
       return;
     }
 
-    if (!sessionCode) {
-      setCallError("No session code available.");
+    if (!sessionCode || !callObject) {
+      setCallError("No session code or call object available.");
       return;
     }
 
@@ -296,10 +335,6 @@ const Lobby: React.FC = () => {
     setCallError(null);
 
     try {
-      // Create Daily call object
-      const newCallObject = DailyIframe.createCallObject();
-      setCallObject(newCallObject);
-
       // Get participant name from localStorage
       const participantName =
         localStorage.getItem("tt_participant_name") || "Player";
@@ -310,61 +345,14 @@ const Lobby: React.FC = () => {
         participantName,
       );
 
-      // Set up event listeners
-      newCallObject.on("joined-meeting", () => {
-        console.log("Successfully joined Daily meeting");
-        setIsInCall(true);
-      });
-
-      newCallObject.on("left-meeting", (event) => {
-        console.log("Left Daily meeting", event);
-        setIsInCall(false);
-
-        // Check if user was ejected (Daily uses different event structure)
-        if (event && "reason" in event) {
-          const reason = (event as any).reason;
-          if (reason === "ejected" || reason === "hidden") {
-            setCallError("You have been removed from the call by the host.");
-            // Optional: redirect to home page after some delay
-            setTimeout(() => {
-              navigate("/");
-            }, 3000);
-          }
-        }
-      });
-
-      newCallObject.on("error", (error) => {
-        console.error("Daily call object error:", error);
-        setCallError(
-          typeof error === "string"
-            ? error
-            : "An error occurred during the call",
-        );
-      });
-
-      // Listen for participant events (useful for hosts to see ejections)
-      newCallObject.on("participant-left", (event) => {
-        console.log("Participant left:", event);
-        if (event && "reason" in event) {
-          const reason = (event as any).reason;
-          if (reason === "ejected" || reason === "hidden") {
-            const participantName =
-              (event as any).participant?.user_name || "unknown";
-            console.log(
-              `Participant ${participantName} was ejected from the call`,
-            );
-          }
-        }
-      });
-
-      // Join the Daily room
-      await newCallObject.join({
+      // Join the Daily room using the modern hook-based approach
+      await callObject.join({
         url: dailyRoom.room_url,
         token: tokenResponse.token,
         userName: participantName,
       });
 
-      console.log("Successfully joined Daily room:", {
+      console.log("Successfully initiated Daily room join:", {
         roomUrl: dailyRoom.room_url,
         userName: participantName,
       });
@@ -373,11 +361,6 @@ const Lobby: React.FC = () => {
       setCallError(
         error instanceof Error ? error.message : "Failed to join video call",
       );
-      // Clean up call object if join failed
-      if (callObject) {
-        callObject.destroy();
-        setCallObject(null);
-      }
     } finally {
       setIsJoiningCall(false);
     }
@@ -387,10 +370,8 @@ const Lobby: React.FC = () => {
     if (callObject) {
       try {
         await callObject.leave();
-        callObject.destroy();
-        setCallObject(null);
         setIsInCall(false);
-        console.log("Left and destroyed Daily call object");
+        console.log("Left Daily call");
       } catch (error) {
         console.error("Error leaving Daily call:", error);
       }
@@ -579,7 +560,6 @@ const Lobby: React.FC = () => {
               }
               onJoinCall={handleJoinDailyCall}
               onLeaveCall={handleLeaveDailyCall}
-              callObject={callObject}
             />
           )}
 

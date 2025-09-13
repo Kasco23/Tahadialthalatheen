@@ -3,8 +3,8 @@ import {
   useParticipantProperty,
   useVideoTrack,
   DailyVideo,
+  useDaily,
 } from "@daily-co/daily-react";
-import type { DailyCall } from "@daily-co/daily-js";
 import type { Database } from "../lib/types/supabase";
 
 type ParticipantRow = Database["public"]["Tables"]["Participant"]["Row"];
@@ -14,7 +14,6 @@ interface ParticipantTileProps {
   playersByName: Map<string, ParticipantRow>;
   isHost?: boolean;
   currentUserParticipantId?: string;
-  callObject?: DailyCall | null;
 }
 
 // Helper function to get role display (copied from Lobby logic)
@@ -36,9 +35,11 @@ const ParticipantTile: React.FC<ParticipantTileProps> = ({
   playersByName,
   isHost = false,
   currentUserParticipantId,
-  callObject,
 }) => {
   const [isActioning, setIsActioning] = useState(false);
+  
+  // Use Daily hook for moderation controls
+  const callObject = useDaily();
 
   // Get participant's display name and video track state
   const userName = useParticipantProperty(participantId, "user_name");

@@ -101,10 +101,21 @@ const GameSetup: React.FC = () => {
 
         // Set up presence tracking for the host
         const helper = new PresenceHelper(sessionId);
+        
+        // Get host's selected flag and logo from localStorage
+        const hostFlag = localStorage.getItem("selectedFlag") || "";
+        const hostLogoUrl = localStorage.getItem("teamLogoUrl") || "";
+        const hostTeamName = localStorage.getItem("teamName") || "";
+        
         await helper.joinPresence({
+          id: participantId,
           user_id: participantId,
-          name: "", // Don't use name for host - we'll use role instead
-          flag: "", // Host doesn't need a flag
+          name: hostTeamName, // Use team name for host display
+          flag: hostFlag, // Use host's selected flag
+          team_logo_url: hostLogoUrl, // Use host's selected team logo
+          isHost: true,
+          isReady: false,
+          lastSeen: new Date(),
           role: "Host",
           timestamp: new Date().toISOString(),
           is_active: true,
@@ -613,7 +624,7 @@ const GameSetup: React.FC = () => {
       {/* Header */}
       <div className="relative z-10 text-center mb-6">
         <h1
-          className="text-4xl md:text-5xl font-black text-white mb-2 drop-shadow-2xl filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)]"
+          className="text-4xl md:text-5xl font-black text-white mb-2 drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)]"
           style={{
             textShadow:
               "2px 2px 4px rgba(0,0,0,0.8), 0 0 10px rgba(255,255,255,0.3)",

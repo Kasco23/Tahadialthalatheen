@@ -7,49 +7,28 @@
     "pages/Quiz.tsx",
     "pages/Results.tsx"
   ],
-  "atoms/index.ts": [
-    "lib/types/supabase.ts"
-  ],
-  "components/ActiveGames.tsx": [
-    "lib/mutations.ts"
-  ],
+  "atoms/index.ts": ["lib/types/supabase.ts"],
+  "components/ActiveGames.tsx": ["lib/mutations.ts"],
   "components/Alert.tsx": [],
   "components/ControlsBar.tsx": [],
-  "components/DailyJoinButton.test.tsx": [
-    "components/DailyJoinButton.tsx"
-  ],
-  "components/DailyJoinButton.tsx": [
-    "atoms/index.ts",
-    "lib/mutations.ts"
-  ],
+  "components/DailyJoinButton.test.tsx": ["components/DailyJoinButton.tsx"],
+  "components/DailyJoinButton.tsx": ["atoms/index.ts", "lib/mutations.ts"],
   "components/EnhancedLobby.tsx": [
     "lib/enhancedPresence.ts",
     "lib/enhancedRealtimeHooks.ts"
   ],
-  "components/Flag.tsx": [
-    "lib/flagIcons.ts"
-  ],
+  "components/Flag.tsx": ["lib/flagIcons.ts"],
   "components/FlagSelector.tsx": [],
-  "components/LobbyStatus.tsx": [
-    "lib/supabaseClient.ts"
-  ],
-  "components/LogoSelector.tsx": [
-    "lib/supabaseClient.ts"
-  ],
+  "components/LobbyStatus.tsx": ["lib/supabaseClient.ts"],
+  "components/LogoSelector.tsx": ["lib/supabaseClient.ts"],
   "components/ParticipantTile.test.tsx": [
     "components/ParticipantTile.tsx",
     "lib/types/supabase.ts"
   ],
-  "components/ParticipantTile.tsx": [
-    "lib/types/supabase.ts"
-  ],
-  "components/PasswordModal.test.tsx": [
-    "components/PasswordModal.tsx"
-  ],
+  "components/ParticipantTile.tsx": ["lib/types/supabase.ts"],
+  "components/PasswordModal.test.tsx": ["components/PasswordModal.tsx"],
   "components/PasswordModal.tsx": [],
-  "components/TeamLogoPicker.test.tsx": [
-    "components/TeamLogoPicker.tsx"
-  ],
+  "components/TeamLogoPicker.test.tsx": ["components/TeamLogoPicker.tsx"],
   "components/TeamLogoPicker.tsx": [],
   "components/VideoCall.tsx": [
     "components/ControlsBar.tsx",
@@ -57,21 +36,10 @@
     "lib/types/supabase.ts"
   ],
   "index.css": [],
-  "lib/createSession.test.ts": [
-    "lib/mutations.ts",
-    "lib/supabaseClient.ts"
-  ],
-  "lib/dailyTokenManager.ts": [
-    "lib/types.ts"
-  ],
-  "lib/enhancedPresence.ts": [
-    "lib/mutations.ts",
-    "lib/supabaseClient.ts"
-  ],
-  "lib/enhancedRealtimeHooks.ts": [
-    "lib/supabaseClient.ts",
-    "lib/types.ts"
-  ],
+  "lib/createSession.test.ts": ["lib/mutations.ts", "lib/supabaseClient.ts"],
+  "lib/dailyTokenManager.ts": ["lib/types.ts"],
+  "lib/enhancedPresence.ts": ["lib/mutations.ts", "lib/supabaseClient.ts"],
+  "lib/enhancedRealtimeHooks.ts": ["lib/supabaseClient.ts", "lib/types.ts"],
   "lib/flagIcons.ts": [],
   "lib/mutations.test.ts": [
     "lib/mutations.ts",
@@ -84,33 +52,15 @@
     "lib/types.ts"
   ],
   "lib/mutations.validation.ts": [],
-  "lib/presence.ts": [
-    "lib/mutations.ts",
-    "lib/supabaseClient.ts"
-  ],
-  "lib/realtimeHooks.ts": [
-    "lib/supabaseClient.ts",
-    "lib/types.ts"
-  ],
-  "lib/sessionCode.test.ts": [
-    "lib/mutations.ts",
-    "lib/supabaseClient.ts"
-  ],
-  "lib/sessionHooks.ts": [
-    "lib/supabaseClient.ts"
-  ],
+  "lib/presence.ts": ["lib/mutations.ts", "lib/supabaseClient.ts"],
+  "lib/realtimeHooks.ts": ["lib/supabaseClient.ts", "lib/types.ts"],
+  "lib/sessionCode.test.ts": ["lib/mutations.ts", "lib/supabaseClient.ts"],
+  "lib/sessionHooks.ts": ["lib/supabaseClient.ts"],
   "lib/supabaseClient.ts": [],
-  "lib/types.ts": [
-    "lib/types/index.ts"
-  ],
-  "lib/types/index.ts": [
-    "lib/types/supabase.ts"
-  ],
+  "lib/types.ts": ["lib/types/index.ts"],
+  "lib/types/index.ts": ["lib/types/supabase.ts"],
   "lib/types/supabase.ts": [],
-  "main.tsx": [
-    "App.tsx",
-    "index.css"
-  ],
+  "main.tsx": ["App.tsx", "index.css"],
   "pages/GameSetup.tsx": [
     "atoms/index.ts",
     "components/Alert.tsx",

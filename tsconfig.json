@@ -20,6 +20,13 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src", "vitest.config.*", "vite.config.*", "**/*.test.ts", "**/*.test.tsx", "env.d.ts"],
+  "include": [
+    "src",
+    "vitest.config.*",
+    "vite.config.*",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "env.d.ts"
+  ],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

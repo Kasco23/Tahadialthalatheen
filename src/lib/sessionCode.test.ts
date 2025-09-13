@@ -41,6 +41,7 @@ describe("Session Code Functionality", () => {
       select: mockSelect,
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (supabase as any).from = mockFrom;
 
     const result = await getSessionIdByCode(mockSessionCode);
@@ -72,6 +73,7 @@ describe("Session Code Functionality", () => {
       select: mockSelect,
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (supabase as any).from = mockFrom;
 
     await expect(getSessionIdByCode("INVALID")).rejects.toThrow(
