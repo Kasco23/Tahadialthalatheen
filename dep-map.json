@@ -110,6 +110,9 @@
     "src/atoms/index.ts",
     "src/lib/mutations.ts"
   ],
+  "src/lib/userSession.ts": [
+    "src/lib/types.ts"
+  ],
   "src/pages/GameSetup.tsx": [
     "src/atoms/index.ts",
     "src/components/Alert.tsx",
