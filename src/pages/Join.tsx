@@ -114,6 +114,7 @@ const Join: React.FC = () => {
         localStorage.setItem("sessionCode", playerSessionCode);
         localStorage.setItem("playerName", playerName);
         localStorage.setItem("isHost", "false");
+        localStorage.setItem("tt_participant_name", playerName);
         if (selectedFlag) {
           localStorage.setItem("selectedFlag", selectedFlag);
         }

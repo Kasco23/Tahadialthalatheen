@@ -301,6 +301,36 @@ export async function createDailyRoom(
   try {
     console.log("Creating Daily room with:", { sessionId, sessionCode });
 
+    // Check if we're in local development without Netlify CLI
+    const isLocalDev = window.location.hostname === "localhost" && window.location.port === "5173";
+    
+    if (isLocalDev) {
+      console.warn("Running in local development mode - using mock Daily room");
+      
+      // Create mock Daily room for development
+      const mockRoomUrl = `https://thirty.daily.co/${sessionCode.toLowerCase()}`;
+      const mockResponse: CreateDailyRoomResponse = {
+        room_url: mockRoomUrl,
+        room_name: sessionCode,
+        session_id: sessionId,
+      };
+
+      // Still update the database for consistency
+      const { error } = await supabase.from("DailyRoom").upsert({
+        room_id: sessionId,
+        room_url: mockRoomUrl,
+        ready: true,
+      });
+
+      if (error) {
+        console.error("Database error saving mock Daily room:", error);
+        throw new Error(`Failed to save mock Daily room: ${error.message}`);
+      }
+
+      console.log("Mock Daily room created successfully:", mockResponse);
+      return mockResponse;
+    }
+
     // Call Netlify function with session_code for room name
     const response = await fetch("/api/create-daily-room", {
       method: "POST",
@@ -315,6 +345,9 @@ export async function createDailyRoom(
     console.log("Daily room creation response status:", response.status);
 
     if (!response.ok) {
+      // Clone response to allow reading body multiple times
+      const responseClone = response.clone();
+      
       // Try to get the error details from the response
       try {
         const errorData = await response.json();
@@ -323,12 +356,16 @@ export async function createDailyRoom(
           `HTTP error! status: ${response.status}, details: ${JSON.stringify(errorData)}`,
         );
       } catch (_parseError) {
-        // If we can't parse JSON, get text
-        const errorText = await response.text();
-        console.error("Daily room creation error (raw):", errorText);
-        throw new Error(
-          `HTTP error! status: ${response.status}, response: ${errorText}`,
-        );
+        // If we can't parse JSON, get text from the cloned response
+        try {
+          const errorText = await responseClone.text();
+          console.error("Daily room creation error (raw):", errorText);
+          throw new Error(
+            `HTTP error! status: ${response.status}, response: ${errorText}`,
+          );
+        } catch (_textError) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
       }
     }
 

@@ -331,13 +331,28 @@ const Lobby: React.FC = () => {
       return;
     }
 
+    // Check if we're in local development with mock room
+    const isLocalDev = window.location.hostname === "localhost" && window.location.port === "5173";
+    const isMockRoom = dailyRoom.room_url.includes("thirty.daily.co") && isLocalDev;
+
+    if (isMockRoom) {
+      setCallError("🚧 Video calls are disabled in development mode. Use 'netlify dev' for full functionality.");
+      return;
+    }
+
     setIsJoiningCall(true);
     setCallError(null);
 
     try {
-      // Get participant name from localStorage
-      const participantName =
-        localStorage.getItem("tt_participant_name") || "Player";
+      // Get participant name from localStorage or current participant data
+      const participantName = 
+        localStorage.getItem("tt_participant_name") || 
+        localStorage.getItem("playerName") ||
+        localStorage.getItem("hostName") ||
+        (players.length > 0 && players.find(p => p.participant_id === localStorage.getItem("participantId"))?.name) ||
+        "Player";
+
+      console.log("Using participant name for token:", participantName);
 
       // Fetch the token for joining the Daily room
       const tokenResponse = await createDailyToken(
@@ -556,7 +571,11 @@ const Lobby: React.FC = () => {
               players={players}
               sessionCode={sessionCode || ""}
               participantName={
-                localStorage.getItem("tt_participant_name") || "Player"
+                localStorage.getItem("tt_participant_name") || 
+                localStorage.getItem("playerName") ||
+                localStorage.getItem("hostName") ||
+                (players.length > 0 && players.find(p => p.participant_id === localStorage.getItem("participantId"))?.name) ||
+                "Player"
               }
               onJoinCall={handleJoinDailyCall}
               onLeaveCall={handleLeaveDailyCall}
