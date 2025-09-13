@@ -25,9 +25,9 @@ const ChromaLogo: React.FC<ChromaLogoProps> = ({
 
   // Size configurations
   const sizes = {
-    sm: { container: "w-16 h-16", radius: 60 },
-    md: { container: "w-20 h-20", radius: 80 },
-    lg: { container: "w-24 h-24", radius: 100 },
+    sm: { container: "w-16 h-16 min-w-16 min-h-16", radius: 60 },
+    md: { container: "w-20 h-20 min-w-20 min-h-20", radius: 80 },
+    lg: { container: "w-24 h-24 min-w-24 min-h-24", radius: 100 },
   };
 
   const { container, radius } = sizes[size];
@@ -104,7 +104,7 @@ const ChromaLogo: React.FC<ChromaLogoProps> = ({
     <div
       ref={cardRef}
       onClick={onClick}
-      className={`relative ${container} rounded-xl overflow-hidden border-2 transition-all duration-300 cursor-pointer group ${
+      className={`relative ${container} rounded-xl overflow-hidden border-2 transition-all duration-300 cursor-pointer group flex-shrink-0 ${
         isSelected
           ? "border-blue-500 shadow-lg shadow-blue-200"
           : "border-gray-200 hover:border-gray-300"
@@ -130,8 +130,8 @@ const ChromaLogo: React.FC<ChromaLogoProps> = ({
       />
 
       {/* Logo Container */}
-      <div className="relative z-10 w-full h-full p-2 flex flex-col items-center justify-center">
-        <div className="flex-1 flex items-center justify-center w-full">
+      <div className="relative z-10 w-full h-full p-3 flex flex-col items-center justify-center">
+        <div className="flex-1 flex items-center justify-center w-full max-w-full max-h-full">
           <img
             src={logoUrl}
             alt={teamName}
@@ -139,12 +139,14 @@ const ChromaLogo: React.FC<ChromaLogoProps> = ({
             loading="lazy"
             style={{
               filter: isSelected ? "brightness(1.1) contrast(1.1)" : "none",
+              maxWidth: "100%",
+              maxHeight: "100%",
             }}
           />
         </div>
         
         {/* Team name - only show on hover or if selected */}
-        <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white text-[10px] p-1 text-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+        <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white text-[10px] px-1 py-0.5 text-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 truncate">
           {teamName}
         </div>
       </div>

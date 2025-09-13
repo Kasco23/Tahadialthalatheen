@@ -20,6 +20,9 @@ export const useFlagIcons = () => {
       flagIconsLoaded = true;
       setLoaded(true);
     };
+    link.onerror = (error) => {
+      console.error("Failed to load flag icons CSS:", error);
+    };
     document.head.appendChild(link);
   }, []);
 

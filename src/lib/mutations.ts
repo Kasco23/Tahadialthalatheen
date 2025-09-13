@@ -431,6 +431,8 @@ export async function getDailyRoom(
 export async function joinAsHost(
   sessionCode: string,
   hostPassword: string,
+  flag?: string,
+  logoUrl?: string,
 ): Promise<string> {
   // Verify host password using RPC with new parameter names
   const { data: isValidPassword, error: rpcError } = await supabase.rpc(
@@ -477,14 +479,25 @@ export async function joinAsHost(
   }
 
   if (existingHost) {
-    // Update existing host to 'Joined' status - DO NOT change the name
+    // Update existing host to 'Joined' status with flag and logo
+    const updateData: {
+      lobby_presence: string;
+      join_at: string;
+      disconnect_at: null;
+      flag?: string;
+      team_logo_url?: string;
+    } = {
+      lobby_presence: "Joined",
+      join_at: new Date().toISOString(),
+      disconnect_at: null,
+    };
+    
+    if (flag) updateData.flag = flag;
+    if (logoUrl) updateData.team_logo_url = logoUrl;
+
     const { error: updateError } = await supabase
       .from("Participant")
-      .update({
-        lobby_presence: "Joined",
-        join_at: new Date().toISOString(),
-        disconnect_at: null,
-      })
+      .update(updateData)
       .eq("participant_id", existingHost.participant_id);
 
     if (updateError) {

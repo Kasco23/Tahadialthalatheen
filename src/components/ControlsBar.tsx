@@ -14,6 +14,7 @@ interface ControlsBarProps {
   onLeaveCall?: () => void;
   demoMode?: boolean;
   demoIsInCall?: boolean;
+  isTopPosition?: boolean;
 }
 
 export const ControlsBar: React.FC<ControlsBarProps> = ({
@@ -21,6 +22,7 @@ export const ControlsBar: React.FC<ControlsBarProps> = ({
   onLeaveCall,
   demoMode = false,
   demoIsInCall = false,
+  isTopPosition = false,
 }) => {
   const daily = useDaily();
   const meetingState = useMeetingState();
@@ -119,14 +121,18 @@ export const ControlsBar: React.FC<ControlsBarProps> = ({
             <button
               onClick={handleJoinCall}
               disabled={isJoining}
-              className={`px-6 py-3 rounded-full font-medium transition-all duration-200 flex items-center space-x-2 ${
+              className={`${
+                isTopPosition 
+                  ? "px-8 py-4 text-lg rounded-xl" 
+                  : "px-6 py-3 rounded-full"
+              } font-medium transition-all duration-200 flex items-center space-x-2 ${
                 isJoining
                   ? "bg-gray-500 cursor-not-allowed text-white"
-                  : "bg-green-500 hover:bg-green-600 text-white"
+                  : "bg-green-500 hover:bg-green-600 text-white shadow-lg hover:shadow-xl"
               }`}
               title="Join video call"
             >
-              <Phone size={20} />
+              <Phone size={isTopPosition ? 24 : 20} />
               <span>{isJoining ? "Joining..." : "Join Call"}</span>
             </button>
           )}

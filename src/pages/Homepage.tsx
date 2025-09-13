@@ -112,7 +112,7 @@ const Homepage: React.FC = () => {
             </p>
 
             {/* CTA Buttons */}
-            <div className="space-y-8 w-full max-w-sm">
+            <div className="space-y-6 w-full max-w-sm">
               <button
                 onClick={handleCreateSession}
                 className="block w-full bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 hover:from-yellow-500 hover:via-yellow-600 hover:to-yellow-700 text-black font-bold text-xl md:text-2xl py-6 px-8 rounded-2xl shadow-2xl transform transition-all duration-300 hover:scale-105 hover:shadow-3xl border-4 border-yellow-300"
@@ -120,12 +120,21 @@ const Homepage: React.FC = () => {
                 🏆 Create Session
               </button>
 
-              <Link
-                to="/join"
-                className="block w-full bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:from-blue-600 hover:via-blue-700 hover:to-blue-800 text-white font-bold text-xl md:text-2xl py-6 px-8 rounded-2xl shadow-2xl transform transition-all duration-300 hover:scale-105 hover:shadow-3xl border-4 border-blue-300"
-              >
-                👥 Join Session
-              </Link>
+              <div className="grid grid-cols-1 gap-4">
+                <Link
+                  to="/join?role=host"
+                  className="block w-full bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 hover:from-purple-600 hover:via-purple-700 hover:to-purple-800 text-white font-bold text-lg md:text-xl py-4 px-6 rounded-xl shadow-2xl transform transition-all duration-300 hover:scale-105 hover:shadow-3xl border-4 border-purple-300"
+                >
+                  👑 Join as Host
+                </Link>
+
+                <Link
+                  to="/join?role=player"
+                  className="block w-full bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:from-blue-600 hover:via-blue-700 hover:to-blue-800 text-white font-bold text-lg md:text-xl py-4 px-6 rounded-xl shadow-2xl transform transition-all duration-300 hover:scale-105 hover:shadow-3xl border-4 border-blue-300"
+                >
+                  🎮 Join as Player
+                </Link>
+              </div>
             </div>
           </div>
 

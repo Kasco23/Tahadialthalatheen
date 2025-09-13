@@ -252,7 +252,7 @@ const LogoSelector: React.FC<LogoSelectorProps> = ({
               {/* Teams Grid */}
               {expandedLeague === league.name && (
                 <div className="p-4 bg-white">
-                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3" data-testid={useChromaGrid ? "chroma-grid" : "standard-grid"}>
+                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6" data-testid={useChromaGrid ? "chroma-grid" : "standard-grid"}>
                     {league.teams.map((team) => (
                       useChromaGrid ? (
                         <ChromaLogo

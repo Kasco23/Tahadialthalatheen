@@ -1,14 +1,13 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAtom } from "jotai";
-import { useDaily, useDailyEvent } from "@daily-co/daily-react";
+
 import { supabase } from "../lib/supabaseClient";
 import { useSession } from "../lib/sessionHooks";
 import {
   getSessionIdByCode,
   getDailyRoom,
   leaveLobby,
-  createDailyToken,
 } from "../lib/mutations";
 import {
   sessionAtom,
@@ -17,6 +16,8 @@ import {
   dailyRoomUrlAtom,
 } from "../atoms";
 import { VideoCall } from "../components/VideoCall";
+import { Flag } from "../components/Flag";
+import { LobbyLogo } from "../components/LobbyLogo";
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 import type { Database } from "../lib/types/supabase";
 
@@ -46,15 +47,11 @@ const ParticipantCard: React.FC<ParticipantCardProps> = ({
       {/* Player Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center space-x-2">
-          <span className={`fi fi-${player.flag || "sa"} text-lg`}></span>
+          <Flag code={player.flag || "sa"} className="text-lg" />
           {player.team_logo_url && (
-            <img
-              src={player.team_logo_url}
-              alt={`${player.name} team logo`}
-              className="w-6 h-6 object-contain rounded"
-              onError={(e) => {
-                e.currentTarget.style.display = "none";
-              }}
+            <LobbyLogo 
+              logoUrl={player.team_logo_url}
+              teamName={player.name}
             />
           )}
           <div>
@@ -107,13 +104,6 @@ const Lobby: React.FC = () => {
   const [_currentSessionCode, setCurrentSessionCode] = useAtom(sessionCodeAtom);
   const [_participants, _setParticipants] = useAtom(participantsAtom);
   const [dailyRoomUrl] = useAtom(dailyRoomUrlAtom);
-
-  // Daily call object state
-  // Use modern Daily hooks
-  const callObject = useDaily();
-  const [isJoiningCall, setIsJoiningCall] = useState(false);
-  const [callError, setCallError] = useState<string | null>(null);
-  const [isInCall, setIsInCall] = useState(false);
 
   const {
     session,
@@ -275,52 +265,7 @@ const Lobby: React.FC = () => {
     };
   }, [sessionId]);
 
-  // Use Daily events with hooks for better integration
-  useDailyEvent("joined-meeting", () => {
-    console.log("✅ Successfully joined Daily call");
-    setIsInCall(true);
-  });
 
-  useDailyEvent("left-meeting", (event) => {
-    console.log("👋 Left Daily call:", event);
-    setIsInCall(false);
-    
-    // Check if user was ejected
-    if (event && "reason" in event) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const reason = (event as any).reason;
-      if (reason === "ejected" || reason === "hidden") {
-        setCallError("You have been removed from the call by the host.");
-        setTimeout(() => {
-          navigate("/");
-        }, 3000);
-      }
-    }
-  });
-
-  useDailyEvent("participant-left", (event) => {
-    console.log("👋 Participant left Daily call:", event.participant);
-    
-    if (event && "reason" in event) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const reason = (event as any).reason;
-      if (reason === "ejected" || reason === "hidden") {
-        const participantName =
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (event as any).participant?.user_name || "unknown";
-        console.log(
-          `Participant ${participantName} was ejected from the call`,
-        );
-      }
-    }
-  });
-
-  useDailyEvent("error", (error) => {
-    console.error("❌ Daily call error:", error);
-    setCallError(
-      typeof error === "string" ? error : "An error occurred during the call",
-    );
-  });
 
   const getPresenceStatus = (p: ParticipantRow) => {
     const lobbyPresence =
@@ -394,81 +339,7 @@ const Lobby: React.FC = () => {
     }
   };
 
-  // Modern Daily call management using hooks
-  const handleJoinDailyCall = async () => {
-    if (!dailyRoom?.room_url) {
-      setCallError(
-        "No Daily room available. Host needs to create a room first.",
-      );
-      return;
-    }
 
-    if (!sessionCode || !callObject) {
-      setCallError("No session code or call object available.");
-      return;
-    }
-
-    // Check if we're in local development with mock room
-    const isLocalDev = window.location.hostname === "localhost" && window.location.port === "5173";
-    const isMockRoom = dailyRoom.room_url.includes("thirty.daily.co") && isLocalDev;
-
-    if (isMockRoom) {
-      setCallError("🚧 Video calls are disabled in development mode. Use 'netlify dev' for full functionality.");
-      return;
-    }
-
-    setIsJoiningCall(true);
-    setCallError(null);
-
-    try {
-      // Get participant name from localStorage or current participant data
-      const participantName = 
-        localStorage.getItem("tt_participant_name") || 
-        localStorage.getItem("playerName") ||
-        localStorage.getItem("hostName") ||
-        (players.length > 0 && players.find(p => p.participant_id === localStorage.getItem("participantId"))?.name) ||
-        "Player";
-
-      console.log("Using participant name for token:", participantName);
-
-      // Fetch the token for joining the Daily room
-      const tokenResponse = await createDailyToken(
-        sessionCode,
-        participantName,
-      );
-
-      // Join the Daily room using the modern hook-based approach
-      await callObject.join({
-        url: dailyRoom.room_url,
-        token: tokenResponse.token,
-        userName: participantName,
-      });
-
-      console.log("Successfully initiated Daily room join:", {
-        roomUrl: dailyRoom.room_url,
-        userName: participantName,
-      });
-    } catch (error) {
-      console.error("Failed to join Daily room:", error);
-      setCallError(
-        error instanceof Error ? error.message : "Failed to join video call",
-      );
-    } finally {
-      setIsJoiningCall(false);
-    }
-  };
-
-  const handleLeaveDailyCall = async () => {
-    if (callObject) {
-      try {
-        await callObject.leave();
-        setIsInCall(false);
-        console.log("Left Daily call");
-      } catch (error) {
-        console.error("Error leaving Daily call:", error);
-      }
-    }
-  };
 
   if (sessionLoading || loading) {
     return (
@@ -537,16 +408,16 @@ const Lobby: React.FC = () => {
 
         {/* Responsive Layout Container */}
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
             
             {/* Participants Sidebar */}
             <div className="xl:col-span-1 space-y-6">
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6">
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20">
                 <h2 className="text-2xl font-bold text-white mb-4 text-center">
-                  👥 Participants ({players.length})
+                  👥 Participants ({players.filter(p => p.role !== "GameMaster").length})
                 </h2>
 
-                {players.length === 0 ? (
+                {players.filter(p => p.role !== "GameMaster").length === 0 ? (
                   <div className="text-center text-blue-200 py-8">
                     <div className="text-4xl mb-4">👤</div>
                     <div>No players have joined yet</div>
@@ -554,7 +425,7 @@ const Lobby: React.FC = () => {
                   </div>
                 ) : (
                   <div className="space-y-3 max-h-96 overflow-y-auto">
-                    {players.map((player) => {
+                    {players.filter(p => p.role !== "GameMaster").map((player) => {
                       const { lobbyPresence, videoPresence } = getPresenceStatus(player);
                       return (
                         <ParticipantCard 
@@ -571,25 +442,25 @@ const Lobby: React.FC = () => {
               </div>
 
               {/* Action Buttons */}
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6">
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20">
                 <div className="space-y-3">
                   {canStartQuiz() && (
                     <button
                       onClick={handleStartQuiz}
-                      className="w-full px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-lg transition-colors duration-200 transform hover:scale-105"
+                      className="w-full px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-lg transition-colors duration-200 transform hover:scale-105 border border-green-400/50"
                     >
                       🚀 Start Quiz
                     </button>
                   )}
                   <button
                     onClick={handleRefresh}
-                    className="w-full px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-lg transition-colors duration-200"
+                    className="w-full px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-lg transition-colors duration-200 border border-blue-400/50"
                   >
                     🔄 Refresh
                   </button>
                   <button
                     onClick={handleLeaveLobby}
-                    className="w-full px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-bold rounded-lg transition-colors duration-200"
+                    className="w-full px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-bold rounded-lg transition-colors duration-200 border border-red-400/50"
                   >
                     🚪 Leave Lobby
                   </button>
@@ -598,79 +469,62 @@ const Lobby: React.FC = () => {
             </div>
 
             {/* Main Video Area */}
-            <div className="xl:col-span-2 space-y-6">
+            <div className="xl:col-span-3 space-y-6">
               
-              {/* Video Call Component */}
-              {dailyRoom && (
-                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6">
-                  <VideoCall
-                    players={players}
-                    sessionCode={sessionCode || ""}
-                    participantName={
-                      localStorage.getItem("tt_participant_name") || 
-                      localStorage.getItem("playerName") ||
-                      localStorage.getItem("hostName") ||
-                      (players.length > 0 && players.find(p => p.participant_id === localStorage.getItem("participantId"))?.name) ||
-                      "Player"
-                    }
-                    onJoinCall={handleJoinDailyCall}
-                    onLeaveCall={handleLeaveDailyCall}
-                  />
+              {/* Industry-Grade Video Call Interface */}
+              {dailyRoom ? (
+                <div className="bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 overflow-hidden">
+                  {/* Video Header */}
+                  <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 px-6 py-4 border-b border-white/10">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-3 h-3 rounded-full ${dailyRoom?.ready ? 'bg-green-400 animate-pulse' : 'bg-yellow-400'}`}></div>
+                        <h3 className="text-xl font-bold text-white">
+                          Video Conference
+                        </h3>
+                      </div>
+                      <div className="flex items-center space-x-4 text-sm text-blue-200">
+                        <span className="flex items-center space-x-1">
+                          <span>🏠</span>
+                          <span>{dailyRoom?.ready ? "Ready" : "Setting up"}</span>
+                        </span>
+                        {dailyRoom?.ready && (
+                          <span className="flex items-center space-x-1">
+                            <span>🔗</span>
+                            <span>Live</span>
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Video Content */}
+                  <div className="p-6">
+                    <VideoCall
+                      players={players}
+                      sessionCode={sessionCode || ""}
+                      participantName={
+                        localStorage.getItem("tt_participant_name") || 
+                        localStorage.getItem("playerName") ||
+                        localStorage.getItem("hostName") ||
+                        (players.length > 0 && players.find(p => p.participant_id === localStorage.getItem("participantId"))?.name) ||
+                        "Player"
+                      }
+                      showControlsAtTop={true}
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-8 border border-white/20 text-center">
+                  <div className="text-6xl mb-4">⏳</div>
+                  <h3 className="text-2xl font-bold text-white mb-2">Initializing Video Room</h3>
+                  <p className="text-blue-200 mb-4">Host is setting up the video conference...</p>
+                  <div className="inline-flex items-center space-x-2 text-sm text-blue-300">
+                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-ping"></div>
+                    <span>Please wait</span>
+                  </div>
                 </div>
               )}
-
-              {/* Video Room Controls */}
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6">
-                <h3 className="text-xl font-bold text-white mb-4 text-center">
-                  🎥 Video Communication
-                </h3>
-                <div className="text-sm text-blue-200 mb-4 text-center">
-                  Video Room:{" "}
-                  {dailyRoom?.ready ? "✅ Ready" : "⏳ Waiting for host"}
-                </div>
-
-                {/* Error message */}
-                {callError && (
-                  <div className="p-3 mb-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-                    {callError}
-                  </div>
-                )}
-
-                {/* Join/Leave button */}
-                <div className="text-center">
-                  {!isInCall ? (
-                    <button
-                      onClick={handleJoinDailyCall}
-                      disabled={isJoiningCall || !dailyRoom?.room_url}
-                      className={`px-8 py-3 rounded-lg font-medium transition-colors ${
-                        isJoiningCall || !dailyRoom?.room_url
-                          ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                          : "bg-blue-600 text-white hover:bg-blue-700"
-                      }`}
-                    >
-                      {isJoiningCall ? "Joining..." : "🎥 Join Video Call"}
-                    </button>
-                  ) : (
-                    <div className="space-y-3">
-                      <div className="text-green-400 font-medium">
-                        ✅ Connected to video call
-                      </div>
-                      <button
-                        onClick={handleLeaveDailyCall}
-                        className="px-8 py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors"
-                      >
-                        📞 Leave Video Call
-                      </button>
-                    </div>
-                  )}
-
-                  {!dailyRoom?.room_url && (
-                    <p className="text-sm text-blue-300 mt-3">
-                      Waiting for host to create video room...
-                    </p>
-                  )}
-                </div>
-              </div>
             </div>
           </div>
         </div>
