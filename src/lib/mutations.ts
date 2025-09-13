@@ -44,19 +44,29 @@ export async function createSession(
     throw new Error(`Failed to create session: ${sessionError.message}`);
   }
 
-  // Create the host participant with NotJoined status
+  // Create both GameMaster (PC user) and Host (mobile user) participants
+  const participantsToCreate = [
+    {
+      session_id: sessionData.session_id,
+      name: "GameMaster", // PC user who created the session
+      role: "GameMaster",
+      lobby_presence: "Joined", // PC user is immediately joined
+    },
+    {
+      session_id: sessionData.session_id,
+      name: hostName || "Host", // Mobile user who will join later
+      role: "Host",
+      lobby_presence: "NotJoined", // Will join via mobile
+    },
+  ];
+
   const { error: participantError } = await supabase
     .from("Participant")
-    .insert({
-      session_id: sessionData.session_id,
-      name: hostName || "Host",
-      role: "Host",
-      lobby_presence: "NotJoined",
-    });
+    .insert(participantsToCreate);
 
   if (participantError) {
     throw new Error(
-      `Failed to create host participant: ${participantError.message}`,
+      `Failed to create participants: ${participantError.message}`,
     );
   }
 
@@ -488,6 +498,83 @@ export async function joinAsHost(
   throw new Error(
     "No host participant found for this session. Host should be created during session setup.",
   );
+}
+
+// 4b. Join as GameMaster - PC/Desktop coordinator role
+export async function joinAsGameMaster(
+  sessionCode: string,
+  gameMasterName: string,
+  flag?: string,
+  logoUrl?: string,
+): Promise<string> {
+  // Get the session ID
+  const { data: sessionRow, error: sessionError } = await supabase
+    .from("Session")
+    .select("session_id")
+    .eq("session_code", sessionCode.toUpperCase())
+    .single();
+
+  if (sessionError || !sessionRow) {
+    throw new Error(
+      `Session not found: ${sessionError?.message || "No session with that code"}`,
+    );
+  }
+
+  const sessionId = sessionRow.session_id;
+
+  // Check for existing GameMaster
+  const { data: existingGameMaster, error: findError } = await supabase
+    .from("Participant")
+    .select("participant_id")
+    .eq("session_id", sessionId)
+    .eq("role", "GameMaster")
+    .maybeSingle();
+
+  if (findError) {
+    throw new Error(`Failed to check for existing GameMaster: ${findError.message}`);
+  }
+
+  if (existingGameMaster) {
+    // Update existing GameMaster
+    const { error: updateError } = await supabase
+      .from("Participant")
+      .update({
+        name: gameMasterName,
+        flag: flag || null,
+        team_logo_url: logoUrl || null,
+        lobby_presence: "Joined",
+        join_at: new Date().toISOString(),
+        disconnect_at: null,
+      })
+      .eq("participant_id", existingGameMaster.participant_id);
+
+    if (updateError) {
+      throw new Error(`Failed to update GameMaster: ${updateError.message}`);
+    }
+
+    return existingGameMaster.participant_id;
+  }
+
+  // Create new GameMaster participant
+  const { data: newGameMaster, error: insertError } = await supabase
+    .from("Participant")
+    .insert({
+      session_id: sessionId,
+      name: gameMasterName,
+      role: "GameMaster",
+      flag: flag || null,
+      team_logo_url: logoUrl || null,
+      lobby_presence: "Joined",
+      join_at: new Date().toISOString(),
+    })
+    .select("participant_id")
+    .single();
+
+  if (insertError || !newGameMaster) {
+    throw new Error(`Failed to create GameMaster: ${insertError?.message}`);
+  }
+
+  return newGameMaster.participant_id;
 }
 
 // 5. Join as Player (Phone → Join)

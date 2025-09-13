@@ -192,7 +192,7 @@ const LogoSelector: React.FC<LogoSelectorProps> = ({
       </div>
 
       {/* Leagues and Teams */}
-      <div className="space-y-2 max-h-80 overflow-y-auto border border-gray-200 rounded-lg">
+      <div className="space-y-2 max-h-80 overflow-y-auto border border-gray-200 rounded-lg relative z-0">
         {filteredLeagues.length === 0 ? (
           <div className="p-4 text-gray-500 text-center">
             {searchTerm ? "No teams found" : "No teams available"}

@@ -33,8 +33,9 @@ export const VideoCall: React.FC<VideoCallProps> = ({
   const participantIds = useParticipantIds();
   const localParticipant = useLocalParticipant();
 
-  // Determine if current user is host
-  const isHost = localStorage.getItem("isHost") === "true";
+  // Determine if current user has moderation privileges (Host or GameMaster)
+  const currentUserRole = localStorage.getItem("userRole") || localStorage.getItem("isHost") === "true" ? "Host" : "Player";
+  const canModerate = ["Host", "GameMaster"].includes(currentUserRole);
 
   // Get current user's participant ID
   const currentUserParticipantId = localParticipant?.session_id;
@@ -64,16 +65,17 @@ export const VideoCall: React.FC<VideoCallProps> = ({
       {/* Audio component - handles all remote audio tracks */}
       <DailyAudio />
 
-      {/* Video grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {/* Responsive Video grid with auto-fit */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 auto-rows-fr">
         {participantIds.map((participantId) => (
-          <ParticipantTile
-            key={participantId}
-            participantId={participantId}
-            playersByName={playersByName}
-            isHost={isHost}
-            currentUserParticipantId={currentUserParticipantId}
-          />
+          <div key={participantId} className="min-h-0">
+            <ParticipantTile
+              participantId={participantId}
+              playersByName={playersByName}
+              isHost={canModerate}
+              currentUserParticipantId={currentUserParticipantId}
+            />
+          </div>
         ))}
       </div>
 

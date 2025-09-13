@@ -62,6 +62,7 @@ const Join: React.FC = () => {
         localStorage.setItem("participantId", participantId);
         localStorage.setItem("sessionCode", sessionCode);
         localStorage.setItem("isHost", "true");
+        localStorage.setItem("userRole", "Host");
         if (hostSelectedFlag) {
           localStorage.setItem("selectedFlag", hostSelectedFlag);
         }
@@ -114,6 +115,7 @@ const Join: React.FC = () => {
         localStorage.setItem("sessionCode", playerSessionCode);
         localStorage.setItem("playerName", playerName);
         localStorage.setItem("isHost", "false");
+        localStorage.setItem("userRole", "Player");
         localStorage.setItem("tt_participant_name", playerName);
         if (selectedFlag) {
           localStorage.setItem("selectedFlag", selectedFlag);
@@ -456,7 +458,7 @@ const Join: React.FC = () => {
             <div className="w-full lg:w-2/3 order-2">
               <div className="flex flex-col md:flex-row gap-6">
                 {/* Flag Selector */}
-                <div className="w-full md:w-1/2 relative">
+                <div className="w-full md:w-1/2 relative z-20">
                   <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-xl p-6 border border-white/30">
                     <FlagSelector
                       selectedFlag={
@@ -474,7 +476,7 @@ const Join: React.FC = () => {
                 </div>
 
                 {/* Logo Selector */}
-                <div className="w-full md:w-1/2 relative">
+                <div className="w-full md:w-1/2 relative z-10">
                   <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-xl p-6 border border-white/30">
                     <LogoSelector
                       selectedLogoUrl={

@@ -18,7 +18,7 @@ export type SegmentCode = "WDYK" | "AUCT" | "BELL" | "UPDW" | "REMO";
 // Application-specific enums and inputs (moved from the older single-file
 // `types.ts`). Keep these small and explicit rather than relying on
 // regenerated DB types for behaviour-level enums.
-export type ParticipantRole = "Host" | "Player1" | "Player2";
+export type ParticipantRole = "Host" | "Player1" | "Player2" | "GameMaster";
 export type LobbyPresence = "NotJoined" | "Joined" | "Disconnected";
 export type SessionPhase =
   | "Setup"

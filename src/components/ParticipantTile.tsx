@@ -101,21 +101,34 @@ const ParticipantTile: React.FC<ParticipantTileProps> = ({
   };
 
   return (
-    <div className="relative bg-gray-800 rounded-lg overflow-hidden aspect-video">
+    <div className="relative bg-gradient-to-br from-gray-800 via-gray-700 to-gray-800 rounded-lg overflow-hidden aspect-video shadow-lg border border-gray-600">
       {/* Video stream */}
       {hasVideo ? (
         <DailyVideo
           sessionId={participantId}
           type="video"
           className="w-full h-full object-cover"
+          style={{
+            objectFit: 'cover',
+            aspectRatio: '16/9'
+          }}
         />
       ) : (
-        // Placeholder when no video
-        <div className="w-full h-full bg-gray-700 flex items-center justify-center">
-          <div className="text-center text-white/70">
-            <div className="text-4xl mb-2">👤</div>
-            <div className="text-sm">No video</div>
+        // Enhanced placeholder when no video
+        <div className="w-full h-full bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center relative">
+          {/* Background pattern */}
+          <div className="absolute inset-0 bg-black/20"></div>
+          
+          {/* Content */}
+          <div className="text-center text-white/80 z-10">
+            <div className="text-5xl mb-3 filter drop-shadow-sm">👤</div>
+            <div className="text-sm font-medium bg-black/30 px-3 py-1 rounded-full backdrop-blur-sm">
+              Camera Off
+            </div>
           </div>
+          
+          {/* Subtle pattern overlay */}
+          <div className="absolute inset-0 opacity-5 bg-[radial-gradient(circle_at_25%_25%,white_2px,transparent_2px)] bg-[length:30px_30px]"></div>
         </div>
       )}
 
