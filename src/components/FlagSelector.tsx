@@ -121,7 +121,6 @@ const COUNTRIES: Country[] = [
   { code: "IQ", name: "Iraq" },
   { code: "IE", name: "Ireland" },
   { code: "IM", name: "Isle of Man" },
-  { code: "IL", name: "Israel" },
   { code: "IT", name: "Italy" },
   { code: "JM", name: "Jamaica" },
   { code: "JP", name: "Japan" },

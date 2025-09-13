@@ -33,5 +33,14 @@ export default defineConfig({
     test: {
         environment: "jsdom",
         setupFiles: ["./src/setupTests.ts"],
+        globals: true,
+        coverage: {
+            provider: "v8",
+            reporter: ["text", "lcov"],
+        },
+        exclude: [
+            "tests/e2e/**", // handled by Playwright separately
+            "node_modules/**",
+        ],
     },
 });
