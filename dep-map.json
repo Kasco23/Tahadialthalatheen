@@ -29,6 +29,7 @@
     "src/lib/flagIcons.ts"
   ],
   "src/components/FlagSelector.tsx": [],
+  "src/components/LobbyLogo.tsx": [],
   "src/components/LobbyStatus.tsx": [
     "src/lib/supabaseClient.ts"
   ],
@@ -47,6 +48,16 @@
     "src/components/PasswordModal.tsx"
   ],
   "src/components/PasswordModal.tsx": [],
+  "src/components/ReactBits/AnimatedList.tsx": [],
+  "src/components/ReactBits/Dock.tsx": [],
+  "src/components/ReactBits/PixelCard.tsx": [],
+  "src/components/ReactBits/SpotlightCard.tsx": [],
+  "src/components/ReactBits/index.ts": [
+    "src/components/ReactBits/AnimatedList.tsx",
+    "src/components/ReactBits/Dock.tsx",
+    "src/components/ReactBits/PixelCard.tsx",
+    "src/components/ReactBits/SpotlightCard.tsx"
+  ],
   "src/components/TeamLogoPicker.test.tsx": [
     "src/components/TeamLogoPicker.tsx"
   ],
@@ -54,6 +65,8 @@
   "src/components/VideoCall.tsx": [
     "src/components/ControlsBar.tsx",
     "src/components/ParticipantTile.tsx",
+    "src/lib/mutations.ts",
+    "src/lib/supabaseClient.ts",
     "src/lib/types/supabase.ts"
   ],
   "src/lib/createSession.test.ts": [
@@ -128,14 +141,23 @@
     "src/components/PasswordModal.tsx",
     "src/lib/mutations.ts"
   ],
-  "src/pages/Join.tsx": [
+  "src/pages/Join.backup.tsx": [
     "src/components/Alert.tsx",
     "src/components/FlagSelector.tsx",
     "src/components/LogoSelector.tsx",
     "src/lib/mutations.ts"
   ],
+  "src/pages/Join.tsx": [
+    "src/components/Alert.tsx",
+    "src/components/FlagSelector.tsx",
+    "src/components/ReactBits/index.ts",
+    "src/lib/mutations.ts",
+    "src/lib/supabaseClient.ts"
+  ],
   "src/pages/Lobby.tsx": [
     "src/atoms/index.ts",
+    "src/components/Flag.tsx",
+    "src/components/LobbyLogo.tsx",
     "src/components/VideoCall.tsx",
     "src/lib/mutations.ts",
     "src/lib/sessionHooks.ts",
