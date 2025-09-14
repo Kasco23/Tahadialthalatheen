@@ -17,12 +17,12 @@ jobs:
       # Wait for Netlify preview to be ready
       - name: Await Netlify preview
         id: netlify
-        uses: jakepartusch/wait-for-netlify-action@v1
+        uses: jakepartusch/wait-for-netlify-action@f1e137043864b9ab9034ae3a5adc1c108e3f1a48
         with:
           site_name: ${{ vars.NETLIFY_PROJECT_ID }} # requires NETLIFY_AUTH_TOKEN in secrets
 
       - name: Install Node & pnpm
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
         with:
           node-version: 22
 

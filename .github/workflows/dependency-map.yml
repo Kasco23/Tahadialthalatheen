@@ -27,17 +27,17 @@ jobs:
     steps:
       # Checkout the exact SHA that the successful workflow built
       - name: Checkout repo
-        uses: actions/checkout@v5
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
 
       # pnpm 10
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda
         with:
           run_install: false
 
       # Node 22
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
         with:
           node-version: 22
           cache: pnpm
@@ -48,30 +48,41 @@ jobs:
       # Lightweight install: just madge + graphviz
       - name: Install madge & graphviz
         run: |
-          npm install -g pnpm && pnpm add -Dw madge@8
+          pnpm add -Dw madge@8
           sudo apt-get update -y && sudo apt-get install -y graphviz
 
       # Generate artifacts
       - name: Build dependency map
         run: |
+          # Generate JSON map focused on pages and their dependencies
           pnpm madge \
             --extensions ts,tsx \
             --exclude "${MADGE_EXCLUDES}" \
-            --json src/pages src/components src/lib netlify/functions > dep-map.json
+            --json src/pages > dep-map.json
 
+          # Generate focused SVG graph with pages as main nodes
           pnpm madge \
             --extensions ts,tsx \
             --exclude "${MADGE_EXCLUDES}" \
-            --layout circo \
-            -i dep-graph.svg src
+            --layout dot \
+            --rankdir LR \
+            -i dep-graph.svg src/pages
 
-          # circular detection -- fail if any, but keep going to commit
+          # Generate comprehensive dependency map including components and lib
+          pnpm madge \
+            --extensions ts,tsx \
+            --exclude "${MADGE_EXCLUDES}" \
+            --layout dot \
+            --rankdir LR \
+            -i full-graph.svg src/pages src/components src/lib
+
+          # Generate full dependency analysis for circular detection
           pnpm madge --circular --extensions ts,tsx src | tee circular.txt
           echo "If circular dependencies are listed above, fix them in a follow-up PR."
 
       # Auto-commit if anything changed
       - name: Commit dependency artifacts
-        uses: stefanzweifel/git-auto-commit-action@v6
+        uses: stefanzweifel/git-auto-commit-action@778341af668090896ca464160c2def5d1d1a3eb0
         with:
           commit_message: "chore(deps-map): update dependency graph (auto)"
           branch: ${{ github.event.workflow_run.head_branch }}

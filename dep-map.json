@@ -1,194 +1,137 @@
 {
-  "netlify/functions/create-daily-token.ts": [],
-  "netlify/functions/createDailyRoom.ts": [],
-  "src/atoms/index.ts": [
-    "src/lib/types/supabase.ts"
+  "../atoms/index.ts": [
+    "../lib/types/supabase.ts"
   ],
-  "src/components/ActiveGames.tsx": [
-    "src/lib/mutations.ts"
+  "../components/ActiveGames.tsx": [
+    "../lib/mutations.ts"
   ],
-  "src/components/Alert.tsx": [],
-  "src/components/ChromaGrid.tsx": [],
-  "src/components/ChromaLogo.tsx": [],
-  "src/components/ControlsBar.tsx": [],
-  "src/components/DailyCallWrapper.tsx": [
-    "src/lib/useDailyToken.ts"
+  "../components/Alert.tsx": [],
+  "../components/ChromaLogo.tsx": [],
+  "../components/ControlsBar.tsx": [],
+  "../components/Flag.tsx": [
+    "../lib/flagIcons.ts"
   ],
-  "src/components/DailyJoinButton.test.tsx": [
-    "src/components/DailyJoinButton.tsx"
+  "../components/FlagSelector.tsx": [
+    "../components/Flag.tsx"
   ],
-  "src/components/DailyJoinButton.tsx": [
-    "src/atoms/index.ts",
-    "src/lib/mutations.ts"
+  "../components/LobbyLogo.tsx": [],
+  "../components/LobbyStatus.tsx": [
+    "../lib/roleUtils.ts",
+    "../lib/supabaseClient.ts"
   ],
-  "src/components/EnhancedLobby.tsx": [
-    "src/lib/enhancedPresence.ts",
-    "src/lib/enhancedRealtimeHooks.ts"
+  "../components/LogoSelector.tsx": [
+    "../components/ChromaLogo.tsx",
+    "../lib/supabaseClient.ts"
   ],
-  "src/components/Flag.tsx": [
-    "src/lib/flagIcons.ts"
+  "../components/OptimizedFlagSelector.tsx": [
+    "../components/Flag.tsx"
   ],
-  "src/components/FlagSelector.tsx": [
-    "src/components/Flag.tsx"
+  "../components/ParticipantTile.tsx": [
+    "../lib/types/supabase.ts"
   ],
-  "src/components/LobbyLogo.tsx": [],
-  "src/components/LobbyStatus.tsx": [
-    "src/lib/roleUtils.ts",
-    "src/lib/supabaseClient.ts"
+  "../components/PasswordModal.tsx": [],
+  "../components/ReactBits/AnimatedList.tsx": [],
+  "../components/ReactBits/Dock.tsx": [],
+  "../components/ReactBits/PixelCard.tsx": [],
+  "../components/ReactBits/SpotlightCard.tsx": [],
+  "../components/ReactBits/index.ts": [
+    "../components/ReactBits/AnimatedList.tsx",
+    "../components/ReactBits/Dock.tsx",
+    "../components/ReactBits/PixelCard.tsx",
+    "../components/ReactBits/SpotlightCard.tsx"
   ],
-  "src/components/LogoSelector.tsx": [
-    "src/components/ChromaLogo.tsx",
-    "src/lib/supabaseClient.ts"
+  "../components/VideoCall.tsx": [
+    "../components/ControlsBar.tsx",
+    "../components/ParticipantTile.tsx",
+    "../lib/mutations.ts",
+    "../lib/supabaseClient.ts",
+    "../lib/types/supabase.ts"
   ],
-  "src/components/OptimizedFlagSelector.tsx": [
-    "src/components/Flag.tsx"
+  "../lib/dailyTokenManager.ts": [
+    "../lib/types.ts"
   ],
-  "src/components/ParticipantTile.test.tsx": [
-    "src/components/ParticipantTile.tsx",
-    "src/lib/types/supabase.ts"
+  "../lib/flagIcons.ts": [],
+  "../lib/logger.ts": [],
+  "../lib/mutations.ts": [
+    "../lib/dailyTokenManager.ts",
+    "../lib/logger.ts",
+    "../lib/supabaseClient.ts",
+    "../lib/types.ts"
   ],
-  "src/components/ParticipantTile.tsx": [
-    "src/lib/types/supabase.ts"
+  "../lib/presence.ts": [
+    "../lib/mutations.ts",
+    "../lib/supabaseClient.ts"
   ],
-  "src/components/PasswordModal.test.tsx": [
-    "src/components/PasswordModal.tsx"
+  "../lib/realtimeHooks.ts": [
+    "../lib/supabaseClient.ts",
+    "../lib/types.ts"
   ],
-  "src/components/PasswordModal.tsx": [],
-  "src/components/ReactBits/AnimatedList.tsx": [],
-  "src/components/ReactBits/Dock.tsx": [],
-  "src/components/ReactBits/PixelCard.tsx": [],
-  "src/components/ReactBits/SpotlightCard.tsx": [],
-  "src/components/ReactBits/index.ts": [
-    "src/components/ReactBits/AnimatedList.tsx",
-    "src/components/ReactBits/Dock.tsx",
-    "src/components/ReactBits/PixelCard.tsx",
-    "src/components/ReactBits/SpotlightCard.tsx"
+  "../lib/roleUtils.ts": [
+    "../lib/types.ts"
   ],
-  "src/components/TeamLogoPicker.test.tsx": [
-    "src/components/TeamLogoPicker.tsx"
+  "../lib/sessionHooks.ts": [
+    "../lib/supabaseClient.ts"
   ],
-  "src/components/TeamLogoPicker.tsx": [],
-  "src/components/VideoCall.tsx": [
-    "src/components/ControlsBar.tsx",
-    "src/components/ParticipantTile.tsx",
-    "src/lib/mutations.ts",
-    "src/lib/supabaseClient.ts",
-    "src/lib/types/supabase.ts"
+  "../lib/supabaseClient.ts": [],
+  "../lib/types.ts": [
+    "../lib/types/index.ts"
   ],
-  "src/lib/createSession.test.ts": [
-    "src/lib/mutations.ts",
-    "src/lib/supabaseClient.ts"
+  "../lib/types/index.ts": [
+    "../lib/types/supabase.ts"
   ],
-  "src/lib/dailyTokenManager.ts": [
-    "src/lib/types.ts"
+  "../lib/types/supabase.ts": [],
+  "../lib/useSessionData.ts": [
+    "../lib/mutations.ts"
   ],
-  "src/lib/enhancedPresence.ts": [
-    "src/lib/mutations.ts",
-    "src/lib/supabaseClient.ts"
+  "GameSetup.tsx": [
+    "../atoms/index.ts",
+    "../components/Alert.tsx",
+    "../components/LobbyStatus.tsx",
+    "../lib/mutations.ts",
+    "../lib/presence.ts",
+    "../lib/supabaseClient.ts",
+    "../lib/types.ts",
+    "../lib/useSessionData.ts"
   ],
-  "src/lib/enhancedRealtimeHooks.ts": [
-    "src/lib/supabaseClient.ts",
-    "src/lib/types.ts"
+  "Homepage.tsx": [
+    "../components/ActiveGames.tsx",
+    "../components/Alert.tsx",
+    "../components/PasswordModal.tsx",
+    "../lib/mutations.ts"
   ],
-  "src/lib/flagIcons.ts": [],
-  "src/lib/logger.ts": [],
-  "src/lib/mutations.test.ts": [
-    "src/lib/mutations.ts",
-    "src/lib/supabaseClient.ts",
-    "src/lib/types.ts"
+  "Join.backup.tsx": [
+    "../components/Alert.tsx",
+    "../components/FlagSelector.tsx",
+    "../components/LogoSelector.tsx",
+    "../lib/mutations.ts"
   ],
-  "src/lib/mutations.ts": [
-    "src/lib/dailyTokenManager.ts",
-    "src/lib/logger.ts",
-    "src/lib/supabaseClient.ts",
-    "src/lib/types.ts"
+  "Join.tsx": [
+    "../components/Alert.tsx",
+    "../components/OptimizedFlagSelector.tsx",
+    "../components/ReactBits/index.ts",
+    "../lib/mutations.ts",
+    "../lib/supabaseClient.ts"
   ],
-  "src/lib/mutations.validation.ts": [],
-  "src/lib/presence.ts": [
-    "src/lib/mutations.ts",
-    "src/lib/supabaseClient.ts"
+  "Lobby.tsx": [
+    "../atoms/index.ts",
+    "../components/Flag.tsx",
+    "../components/LobbyLogo.tsx",
+    "../components/VideoCall.tsx",
+    "../lib/mutations.ts",
+    "../lib/sessionHooks.ts",
+    "../lib/supabaseClient.ts",
+    "../lib/types/supabase.ts",
+    "../lib/useSessionData.ts"
   ],
-  "src/lib/realtimeHooks.ts": [
-    "src/lib/supabaseClient.ts",
-    "src/lib/types.ts"
+  "Quiz.tsx": [
+    "../lib/mutations.ts",
+    "../lib/realtimeHooks.ts",
+    "../lib/sessionHooks.ts",
+    "../lib/types.ts"
   ],
-  "src/lib/roleUtils.ts": [
-    "src/lib/types.ts"
-  ],
-  "src/lib/sessionCode.test.ts": [
-    "src/lib/mutations.ts",
-    "src/lib/supabaseClient.ts"
-  ],
-  "src/lib/sessionHooks.ts": [
-    "src/lib/supabaseClient.ts"
-  ],
-  "src/lib/supabaseClient.ts": [],
-  "src/lib/types.ts": [
-    "src/lib/types/index.ts"
-  ],
-  "src/lib/types/index.ts": [
-    "src/lib/types/supabase.ts"
-  ],
-  "src/lib/types/supabase.ts": [],
-  "src/lib/useDailyToken.ts": [
-    "src/atoms/index.ts",
-    "src/lib/mutations.ts"
-  ],
-  "src/lib/useSessionData.ts": [
-    "src/lib/mutations.ts"
-  ],
-  "src/lib/userSession.ts": [
-    "src/lib/types.ts"
-  ],
-  "src/pages/GameSetup.tsx": [
-    "src/atoms/index.ts",
-    "src/components/Alert.tsx",
-    "src/components/LobbyStatus.tsx",
-    "src/lib/mutations.ts",
-    "src/lib/presence.ts",
-    "src/lib/supabaseClient.ts",
-    "src/lib/types.ts",
-    "src/lib/useSessionData.ts"
-  ],
-  "src/pages/Homepage.tsx": [
-    "src/components/ActiveGames.tsx",
-    "src/components/Alert.tsx",
-    "src/components/PasswordModal.tsx",
-    "src/lib/mutations.ts"
-  ],
-  "src/pages/Join.backup.tsx": [
-    "src/components/Alert.tsx",
-    "src/components/FlagSelector.tsx",
-    "src/components/LogoSelector.tsx",
-    "src/lib/mutations.ts"
-  ],
-  "src/pages/Join.tsx": [
-    "src/components/Alert.tsx",
-    "src/components/OptimizedFlagSelector.tsx",
-    "src/components/ReactBits/index.ts",
-    "src/lib/mutations.ts",
-    "src/lib/supabaseClient.ts"
-  ],
-  "src/pages/Lobby.tsx": [
-    "src/atoms/index.ts",
-    "src/components/Flag.tsx",
-    "src/components/LobbyLogo.tsx",
-    "src/components/VideoCall.tsx",
-    "src/lib/mutations.ts",
-    "src/lib/sessionHooks.ts",
-    "src/lib/supabaseClient.ts",
-    "src/lib/types/supabase.ts",
-    "src/lib/useSessionData.ts"
-  ],
-  "src/pages/Quiz.tsx": [
-    "src/lib/mutations.ts",
-    "src/lib/realtimeHooks.ts",
-    "src/lib/sessionHooks.ts",
-    "src/lib/types.ts"
-  ],
-  "src/pages/Results.tsx": [
-    "src/lib/mutations.ts",
-    "src/lib/sessionHooks.ts",
-    "src/lib/supabaseClient.ts"
+  "Results.tsx": [
+    "../lib/mutations.ts",
+    "../lib/sessionHooks.ts",
+    "../lib/supabaseClient.ts"
   ]
 }

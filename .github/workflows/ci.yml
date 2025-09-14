@@ -1,9 +1,9 @@
 name: CI
 on:
   push:
-    branches: [minimal, main, advanced]
+    branches: [minimal]
   pull_request:
-    branches: [minimal, main, advanced]
+    branches: [minimal]
 
 env: # shared across all jobs and steps
   # ----- Front-end (Vite) -----
@@ -18,36 +18,40 @@ env: # shared across all jobs and steps
   DAILY_API_KEY: ${{ secrets.DAILY_API_KEY }}
 
 jobs:
-  build:
-    runs-on: ubuntu-latest # Speed up with pnpm store cache
-    permissions:
-      contents: read
-      packages: write
-
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          run_install: false
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v5
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
         with:
           node-version: 22
-          cache: "pnpm"
-          cache-dependency-path: "**/pnpm-lock.yaml"
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run lint
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
+        with:
+          node-version: 22
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run test -- --run
 
-      - name: Install dependencies (pnpm)
-        run: pnpm install --frozen-lockfile
 
-      - name: Lint
-        run: pnpm run lint
-
-      - name: Unit + integration tests
-        run: pnpm run test -- --run
-
-      - name: Build
-        run: pnpm run build
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
+        with:
+          node-version: 22
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run build
