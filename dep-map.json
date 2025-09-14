@@ -28,14 +28,20 @@
   "src/components/Flag.tsx": [
     "src/lib/flagIcons.ts"
   ],
-  "src/components/FlagSelector.tsx": [],
+  "src/components/FlagSelector.tsx": [
+    "src/components/Flag.tsx"
+  ],
   "src/components/LobbyLogo.tsx": [],
   "src/components/LobbyStatus.tsx": [
+    "src/lib/roleUtils.ts",
     "src/lib/supabaseClient.ts"
   ],
   "src/components/LogoSelector.tsx": [
     "src/components/ChromaLogo.tsx",
     "src/lib/supabaseClient.ts"
+  ],
+  "src/components/OptimizedFlagSelector.tsx": [
+    "src/components/Flag.tsx"
   ],
   "src/components/ParticipantTile.test.tsx": [
     "src/components/ParticipantTile.tsx",
@@ -85,6 +91,7 @@
     "src/lib/types.ts"
   ],
   "src/lib/flagIcons.ts": [],
+  "src/lib/logger.ts": [],
   "src/lib/mutations.test.ts": [
     "src/lib/mutations.ts",
     "src/lib/supabaseClient.ts",
@@ -92,6 +99,7 @@
   ],
   "src/lib/mutations.ts": [
     "src/lib/dailyTokenManager.ts",
+    "src/lib/logger.ts",
     "src/lib/supabaseClient.ts",
     "src/lib/types.ts"
   ],
@@ -102,6 +110,9 @@
   ],
   "src/lib/realtimeHooks.ts": [
     "src/lib/supabaseClient.ts",
+    "src/lib/types.ts"
+  ],
+  "src/lib/roleUtils.ts": [
     "src/lib/types.ts"
   ],
   "src/lib/sessionCode.test.ts": [
@@ -123,6 +134,9 @@
     "src/atoms/index.ts",
     "src/lib/mutations.ts"
   ],
+  "src/lib/useSessionData.ts": [
+    "src/lib/mutations.ts"
+  ],
   "src/lib/userSession.ts": [
     "src/lib/types.ts"
   ],
@@ -133,7 +147,8 @@
     "src/lib/mutations.ts",
     "src/lib/presence.ts",
     "src/lib/supabaseClient.ts",
-    "src/lib/types.ts"
+    "src/lib/types.ts",
+    "src/lib/useSessionData.ts"
   ],
   "src/pages/Homepage.tsx": [
     "src/components/ActiveGames.tsx",
@@ -149,7 +164,7 @@
   ],
   "src/pages/Join.tsx": [
     "src/components/Alert.tsx",
-    "src/components/FlagSelector.tsx",
+    "src/components/OptimizedFlagSelector.tsx",
     "src/components/ReactBits/index.ts",
     "src/lib/mutations.ts",
     "src/lib/supabaseClient.ts"
@@ -162,7 +177,8 @@
     "src/lib/mutations.ts",
     "src/lib/sessionHooks.ts",
     "src/lib/supabaseClient.ts",
-    "src/lib/types/supabase.ts"
+    "src/lib/types/supabase.ts",
+    "src/lib/useSessionData.ts"
   ],
   "src/pages/Quiz.tsx": [
     "src/lib/mutations.ts",
