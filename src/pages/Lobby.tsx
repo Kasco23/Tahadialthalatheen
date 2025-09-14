@@ -5,10 +5,9 @@ import { useAtom } from "jotai";
 import { supabase } from "../lib/supabaseClient";
 import { useSession } from "../lib/sessionHooks";
 import {
-  getSessionIdByCode,
-  getDailyRoom,
   leaveLobby,
 } from "../lib/mutations";
+import { useSessionData } from "../lib/useSessionData";
 import {
   sessionAtom,
   sessionCodeAtom,
@@ -99,68 +98,43 @@ const Lobby: React.FC = () => {
   const { sessionCode } = useParams<{ sessionCode: string }>();
   const navigate = useNavigate();
 
+  // Use consolidated session data hook
+  const { sessionId, dailyRoom, loading: sessionLoading, error: sessionError } = useSessionData(sessionCode || null);
+  
   // Use Jotai atoms
-  const [sessionId, setSessionId] = useAtom(sessionAtom);
+  const [, setSessionId] = useAtom(sessionAtom);
   const [_currentSessionCode, setCurrentSessionCode] = useAtom(sessionCodeAtom);
   const [_participants, _setParticipants] = useAtom(participantsAtom);
-  const [dailyRoomUrl] = useAtom(dailyRoomUrlAtom);
+  const [_dailyRoomUrl] = useAtom(dailyRoomUrlAtom);
 
   const {
     session,
-    loading: sessionLoading,
-    error: sessionError,
+    loading: _sessionHookLoading,
+    error: _sessionHookError,
   } = useSession(sessionId);
   const [players, setPlayers] = useState<ParticipantRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [dailyRoom, setDailyRoom] = useState<{
-    room_url: string;
-    ready: boolean;
-  } | null>(null);
 
-  // Convert sessionCode to sessionId when component mounts
+  // Update atoms when session data is resolved
   useEffect(() => {
-    const resolveSessionId = async () => {
-      if (!sessionCode) {
-        setError("No session code provided");
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const resolvedSessionId = await getSessionIdByCode(sessionCode);
-        setSessionId(resolvedSessionId);
-        setCurrentSessionCode(sessionCode);
-      } catch (error) {
-        console.error("Failed to resolve session code:", error);
-        setError("Invalid session code");
-        setLoading(false);
-      }
-    };
-
-    if (sessionCode && !sessionId) {
-      resolveSessionId();
-    }
-  }, [sessionCode, sessionId, setSessionId, setCurrentSessionCode]);
-
-  // Load Daily room data when sessionId is available
-  useEffect(() => {
-    const loadDailyRoom = async () => {
-      if (!sessionId) return;
-
-      try {
-        const roomData = await getDailyRoom(sessionId);
-        setDailyRoom(roomData);
-        console.log("Daily room URL from atom:", dailyRoomUrl);
-      } catch (error) {
-        console.error("Failed to load Daily room data:", error);
-      }
-    };
-
     if (sessionId) {
-      loadDailyRoom();
+      setSessionId(sessionId);
+      if (sessionCode) {
+        setCurrentSessionCode(sessionCode);
+      }
     }
-  }, [sessionId, dailyRoomUrl]);
+  }, [sessionId, sessionCode, setSessionId, setCurrentSessionCode]);
+
+  // Handle session resolution errors
+  useEffect(() => {
+    if (sessionError) {
+      setError(sessionError);
+      setLoading(false);
+    } else if (sessionId) {
+      setError(null);
+    }
+  }, [sessionError, sessionId]);
 
   useEffect(() => {
     if (!sessionId) {
@@ -300,7 +274,7 @@ const Lobby: React.FC = () => {
   };
 
   const handleRefresh = async () => {
-    // Re-run initial loaders
+    // Refresh participants - Daily room data will be automatically updated via hook
     try {
       setLoading(true);
       setError(null);
@@ -310,17 +284,6 @@ const Lobby: React.FC = () => {
         .select("*")
         .eq("session_id", sessionId);
       if (!pErr) setPlayers((pData as ParticipantRow[]) || []);
-      // Daily room
-      const { data: rData } = await supabase
-        .from("DailyRoom")
-        .select("room_url, ready")
-        .eq("room_id", sessionId)
-        .single();
-      if (rData)
-        setDailyRoom({
-          room_url: (rData as { room_url: string }).room_url,
-          ready: Boolean((rData as { ready: boolean | null }).ready),
-        });
     } finally {
       setLoading(false);
     }

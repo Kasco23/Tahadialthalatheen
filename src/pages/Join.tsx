@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { joinAsHost, joinAsPlayerWithCode } from "../lib/mutations";
 import { Alert } from "../components/Alert";
-import FlagSelector from "../components/FlagSelector";
+import OptimizedFlagSelector from "../components/OptimizedFlagSelector";
 import { supabase } from "../lib/supabaseClient";
 
 // ReactBits Components
@@ -379,11 +379,11 @@ const JoinRevolutionary: React.FC = () => {
 
           <div>
             <label className="block text-white font-medium mb-2">Choose Your Country</label>
-            <FlagSelector
+            <OptimizedFlagSelector
               selectedFlag={activeTab === "host" ? hostSelectedFlag : selectedFlag}
               onFlagSelect={activeTab === "host" 
-                ? (flag) => setHostSelectedFlag(flag)
-                : (flag) => setSelectedFlag(flag)
+                ? (flag: string) => setHostSelectedFlag(flag)
+                : (flag: string) => setSelectedFlag(flag)
               }
             />
           </div>

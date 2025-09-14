@@ -1,6 +1,10 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { supabase } from "../lib/supabaseClient";
+import { 
+  getRoleIcon, 
+  DISPLAY_PARTICIPANT_SLOTS 
+} from "../lib/roleUtils";
 
 interface LobbyStatusProps {
   sessionId: string;
@@ -150,23 +154,14 @@ const LobbyStatus: React.FC<LobbyStatusProps> = ({
     }
   };
 
-  const getRoleIcon = (role: string) => {
-    switch (role) {
-      case "Host":
-        return "👑";
-      case "Player1":
-        return "🎮";
-      case "Player2":
-        return "🎯";
-      default:
-        return "👤";
-    }
-  };
-
-  const activeParticipantCount = participants.filter(
+  // Filter out GameMaster from displayed participants and counts
+  const displayParticipants = participants.filter((p) => 
+    ["Host", "Player1", "Player2"].includes(p.role)
+  );
+  const activeParticipantCount = displayParticipants.filter(
     (p) => p.lobby_presence === "Joined",
   ).length;
-  const totalSlots = 3; // Host + 2 Players
+  const totalSlots = DISPLAY_PARTICIPANT_SLOTS; // Host + 2 Players (excludes GameMaster)
 
   if (loading) {
     return (
@@ -270,7 +265,7 @@ const LobbyStatus: React.FC<LobbyStatusProps> = ({
           👥 Participants
         </h3>
         <div className="space-y-3">
-          {participants.map((participant) => (
+          {displayParticipants.map((participant) => (
             <div
               key={participant.participant_id}
               className="flex items-center justify-between p-3 border rounded-lg"
@@ -307,9 +302,9 @@ const LobbyStatus: React.FC<LobbyStatusProps> = ({
           ))}
 
           {/* Empty slots */}
-          {participants.length < totalSlots && (
+          {displayParticipants.length < totalSlots && (
             <>
-              {Array(totalSlots - participants.length)
+              {Array(totalSlots - displayParticipants.length)
                 .fill(0)
                 .map((_, index) => (
                   <div

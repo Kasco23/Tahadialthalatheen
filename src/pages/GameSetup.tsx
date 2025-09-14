@@ -5,10 +5,10 @@ import {
   setSegmentConfig,
   createDailyRoom,
   getSegmentConfig,
-  getSessionIdByCode,
   endSession,
   joinAsHost,
 } from "../lib/mutations";
+import { useSessionData } from "../lib/useSessionData";
 import { supabase } from "../lib/supabaseClient";
 import LobbyStatus from "../components/LobbyStatus";
 import { Alert } from "../components/Alert";
@@ -25,8 +25,11 @@ const GameSetup: React.FC = () => {
   const hostPasswordFromState =
     (location.state as LocationState)?.hostPassword || null;
 
-  // Use Jotai atoms instead of local state
-  const [sessionId, setSessionId] = useAtom(sessionAtom);
+  // Use consolidated session data hook instead of separate fetches
+  const { sessionId, dailyRoom: _dailyRoom, loading: _sessionLoading, error: _sessionError } = useSessionData(sessionCode || null);
+  
+  // Use Jotai atoms for shared state
+  const [, setSessionId] = useAtom(sessionAtom);
   const [_currentSessionCode, setCurrentSessionCode] = useAtom(sessionCodeAtom);
   const [, setDailyRoomUrl] = useAtom(dailyRoomUrlAtom);
 
@@ -53,25 +56,15 @@ const GameSetup: React.FC = () => {
     REMO: 4, // Remontada
   });
 
-  // Convert sessionCode to sessionId when component mounts
+  // Update atoms when sessionId is resolved
   useEffect(() => {
-    const resolveSessionId = async () => {
-      if (!sessionCode) return;
-
-      try {
-        const resolvedSessionId = await getSessionIdByCode(sessionCode);
-        setSessionId(resolvedSessionId);
+    if (sessionId) {
+      setSessionId(sessionId);
+      if (sessionCode) {
         setCurrentSessionCode(sessionCode);
-      } catch (error) {
-        console.error("Failed to resolve session code:", error);
-        navigate("/");
       }
-    };
-
-    if (sessionCode && !sessionId) {
-      resolveSessionId();
     }
-  }, [sessionCode, sessionId, setSessionId, setCurrentSessionCode, navigate]);
+  }, [sessionId, sessionCode, setSessionId, setCurrentSessionCode]);
 
   // Join as host when sessionId is available and host password is provided
   useEffect(() => {

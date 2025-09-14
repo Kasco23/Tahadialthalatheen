@@ -1,5 +1,6 @@
 import { supabase } from "./supabaseClient";
 import { dailyTokenManager } from "./dailyTokenManager";
+import { Logger } from "./logger";
 import type {
   TablesUpdate,
   SegmentCode,
@@ -96,11 +97,11 @@ export async function getActiveSessions(): Promise<ActiveSession[]> {
     .is("ended_at", null);
 
   if (error) {
-    console.error("Error fetching active sessions:", error);
+    Logger.error("Error fetching active sessions:", error);
     throw new Error(`Failed to fetch active sessions: ${error.message}`);
   }
 
-  console.log("Raw data from Supabase:", data);
+  Logger.debug("Raw data from Supabase:", data);
 
   // Transform the data to match our interface
   type SessionRow = {
@@ -139,7 +140,7 @@ export async function getActiveSessions(): Promise<ActiveSession[]> {
     };
   });
 
-  console.log("Transformed active sessions:", activeSessions);
+  Logger.debug("Transformed active sessions:", activeSessions);
   return activeSessions;
 }
 
@@ -197,7 +198,7 @@ export async function joinAsPlayerWithCode(
       .eq("session_id", sessionId)
       .eq("name", name)
       .limit(1)
-      .single();
+      .maybeSingle();
 
     type ExistingRow = { participant_id: string; role?: string } | null;
 
@@ -309,13 +310,13 @@ export async function createDailyRoom(
   sessionCode: string,
 ): Promise<CreateDailyRoomResponse> {
   try {
-    console.log("Creating Daily room with:", { sessionId, sessionCode });
+    Logger.debug("Creating Daily room with:", { sessionId, sessionCode });
 
     // Check if we're in local development without Netlify CLI
     const isLocalDev = window.location.hostname === "localhost" && window.location.port === "5173";
     
     if (isLocalDev) {
-      console.warn("Running in local development mode - using mock Daily room");
+      Logger.warn("Running in local development mode - using mock Daily room");
       
       // Create mock Daily room for development
       const mockRoomUrl = `https://thirty.daily.co/${sessionCode.toLowerCase()}`;
@@ -333,11 +334,11 @@ export async function createDailyRoom(
       });
 
       if (error) {
-        console.error("Database error saving mock Daily room:", error);
+        Logger.error("Database error saving mock Daily room:", error);
         throw new Error(`Failed to save mock Daily room: ${error.message}`);
       }
 
-      console.log("Mock Daily room created successfully:", mockResponse);
+      Logger.debug("Mock Daily room created successfully:", mockResponse);
       return mockResponse;
     }
 
@@ -352,7 +353,7 @@ export async function createDailyRoom(
       }),
     });
 
-    console.log("Daily room creation response status:", response.status);
+    Logger.debug("Daily room creation response status:", response.status);
 
     if (!response.ok) {
       // Clone response to allow reading body multiple times
@@ -361,7 +362,7 @@ export async function createDailyRoom(
       // Try to get the error details from the response
       try {
         const errorData = await response.json();
-        console.error("Daily room creation error details:", errorData);
+        Logger.error("Daily room creation error details:", errorData);
         throw new Error(
           `HTTP error! status: ${response.status}, details: ${JSON.stringify(errorData)}`,
         );
@@ -369,7 +370,7 @@ export async function createDailyRoom(
         // If we can't parse JSON, get text from the cloned response
         try {
           const errorText = await responseClone.text();
-          console.error("Daily room creation error (raw):", errorText);
+          Logger.error("Daily room creation error (raw):", errorText);
           throw new Error(
             `HTTP error! status: ${response.status}, response: ${errorText}`,
           );
@@ -380,7 +381,7 @@ export async function createDailyRoom(
     }
 
     const data: CreateDailyRoomResponse = await response.json();
-    console.log("Daily room created successfully:", data);
+    Logger.debug("Daily room created successfully:", data);
 
     // Insert/update DailyRoom table
     const { error } = await supabase.from("DailyRoom").upsert({
@@ -390,7 +391,7 @@ export async function createDailyRoom(
     });
 
     if (error) {
-      console.error("Database error saving Daily room:", error);
+      Logger.error("Database error saving Daily room:", error);
       throw new Error(`Failed to save Daily room: ${error.message}`);
     }
     return data;
@@ -422,7 +423,7 @@ export async function getDailyRoom(
 
     return data;
   } catch (error) {
-    console.error("Error getting Daily room:", error);
+    Logger.error("Error getting Daily room:", error);
     return null;
   }
 }

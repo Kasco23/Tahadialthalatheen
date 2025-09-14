@@ -63,8 +63,8 @@ importers:
         specifier: ^17.2.2
         version: 17.2.2
       firecrawl-fastmcp:
-        specifier: ^1.0.0
-        version: 1.0.0
+        specifier: ^1.0.2
+        version: 1.0.2
       firecrawl-mcp:
         specifier: ^3.1.13
         version: 3.1.13
@@ -104,9 +104,6 @@ importers:
       react:
         specifier: ^19.1.1
         version: 19.1.1
-      react-country-flag:
-        specifier: ^3.1.0
-        version: 3.1.0(react@19.1.1)
       react-dom:
         specifier: ^19.1.1
         version: 19.1.1(react@19.1.1)
@@ -4358,10 +4355,6 @@ packages:
     resolution: {integrity: sha512-YyZM99iHrqLKjmt4LJDj58KI+fYyufRLBSYcqycxf//KpBk9FoewoGX0450m9nB44qrZnovzC2oeP5hUibxc/g==}
     engines: {node: '>=18'}
 
-  firecrawl-fastmcp@1.0.0:
-    resolution: {integrity: sha512-aV6hyFkwa6mGx5yzbAQiQmGDyyPRYDAGRhMOTx353SGPdnnI3e9xzN0/31X6Mr+O6Zyz+ioe95akTLnm05n1BA==}
-    hasBin: true
-
   firecrawl-fastmcp@1.0.2:
     resolution: {integrity: sha512-3PMumDOS41+MLZdQHkpdvbeAzGOw56SksDcbLeaKxVkG7fkEKfrd/NdHTldQjLkh+WZUBt9wBXt29VLbZDuRdQ==}
     hasBin: true
@@ -6672,12 +6665,6 @@ packages:
   rc@1.2.8:
     resolution: {integrity: sha512-y3bGgqKj3QBdxLbLkomlohkvsA8gdAiUQlSBJnBhfn+BPxg4bc62d8TcBW15wavDfgexCgccckhcZvywyQYPOw==}
     hasBin: true
-
-  react-country-flag@3.1.0:
-    resolution: {integrity: sha512-JWQFw1efdv9sTC+TGQvTKXQg1NKbDU2mBiAiRWcKM9F1sK+/zjhP2yGmm8YDddWyZdXVkR8Md47rPMJmo4YO5g==}
-    engines: {node: '>=12'}
-    peerDependencies:
-      react: '>=16'
 
   react-dom@19.1.1:
     resolution: {integrity: sha512-Dlq/5LAZgF0Gaz6yiqZCf6VCcZs1ghAJyrsu84Q/GT0gV+mCxbfmKNoGRKBYMJ8IEdGPqu49YWXD02GCknEDkw==}
@@ -12924,28 +12911,6 @@ snapshots:
       path-exists: 5.0.0
       unicorn-magic: 0.1.0
 
-  firecrawl-fastmcp@1.0.0:
-    dependencies:
-      '@modelcontextprotocol/sdk': 1.18.0
-      '@standard-schema/spec': 1.0.0
-      execa: 9.6.0
-      file-type: 21.0.0
-      fuse.js: 7.1.0
-      mcp-proxy: 5.5.6
-      strict-event-emitter-types: 2.0.0
-      undici: 5.29.0
-      uri-templates: 0.2.0
-      xsschema: 0.3.5(zod-to-json-schema@3.24.6(zod@4.1.8))(zod@3.25.76)
-      yargs: 18.0.0
-      zod: 3.25.76
-      zod-to-json-schema: 3.24.6(zod@3.25.76)
-    transitivePeerDependencies:
-      - '@valibot/to-json-schema'
-      - arktype
-      - effect
-      - supports-color
-      - sury
-
   firecrawl-fastmcp@1.0.2:
     dependencies:
       '@modelcontextprotocol/sdk': 1.18.0
@@ -12957,7 +12922,7 @@ snapshots:
       strict-event-emitter-types: 2.0.0
       undici: 5.29.0
       uri-templates: 0.2.0
-      xsschema: 0.3.5(zod-to-json-schema@3.24.6(zod@4.1.8))(zod@3.25.76)
+      xsschema: 0.3.5(zod-to-json-schema@3.24.6(zod@3.25.76))(zod@3.25.76)
       yargs: 18.0.0
       zod: 3.25.76
       zod-to-json-schema: 3.24.6(zod@3.25.76)
@@ -15685,10 +15650,6 @@ snapshots:
       minimist: 1.2.8
       strip-json-comments: 2.0.1
 
-  react-country-flag@3.1.0(react@19.1.1):
-    dependencies:
-      react: 19.1.1
-
   react-dom@19.1.1(react@19.1.1):
     dependencies:
       react: 19.1.1
@@ -17342,7 +17303,7 @@ snapshots:
       commander: 2.20.3
       cssfilter: 0.0.10
 
-  xsschema@0.3.5(zod-to-json-schema@3.24.6(zod@4.1.8))(zod@3.25.76):
+  xsschema@0.3.5(zod-to-json-schema@3.24.6(zod@3.25.76))(zod@3.25.76):
     optionalDependencies:
       zod: 3.25.76
       zod-to-json-schema: 3.24.6(zod@3.25.76)
