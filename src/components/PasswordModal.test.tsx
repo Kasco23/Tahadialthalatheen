@@ -1,9 +1,10 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import PasswordModal from "./PasswordModal";
+import { vi } from "vitest";
 
 describe("PasswordModal", () => {
-  const mockOnClose = jest.fn();
-  const mockOnConfirm = jest.fn();
+  const mockOnClose = vi.fn();
+  const mockOnConfirm = vi.fn();
 
   beforeEach(() => {
     mockOnClose.mockClear();

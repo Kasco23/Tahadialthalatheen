@@ -38,6 +38,8 @@ export default defineConfig({
     exclude: [
       "tests/e2e/**", // handled by Playwright separately
       "node_modules/**",
+      ".netlify/**", // exclude netlify plugin tests that use Jest syntax
+      "**/node_modules/**",
     ],
   },
 });

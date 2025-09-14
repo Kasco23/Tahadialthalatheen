@@ -3,17 +3,18 @@
  */
 import { joinAsHost } from "./mutations";
 import { supabase } from "./supabaseClient";
+import { vi, type Mock } from "vitest";
 
-jest.mock("./supabaseClient", () => ({
+vi.mock("./supabaseClient", () => ({
   supabase: {
-    rpc: jest.fn(),
-    from: jest.fn(),
+    rpc: vi.fn(),
+    from: vi.fn(),
   },
 }));
 
 describe("Mutations", () => {
   beforeEach(() => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
   });
 
   it("should import all mutation functions without throwing", async () => {
@@ -40,26 +41,26 @@ describe("Mutations", () => {
 
   describe("joinAsHost", () => {
     it("should set join_at timestamp and clear disconnect_at when updating existing host", async () => {
-      const mockUpdate = jest.fn().mockReturnThis();
-      const mockEq = jest.fn().mockResolvedValue({ error: null });
+      const mockUpdate = vi.fn().mockReturnThis();
+      const mockEq = vi.fn().mockResolvedValue({ error: null });
 
       mockUpdate.mockReturnValue({ eq: mockEq });
 
       const mockFromMethods = {
-        rpc: jest.fn().mockResolvedValue({ data: true, error: null }),
-        from: jest.fn().mockReturnThis(),
-        select: jest.fn().mockReturnThis(),
-        eq: jest.fn().mockReturnThis(),
-        single: jest.fn(),
-        maybeSingle: jest.fn(),
+        rpc: vi.fn().mockResolvedValue({ data: true, error: null }),
+        from: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn(),
+        maybeSingle: vi.fn(),
         update: mockUpdate,
       };
 
-      (supabase.rpc as jest.Mock).mockResolvedValue({
+      (supabase.rpc as Mock).mockResolvedValue({
         data: true,
         error: null,
       });
-      (supabase.from as jest.Mock).mockReturnValue(mockFromMethods);
+      (supabase.from as Mock).mockReturnValue(mockFromMethods);
 
       // Mock session lookup
       mockFromMethods.single.mockResolvedValueOnce({

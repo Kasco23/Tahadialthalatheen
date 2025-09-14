@@ -2,12 +2,13 @@ import { render, screen } from "@testing-library/react";
 import { Provider } from "jotai";
 import { DailyProvider } from "@daily-co/daily-react";
 import { DailyJoinButton } from "./DailyJoinButton";
+import { vi } from "vitest";
 
 // Mock the mutations module
-jest.mock("../lib/mutations", () => ({
-  createDailyToken: jest.fn().mockResolvedValue({ token: "mock-token" }),
-  clearDailyToken: jest.fn(),
-  getDailyTokenInfo: jest.fn().mockReturnValue({
+vi.mock("../lib/mutations", () => ({
+  createDailyToken: vi.fn().mockResolvedValue({ token: "mock-token" }),
+  clearDailyToken: vi.fn(),
+  getDailyTokenInfo: vi.fn().mockReturnValue({
     token: "mock-token",
     room_name: "ABC123",
     user_name: "Test User",
@@ -18,14 +19,14 @@ jest.mock("../lib/mutations", () => ({
 }));
 
 // Mock Daily.co
-jest.mock("@daily-co/daily-react", () => ({
+vi.mock("@daily-co/daily-react", () => ({
   DailyProvider: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="daily-provider">{children}</div>
   ),
   useDaily: () => ({
     meetingState: () => "left-meeting",
-    join: jest.fn(),
-    leave: jest.fn(),
+    join: vi.fn(),
+    leave: vi.fn(),
   }),
 }));
 

@@ -1,32 +1,33 @@
 import { createSession } from "./mutations";
 import { supabase } from "./supabaseClient";
+import { vi, type MockedFunction } from "vitest";
 
-jest.mock("./supabaseClient", () => ({
+vi.mock("./supabaseClient", () => ({
   supabase: {
-    from: jest.fn(),
+    from: vi.fn(),
   },
 }));
 
 describe("createSession uses DB trigger to create session_code", () => {
   beforeEach(() => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
   });
 
   it("creates session and returns DB-generated session_code, then creates host participant", async () => {
-    const fromMock = (supabase as unknown as { from: jest.Mock }).from;
+    const fromMock = (supabase as unknown as { from: MockedFunction<() => unknown> }).from;
 
     // Session insert -> select -> single returns session with session_code set by trigger
-    const singleInsert = jest.fn().mockResolvedValue({
+    const singleInsert = vi.fn().mockResolvedValue({
       data: { session_id: "new-id", session_code: "A1B2C3!" },
       error: null,
     });
-    const insertSelect = jest.fn().mockReturnValue({ single: singleInsert });
-    const insertMockSession = jest
+    const insertSelect = vi.fn().mockReturnValue({ single: singleInsert });
+    const insertMockSession = vi
       .fn()
       .mockReturnValue({ select: insertSelect });
 
     // Participant insert returns ok
-    const insertMockParticipant = jest
+    const insertMockParticipant = vi
       .fn()
       .mockResolvedValue({ data: null, error: null });
 

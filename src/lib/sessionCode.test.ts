@@ -2,12 +2,15 @@ import { getSessionIdByCode } from "../lib/mutations";
 import { supabase } from "../lib/supabaseClient";
 
 // Mock supabase client
-jest.mock("../lib/supabaseClient", () => ({
+import { vi } from "vitest";
+
+// Mock supabase client
+vi.mock("../lib/supabaseClient", () => ({
   supabase: {
-    from: jest.fn(() => ({
-      select: jest.fn(() => ({
-        eq: jest.fn(() => ({
-          single: jest.fn(),
+    from: vi.fn(() => ({
+      select: vi.fn(() => ({
+        eq: vi.fn(() => ({
+          single: vi.fn(),
         })),
       })),
     })),
@@ -16,7 +19,7 @@ jest.mock("../lib/supabaseClient", () => ({
 
 describe("Session Code Functionality", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it("should convert session code to session ID", async () => {
@@ -24,20 +27,20 @@ describe("Session Code Functionality", () => {
     const mockSessionCode = "ABC123";
 
     // Mock successful response
-    const mockSingle = jest.fn().mockResolvedValue({
+    const mockSingle = vi.fn().mockResolvedValue({
       data: { session_id: mockSessionId },
       error: null,
     });
 
-    const mockEq = jest.fn().mockReturnValue({
+    const mockEq = vi.fn().mockReturnValue({
       single: mockSingle,
     });
 
-    const mockSelect = jest.fn().mockReturnValue({
+    const mockSelect = vi.fn().mockReturnValue({
       eq: mockEq,
     });
 
-    const mockFrom = jest.fn().mockReturnValue({
+    const mockFrom = vi.fn().mockReturnValue({
       select: mockSelect,
     });
 
@@ -56,20 +59,20 @@ describe("Session Code Functionality", () => {
     const mockError = { message: "Session not found" };
 
     // Mock error response
-    const mockSingle = jest.fn().mockResolvedValue({
+    const mockSingle = vi.fn().mockResolvedValue({
       data: null,
       error: mockError,
     });
 
-    const mockEq = jest.fn().mockReturnValue({
+    const mockEq = vi.fn().mockReturnValue({
       single: mockSingle,
     });
 
-    const mockSelect = jest.fn().mockReturnValue({
+    const mockSelect = vi.fn().mockReturnValue({
       eq: mockEq,
     });
 
-    const mockFrom = jest.fn().mockReturnValue({
+    const mockFrom = vi.fn().mockReturnValue({
       select: mockSelect,
     });
 
