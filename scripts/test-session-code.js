@@ -1,19 +1,37 @@
 // Quick test to see if the session code generation works
-import { supabase } from "../src/lib/supabaseClient.js";
+import { supabase } from "../src/lib/supabaseClient.ts";
+import { webcrypto } from "node:crypto";
+
+// Cryptographically secure random number generator
+const getSecureRandomInt = (max) => {
+  const array = new Uint32Array(1);
+  webcrypto.getRandomValues(array);
+  return array[0] % max;
+};
+
+// Cryptographically secure Fisher-Yates shuffle
+const secureShuffleArray = (array) => {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = getSecureRandomInt(i + 1);
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+};
 
 const generateSessionCode = async () => {
   const numbers = Array.from({ length: 3 }, () =>
-    Math.floor(Math.random() * 10).toString(),
+    getSecureRandomInt(10).toString(),
   );
   const letters = Array.from({ length: 3 }, () =>
-    String.fromCharCode(65 + Math.floor(Math.random() * 26)),
+    String.fromCharCode(65 + getSecureRandomInt(26)),
   );
   const specialChars = ["!", "@", "#", "$", "%", "^", "&", "*", "(", ")"];
   const specialChar =
-    specialChars[Math.floor(Math.random() * specialChars.length)];
+    specialChars[getSecureRandomInt(specialChars.length)];
 
   const allChars = [...numbers, ...letters, specialChar];
-  const shuffled = allChars.sort(() => Math.random() - 0.5).join("");
+  const shuffled = secureShuffleArray(allChars).join("");
 
   console.log("Generated code:", shuffled);
 
