@@ -1,3 +1,4 @@
+import { Logger } from "../lib/logger";
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -93,7 +94,7 @@ const JoinRevolutionary: React.FC = () => {
         const { data, error } = await supabase.functions.invoke("list-logos");
 
         if (error) {
-          console.error("Error fetching logos:", error);
+          Logger.error("Error fetching logos:", error);
           setError("Failed to load team logos");
           return;
         }
@@ -114,7 +115,7 @@ const JoinRevolutionary: React.FC = () => {
 
         setLeagues(leaguesList);
       } catch (error) {
-        console.error("Error loading logos:", error);
+        Logger.error("Error loading logos:", error);
         setError("Failed to load team logos");
       } finally {
         setLoading(false);
@@ -169,12 +170,12 @@ const JoinRevolutionary: React.FC = () => {
           localStorage.setItem("teamName", hostTeamName);
         }
       } catch (storageError) {
-        console.warn("Could not save to localStorage:", storageError);
+        Logger.warn("Could not save to localStorage:", storageError);
       }
 
       navigate(`/lobby/${sessionCode}`);
     } catch (error) {
-      console.error("Error joining as host:", error);
+      Logger.error("Error joining as host:", error);
       setAlert({
         type: "error",
         message: "Failed to join as host. Please check your credentials.",
@@ -223,12 +224,12 @@ const JoinRevolutionary: React.FC = () => {
           localStorage.setItem("teamName", teamName);
         }
       } catch (storageError) {
-        console.warn("Could not save to localStorage:", storageError);
+        Logger.warn("Could not save to localStorage:", storageError);
       }
 
       navigate(`/lobby/${playerSessionCode}`);
     } catch (error) {
-      console.error("Error joining as player:", error);
+      Logger.error("Error joining as player:", error);
       setAlert({
         type: "error",
         message: "Failed to join as player. Please check your session code.",

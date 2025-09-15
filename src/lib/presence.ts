@@ -1,3 +1,4 @@
+import { Logger } from "./logger";
 import { supabase } from "./supabaseClient";
 import { updateLobbyPresence } from "./mutations";
 
@@ -63,7 +64,7 @@ export class PresenceHelper {
       })
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .on("presence", { event: "join" }, ({ key, newPresences }: any) => {
-        console.log("User joined:", key, newPresences);
+        Logger.log("User joined:", { key, newPresences });
         const presenceState = this.channel.presenceState();
         if (this.onPresenceChange) {
           this.onPresenceChange(this.formatPresenceState(presenceState));
@@ -71,7 +72,7 @@ export class PresenceHelper {
       })
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .on("presence", { event: "leave" }, ({ key, leftPresences }: any) => {
-        console.log("User left:", key, leftPresences);
+        Logger.log("User left:", { key, leftPresences });
         const presenceState = this.channel.presenceState();
         if (this.onPresenceChange) {
           this.onPresenceChange(this.formatPresenceState(presenceState));
@@ -216,7 +217,7 @@ export class PresenceHelper {
         await updateLobbyPresence(userId, "Disconnected");
       }
     } catch (err) {
-      console.error("Failed to update database presence:", err);
+      Logger.error("Failed to update database presence:", err);
     }
   }
 

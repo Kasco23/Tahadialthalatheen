@@ -1,3 +1,4 @@
+import { Logger } from "./logger";
 import { useState, useEffect, useMemo } from "react";
 import { getSessionIdByCode, getDailyRoom } from "./mutations";
 
@@ -57,7 +58,7 @@ export const useSessionData = (
             }
           } catch (roomError) {
             // Daily room might not exist yet - this is not necessarily an error
-            console.warn("Daily room not found:", roomError);
+            Logger.warn("Daily room not found:", roomError);
             if (!isCancelled) {
               setDailyRoom(null);
             }

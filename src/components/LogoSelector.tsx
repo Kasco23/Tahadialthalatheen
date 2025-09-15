@@ -1,3 +1,4 @@
+import { Logger } from "../lib/logger";
 import React, { useState, useEffect } from "react";
 import { supabase } from "../lib/supabaseClient";
 import ChromaLogo from "./ChromaLogo";
@@ -80,7 +81,7 @@ const LogoSelector: React.FC<LogoSelectorProps> = ({
 
       setLeagues(leaguesArray);
     } catch (err) {
-      console.error("Error fetching logos:", err);
+      Logger.error("Error fetching logos:", err);
       setError(
         err instanceof Error ? err.message : "Failed to load team logos",
       );

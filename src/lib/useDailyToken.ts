@@ -1,3 +1,4 @@
+import { Logger } from "./logger";
 import { useCallback, useEffect } from "react";
 import { useAtom } from "jotai";
 import {
@@ -43,10 +44,10 @@ export const useDailyToken = ({
         setTokenExpiry(tokenInfo.expires_at);
       }
 
-      console.log("Daily token refreshed successfully");
+      Logger.log("Daily token refreshed successfully");
       return tokenResponse.token;
     } catch (error) {
-      console.error("Failed to refresh Daily token:", error);
+      Logger.error("Failed to refresh Daily token:", error);
       throw error;
     } finally {
       setIsRefreshing(false);
@@ -63,7 +64,7 @@ export const useDailyToken = ({
   useEffect(() => {
     if (isTokenExpiringSoon || isTokenExpired || !dailyToken) {
       refreshToken().catch((error) => {
-        console.error("Auto token refresh failed:", error);
+        Logger.error("Auto token refresh failed:", error);
       });
     }
   }, [isTokenExpiringSoon, isTokenExpired, dailyToken, refreshToken]);
@@ -76,7 +77,7 @@ export const useDailyToken = ({
       () => {
         if (dailyToken && !isRefreshing) {
           refreshToken().catch((error) => {
-            console.error("Periodic token refresh failed:", error);
+            Logger.error("Periodic token refresh failed:", error);
           });
         }
       },

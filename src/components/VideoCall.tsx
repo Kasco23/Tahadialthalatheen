@@ -1,3 +1,4 @@
+import { Logger } from "../lib/logger";
 import React from "react";
 import {
   useParticipantIds,
@@ -52,7 +53,7 @@ export const VideoCall: React.FC<VideoCallProps> = ({
   // Log errors if they occur
   React.useEffect(() => {
     if (meetingError) {
-      console.error("Daily meeting error:", meetingError);
+      Logger.error("Daily meeting error:", meetingError);
     }
   }, [meetingError]);
 
@@ -94,7 +95,7 @@ export const VideoCall: React.FC<VideoCallProps> = ({
     setCallError(null);
 
     try {
-      console.log("Using participant name for token:", participantName);
+      Logger.log("Using participant name for token:", participantName);
 
       // Fetch the token for joining the Daily room
       const tokenResponse = await createDailyToken(
@@ -109,12 +110,12 @@ export const VideoCall: React.FC<VideoCallProps> = ({
         userName: participantName,
       });
 
-      console.log("Successfully initiated Daily room join:", {
+      Logger.log("Successfully initiated Daily room join:", {
         roomUrl: roomData.room_url,
         userName: participantName,
       });
     } catch (error) {
-      console.error("Failed to join Daily room:", error);
+      Logger.error("Failed to join Daily room:", error);
       setCallError(
         error instanceof Error ? error.message : "Failed to join video call",
       );
@@ -125,9 +126,9 @@ export const VideoCall: React.FC<VideoCallProps> = ({
     if (callObject) {
       try {
         await callObject.leave();
-        console.log("Left Daily call");
+        Logger.log("Left Daily call");
       } catch (error) {
-        console.error("Error leaving Daily call:", error);
+        Logger.error("Error leaving Daily call:", error);
       }
     }
   };

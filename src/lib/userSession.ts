@@ -1,3 +1,4 @@
+import { Logger } from "./logger";
 // User session management with consolidated localStorage
 import type { ParticipantRole } from "./types";
 
@@ -28,7 +29,7 @@ export class UserSession {
         this.migrateOldKeys();
       }
     } catch (error) {
-      console.warn("Failed to parse user session data:", error);
+      Logger.warn("Failed to parse user session data:", error);
       this.data = {};
     }
   }
@@ -111,7 +112,7 @@ export class UserSession {
     try {
       localStorage.setItem(SESSION_KEY, JSON.stringify(this.data));
     } catch (error) {
-      console.warn("Failed to save user session data:", error);
+      Logger.warn("Failed to save user session data:", error);
     }
   }
 

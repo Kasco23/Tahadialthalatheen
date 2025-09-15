@@ -1,3 +1,4 @@
+import { Logger } from "../lib/logger";
 import React, { useState } from "react";
 import { DailyProvider, useDaily, useDailyEvent } from "@daily-co/daily-react";
 import { useDailyToken } from "../lib/useDailyToken";
@@ -30,14 +31,14 @@ const DailyCallContent: React.FC<
 
   // Event handlers
   useDailyEvent("joined-meeting", () => {
-    console.log("Successfully joined Daily meeting");
+    Logger.log("Successfully joined Daily meeting");
     setIsInCall(true);
     setIsJoining(false);
     onJoined?.();
   });
 
   useDailyEvent("left-meeting", (event) => {
-    console.log("Left Daily meeting", event);
+    Logger.log("Left Daily meeting", event);
     setIsInCall(false);
     setIsJoining(false);
 
@@ -52,7 +53,7 @@ const DailyCallContent: React.FC<
   });
 
   useDailyEvent("error", (error) => {
-    console.error("Daily call error:", error);
+    Logger.error("Daily call error:", error);
     setIsJoining(false);
     const errorMessage =
       typeof error === "string" ? error : "An error occurred during the call";
@@ -60,11 +61,11 @@ const DailyCallContent: React.FC<
   });
 
   useDailyEvent("participant-left", (event) => {
-    console.log("Participant left:", event);
+    Logger.log("Participant left:", event);
     if (event && "reason" in event) {
       const reason = (event as unknown as EventWithReason).reason;
       if (reason === "ejected" || reason === "hidden") {
-        console.log(`Participant was ${reason}`);
+        Logger.log(`Participant was ${reason}`);
       }
     }
   });
@@ -80,7 +81,7 @@ const DailyCallContent: React.FC<
         userName: participantName,
       });
     } catch (error) {
-      console.error("Failed to join Daily call:", error);
+      Logger.error("Failed to join Daily call:", error);
       setIsJoining(false);
       onError?.(error instanceof Error ? error.message : "Failed to join call");
     }
@@ -93,7 +94,7 @@ const DailyCallContent: React.FC<
     try {
       await daily.leave();
     } catch (error) {
-      console.error("Error leaving call:", error);
+      Logger.error("Error leaving call:", error);
     }
   };
 

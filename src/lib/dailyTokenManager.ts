@@ -1,3 +1,4 @@
+import { Logger } from "./logger";
 import type {
   DailyTokenData,
   DailyTokenCache,
@@ -41,12 +42,12 @@ class DailyTokenManager {
 
     // Check if we have a valid cached token
     if (cachedToken && this.isTokenValid(cachedToken)) {
-      console.log("Using cached Daily token for:", { roomName, userName });
+      Logger.log("Using cached Daily token for:", { roomName, userName });
       return cachedToken.token;
     }
 
     // Create new token
-    console.log("Creating new Daily token for:", { roomName, userName });
+    Logger.log("Creating new Daily token for:", { roomName, userName });
     const tokenData = await this.createToken(roomName, userName);
 
     // Cache the token
@@ -62,7 +63,7 @@ class DailyTokenManager {
    * Refresh a token before it expires
    */
   async refreshToken(roomName: string, userName: string): Promise<string> {
-    console.log("Refreshing Daily token for:", { roomName, userName });
+    Logger.log("Refreshing Daily token for:", { roomName, userName });
 
     try {
       const tokenData = await this.createToken(roomName, userName);
@@ -70,7 +71,7 @@ class DailyTokenManager {
       this.scheduleTokenRefresh(tokenData);
       return tokenData.token;
     } catch (error) {
-      console.error("Failed to refresh Daily token:", error);
+      Logger.error("Failed to refresh Daily token:", error);
       throw error;
     }
   }
@@ -155,7 +156,7 @@ class DailyTokenManager {
         window.location.port === "5173";
 
       if (isLocalDev) {
-        console.warn(
+        Logger.warn(
           "Running in local development mode - using mock Daily token",
         );
 
@@ -200,7 +201,7 @@ class DailyTokenManager {
         this.config.maxDelay,
       );
 
-      console.warn(
+      Logger.warn(
         `Daily token creation attempt ${attempt} failed, retrying in ${delay}ms:`,
         error,
       );
@@ -232,12 +233,12 @@ class DailyTokenManager {
       const timeoutId = setTimeout(async () => {
         try {
           await this.refreshToken(tokenData.room_name, tokenData.user_name);
-          console.log("Successfully refreshed Daily token for:", {
+          Logger.log("Successfully refreshed Daily token for:", {
             roomName: tokenData.room_name,
             userName: tokenData.user_name,
           });
         } catch (error) {
-          console.error("Failed to auto-refresh Daily token:", error);
+          Logger.error("Failed to auto-refresh Daily token:", error);
         }
       }, delay);
 
@@ -263,7 +264,7 @@ class DailyTokenManager {
         }
       }
     } catch (error) {
-      console.warn("Failed to load Daily token cache from storage:", error);
+      Logger.warn("Failed to load Daily token cache from storage:", error);
       this.cache = {};
     }
   }
@@ -274,7 +275,7 @@ class DailyTokenManager {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(this.cache));
       }
     } catch (error) {
-      console.warn("Failed to save Daily token cache to storage:", error);
+      Logger.warn("Failed to save Daily token cache to storage:", error);
     }
   }
 

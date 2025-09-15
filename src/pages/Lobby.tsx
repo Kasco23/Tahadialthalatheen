@@ -1,3 +1,4 @@
+import { Logger } from "../lib/logger";
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAtom } from "jotai";
@@ -165,7 +166,7 @@ const Lobby: React.FC = () => {
               Database["public"]["Tables"]["Participant"]["Row"]
             >,
           ) => {
-            console.log("Participant update:", payload);
+            Logger.log("Participant update:", payload);
 
             if (!isMounted) return;
 
@@ -192,7 +193,7 @@ const Lobby: React.FC = () => {
           },
         )
         .subscribe((status) => {
-          console.log("Participants subscription status:", status);
+          Logger.log("Participants subscription status:", status);
         });
 
       return channel;
@@ -211,7 +212,7 @@ const Lobby: React.FC = () => {
           .order("name", { ascending: true });
 
         if (fetchError) {
-          console.error("Error loading players:", fetchError);
+          Logger.error("Error loading players:", fetchError);
           setError("Failed to load participants");
         } else {
           if (isMounted) {
@@ -220,7 +221,7 @@ const Lobby: React.FC = () => {
           }
         }
       } catch (err) {
-        console.error("Error in loadInitialPlayers:", err);
+        Logger.error("Error in loadInitialPlayers:", err);
         if (isMounted) {
           setError("An unexpected error occurred");
         }
@@ -299,7 +300,7 @@ const Lobby: React.FC = () => {
         await leaveLobby(pid);
       }
     } catch (e) {
-      console.error("Failed to update presence on leave:", e);
+      Logger.error("Failed to update presence on leave:", e);
     } finally {
       navigate("/");
     }

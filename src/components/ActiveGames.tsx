@@ -1,3 +1,4 @@
+import { Logger } from "../lib/logger";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getActiveSessions, type ActiveSession } from "../lib/mutations";
@@ -16,7 +17,7 @@ const ActiveGames: React.FC = () => {
         setActiveSessions(sessions);
         setError(null);
       } catch (err) {
-        console.error("Failed to fetch active sessions:", err);
+        Logger.error("Failed to fetch active sessions:", err);
         setError(
           err instanceof Error ? err.message : "Failed to load active games",
         );

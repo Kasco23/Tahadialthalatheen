@@ -1,3 +1,4 @@
+import { Logger } from "./logger";
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "./supabaseClient";
 import type { RealtimeChannel } from "@supabase/supabase-js";
@@ -43,16 +44,16 @@ export function useEnhancedRealtime(sessionId: string | null) {
 
     sessionChannel
       .on("broadcast", { event: "game_action" }, (payload) => {
-        console.log("Game action broadcast:", payload);
+        Logger.log("Game action broadcast:", payload);
       })
       .on("broadcast", { event: "chat_message" }, (payload) => {
-        console.log("Chat message broadcast:", payload);
+        Logger.log("Chat message broadcast:", payload);
       })
       .on("presence", { event: "sync" }, () => {
-        console.log("Presence synced");
+        Logger.log("Presence synced");
       })
       .subscribe((status) => {
-        console.log(`Session channel status: ${status}`);
+        Logger.log(`Session channel status: ${status}`);
         setIsConnected(status === "SUBSCRIBED");
       });
 
@@ -154,7 +155,7 @@ export function useStrikes(sessionId: string | null) {
 
         setStrikes(strikesMap);
       } catch (error) {
-        console.error("Error fetching strikes:", error);
+        Logger.error("Error fetching strikes:", error);
       } finally {
         setLoading(false);
       }
@@ -174,7 +175,7 @@ export function useStrikes(sessionId: string | null) {
           filter: `session_id=eq.${sessionId}`,
         },
         (payload) => {
-          console.log("Strikes DB update:", payload);
+          Logger.log("Strikes DB update:", payload);
 
           if (
             payload.eventType === "INSERT" ||
@@ -261,7 +262,7 @@ export function useSegmentConfig(sessionId: string | null) {
         if (error) throw error;
         setSegmentConfig(data || []);
       } catch (error) {
-        console.error("Error fetching segment config:", error);
+        Logger.error("Error fetching segment config:", error);
       } finally {
         setLoading(false);
       }
@@ -281,7 +282,7 @@ export function useSegmentConfig(sessionId: string | null) {
           filter: `session_id=eq.${sessionId}`,
         },
         (payload) => {
-          console.log("SegmentConfig DB update:", payload);
+          Logger.log("SegmentConfig DB update:", payload);
 
           if (payload.eventType === "INSERT") {
             const newData = payload.new as Tables<"SegmentConfig">;
@@ -362,7 +363,7 @@ export function useParticipants(sessionId: string | null) {
         if (error) throw error;
         setParticipants(data || []);
       } catch (error) {
-        console.error("Error fetching participants:", error);
+        Logger.error("Error fetching participants:", error);
       } finally {
         setLoading(false);
       }
@@ -382,7 +383,7 @@ export function useParticipants(sessionId: string | null) {
           filter: `session_id=eq.${sessionId}`,
         },
         (payload) => {
-          console.log("Participant DB update:", payload);
+          Logger.log("Participant DB update:", payload);
 
           if (payload.eventType === "INSERT") {
             const newData = payload.new as Tables<"Participant">;
@@ -409,7 +410,7 @@ export function useParticipants(sessionId: string | null) {
       )
       .on("presence", { event: "sync" }, () => {
         const newState = channel.presenceState();
-        console.log("Presence sync:", newState);
+        Logger.log("Presence sync:", newState);
 
         // Convert RealtimePresenceState to our typed format
         const typedState: Record<string, PresenceData> = {};
@@ -423,14 +424,14 @@ export function useParticipants(sessionId: string | null) {
         setPresenceState(typedState);
       })
       .on("presence", { event: "join" }, ({ key, newPresences }) => {
-        console.log("User joined presence:", key, newPresences);
+        Logger.log("User joined presence:", { key, newPresences });
         if (newPresences && newPresences.length > 0) {
           const presenceObj = newPresences[0] as unknown as PresenceData;
           setPresenceState((prev) => ({ ...prev, [key]: presenceObj }));
         }
       })
       .on("presence", { event: "leave" }, ({ key }) => {
-        console.log("User left presence:", key);
+        Logger.log("User left presence:", key);
         setPresenceState((prev) => {
           const updated = { ...prev };
           delete updated[key];

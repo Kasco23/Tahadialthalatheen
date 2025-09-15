@@ -1,3 +1,4 @@
+import { Logger } from "../lib/logger";
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { joinAsHost, joinAsPlayerWithCode } from "../lib/mutations";
@@ -78,12 +79,12 @@ const Join: React.FC = () => {
           localStorage.setItem("teamName", hostTeamName);
         }
       } catch (storageError) {
-        console.warn("Could not save to localStorage:", storageError);
+        Logger.warn("Could not save to localStorage:", storageError);
       }
 
       navigate(`/lobby/${sessionCode}`);
     } catch (error) {
-      console.error("Error joining as host:", error);
+      Logger.error("Error joining as host:", error);
       setAlert({
         type: "error",
         message: "Failed to join as host. Please check your credentials.",
@@ -132,11 +133,11 @@ const Join: React.FC = () => {
           localStorage.setItem("teamName", teamName);
         }
       } catch (storageError) {
-        console.warn("Could not save to localStorage:", storageError);
+        Logger.warn("Could not save to localStorage:", storageError);
         /* ignore */
       }
 
-      console.log("Joined as player:", {
+      Logger.log("Joined as player:", {
         sessionCode: playerSessionCode,
         participantId,
         playerName,
@@ -145,7 +146,7 @@ const Join: React.FC = () => {
       });
       navigate(`/lobby/${playerSessionCode}`);
     } catch (error) {
-      console.error("Error joining as player:", error);
+      Logger.error("Error joining as player:", error);
       setAlert({
         type: "error",
         message: "Failed to join session. Please check your session code.",

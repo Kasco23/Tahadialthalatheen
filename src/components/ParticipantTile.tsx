@@ -1,3 +1,4 @@
+import { Logger } from "../lib/logger";
 import React, { useState } from "react";
 import {
   useParticipantProperty,
@@ -73,9 +74,9 @@ const ParticipantTile: React.FC<ParticipantTileProps> = ({
     setIsActioning(true);
     try {
       await callObject.updateParticipant(participantId, { setAudio: false });
-      console.log(`Muted participant: ${displayName}`);
+      Logger.log(`Muted participant: ${displayName}`);
     } catch (error) {
-      console.error("Failed to mute participant:", error);
+      Logger.error("Failed to mute participant:", error);
     } finally {
       setIsActioning(false);
     }
@@ -92,9 +93,9 @@ const ParticipantTile: React.FC<ParticipantTileProps> = ({
     setIsActioning(true);
     try {
       await callObject.updateParticipant(participantId, { eject: true });
-      console.log(`Ejected participant: ${displayName}`);
+      Logger.log(`Ejected participant: ${displayName}`);
     } catch (error) {
-      console.error("Failed to eject participant:", error);
+      Logger.error("Failed to eject participant:", error);
     } finally {
       setIsActioning(false);
     }

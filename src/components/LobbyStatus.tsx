@@ -1,3 +1,4 @@
+import { Logger } from "../lib/logger";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { supabase } from "../lib/supabaseClient";
@@ -55,7 +56,7 @@ const LobbyStatus: React.FC<LobbyStatusProps> = ({
             .eq("session_id", sessionId);
 
         if (participantsError) {
-          console.error("Error fetching participants:", participantsError);
+          Logger.error("Error fetching participants:", participantsError);
         } else {
           setParticipants(participantsData || []);
         }
@@ -70,7 +71,7 @@ const LobbyStatus: React.FC<LobbyStatusProps> = ({
         if (dailyRoomError) {
           if (dailyRoomError.code !== "PGRST116") {
             // Not found error is ok
-            console.error("Error fetching daily room:", dailyRoomError);
+            Logger.error("Error fetching daily room:", dailyRoomError);
           }
         } else {
           setDailyRoom(dailyRoomData);
@@ -89,7 +90,7 @@ const LobbyStatus: React.FC<LobbyStatusProps> = ({
           });
         }
       } catch (error) {
-        console.error("Error fetching lobby data:", error);
+        Logger.error("Error fetching lobby data:", error);
       } finally {
         setLoading(false);
       }
