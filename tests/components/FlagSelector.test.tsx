@@ -112,24 +112,21 @@ describe("FlagSelector Component", () => {
 
 describe("LogoSelector Component", () => {
   const mockLogosResponse = {
-    leagues: [
-      {
-        name: "premier-league",
+    categories: {
+      "premier-league": {
         displayName: "Premier League",
         teams: [
           {
-            name: "manchester-united",
-            displayName: "Manchester United",
-            logoUrl: "https://example.com/man-utd.png",
+            name: "Manchester United",
+            url: "https://example.com/man-utd.png",
           },
           {
-            name: "liverpool",
-            displayName: "Liverpool",
-            logoUrl: "https://example.com/liverpool.png",
+            name: "Liverpool",
+            url: "https://example.com/liverpool.png",
           },
         ],
       },
-    ],
+    },
   };
 
   beforeEach(() => {
@@ -218,12 +215,19 @@ describe("LogoSelector Component", () => {
 
     render(<LogoSelector onLogoSelect={mockOnLogoSelect} />);
 
+    // Wait for the component to load and then set the search term
     await waitFor(() => {
-      const searchInput = screen.getByPlaceholderText(
-        "Search teams or leagues...",
-      );
-      fireEvent.change(searchInput, { target: { value: "liverpool" } });
+      expect(screen.getByText("Premier League")).toBeInTheDocument();
     });
+
+    const searchInput = screen.getByPlaceholderText(
+      "Search teams or leagues...",
+    );
+    fireEvent.change(searchInput, { target: { value: "liverpool" } });
+
+    // Click to expand the Premier League section
+    const leagueButton = screen.getByText("Premier League");
+    fireEvent.click(leagueButton);
 
     await waitFor(() => {
       expect(screen.getByText("Liverpool")).toBeInTheDocument();

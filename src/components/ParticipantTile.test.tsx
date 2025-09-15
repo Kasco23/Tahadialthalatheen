@@ -4,18 +4,19 @@ import { ParticipantTile } from "./ParticipantTile";
 import type { Database } from "../lib/types/supabase";
 
 // Mock Daily React hooks
-const mockUseDaily = vi.fn(() => ({
-  updateParticipant: vi.fn(),
-}));
-
 vi.mock("@daily-co/daily-react", () => ({
   useParticipantProperty: vi.fn(() => "Test User"),
   useVideoTrack: vi.fn(() => ({ track: null, state: "off" })),
-  useDaily: mockUseDaily,
+  useDaily: vi.fn(() => ({
+    updateParticipant: vi.fn(),
+  })),
   DailyVideo: ({ sessionId }: { sessionId: string }) => (
     <div data-testid={`video-${sessionId}`}>Video</div>
   ),
 }));
+
+// Get the mock for use in tests
+import { useDaily } from "@daily-co/daily-react";
 
 type ParticipantRow = Database["public"]["Tables"]["Participant"]["Row"];
 
@@ -91,7 +92,7 @@ describe("ParticipantTile", () => {
 
   it("should not show moderation controls without call object", () => {
     // Mock useDaily to return null (no call object)
-    mockUseDaily.mockReturnValueOnce(null);
+    (useDaily as ReturnType<typeof vi.fn>).mockReturnValueOnce(null);
     
     render(
       <ParticipantTile
