@@ -10,13 +10,12 @@ import { useSessionData } from "../lib/useSessionData";
 import {
   sessionAtom,
   sessionCodeAtom,
-  participantsAtom,
-  dailyRoomUrlAtom,
 } from "../atoms";
 import { VideoCall } from "../components/VideoCall";
 import { VideoCallJoinButton } from "../components/VideoCallJoinButton";
 import { Flag } from "../components/Flag";
 import { LobbyLogo } from "../components/LobbyLogo";
+import { LOBBY_PRESENCE } from "../lib/types";
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 import type { Database } from "../lib/types/supabase";
 
@@ -38,7 +37,7 @@ const ParticipantCard: React.FC<ParticipantCardProps> = ({
   return (
     <div
       className={`bg-white/5 backdrop-blur-sm rounded-lg p-4 border-2 transition-all duration-300 ${
-        player.lobby_presence === "Joined"
+        player.lobby_presence === LOBBY_PRESENCE.JOINED
           ? "border-green-400 bg-green-500/10"
           : "border-red-400 bg-red-500/10"
       }`}
@@ -58,9 +57,9 @@ const ParticipantCard: React.FC<ParticipantCardProps> = ({
           </div>
         </div>
         <div
-          className={`text-lg ${player.lobby_presence === "Joined" ? "animate-pulse text-green-500" : "text-red-500"}`}
+          className={`text-lg ${player.lobby_presence === LOBBY_PRESENCE.JOINED ? "animate-pulse text-green-500" : "text-red-500"}`}
         >
-          {player.lobby_presence === "Joined" ? "🟢" : "🔴"}
+          {player.lobby_presence === LOBBY_PRESENCE.JOINED ? "🟢" : "🔴"}
         </div>
       </div>
 
@@ -70,7 +69,7 @@ const ParticipantCard: React.FC<ParticipantCardProps> = ({
           <span className="text-xs text-blue-200">Lobby:</span>
           <span
             className={`text-xs font-medium ${
-              player.lobby_presence === "Joined"
+              player.lobby_presence === LOBBY_PRESENCE.JOINED
                 ? "text-green-400"
                 : "text-red-400"
             }`}
@@ -107,15 +106,9 @@ const Lobby: React.FC = () => {
 
   // Use Jotai atoms
   const [, setSessionId] = useAtom(sessionAtom);
-  const [_currentSessionCode, setCurrentSessionCode] = useAtom(sessionCodeAtom);
-  const [_participants, _setParticipants] = useAtom(participantsAtom);
-  const [_dailyRoomUrl] = useAtom(dailyRoomUrlAtom);
+  const [, setCurrentSessionCode] = useAtom(sessionCodeAtom);
 
-  const {
-    session,
-    loading: _sessionHookLoading,
-    error: _sessionHookError,
-  } = useSession(sessionId);
+  const { session } = useSession(sessionId);
   const [players, setPlayers] = useState<ParticipantRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -245,9 +238,9 @@ const Lobby: React.FC = () => {
 
   const getPresenceStatus = (p: ParticipantRow) => {
     const lobbyPresence =
-      p.lobby_presence === "Joined"
+      p.lobby_presence === LOBBY_PRESENCE.JOINED
         ? "🟢 Online"
-        : p.lobby_presence === "Disconnected"
+        : p.lobby_presence === LOBBY_PRESENCE.DISCONNECTED
           ? "🟠 Disconnected"
           : "🔴 Not Joined";
     const videoPresence = p.video_presence ? "📹 In Call" : "📵 Not in Call";
@@ -267,7 +260,7 @@ const Lobby: React.FC = () => {
     const joinedNonHostsAndGMs = players.filter(
       (p) =>
         !["Host", "GameMaster"].includes(p.role) &&
-        p.lobby_presence === "Joined",
+        p.lobby_presence === LOBBY_PRESENCE.JOINED,
     );
     return joinedNonHostsAndGMs.length >= 2 && session.phase === "Lobby";
   };

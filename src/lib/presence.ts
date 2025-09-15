@@ -1,6 +1,13 @@
 import { Logger } from "./logger";
 import { supabase } from "./supabaseClient";
 import { updateLobbyPresence } from "./mutations";
+import type { RealtimeChannel } from "@supabase/supabase-js";
+
+interface PresencePayload {
+  key: string;
+  newPresences?: unknown;
+  leftPresences?: unknown;
+}
 
 export interface PresenceUser {
   id: string;
@@ -26,8 +33,7 @@ export interface PresenceState {
  * Manages realtime presence tracking for players in a session
  */
 export class PresenceHelper {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private channel: any = null;
+  private channel: RealtimeChannel | null = null;
   private sessionId: string;
   private currentUser: PresenceUser | null = null;
   private onPresenceChange: ((state: PresenceState) => void) | null = null;
@@ -57,24 +63,28 @@ export class PresenceHelper {
     // Track presence changes
     this.channel
       .on("presence", { event: "sync" }, () => {
+        if (!this.channel) return;
+        
         const presenceState = this.channel.presenceState();
         if (this.onPresenceChange) {
           this.onPresenceChange(this.formatPresenceState(presenceState));
         }
       })
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .on("presence", { event: "join" }, ({ key, newPresences }: any) => {
+      .on("presence", { event: "join" }, ({ key, newPresences }: PresencePayload) => {
         Logger.log("User joined:", { key, newPresences });
+        if (!this.channel) return;
+        
         const presenceState = this.channel.presenceState();
-        if (this.onPresenceChange) {
+        if (this.onPresenceChange && presenceState) {
           this.onPresenceChange(this.formatPresenceState(presenceState));
         }
       })
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .on("presence", { event: "leave" }, ({ key, leftPresences }: any) => {
+      .on("presence", { event: "leave" }, ({ key, leftPresences }: PresencePayload) => {
         Logger.log("User left:", { key, leftPresences });
+        if (!this.channel) return;
+        
         const presenceState = this.channel.presenceState();
-        if (this.onPresenceChange) {
+        if (this.onPresenceChange && presenceState) {
           this.onPresenceChange(this.formatPresenceState(presenceState));
         }
       });
@@ -83,7 +93,7 @@ export class PresenceHelper {
     await this.channel.subscribe(async (status: string) => {
       if (status === "SUBSCRIBED") {
         // Track the current user
-        const presenceData = {
+        const presenceData: Record<string, unknown> = {
           user_id: user.user_id,
           flag: user.flag,
           timestamp: new Date().toISOString(),
@@ -95,13 +105,12 @@ export class PresenceHelper {
 
         // For hosts, use Role instead of name
         if (user.role === "Host") {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (presenceData as any).Role = user.role;
+          presenceData.Role = user.role;
         } else {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (presenceData as any).role = user.role;
+          presenceData.role = user.role;
         }
 
+        if (!this.channel) return;
         await this.channel.track(presenceData);
       }
     });
@@ -187,15 +196,14 @@ export class PresenceHelper {
   /**
    * Private method to format presence state
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private formatPresenceState(rawState: any): PresenceState {
+  private formatPresenceState(rawState: Record<string, unknown[]>): PresenceState {
     const formatted: PresenceState = {};
 
     Object.keys(rawState).forEach((key) => {
       const presences = rawState[key];
       if (presences && presences.length > 0) {
         // Take the most recent presence for each user
-        const latestPresence = presences[presences.length - 1];
+        const latestPresence = presences[presences.length - 1] as PresenceUser;
         formatted[key] = latestPresence;
       }
     });

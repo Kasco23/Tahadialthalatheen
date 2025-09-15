@@ -3,6 +3,8 @@ import { supabase } from "./supabaseClient";
 import { updateLobbyPresence } from "./mutations";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 
+const HEARTBEAT_INTERVAL_MS = 30000; // 30 seconds
+
 export interface PresenceUser {
   user_id: string;
   name: string;
@@ -286,7 +288,7 @@ export class EnhancedPresenceHelper {
 
     this.heartbeatInterval = setInterval(() => {
       this.updateActivity();
-    }, 30000); // 30 seconds
+    }, HEARTBEAT_INTERVAL_MS); // 30 seconds
   }
 
   /**

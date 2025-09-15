@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getActiveSessions, type ActiveSession } from "../lib/mutations";
 
+const REFRESH_INTERVAL_MS = 30000; // 30 seconds
+
 const ActiveGames: React.FC = () => {
   const [activeSessions, setActiveSessions] = useState<ActiveSession[]>([]);
   const [loading, setLoading] = useState(true);
@@ -29,7 +31,7 @@ const ActiveGames: React.FC = () => {
     fetchActiveSessions();
 
     // Refresh every 30 seconds
-    const interval = setInterval(fetchActiveSessions, 30000);
+    const interval = setInterval(fetchActiveSessions, REFRESH_INTERVAL_MS);
 
     return () => clearInterval(interval);
   }, []);

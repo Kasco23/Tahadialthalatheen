@@ -8,6 +8,9 @@ import {
 } from "../atoms";
 import { createDailyToken, getDailyTokenInfo } from "./mutations";
 
+const TOKEN_EXPIRY_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes
+const TOKEN_REFRESH_INTERVAL_MS = 4 * 60 * 1000; // 4 minutes
+
 interface UseDailyTokenOptions {
   sessionCode: string;
   participantName: string;
@@ -23,7 +26,7 @@ export const useDailyToken = ({
 
   // Check if token is expiring soon (within 5 minutes)
   const isTokenExpiringSoon =
-    tokenExpiry && tokenExpiry - Date.now() < 5 * 60 * 1000;
+    tokenExpiry && tokenExpiry - Date.now() < TOKEN_EXPIRY_THRESHOLD_MS;
   const isTokenExpired = tokenExpiry && Date.now() >= tokenExpiry;
 
   // Refresh token function
@@ -81,7 +84,7 @@ export const useDailyToken = ({
           });
         }
       },
-      4 * 60 * 1000,
+      TOKEN_REFRESH_INTERVAL_MS,
     ); // 4 minutes
 
     return () => clearInterval(interval);

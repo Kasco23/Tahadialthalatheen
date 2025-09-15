@@ -20,6 +20,14 @@ export type SegmentCode = "WDYK" | "AUCT" | "BELL" | "UPDW" | "REMO";
 // regenerated DB types for behaviour-level enums.
 export type ParticipantRole = "Host" | "Player1" | "Player2" | "GameMaster";
 export type LobbyPresence = "NotJoined" | "Joined" | "Disconnected";
+
+// Constants for lobby presence states
+export const LOBBY_PRESENCE = {
+  NOT_JOINED: "NotJoined" as const,
+  JOINED: "Joined" as const,
+  DISCONNECTED: "Disconnected" as const,
+} satisfies Record<string, LobbyPresence>;
+
 export type SessionPhase =
   | "Setup"
   | "Lobby"

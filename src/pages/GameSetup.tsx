@@ -27,16 +27,11 @@ const GameSetup: React.FC = () => {
     (location.state as LocationState)?.hostPassword || null;
 
   // Use consolidated session data hook instead of separate fetches
-  const {
-    sessionId,
-    dailyRoom: _dailyRoom,
-    loading: _sessionLoading,
-    error: _sessionError,
-  } = useSessionData(sessionCode || null);
+  const { sessionId } = useSessionData(sessionCode || null);
 
   // Use Jotai atoms for shared state
   const [, setSessionId] = useAtom(sessionAtom);
-  const [_currentSessionCode, setCurrentSessionCode] = useAtom(sessionCodeAtom);
+  const [, setCurrentSessionCode] = useAtom(sessionCodeAtom);
   const [, setDailyRoomUrl] = useAtom(dailyRoomUrlAtom);
 
   const [isLoading, setIsLoading] = useState(false);
