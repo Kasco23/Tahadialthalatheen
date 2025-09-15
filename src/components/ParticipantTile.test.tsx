@@ -93,7 +93,7 @@ describe("ParticipantTile", () => {
   it("should not show moderation controls without call object", () => {
     // Mock useDaily to return null (no call object)
     (useDaily as ReturnType<typeof vi.fn>).mockReturnValueOnce(null);
-    
+
     render(
       <ParticipantTile
         participantId="other-participant"

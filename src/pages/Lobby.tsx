@@ -7,15 +7,12 @@ import { supabase } from "../lib/supabaseClient";
 import { useSession } from "../lib/sessionHooks";
 import { leaveLobby } from "../lib/mutations";
 import { useSessionData } from "../lib/useSessionData";
-import {
-  sessionAtom,
-  sessionCodeAtom,
-} from "../atoms";
+import { sessionAtom, sessionCodeAtom } from "../atoms";
 import { VideoCall } from "../components/VideoCall";
 import { VideoCallJoinButton } from "../components/VideoCallJoinButton";
 import { Flag } from "../components/Flag";
 import { LobbyLogo } from "../components/LobbyLogo";
-import { LOBBY_PRESENCE } from "../lib/types";
+import { LOBBY_PRESENCE, PARTICIPANT_ROLE } from "../lib/types";
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 import type { Database } from "../lib/types/supabase";
 
@@ -248,10 +245,10 @@ const Lobby: React.FC = () => {
   };
 
   const getRoleDisplay = (p: ParticipantRow) => {
-    if (p.role === "Host") return "👑 Host";
-    if (p.role === "GameMaster") return "🎮 Game Master";
-    if (p.role === "Player1") return "⚽ Player A";
-    if (p.role === "Player2") return "🏆 Player B";
+    if (p.role === PARTICIPANT_ROLE.HOST) return "👑 Host";
+    if (p.role === PARTICIPANT_ROLE.GAME_MASTER) return "🎮 Game Master";
+    if (p.role === PARTICIPANT_ROLE.PLAYER1) return "⚽ Player A";
+    if (p.role === PARTICIPANT_ROLE.PLAYER2) return "🏆 Player B";
     return `👤 ${p.role}`;
   };
 
@@ -259,7 +256,8 @@ const Lobby: React.FC = () => {
     if (!session) return false;
     const joinedNonHostsAndGMs = players.filter(
       (p) =>
-        !["Host", "GameMaster"].includes(p.role) &&
+        p.role !== PARTICIPANT_ROLE.HOST &&
+        p.role !== PARTICIPANT_ROLE.GAME_MASTER &&
         p.lobby_presence === LOBBY_PRESENCE.JOINED,
     );
     return joinedNonHostsAndGMs.length >= 2 && session.phase === "Lobby";
@@ -370,10 +368,16 @@ const Lobby: React.FC = () => {
               <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20">
                 <h2 className="text-2xl font-bold text-white mb-4 text-center">
                   👥 Participants (
-                  {players.filter((p) => p.role !== "GameMaster").length})
+                  {
+                    players.filter(
+                      (p) => p.role !== PARTICIPANT_ROLE.GAME_MASTER,
+                    ).length
+                  }
+                  )
                 </h2>
 
-                {players.filter((p) => p.role !== "GameMaster").length === 0 ? (
+                {players.filter((p) => p.role !== PARTICIPANT_ROLE.GAME_MASTER)
+                  .length === 0 ? (
                   <div className="text-center text-blue-200 py-8">
                     <div className="text-4xl mb-4">👤</div>
                     <div>No players have joined yet</div>
@@ -384,7 +388,7 @@ const Lobby: React.FC = () => {
                 ) : (
                   <div className="space-y-3 max-h-96 overflow-y-auto">
                     {players
-                      .filter((p) => p.role !== "GameMaster")
+                      .filter((p) => p.role !== PARTICIPANT_ROLE.GAME_MASTER)
                       .map((player) => {
                         const { lobbyPresence, videoPresence } =
                           getPresenceStatus(player);

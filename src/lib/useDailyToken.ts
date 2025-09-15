@@ -76,16 +76,13 @@ export const useDailyToken = ({
   useEffect(() => {
     if (!sessionCode || !participantName) return;
 
-    const interval = setInterval(
-      () => {
-        if (dailyToken && !isRefreshing) {
-          refreshToken().catch((error) => {
-            Logger.error("Periodic token refresh failed:", error);
-          });
-        }
-      },
-      TOKEN_REFRESH_INTERVAL_MS,
-    ); // 4 minutes
+    const interval = setInterval(() => {
+      if (dailyToken && !isRefreshing) {
+        refreshToken().catch((error) => {
+          Logger.error("Periodic token refresh failed:", error);
+        });
+      }
+    }, TOKEN_REFRESH_INTERVAL_MS); // 4 minutes
 
     return () => clearInterval(interval);
   }, [sessionCode, participantName, dailyToken, isRefreshing, refreshToken]);

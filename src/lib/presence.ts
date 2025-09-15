@@ -64,30 +64,38 @@ export class PresenceHelper {
     this.channel
       .on("presence", { event: "sync" }, () => {
         if (!this.channel) return;
-        
+
         const presenceState = this.channel.presenceState();
         if (this.onPresenceChange) {
           this.onPresenceChange(this.formatPresenceState(presenceState));
         }
       })
-      .on("presence", { event: "join" }, ({ key, newPresences }: PresencePayload) => {
-        Logger.log("User joined:", { key, newPresences });
-        if (!this.channel) return;
-        
-        const presenceState = this.channel.presenceState();
-        if (this.onPresenceChange && presenceState) {
-          this.onPresenceChange(this.formatPresenceState(presenceState));
-        }
-      })
-      .on("presence", { event: "leave" }, ({ key, leftPresences }: PresencePayload) => {
-        Logger.log("User left:", { key, leftPresences });
-        if (!this.channel) return;
-        
-        const presenceState = this.channel.presenceState();
-        if (this.onPresenceChange && presenceState) {
-          this.onPresenceChange(this.formatPresenceState(presenceState));
-        }
-      });
+      .on(
+        "presence",
+        { event: "join" },
+        ({ key, newPresences }: PresencePayload) => {
+          Logger.log("User joined:", { key, newPresences });
+          if (!this.channel) return;
+
+          const presenceState = this.channel.presenceState();
+          if (this.onPresenceChange && presenceState) {
+            this.onPresenceChange(this.formatPresenceState(presenceState));
+          }
+        },
+      )
+      .on(
+        "presence",
+        { event: "leave" },
+        ({ key, leftPresences }: PresencePayload) => {
+          Logger.log("User left:", { key, leftPresences });
+          if (!this.channel) return;
+
+          const presenceState = this.channel.presenceState();
+          if (this.onPresenceChange && presenceState) {
+            this.onPresenceChange(this.formatPresenceState(presenceState));
+          }
+        },
+      );
 
     // Subscribe and track this user's presence
     await this.channel.subscribe(async (status: string) => {
@@ -196,7 +204,9 @@ export class PresenceHelper {
   /**
    * Private method to format presence state
    */
-  private formatPresenceState(rawState: Record<string, unknown[]>): PresenceState {
+  private formatPresenceState(
+    rawState: Record<string, unknown[]>,
+  ): PresenceState {
     const formatted: PresenceState = {};
 
     Object.keys(rawState).forEach((key) => {

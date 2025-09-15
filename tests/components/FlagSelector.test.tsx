@@ -130,7 +130,10 @@ describe("LogoSelector Component", () => {
   };
 
   beforeEach(() => {
-    (supabase.functions.invoke as ReturnType<typeof vi.fn>).mockResolvedValue({ data: mockLogosResponse, error: null });
+    (supabase.functions.invoke as ReturnType<typeof vi.fn>).mockResolvedValue({
+      data: mockLogosResponse,
+      error: null,
+    });
   });
 
   afterEach(() => {
