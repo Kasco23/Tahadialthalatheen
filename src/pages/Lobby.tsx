@@ -4,9 +4,7 @@ import { useAtom } from "jotai";
 
 import { supabase } from "../lib/supabaseClient";
 import { useSession } from "../lib/sessionHooks";
-import {
-  leaveLobby,
-} from "../lib/mutations";
+import { leaveLobby } from "../lib/mutations";
 import { useSessionData } from "../lib/useSessionData";
 import {
   sessionAtom,
@@ -15,6 +13,7 @@ import {
   dailyRoomUrlAtom,
 } from "../atoms";
 import { VideoCall } from "../components/VideoCall";
+import { VideoCallJoinButton } from "../components/VideoCallJoinButton";
 import { Flag } from "../components/Flag";
 import { LobbyLogo } from "../components/LobbyLogo";
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
@@ -29,11 +28,11 @@ interface ParticipantCardProps {
   getRoleDisplay: (player: ParticipantRow) => string;
 }
 
-const ParticipantCard: React.FC<ParticipantCardProps> = ({ 
-  player, 
-  lobbyPresence, 
-  videoPresence, 
-  getRoleDisplay 
+const ParticipantCard: React.FC<ParticipantCardProps> = ({
+  player,
+  lobbyPresence,
+  videoPresence,
+  getRoleDisplay,
 }) => {
   return (
     <div
@@ -48,14 +47,13 @@ const ParticipantCard: React.FC<ParticipantCardProps> = ({
         <div className="flex items-center space-x-2">
           <Flag code={player.flag || "sa"} className="text-lg" />
           {player.team_logo_url && (
-            <LobbyLogo 
-              logoUrl={player.team_logo_url}
-              teamName={player.name}
-            />
+            <LobbyLogo logoUrl={player.team_logo_url} teamName={player.name} />
           )}
           <div>
             <div className="text-sm font-bold text-white">{player.name}</div>
-            <div className="text-xs text-blue-200">{getRoleDisplay(player)}</div>
+            <div className="text-xs text-blue-200">
+              {getRoleDisplay(player)}
+            </div>
           </div>
         </div>
         <div
@@ -99,8 +97,13 @@ const Lobby: React.FC = () => {
   const navigate = useNavigate();
 
   // Use consolidated session data hook
-  const { sessionId, dailyRoom, loading: sessionLoading, error: sessionError } = useSessionData(sessionCode || null);
-  
+  const {
+    sessionId,
+    dailyRoom,
+    loading: sessionLoading,
+    error: sessionError,
+  } = useSessionData(sessionCode || null);
+
   // Use Jotai atoms
   const [, setSessionId] = useAtom(sessionAtom);
   const [_currentSessionCode, setCurrentSessionCode] = useAtom(sessionCodeAtom);
@@ -239,8 +242,6 @@ const Lobby: React.FC = () => {
     };
   }, [sessionId]);
 
-
-
   const getPresenceStatus = (p: ParticipantRow) => {
     const lobbyPresence =
       p.lobby_presence === "Joined"
@@ -263,7 +264,9 @@ const Lobby: React.FC = () => {
   const canStartQuiz = () => {
     if (!session) return false;
     const joinedNonHostsAndGMs = players.filter(
-      (p) => !["Host", "GameMaster"].includes(p.role) && p.lobby_presence === "Joined",
+      (p) =>
+        !["Host", "GameMaster"].includes(p.role) &&
+        p.lobby_presence === "Joined",
     );
     return joinedNonHostsAndGMs.length >= 2 && session.phase === "Lobby";
   };
@@ -301,8 +304,6 @@ const Lobby: React.FC = () => {
       navigate("/");
     }
   };
-
-
 
   if (sessionLoading || loading) {
     return (
@@ -356,9 +357,7 @@ const Lobby: React.FC = () => {
       <div className="dugout-content p-4">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">
-            🎮 Game Lobby
-          </h1>
+          <h1 className="text-4xl font-bold text-white mb-2">🎮 Game Lobby</h1>
           <div className="text-xl text-blue-100">
             Session:{" "}
             <span className="font-bold text-yellow-300">{sessionCode}</span>
@@ -372,34 +371,39 @@ const Lobby: React.FC = () => {
         {/* Responsive Layout Container */}
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-            
             {/* Participants Sidebar */}
             <div className="xl:col-span-1 space-y-6">
               <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20">
                 <h2 className="text-2xl font-bold text-white mb-4 text-center">
-                  👥 Participants ({players.filter(p => p.role !== "GameMaster").length})
+                  👥 Participants (
+                  {players.filter((p) => p.role !== "GameMaster").length})
                 </h2>
 
-                {players.filter(p => p.role !== "GameMaster").length === 0 ? (
+                {players.filter((p) => p.role !== "GameMaster").length === 0 ? (
                   <div className="text-center text-blue-200 py-8">
                     <div className="text-4xl mb-4">👤</div>
                     <div>No players have joined yet</div>
-                    <div className="text-sm mt-2">Waiting for participants...</div>
+                    <div className="text-sm mt-2">
+                      Waiting for participants...
+                    </div>
                   </div>
                 ) : (
                   <div className="space-y-3 max-h-96 overflow-y-auto">
-                    {players.filter(p => p.role !== "GameMaster").map((player) => {
-                      const { lobbyPresence, videoPresence } = getPresenceStatus(player);
-                      return (
-                        <ParticipantCard 
-                          key={player.participant_id}
-                          player={player}
-                          lobbyPresence={lobbyPresence}
-                          videoPresence={videoPresence}
-                          getRoleDisplay={getRoleDisplay}
-                        />
-                      );
-                    })}
+                    {players
+                      .filter((p) => p.role !== "GameMaster")
+                      .map((player) => {
+                        const { lobbyPresence, videoPresence } =
+                          getPresenceStatus(player);
+                        return (
+                          <ParticipantCard
+                            key={player.participant_id}
+                            player={player}
+                            lobbyPresence={lobbyPresence}
+                            videoPresence={videoPresence}
+                            getRoleDisplay={getRoleDisplay}
+                          />
+                        );
+                      })}
                   </div>
                 )}
               </div>
@@ -433,7 +437,6 @@ const Lobby: React.FC = () => {
 
             {/* Main Video Area */}
             <div className="xl:col-span-3 space-y-6">
-              
               {/* Industry-Grade Video Call Interface */}
               {dailyRoom ? (
                 <div className="bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 overflow-hidden">
@@ -441,7 +444,9 @@ const Lobby: React.FC = () => {
                   <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 px-6 py-4 border-b border-white/10">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
-                        <div className={`w-3 h-3 rounded-full ${dailyRoom?.ready ? 'bg-green-400 animate-pulse' : 'bg-yellow-400'}`}></div>
+                        <div
+                          className={`w-3 h-3 rounded-full ${dailyRoom?.ready ? "bg-green-400 animate-pulse" : "bg-yellow-400"}`}
+                        ></div>
                         <h3 className="text-xl font-bold text-white">
                           Video Conference
                         </h3>
@@ -449,13 +454,34 @@ const Lobby: React.FC = () => {
                       <div className="flex items-center space-x-4 text-sm text-blue-200">
                         <span className="flex items-center space-x-1">
                           <span>🏠</span>
-                          <span>{dailyRoom?.ready ? "Ready" : "Setting up"}</span>
+                          <span>
+                            {dailyRoom?.ready ? "Ready" : "Setting up"}
+                          </span>
                         </span>
                         {dailyRoom?.ready && (
-                          <span className="flex items-center space-x-1">
-                            <span>🔗</span>
-                            <span>Live</span>
-                          </span>
+                          <>
+                            <span className="flex items-center space-x-1">
+                              <span>🔗</span>
+                              <span>Live</span>
+                            </span>
+                            {/* Embedded Join Button */}
+                            <VideoCallJoinButton
+                              sessionId={sessionId || ""}
+                              sessionCode={sessionCode || ""}
+                              participantName={
+                                localStorage.getItem("tt_participant_name") ||
+                                localStorage.getItem("playerName") ||
+                                localStorage.getItem("hostName") ||
+                                (players.length > 0 &&
+                                  players.find(
+                                    (p) =>
+                                      p.participant_id ===
+                                      localStorage.getItem("participantId"),
+                                  )?.name) ||
+                                "Player"
+                              }
+                            />
+                          </>
                         )}
                       </div>
                     </div>
@@ -468,21 +494,30 @@ const Lobby: React.FC = () => {
                       sessionCode={sessionCode || ""}
                       sessionId={sessionId || ""}
                       participantName={
-                        localStorage.getItem("tt_participant_name") || 
+                        localStorage.getItem("tt_participant_name") ||
                         localStorage.getItem("playerName") ||
                         localStorage.getItem("hostName") ||
-                        (players.length > 0 && players.find(p => p.participant_id === localStorage.getItem("participantId"))?.name) ||
+                        (players.length > 0 &&
+                          players.find(
+                            (p) =>
+                              p.participant_id ===
+                              localStorage.getItem("participantId"),
+                          )?.name) ||
                         "Player"
                       }
-                      showControlsAtTop={true}
+                      showControlsAtTop={false}
                     />
                   </div>
                 </div>
               ) : (
                 <div className="bg-white/10 backdrop-blur-sm rounded-lg p-8 border border-white/20 text-center">
                   <div className="text-6xl mb-4">⏳</div>
-                  <h3 className="text-2xl font-bold text-white mb-2">Initializing Video Room</h3>
-                  <p className="text-blue-200 mb-4">Host is setting up the video conference...</p>
+                  <h3 className="text-2xl font-bold text-white mb-2">
+                    Initializing Video Room
+                  </h3>
+                  <p className="text-blue-200 mb-4">
+                    Host is setting up the video conference...
+                  </p>
                   <div className="inline-flex items-center space-x-2 text-sm text-blue-300">
                     <div className="w-2 h-2 bg-blue-400 rounded-full animate-ping"></div>
                     <span>Please wait</span>

@@ -5,44 +5,40 @@ import compression from "vite-plugin-compression";
 import tailwindcss from "@tailwindcss/vite";
 // More info at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon
 export default defineConfig({
-    plugins: [
-        react(),
-        tailwindcss(),
-        compression({
-            algorithm: "brotliCompress",
-        }),
+  plugins: [
+    react(),
+    tailwindcss(),
+    compression({
+      algorithm: "brotliCompress",
+    }),
+  ],
+  build: {
+    chunkSizeWarningLimit: 800,
+    rollupOptions: {
+      output: {
+        manualChunks: function (id) {
+          if (!id.includes("node_modules")) return;
+          if (/react|framer-motion|jotai/.test(id)) return "vendor-react";
+          if (/@supabase/.test(id)) return "vendor-supabase";
+          if (/@daily-co/.test(id)) return "vendor-daily";
+          return "vendor";
+        },
+      },
+    },
+  },
+  test: {
+    environment: "jsdom",
+    setupFiles: ["./src/setupTests.ts"],
+    globals: true,
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "lcov"],
+    },
+    exclude: [
+      "tests/e2e/**", // handled by Playwright separately
+      "node_modules/**",
+      ".netlify/**", // exclude netlify plugin tests that use Jest syntax
+      "**/node_modules/**",
     ],
-    build: {
-        chunkSizeWarningLimit: 800,
-        rollupOptions: {
-            output: {
-                manualChunks: function (id) {
-                    if (!id.includes("node_modules"))
-                        return;
-                    if (/react|framer-motion|jotai/.test(id))
-                        return "vendor-react";
-                    if (/@supabase/.test(id))
-                        return "vendor-supabase";
-                    if (/@daily-co/.test(id))
-                        return "vendor-daily";
-                    return "vendor";
-                },
-            },
-        },
-    },
-    test: {
-        environment: "jsdom",
-        setupFiles: ["./src/setupTests.ts"],
-        globals: true,
-        coverage: {
-            provider: "v8",
-            reporter: ["text", "lcov"],
-        },
-        exclude: [
-            "tests/e2e/**", // handled by Playwright separately
-            "node_modules/**",
-            ".netlify/**", // exclude netlify plugin tests that use Jest syntax
-            "**/node_modules/**",
-        ],
-    },
+  },
 });

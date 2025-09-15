@@ -27,8 +27,7 @@ const generateSessionCode = async () => {
     String.fromCharCode(65 + getSecureRandomInt(26)),
   );
   const specialChars = ["!", "@", "#", "$", "%", "^", "&", "*", "(", ")"];
-  const specialChar =
-    specialChars[getSecureRandomInt(specialChars.length)];
+  const specialChar = specialChars[getSecureRandomInt(specialChars.length)];
 
   const allChars = [...numbers, ...letters, specialChar];
   const shuffled = secureShuffleArray(allChars).join("");

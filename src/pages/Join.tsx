@@ -7,7 +7,7 @@ import OptimizedFlagSelector from "../components/OptimizedFlagSelector";
 import { supabase } from "../lib/supabaseClient";
 
 // ReactBits Components
-import { AnimatedList, SpotlightCard, Dock } from '../components/ReactBits';
+import { AnimatedList, SpotlightCard, Dock } from "../components/ReactBits";
 
 interface League {
   name: string;
@@ -37,7 +37,9 @@ const JoinRevolutionary: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState<"host" | "player">("host");
-  const [currentStep, setCurrentStep] = useState<"role" | "details" | "team">("role");
+  const [currentStep, setCurrentStep] = useState<"role" | "details" | "team">(
+    "role",
+  );
 
   // Alert state
   const [alert, setAlert] = useState<{
@@ -89,7 +91,7 @@ const JoinRevolutionary: React.FC = () => {
     const loadLogos = async () => {
       try {
         const { data, error } = await supabase.functions.invoke("list-logos");
-        
+
         if (error) {
           console.error("Error fetching logos:", error);
           setError("Failed to load team logos");
@@ -107,7 +109,7 @@ const JoinRevolutionary: React.FC = () => {
               displayName: team.name,
               logoUrl: team.url,
             })),
-          })
+          }),
         );
 
         setLeagues(leaguesList);
@@ -145,10 +147,10 @@ const JoinRevolutionary: React.FC = () => {
 
     try {
       const participantId = await joinAsHost(
-        sessionCode, 
-        hostPassword, 
-        hostSelectedFlag, 
-        hostTeamLogoUrl
+        sessionCode,
+        hostPassword,
+        hostSelectedFlag,
+        hostTeamLogoUrl,
       );
 
       // Persist participant data
@@ -245,17 +247,18 @@ const JoinRevolutionary: React.FC = () => {
         setActiveTab("host");
         setCurrentStep("role");
       },
-      className: activeTab === "host" ? "bg-purple-500/20 border-purple-400" : ""
+      className:
+        activeTab === "host" ? "bg-purple-500/20 border-purple-400" : "",
     },
     {
       icon: <span className="text-2xl">🎮</span>,
-      label: "Player", 
+      label: "Player",
       onClick: () => {
         setActiveTab("player");
         setCurrentStep("role");
       },
-      className: activeTab === "player" ? "bg-blue-500/20 border-blue-400" : ""
-    }
+      className: activeTab === "player" ? "bg-blue-500/20 border-blue-400" : "",
+    },
   ];
 
   // Step navigation
@@ -264,33 +267,38 @@ const JoinRevolutionary: React.FC = () => {
       icon: <span className="text-xl">📋</span>,
       label: "Details",
       onClick: () => setCurrentStep("details"),
-      className: currentStep === "details" ? "bg-green-500/20 border-green-400" : ""
+      className:
+        currentStep === "details" ? "bg-green-500/20 border-green-400" : "",
     },
     {
       icon: <span className="text-xl">🏆</span>,
       label: "Team",
       onClick: () => setCurrentStep("team"),
-      className: currentStep === "team" ? "bg-yellow-500/20 border-yellow-400" : ""
-    }
+      className:
+        currentStep === "team" ? "bg-yellow-500/20 border-yellow-400" : "",
+    },
   ];
 
   const renderRoleSelection = () => (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       className="text-center space-y-8"
     >
       <div>
         <h1 className="text-6xl font-bold text-white mb-4">
-          🏟️ <span className="bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">
+          🏟️{" "}
+          <span className="bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">
             Join the Arena
           </span>
         </h1>
-        <p className="text-xl text-blue-200">Choose your role and step into the football knowledge challenge!</p>
+        <p className="text-xl text-blue-200">
+          Choose your role and step into the football knowledge challenge!
+        </p>
       </div>
 
       <div className="flex justify-center gap-8">
-        <SpotlightCard 
+        <SpotlightCard
           className="w-72 h-64 transform transition-transform hover:scale-105"
           spotlightColor="rgba(59, 130, 246, 0.4)"
           onClick={() => {
@@ -301,11 +309,13 @@ const JoinRevolutionary: React.FC = () => {
           <div className="text-center">
             <div className="text-5xl mb-4">👑</div>
             <h3 className="text-xl font-bold text-white mb-2">Join as Host</h3>
-            <p className="text-sm text-blue-200">Lead the game and control the quiz flow</p>
+            <p className="text-sm text-blue-200">
+              Lead the game and control the quiz flow
+            </p>
           </div>
         </SpotlightCard>
 
-        <SpotlightCard 
+        <SpotlightCard
           className="w-72 h-64 transform transition-transform hover:scale-105"
           spotlightColor="rgba(234, 179, 8, 0.4)"
           onClick={() => {
@@ -315,8 +325,12 @@ const JoinRevolutionary: React.FC = () => {
         >
           <div className="text-center">
             <div className="text-5xl mb-4">🎮</div>
-            <h3 className="text-xl font-bold text-white mb-2">Join as Player</h3>
-            <p className="text-sm text-yellow-200">Join a session and compete against others</p>
+            <h3 className="text-xl font-bold text-white mb-2">
+              Join as Player
+            </h3>
+            <p className="text-sm text-yellow-200">
+              Join a session and compete against others
+            </p>
           </div>
         </SpotlightCard>
       </div>
@@ -333,15 +347,22 @@ const JoinRevolutionary: React.FC = () => {
         <h2 className="text-3xl font-bold text-white mb-6 text-center">
           {activeTab === "host" ? "👑 Host Details" : "🎮 Player Details"}
         </h2>
-        
-        <form onSubmit={activeTab === "host" ? handleHostSubmit : handlePlayerSubmit} className="space-y-6">
+
+        <form
+          onSubmit={
+            activeTab === "host" ? handleHostSubmit : handlePlayerSubmit
+          }
+          className="space-y-6"
+        >
           <div>
-            <label className="block text-white font-medium mb-2">Session Code</label>
+            <label className="block text-white font-medium mb-2">
+              Session Code
+            </label>
             <input
               type="text"
               value={activeTab === "host" ? sessionCode : playerSessionCode}
-              onChange={(e) => 
-                activeTab === "host" 
+              onChange={(e) =>
+                activeTab === "host"
                   ? setSessionCode(e.target.value.toUpperCase())
                   : setPlayerSessionCode(e.target.value.toUpperCase())
               }
@@ -353,7 +374,9 @@ const JoinRevolutionary: React.FC = () => {
 
           {activeTab === "host" ? (
             <div>
-              <label className="block text-white font-medium mb-2">Host Password</label>
+              <label className="block text-white font-medium mb-2">
+                Host Password
+              </label>
               <input
                 type="password"
                 value={hostPassword}
@@ -365,7 +388,9 @@ const JoinRevolutionary: React.FC = () => {
             </div>
           ) : (
             <div>
-              <label className="block text-white font-medium mb-2">Player Name</label>
+              <label className="block text-white font-medium mb-2">
+                Player Name
+              </label>
               <input
                 type="text"
                 value={playerName}
@@ -378,12 +403,17 @@ const JoinRevolutionary: React.FC = () => {
           )}
 
           <div>
-            <label className="block text-white font-medium mb-2">Choose Your Country</label>
+            <label className="block text-white font-medium mb-2">
+              Choose Your Country
+            </label>
             <OptimizedFlagSelector
-              selectedFlag={activeTab === "host" ? hostSelectedFlag : selectedFlag}
-              onFlagSelect={activeTab === "host" 
-                ? (flag: string) => setHostSelectedFlag(flag)
-                : (flag: string) => setSelectedFlag(flag)
+              selectedFlag={
+                activeTab === "host" ? hostSelectedFlag : selectedFlag
+              }
+              onFlagSelect={
+                activeTab === "host"
+                  ? (flag: string) => setHostSelectedFlag(flag)
+                  : (flag: string) => setSelectedFlag(flag)
               }
             />
           </div>
@@ -396,7 +426,7 @@ const JoinRevolutionary: React.FC = () => {
             >
               ← Back
             </button>
-            
+
             <button
               type="button"
               onClick={() => setCurrentStep("team")}
@@ -411,7 +441,8 @@ const JoinRevolutionary: React.FC = () => {
   );
 
   const renderTeamSelection = () => {
-    const selectedTeamLogoUrl = activeTab === "host" ? hostTeamLogoUrl : teamLogoUrl;
+    const selectedTeamLogoUrl =
+      activeTab === "host" ? hostTeamLogoUrl : teamLogoUrl;
     const selectedTeamName = activeTab === "host" ? hostTeamName : teamName;
 
     return (
@@ -424,28 +455,38 @@ const JoinRevolutionary: React.FC = () => {
           <h2 className="text-4xl font-bold text-white mb-2">
             🏆 Choose Your Team
           </h2>
-          <p className="text-xl text-blue-200">Select a league and pick your favorite team</p>
+          <p className="text-xl text-blue-200">
+            Select a league and pick your favorite team
+          </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* League Selection */}
           <div className="lg:col-span-1">
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-              <h3 className="text-2xl font-bold text-white mb-4 text-center">⚽ Leagues</h3>
-              
+              <h3 className="text-2xl font-bold text-white mb-4 text-center">
+                ⚽ Leagues
+              </h3>
+
               {loading ? (
-                <div className="text-center text-white py-8">Loading leagues...</div>
+                <div className="text-center text-white py-8">
+                  Loading leagues...
+                </div>
               ) : error ? (
                 <div className="text-center text-red-400 py-8">{error}</div>
               ) : (
                 <AnimatedList
-                  items={leagues.map(league => league.displayName)}
+                  items={leagues.map((league) => league.displayName)}
                   onItemSelect={(_item, index) => {
                     setSelectedLeague(leagues[index].name);
                   }}
                   className="w-full"
                   itemClassName="hover:bg-white/10 cursor-pointer"
-                  initialSelectedIndex={selectedLeague ? leagues.findIndex(l => l.name === selectedLeague) : -1}
+                  initialSelectedIndex={
+                    selectedLeague
+                      ? leagues.findIndex((l) => l.name === selectedLeague)
+                      : -1
+                  }
                 />
               )}
             </div>
@@ -455,16 +496,15 @@ const JoinRevolutionary: React.FC = () => {
           <div className="lg:col-span-2">
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
               <h3 className="text-2xl font-bold text-white mb-4 text-center">
-                {selectedLeague 
-                  ? `🏟️ ${leagues.find(l => l.name === selectedLeague)?.displayName || "Teams"}`
-                  : "👈 Select a League First"
-                }
+                {selectedLeague
+                  ? `🏟️ ${leagues.find((l) => l.name === selectedLeague)?.displayName || "Teams"}`
+                  : "👈 Select a League First"}
               </h3>
-              
+
               {selectedLeague ? (
                 <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 max-h-96 overflow-y-auto">
                   {leagues
-                    .find(l => l.name === selectedLeague)
+                    .find((l) => l.name === selectedLeague)
                     ?.teams.map((team) => (
                       <motion.div
                         key={team.name}
@@ -477,9 +517,15 @@ const JoinRevolutionary: React.FC = () => {
                         }`}
                         onClick={() => {
                           if (activeTab === "host") {
-                            handleHostLogoSelect(team.logoUrl, team.displayName);
+                            handleHostLogoSelect(
+                              team.logoUrl,
+                              team.displayName,
+                            );
                           } else {
-                            handlePlayerLogoSelect(team.logoUrl, team.displayName);
+                            handlePlayerLogoSelect(
+                              team.logoUrl,
+                              team.displayName,
+                            );
                           }
                         }}
                       >
@@ -493,7 +539,10 @@ const JoinRevolutionary: React.FC = () => {
                             }}
                           />
                         </div>
-                        <p className="text-white text-sm text-center truncate" title={team.displayName}>
+                        <p
+                          className="text-white text-sm text-center truncate"
+                          title={team.displayName}
+                        >
                           {team.displayName}
                         </p>
                       </motion.div>
@@ -524,11 +573,15 @@ const JoinRevolutionary: React.FC = () => {
                   className="w-16 h-16 object-contain rounded"
                 />
                 <div>
-                  <h4 className="text-2xl font-bold text-white">Ready to Join!</h4>
-                  <p className="text-green-200">Playing as {selectedTeamName}</p>
+                  <h4 className="text-2xl font-bold text-white">
+                    Ready to Join!
+                  </h4>
+                  <p className="text-green-200">
+                    Playing as {selectedTeamName}
+                  </p>
                 </div>
               </div>
-              
+
               <div className="flex gap-4">
                 <button
                   type="button"
@@ -537,13 +590,21 @@ const JoinRevolutionary: React.FC = () => {
                 >
                   ← Back
                 </button>
-                
+
                 <button
-                  onClick={activeTab === "host" ? handleHostSubmit : handlePlayerSubmit}
+                  onClick={
+                    activeTab === "host" ? handleHostSubmit : handlePlayerSubmit
+                  }
                   disabled={activeTab === "host" ? hostLoading : playerLoading}
                   className="px-8 py-3 bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white font-bold rounded-lg transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {activeTab === "host" ? (hostLoading ? "Joining..." : "🚀 Start Game") : (playerLoading ? "Joining..." : "🎮 Join Game")}
+                  {activeTab === "host"
+                    ? hostLoading
+                      ? "Joining..."
+                      : "🚀 Start Game"
+                    : playerLoading
+                      ? "Joining..."
+                      : "🎮 Join Game"}
                 </button>
               </div>
             </div>
@@ -565,8 +626,15 @@ const JoinRevolutionary: React.FC = () => {
       {/* Navigation Dock */}
       <div className="relative z-10 flex justify-center pt-4">
         <Dock>
-          {(currentStep === "role" ? dockItems : [...dockItems, ...stepItems]).map((item, index) => (
-            <Dock.Icon key={index} onClick={item.onClick} className={`${item.className} transition-all duration-200`}>
+          {(currentStep === "role"
+            ? dockItems
+            : [...dockItems, ...stepItems]
+          ).map((item, index) => (
+            <Dock.Icon
+              key={index}
+              onClick={item.onClick}
+              className={`${item.className} transition-all duration-200`}
+            >
               {item.icon}
             </Dock.Icon>
           ))}
@@ -586,7 +654,7 @@ const JoinRevolutionary: React.FC = () => {
               {renderRoleSelection()}
             </motion.div>
           )}
-          
+
           {currentStep === "details" && (
             <motion.div
               key="details"
@@ -597,7 +665,7 @@ const JoinRevolutionary: React.FC = () => {
               {renderDetailsForm()}
             </motion.div>
           )}
-          
+
           {currentStep === "team" && (
             <motion.div
               key="team"

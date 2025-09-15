@@ -56,10 +56,10 @@ const Join: React.FC = () => {
     try {
       // Join as host using session code with flag and logo
       const participantId = await joinAsHost(
-        sessionCode, 
-        hostPassword, 
-        hostSelectedFlag, 
-        hostTeamLogoUrl
+        sessionCode,
+        hostPassword,
+        hostSelectedFlag,
+        hostTeamLogoUrl,
       );
 
       // Persist participant id for presence updates
@@ -179,7 +179,7 @@ const Join: React.FC = () => {
       <div className="absolute inset-0 bg-gray-900">
         {/* Base Champions League tunnel with enhanced visibility */}
         <div className="absolute inset-0 bg-kick-of-light"></div>
-        
+
         {/* Prism rainbow effects along tunnel edges */}
         <div className="absolute inset-0 bg-prism-rainbow opacity-40 animate-champions-pulse"></div>
 
@@ -268,11 +268,32 @@ const Join: React.FC = () => {
             stroke="url(#prismEdge)"
             strokeWidth="1"
           />
-          
+
           {/* Prism light rays */}
-          <line x1="20" y1="25" x2="80" y2="25" stroke="rgba(255, 0, 127, 0.4)" strokeWidth="0.5" />
-          <line x1="20" y1="50" x2="80" y2="50" stroke="rgba(0, 255, 255, 0.4)" strokeWidth="0.5" />
-          <line x1="20" y1="75" x2="80" y2="75" stroke="rgba(127, 255, 0, 0.4)" strokeWidth="0.5" />
+          <line
+            x1="20"
+            y1="25"
+            x2="80"
+            y2="25"
+            stroke="rgba(255, 0, 127, 0.4)"
+            strokeWidth="0.5"
+          />
+          <line
+            x1="20"
+            y1="50"
+            x2="80"
+            y2="50"
+            stroke="rgba(0, 255, 255, 0.4)"
+            strokeWidth="0.5"
+          />
+          <line
+            x1="20"
+            y1="75"
+            x2="80"
+            y2="75"
+            stroke="rgba(127, 255, 0, 0.4)"
+            strokeWidth="0.5"
+          />
         </svg>
 
         {/* Champions League prism light fixtures */}
@@ -295,7 +316,7 @@ const Join: React.FC = () => {
                   top: `${15 + i * 10}%`,
                   background: colors[i % colors.length],
                   animationDelay: `${i * 0.3}s`,
-                  boxShadow: `0 0 15px ${colors[i % colors.length]}, 0 0 30px ${colors[i % colors.length].replace('0.8', '0.4')}`,
+                  boxShadow: `0 0 15px ${colors[i % colors.length]}, 0 0 30px ${colors[i % colors.length].replace("0.8", "0.4")}`,
                 }}
               ></div>
             );

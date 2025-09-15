@@ -149,13 +149,16 @@ class DailyTokenManager {
   ): Promise<{ token: string }> {
     try {
       // Check if we're in local development without Netlify CLI
-      const isLocalDev = typeof window !== "undefined" && 
-                        window.location.hostname === "localhost" && 
-                        window.location.port === "5173";
-      
+      const isLocalDev =
+        typeof window !== "undefined" &&
+        window.location.hostname === "localhost" &&
+        window.location.port === "5173";
+
       if (isLocalDev) {
-        console.warn("Running in local development mode - using mock Daily token");
-        
+        console.warn(
+          "Running in local development mode - using mock Daily token",
+        );
+
         // Generate a mock token for development
         const mockToken = `mock-token-${roomName}-${userName}-${Date.now()}`;
         return { token: mockToken };

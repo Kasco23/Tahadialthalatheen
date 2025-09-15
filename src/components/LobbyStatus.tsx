@@ -1,10 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { supabase } from "../lib/supabaseClient";
-import { 
-  getRoleIcon, 
-  DISPLAY_PARTICIPANT_SLOTS 
-} from "../lib/roleUtils";
+import { getRoleIcon, DISPLAY_PARTICIPANT_SLOTS } from "../lib/roleUtils";
 
 interface LobbyStatusProps {
   sessionId: string;
@@ -155,8 +152,8 @@ const LobbyStatus: React.FC<LobbyStatusProps> = ({
   };
 
   // Filter out GameMaster from displayed participants and counts
-  const displayParticipants = participants.filter((p) => 
-    ["Host", "Player1", "Player2"].includes(p.role)
+  const displayParticipants = participants.filter((p) =>
+    ["Host", "Player1", "Player2"].includes(p.role),
   );
   const activeParticipantCount = displayParticipants.filter(
     (p) => p.lobby_presence === "Joined",

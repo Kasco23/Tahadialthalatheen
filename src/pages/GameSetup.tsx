@@ -26,8 +26,13 @@ const GameSetup: React.FC = () => {
     (location.state as LocationState)?.hostPassword || null;
 
   // Use consolidated session data hook instead of separate fetches
-  const { sessionId, dailyRoom: _dailyRoom, loading: _sessionLoading, error: _sessionError } = useSessionData(sessionCode || null);
-  
+  const {
+    sessionId,
+    dailyRoom: _dailyRoom,
+    loading: _sessionLoading,
+    error: _sessionError,
+  } = useSessionData(sessionCode || null);
+
   // Use Jotai atoms for shared state
   const [, setSessionId] = useAtom(sessionAtom);
   const [_currentSessionCode, setCurrentSessionCode] = useAtom(sessionCodeAtom);
@@ -94,12 +99,12 @@ const GameSetup: React.FC = () => {
 
         // Set up presence tracking for the host
         const helper = new PresenceHelper(sessionId);
-        
+
         // Get host's selected flag and logo from localStorage
         const hostFlag = localStorage.getItem("selectedFlag") || "";
         const hostLogoUrl = localStorage.getItem("teamLogoUrl") || "";
         const hostTeamName = localStorage.getItem("teamName") || "";
-        
+
         await helper.joinPresence({
           id: participantId,
           user_id: participantId,

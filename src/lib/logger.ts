@@ -16,10 +16,13 @@ class Logger {
     return true;
   }
 
-  private static formatMessage(message: string, data?: unknown): [string, ...unknown[]] {
+  private static formatMessage(
+    message: string,
+    data?: unknown,
+  ): [string, ...unknown[]] {
     const timestamp = new Date().toISOString();
     const prefix = `[${timestamp}]`;
-    
+
     if (data !== undefined) {
       return [prefix + " " + message, data];
     }

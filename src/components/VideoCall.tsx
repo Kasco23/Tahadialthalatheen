@@ -33,13 +33,17 @@ export const VideoCall: React.FC<VideoCallProps> = ({
   const { meetingError } = useDailyError();
   const callObject = useDaily();
   const [callError, setCallError] = React.useState<string | null>(null);
-  
+
   // Get all participant IDs in the call (including local user)
   const participantIds = useParticipantIds();
   const localParticipant = useLocalParticipant();
 
   // Determine if current user has moderation privileges (Host or GameMaster)
-  const currentUserRole = localStorage.getItem("userRole") || localStorage.getItem("isHost") === "true" ? "Host" : "Player";
+  const currentUserRole =
+    localStorage.getItem("userRole") ||
+    localStorage.getItem("isHost") === "true"
+      ? "Host"
+      : "Player";
   const canModerate = ["Host", "GameMaster"].includes(currentUserRole);
 
   // Get current user's participant ID
@@ -67,16 +71,23 @@ export const VideoCall: React.FC<VideoCallProps> = ({
       .single();
 
     if (!roomData?.room_url) {
-      setCallError("No Daily room available. Host needs to create a room first.");
+      setCallError(
+        "No Daily room available. Host needs to create a room first.",
+      );
       return;
     }
 
     // Check if we're in local development with mock room
-    const isLocalDev = window.location.hostname === "localhost" && window.location.port === "5173";
-    const isMockRoom = roomData.room_url.includes("thirty.daily.co") && isLocalDev;
+    const isLocalDev =
+      window.location.hostname === "localhost" &&
+      window.location.port === "5173";
+    const isMockRoom =
+      roomData.room_url.includes("thirty.daily.co") && isLocalDev;
 
     if (isMockRoom) {
-      setCallError("🚧 Video calls are disabled in development mode. Use 'netlify dev' for full functionality.");
+      setCallError(
+        "🚧 Video calls are disabled in development mode. Use 'netlify dev' for full functionality.",
+      );
       return;
     }
 
@@ -86,7 +97,10 @@ export const VideoCall: React.FC<VideoCallProps> = ({
       console.log("Using participant name for token:", participantName);
 
       // Fetch the token for joining the Daily room
-      const tokenResponse = await createDailyToken(sessionCode, participantName);
+      const tokenResponse = await createDailyToken(
+        sessionCode,
+        participantName,
+      );
 
       // Join the Daily room using the modern hook-based approach
       await callObject.join({
@@ -147,7 +161,9 @@ export const VideoCall: React.FC<VideoCallProps> = ({
         <div className="inline-flex items-center space-x-3 bg-white/20 backdrop-blur-sm rounded-full px-6 py-3 border border-white/30">
           <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
           <span className="text-lg font-bold text-white">
-            {participantIds.length} {participantIds.length === 1 ? 'Participant' : 'Participants'} Connected
+            {participantIds.length}{" "}
+            {participantIds.length === 1 ? "Participant" : "Participants"}{" "}
+            Connected
           </span>
         </div>
       </div>
@@ -172,7 +188,9 @@ export const VideoCall: React.FC<VideoCallProps> = ({
       {participantIds.length === 0 && (
         <div className="text-center text-white/70 py-12">
           <div className="text-6xl mb-6">📹</div>
-          <div className="text-xl font-medium mb-2">Waiting for participants to join</div>
+          <div className="text-xl font-medium mb-2">
+            Waiting for participants to join
+          </div>
           <div className="text-sm text-blue-200">
             The video call is ready and waiting for participants
           </div>

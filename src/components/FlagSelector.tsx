@@ -302,10 +302,7 @@ const FlagSelector: React.FC<FlagSelectorProps> = ({
           <div className="flex items-center space-x-3">
             {selectedCountry ? (
               <>
-                <Flag
-                  code={selectedCountry.code}
-                  className="text-lg"
-                />
+                <Flag code={selectedCountry.code} className="text-lg" />
                 <span className="text-gray-700">{selectedCountry.name}</span>
               </>
             ) : (
@@ -372,10 +369,7 @@ const FlagSelector: React.FC<FlagSelectorProps> = ({
                         : "text-gray-700"
                     }`}
                   >
-                    <Flag
-                      code={country.code}
-                      className="text-lg"
-                    />
+                    <Flag code={country.code} className="text-lg" />
                     <span className="text-left">{country.name}</span>
                     {selectedFlag === country.code && (
                       <svg

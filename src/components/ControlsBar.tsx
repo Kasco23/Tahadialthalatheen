@@ -1,6 +1,6 @@
 import React from "react";
-import { 
-  useDaily, 
+import {
+  useDaily,
   useMeetingState,
   useLocalParticipant,
   // useDevices
@@ -32,9 +32,7 @@ export const ControlsBar: React.FC<ControlsBarProps> = ({
   const [isJoining, setIsJoining] = React.useState(false);
 
   // Use demo state or actual Daily.co state
-  const isInCall = demoMode
-    ? demoIsInCall
-    : meetingState === "joined-meeting";
+  const isInCall = demoMode ? demoIsInCall : meetingState === "joined-meeting";
 
   // Get current audio/video state from local participant
   const isMuted = localParticipant?.tracks?.audio?.state !== "playable";
@@ -122,8 +120,8 @@ export const ControlsBar: React.FC<ControlsBarProps> = ({
               onClick={handleJoinCall}
               disabled={isJoining}
               className={`${
-                isTopPosition 
-                  ? "px-8 py-4 text-lg rounded-xl" 
+                isTopPosition
+                  ? "px-8 py-4 text-lg rounded-xl"
                   : "px-6 py-3 rounded-full"
               } font-medium transition-all duration-200 flex items-center space-x-2 ${
                 isJoining

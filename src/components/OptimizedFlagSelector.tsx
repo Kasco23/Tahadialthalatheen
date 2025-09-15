@@ -241,13 +241,15 @@ const OptimizedFlagSelector: React.FC<FlagSelectorProps> = ({
 
   // Filter countries based on search term
   const filteredCountries = useMemo(() => {
-    const countries = showAllFlags || searchTerm ? ALL_COUNTRIES : POPULAR_COUNTRIES;
-    
+    const countries =
+      showAllFlags || searchTerm ? ALL_COUNTRIES : POPULAR_COUNTRIES;
+
     if (!searchTerm) return countries;
-    
-    return countries.filter((country) =>
-      country.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      country.code.toLowerCase().includes(searchTerm.toLowerCase())
+
+    return countries.filter(
+      (country) =>
+        country.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        country.code.toLowerCase().includes(searchTerm.toLowerCase()),
     );
   }, [searchTerm, showAllFlags]);
 
@@ -277,10 +279,7 @@ const OptimizedFlagSelector: React.FC<FlagSelectorProps> = ({
           <div className="flex items-center space-x-3">
             {selectedCountry ? (
               <>
-                <Flag
-                  code={selectedCountry.code}
-                  className="text-lg"
-                />
+                <Flag code={selectedCountry.code} className="text-lg" />
                 <span className="text-gray-700">{selectedCountry.name}</span>
               </>
             ) : (
@@ -316,7 +315,7 @@ const OptimizedFlagSelector: React.FC<FlagSelectorProps> = ({
                 className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
-            
+
             {/* Scrollable flag list */}
             <div className="overflow-y-auto max-h-64">
               {filteredCountries.length > 0 ? (
@@ -332,10 +331,7 @@ const OptimizedFlagSelector: React.FC<FlagSelectorProps> = ({
                           : "text-gray-700"
                       }`}
                     >
-                      <Flag
-                        code={country.code}
-                        className="text-lg"
-                      />
+                      <Flag code={country.code} className="text-lg" />
                       <span className="text-left">{country.name}</span>
                       {selectedFlag === country.code && (
                         <svg
@@ -352,17 +348,20 @@ const OptimizedFlagSelector: React.FC<FlagSelectorProps> = ({
                       )}
                     </button>
                   ))}
-                  
+
                   {/* Show more button */}
-                  {!showAllFlags && !searchTerm && filteredCountries.length === POPULAR_COUNTRIES.length && (
-                    <button
-                      type="button"
-                      onClick={handleShowMore}
-                      className="w-full px-4 py-3 text-center text-blue-600 hover:bg-blue-50 transition-colors duration-150 border-t border-gray-200"
-                    >
-                      Show all countries ({ALL_COUNTRIES.length - POPULAR_COUNTRIES.length} more)
-                    </button>
-                  )}
+                  {!showAllFlags &&
+                    !searchTerm &&
+                    filteredCountries.length === POPULAR_COUNTRIES.length && (
+                      <button
+                        type="button"
+                        onClick={handleShowMore}
+                        className="w-full px-4 py-3 text-center text-blue-600 hover:bg-blue-50 transition-colors duration-150 border-t border-gray-200"
+                      >
+                        Show all countries (
+                        {ALL_COUNTRIES.length - POPULAR_COUNTRIES.length} more)
+                      </button>
+                    )}
                 </>
               ) : (
                 <div className="px-4 py-6 text-center text-gray-500">

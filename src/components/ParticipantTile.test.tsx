@@ -40,8 +40,6 @@ describe("ParticipantTile", () => {
     ],
   ]);
 
-
-
   beforeEach(() => {
     vi.clearAllMocks();
   });

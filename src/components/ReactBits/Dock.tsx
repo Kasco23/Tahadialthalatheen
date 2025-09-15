@@ -1,5 +1,11 @@
-import React from 'react';
-import { motion, useMotionValue, useSpring, useTransform, MotionValue } from 'framer-motion';
+import React from "react";
+import {
+  motion,
+  useMotionValue,
+  useSpring,
+  useTransform,
+  MotionValue,
+} from "framer-motion";
 
 interface DockProps {
   magnification?: number;
@@ -24,7 +30,7 @@ export default function Dock({
   magnification = DEFAULT_MAGNIFICATION,
   distance = DEFAULT_DISTANCE,
   children,
-  className = ''
+  className = "",
 }: DockProps) {
   const mouseX = useMotionValue(Infinity);
 
@@ -36,11 +42,14 @@ export default function Dock({
     >
       {React.Children.map(children, (child) => {
         if (React.isValidElement(child)) {
-          return React.cloneElement(child as React.ReactElement<DockIconProps>, {
-            mouseX,
-            magnification,
-            distance
-          });
+          return React.cloneElement(
+            child as React.ReactElement<DockIconProps>,
+            {
+              mouseX,
+              magnification,
+              distance,
+            },
+          );
         }
         return child;
       })}
@@ -52,7 +61,7 @@ export function DockIcon({
   magnification = DEFAULT_MAGNIFICATION,
   distance = DEFAULT_DISTANCE,
   children,
-  className = '',
+  className = "",
   onClick,
   ...props
 }: DockIconProps) {
@@ -60,25 +69,22 @@ export function DockIcon({
 
   const fallbackMouseX = useMotionValue(Infinity);
   const mouseX = props.mouseX || fallbackMouseX;
-  
-  const distanceCalc = useTransform(
-    mouseX,
-    (val: number) => {
-      const bounds = ref.current?.getBoundingClientRect() ?? { x: 0, width: 0 };
-      return val - bounds.x - bounds.width / 2;
-    }
-  );
+
+  const distanceCalc = useTransform(mouseX, (val: number) => {
+    const bounds = ref.current?.getBoundingClientRect() ?? { x: 0, width: 0 };
+    return val - bounds.x - bounds.width / 2;
+  });
 
   const widthSync = useTransform(
     distanceCalc,
     [-distance, 0, distance],
-    [40, 40 + magnification, 40]
+    [40, 40 + magnification, 40],
   );
 
   const width = useSpring(widthSync, {
     mass: 0.1,
     stiffness: 150,
-    damping: 12
+    damping: 12,
   });
 
   return (

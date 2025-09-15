@@ -14,7 +14,9 @@ describe("createSession uses DB trigger to create session_code", () => {
   });
 
   it("creates session and returns DB-generated session_code, then creates host participant", async () => {
-    const fromMock = (supabase as unknown as { from: MockedFunction<() => unknown> }).from;
+    const fromMock = (
+      supabase as unknown as { from: MockedFunction<() => unknown> }
+    ).from;
 
     // Session insert -> select -> single returns session with session_code set by trigger
     const singleInsert = vi.fn().mockResolvedValue({
@@ -22,9 +24,7 @@ describe("createSession uses DB trigger to create session_code", () => {
       error: null,
     });
     const insertSelect = vi.fn().mockReturnValue({ single: singleInsert });
-    const insertMockSession = vi
-      .fn()
-      .mockReturnValue({ select: insertSelect });
+    const insertMockSession = vi.fn().mockReturnValue({ select: insertSelect });
 
     // Participant insert returns ok
     const insertMockParticipant = vi
