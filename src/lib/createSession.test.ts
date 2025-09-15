@@ -14,7 +14,9 @@ describe("createSession uses DB trigger to create session_code", () => {
   });
 
   it("creates session and returns DB-generated session_code, then creates host participant", async () => {
-    const fromMock = (supabase as unknown as { from: MockedFunction<() => unknown> }).from;
+    const fromMock = (
+      supabase as unknown as { from: MockedFunction<() => unknown> }
+    ).from;
 
     // Session insert -> select -> single returns session with session_code set by trigger
     const singleInsert = vi.fn().mockResolvedValue({
@@ -22,9 +24,7 @@ describe("createSession uses DB trigger to create session_code", () => {
       error: null,
     });
     const insertSelect = vi.fn().mockReturnValue({ single: singleInsert });
-    const insertMockSession = vi
-      .fn()
-      .mockReturnValue({ select: insertSelect });
+    const insertMockSession = vi.fn().mockReturnValue({ select: insertSelect });
 
     // Participant insert returns ok
     const insertMockParticipant = vi
@@ -48,12 +48,20 @@ describe("createSession uses DB trigger to create session_code", () => {
       game_state: "pre-quiz",
     });
 
-    // Ensure participant was created for the new session as Host
-    expect(insertMockParticipant).toHaveBeenCalledWith({
-      session_id: "new-id",
-      name: "Host",
-      role: "Host",
-      lobby_presence: "NotJoined",
-    });
+    // Ensure participant was created for the new session as both GameMaster and Host
+    expect(insertMockParticipant).toHaveBeenCalledWith([
+      {
+        session_id: "new-id",
+        name: "GameMaster",
+        role: "GameMaster",
+        lobby_presence: "Joined",
+      },
+      {
+        session_id: "new-id",
+        name: "Host",
+        role: "Host",
+        lobby_presence: "NotJoined",
+      },
+    ]);
   });
 });

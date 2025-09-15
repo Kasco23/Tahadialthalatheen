@@ -23,7 +23,6 @@ const App = () => {
 
   const logEvent = useCallback((evt: DailyEventObject) => {
     if ("action" in evt) {
-       
       console.log(`logEvent: ${evt.action}`, evt);
     } else {
       console.log("logEvent:", evt);

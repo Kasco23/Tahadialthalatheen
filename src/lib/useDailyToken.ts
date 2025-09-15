@@ -1,3 +1,4 @@
+import { Logger } from "./logger";
 import { useCallback, useEffect } from "react";
 import { useAtom } from "jotai";
 import {
@@ -6,6 +7,9 @@ import {
   dailyTokenRefreshingAtom,
 } from "../atoms";
 import { createDailyToken, getDailyTokenInfo } from "./mutations";
+
+const TOKEN_EXPIRY_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes
+const TOKEN_REFRESH_INTERVAL_MS = 4 * 60 * 1000; // 4 minutes
 
 interface UseDailyTokenOptions {
   sessionCode: string;
@@ -22,7 +26,7 @@ export const useDailyToken = ({
 
   // Check if token is expiring soon (within 5 minutes)
   const isTokenExpiringSoon =
-    tokenExpiry && tokenExpiry - Date.now() < 5 * 60 * 1000;
+    tokenExpiry && tokenExpiry - Date.now() < TOKEN_EXPIRY_THRESHOLD_MS;
   const isTokenExpired = tokenExpiry && Date.now() >= tokenExpiry;
 
   // Refresh token function
@@ -43,10 +47,10 @@ export const useDailyToken = ({
         setTokenExpiry(tokenInfo.expires_at);
       }
 
-      console.log("Daily token refreshed successfully");
+      Logger.log("Daily token refreshed successfully");
       return tokenResponse.token;
     } catch (error) {
-      console.error("Failed to refresh Daily token:", error);
+      Logger.error("Failed to refresh Daily token:", error);
       throw error;
     } finally {
       setIsRefreshing(false);
@@ -63,7 +67,7 @@ export const useDailyToken = ({
   useEffect(() => {
     if (isTokenExpiringSoon || isTokenExpired || !dailyToken) {
       refreshToken().catch((error) => {
-        console.error("Auto token refresh failed:", error);
+        Logger.error("Auto token refresh failed:", error);
       });
     }
   }, [isTokenExpiringSoon, isTokenExpired, dailyToken, refreshToken]);
@@ -72,16 +76,13 @@ export const useDailyToken = ({
   useEffect(() => {
     if (!sessionCode || !participantName) return;
 
-    const interval = setInterval(
-      () => {
-        if (dailyToken && !isRefreshing) {
-          refreshToken().catch((error) => {
-            console.error("Periodic token refresh failed:", error);
-          });
-        }
-      },
-      4 * 60 * 1000,
-    ); // 4 minutes
+    const interval = setInterval(() => {
+      if (dailyToken && !isRefreshing) {
+        refreshToken().catch((error) => {
+          Logger.error("Periodic token refresh failed:", error);
+        });
+      }
+    }, TOKEN_REFRESH_INTERVAL_MS); // 4 minutes
 
     return () => clearInterval(interval);
   }, [sessionCode, participantName, dailyToken, isRefreshing, refreshToken]);

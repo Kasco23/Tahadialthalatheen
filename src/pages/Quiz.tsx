@@ -1,3 +1,4 @@
+import { Logger } from "../lib/logger";
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useSession } from "../lib/sessionHooks";
@@ -36,7 +37,7 @@ const Quiz: React.FC = () => {
         const resolvedSessionId = await getSessionIdByCode(sessionCode);
         setSessionId(resolvedSessionId);
       } catch (error) {
-        console.error("Failed to resolve session code:", error);
+        Logger.error("Failed to resolve session code:", error);
         setError("Invalid session code");
       }
     };
@@ -89,7 +90,7 @@ const Quiz: React.FC = () => {
       // Note: This would also lock the other player's PASS until they answer correctly
       // That logic would be implemented in the game flow management
     } catch (error) {
-      console.error("Error using PASS powerup:", error);
+      Logger.error("Error using PASS powerup:", error);
       setError(
         error instanceof Error ? error.message : "Failed to use PASS powerup",
       );
@@ -103,7 +104,7 @@ const Quiz: React.FC = () => {
     try {
       await incrementStrike(sessionId!, participantId);
     } catch (error) {
-      console.error("Error incrementing strike:", error);
+      Logger.error("Error incrementing strike:", error);
       setError(
         error instanceof Error ? error.message : "Failed to increment strike",
       );
@@ -117,7 +118,7 @@ const Quiz: React.FC = () => {
     try {
       await resetStrikes(sessionId!, participantId);
     } catch (error) {
-      console.error("Error resetting strikes:", error);
+      Logger.error("Error resetting strikes:", error);
       setError(
         error instanceof Error ? error.message : "Failed to reset strikes",
       );

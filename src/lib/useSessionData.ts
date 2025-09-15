@@ -1,3 +1,4 @@
+import { Logger } from "./logger";
 import { useState, useEffect, useMemo } from "react";
 import { getSessionIdByCode, getDailyRoom } from "./mutations";
 
@@ -16,9 +17,12 @@ interface SessionDataHookState {
  * Prevents duplicate calls to getSessionIdByCode and getDailyRoom
  * between GameSetup and Lobby pages
  */
-export const useSessionData = (sessionCode: string | null): SessionDataHookState => {
+export const useSessionData = (
+  sessionCode: string | null,
+): SessionDataHookState => {
   const [sessionId, setSessionId] = useState<string | null>(null);
-  const [dailyRoom, setDailyRoom] = useState<SessionDataHookState['dailyRoom']>(null);
+  const [dailyRoom, setDailyRoom] =
+    useState<SessionDataHookState["dailyRoom"]>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -27,7 +31,7 @@ export const useSessionData = (sessionCode: string | null): SessionDataHookState
 
   useEffect(() => {
     let isCancelled = false;
-    
+
     const fetchSessionData = async () => {
       if (!memoizedSessionCode) {
         setLoading(false);
@@ -54,16 +58,19 @@ export const useSessionData = (sessionCode: string | null): SessionDataHookState
             }
           } catch (roomError) {
             // Daily room might not exist yet - this is not necessarily an error
-            console.warn("Daily room not found:", roomError);
+            Logger.warn("Daily room not found:", roomError);
             if (!isCancelled) {
               setDailyRoom(null);
             }
           }
         }
-
       } catch (sessionError) {
         if (!isCancelled) {
-          setError(sessionError instanceof Error ? sessionError.message : 'Failed to fetch session data');
+          setError(
+            sessionError instanceof Error
+              ? sessionError.message
+              : "Failed to fetch session data",
+          );
           setSessionId(null);
           setDailyRoom(null);
         }

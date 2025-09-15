@@ -1,6 +1,9 @@
+import { Logger } from "./logger";
 import { supabase } from "./supabaseClient";
 import { updateLobbyPresence } from "./mutations";
 import type { RealtimeChannel } from "@supabase/supabase-js";
+
+const HEARTBEAT_INTERVAL_MS = 30000; // 30 seconds
 
 export interface PresenceUser {
   user_id: string;
@@ -61,7 +64,7 @@ export class EnhancedPresenceHelper {
         }
       })
       .on("presence", { event: "join" }, ({ key, newPresences }) => {
-        console.log("Enhanced presence - User joined:", key, newPresences);
+        Logger.log("Enhanced presence - User joined:", { key, newPresences });
 
         // Broadcast user join event for immediate UI updates
         this.broadcastPresenceEvent("user_joined", {
@@ -76,7 +79,7 @@ export class EnhancedPresenceHelper {
         }
       })
       .on("presence", { event: "leave" }, ({ key, leftPresences }) => {
-        console.log("Enhanced presence - User left:", key, leftPresences);
+        Logger.log("Enhanced presence - User left:", { key, leftPresences });
 
         // Broadcast user leave event
         this.broadcastPresenceEvent("user_left", {
@@ -91,14 +94,14 @@ export class EnhancedPresenceHelper {
         }
       })
       .on("broadcast", { event: "presence_update" }, (payload) => {
-        console.log("Presence broadcast received:", payload);
+        Logger.log("Presence broadcast received:", payload);
         // Handle custom presence broadcasts for immediate UI updates
         this.handlePresenceBroadcast(payload.payload);
       });
 
     // Subscribe and track presence
     await this.channel.subscribe(async (status: string) => {
-      console.log("Enhanced presence subscription status:", status);
+      Logger.log("Enhanced presence subscription status:", status);
 
       if (status === "SUBSCRIBED") {
         const presenceData = {
@@ -258,22 +261,22 @@ export class EnhancedPresenceHelper {
 
     switch (event) {
       case "user_joined":
-        console.log("User joined via broadcast:", data);
+        Logger.log("User joined via broadcast:", data);
         break;
       case "user_left":
-        console.log("User left via broadcast:", data);
+        Logger.log("User left via broadcast:", data);
         break;
       case "activity_update":
-        console.log("Activity update via broadcast:", data);
+        Logger.log("Activity update via broadcast:", data);
         break;
       case "lobby_status_changed":
-        console.log("Lobby status changed via broadcast:", data);
+        Logger.log("Lobby status changed via broadcast:", data);
         break;
       case "video_status_changed":
-        console.log("Video status changed via broadcast:", data);
+        Logger.log("Video status changed via broadcast:", data);
         break;
       default:
-        console.log("Unknown presence broadcast:", event, data);
+        Logger.log("Unknown presence broadcast:", { event, data });
     }
   }
 
@@ -285,7 +288,7 @@ export class EnhancedPresenceHelper {
 
     this.heartbeatInterval = setInterval(() => {
       this.updateActivity();
-    }, 30000); // 30 seconds
+    }, HEARTBEAT_INTERVAL_MS); // 30 seconds
   }
 
   /**
@@ -370,7 +373,7 @@ export class EnhancedPresenceHelper {
         await updateLobbyPresence(userId, "Disconnected");
       }
     } catch (err) {
-      console.error("Failed to update database presence:", err);
+      Logger.error("Failed to update database presence:", err);
     }
   }
 }

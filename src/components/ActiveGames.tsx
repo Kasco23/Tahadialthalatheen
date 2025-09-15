@@ -1,6 +1,9 @@
+import { Logger } from "../lib/logger";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getActiveSessions, type ActiveSession } from "../lib/mutations";
+
+const REFRESH_INTERVAL_MS = 30000; // 30 seconds
 
 const ActiveGames: React.FC = () => {
   const [activeSessions, setActiveSessions] = useState<ActiveSession[]>([]);
@@ -16,7 +19,7 @@ const ActiveGames: React.FC = () => {
         setActiveSessions(sessions);
         setError(null);
       } catch (err) {
-        console.error("Failed to fetch active sessions:", err);
+        Logger.error("Failed to fetch active sessions:", err);
         setError(
           err instanceof Error ? err.message : "Failed to load active games",
         );
@@ -28,7 +31,7 @@ const ActiveGames: React.FC = () => {
     fetchActiveSessions();
 
     // Refresh every 30 seconds
-    const interval = setInterval(fetchActiveSessions, 30000);
+    const interval = setInterval(fetchActiveSessions, REFRESH_INTERVAL_MS);
 
     return () => clearInterval(interval);
   }, []);

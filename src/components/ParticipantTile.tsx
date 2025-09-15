@@ -1,3 +1,4 @@
+import { Logger } from "../lib/logger";
 import React, { useState } from "react";
 import {
   useParticipantProperty,
@@ -37,7 +38,7 @@ const ParticipantTile: React.FC<ParticipantTileProps> = ({
   currentUserParticipantId,
 }) => {
   const [isActioning, setIsActioning] = useState(false);
-  
+
   // Use Daily hook for moderation controls
   const callObject = useDaily();
 
@@ -73,9 +74,9 @@ const ParticipantTile: React.FC<ParticipantTileProps> = ({
     setIsActioning(true);
     try {
       await callObject.updateParticipant(participantId, { setAudio: false });
-      console.log(`Muted participant: ${displayName}`);
+      Logger.log(`Muted participant: ${displayName}`);
     } catch (error) {
-      console.error("Failed to mute participant:", error);
+      Logger.error("Failed to mute participant:", error);
     } finally {
       setIsActioning(false);
     }
@@ -92,9 +93,9 @@ const ParticipantTile: React.FC<ParticipantTileProps> = ({
     setIsActioning(true);
     try {
       await callObject.updateParticipant(participantId, { eject: true });
-      console.log(`Ejected participant: ${displayName}`);
+      Logger.log(`Ejected participant: ${displayName}`);
     } catch (error) {
-      console.error("Failed to eject participant:", error);
+      Logger.error("Failed to eject participant:", error);
     } finally {
       setIsActioning(false);
     }
@@ -109,8 +110,8 @@ const ParticipantTile: React.FC<ParticipantTileProps> = ({
           type="video"
           className="w-full h-full object-cover"
           style={{
-            objectFit: 'cover',
-            aspectRatio: '16/9'
+            objectFit: "cover",
+            aspectRatio: "16/9",
           }}
         />
       ) : (
@@ -118,7 +119,7 @@ const ParticipantTile: React.FC<ParticipantTileProps> = ({
         <div className="w-full h-full bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center relative">
           {/* Background pattern */}
           <div className="absolute inset-0 bg-black/20"></div>
-          
+
           {/* Content */}
           <div className="text-center text-white/80 z-10">
             <div className="text-5xl mb-3 filter drop-shadow-sm">👤</div>
@@ -126,7 +127,7 @@ const ParticipantTile: React.FC<ParticipantTileProps> = ({
               Camera Off
             </div>
           </div>
-          
+
           {/* Subtle pattern overlay */}
           <div className="absolute inset-0 opacity-5 bg-[radial-gradient(circle_at_25%_25%,white_2px,transparent_2px)] bg-[length:30px_30px]"></div>
         </div>

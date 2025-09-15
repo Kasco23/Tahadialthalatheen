@@ -90,14 +90,18 @@
   min-height: 100vh;
   background: 
     /* Premium stadium atmosphere */
-    radial-gradient(ellipse at center bottom, rgba(30, 58, 138, 0.15) 0%, transparent 60%),
+    radial-gradient(
+      ellipse at center bottom,
+      rgba(30, 58, 138, 0.15) 0%,
+      transparent 60%
+    ),
     linear-gradient(
       135deg,
-      #1e293b 0%,    /* Slate gray - premium base */
-      #334155 25%,   /* Enhanced visibility */
-      #475569 50%,   /* Mid-tone for depth */
-      #334155 75%,   /* Consistency */
-      #1e293b 100%   /* Dark professional finish */
+      #1e293b 0%,
+      /* Slate gray - premium base */ #334155 25%,
+      /* Enhanced visibility */ #475569 50%,
+      /* Mid-tone for depth */ #334155 75%,
+      /* Consistency */ #1e293b 100% /* Dark professional finish */
     );
   overflow: hidden;
 }
@@ -117,15 +121,15 @@
       ellipse at top center,
       rgba(255, 255, 255, 0.12) 0%,
       rgba(255, 255, 255, 0.06) 40%,
-      rgba(59, 130, 246, 0.03) 60%,    /* Premium blue wash */
-      transparent 85%
+      rgba(59, 130, 246, 0.03) 60%,
+      /* Premium blue wash */ transparent 85%
     ),
     /* Secondary architectural lighting */
-    radial-gradient(
-      ellipse at top left,
-      rgba(255, 255, 255, 0.04) 0%,
-      transparent 50%
-    ),
+      radial-gradient(
+        ellipse at top left,
+        rgba(255, 255, 255, 0.04) 0%,
+        transparent 50%
+      ),
     radial-gradient(
       ellipse at top right,
       rgba(255, 255, 255, 0.04) 0%,
@@ -146,27 +150,27 @@
     /* Premium marine vinyl texture with luxury finish */
     linear-gradient(
       0deg,
-      #1e2937 0%,      /* Deep navy base */
-      #2d3748 12%,     /* Seat cushion highlight */
-      #4a5568 15%,     /* Premium leather texture */
-      #2d3748 30%,     /* Seat padding */
-      #374151 32%,     /* Contrast piping */
-      #1f2937 45%,     /* Seat back base */
-      #374151 60%,     /* Ergonomic contour */
-      #4a5568 65%,     /* Shoulder support */
-      #2d3748 80%,     /* Headrest area */
-      #1e2937 100%     /* Premium finish */
+      #1e2937 0%,
+      /* Deep navy base */ #2d3748 12%,
+      /* Seat cushion highlight */ #4a5568 15%,
+      /* Premium leather texture */ #2d3748 30%,
+      /* Seat padding */ #374151 32%,
+      /* Contrast piping */ #1f2937 45%,
+      /* Seat back base */ #374151 60%,
+      /* Ergonomic contour */ #4a5568 65%,
+      /* Shoulder support */ #2d3748 80%,
+      /* Headrest area */ #1e2937 100% /* Premium finish */
     ),
     /* Powder-coated steel frame structure */
-    repeating-linear-gradient(
-      90deg,
-      transparent 0%,
-      transparent 8%,
-      rgba(156, 163, 175, 0.8) 8.5%,  /* Stainless steel accents */
-      rgba(156, 163, 175, 0.8) 9.5%,
-      transparent 10%,
-      transparent 18%
-    );
+      repeating-linear-gradient(
+        90deg,
+        transparent 0%,
+        transparent 8%,
+        rgba(156, 163, 175, 0.8) 8.5%,
+        /* Stainless steel accents */ rgba(156, 163, 175, 0.8) 9.5%,
+        transparent 10%,
+        transparent 18%
+      );
   z-index: 2;
 }
 
@@ -183,25 +187,48 @@
     repeating-linear-gradient(
       90deg,
       transparent 0px,
-      rgba(59, 130, 246, 0.15) 1px,  /* Premium blue piping */
-      transparent 2px,
+      rgba(59, 130, 246, 0.15) 1px,
+      /* Premium blue piping */ transparent 2px,
       transparent 12px
     ),
     /* Individual luxury seat outlines */
-    repeating-linear-gradient(
-      0deg,
-      transparent 0%,
-      transparent 18%,
-      rgba(156, 163, 175, 0.3) 19%,   /* Seat dividers */
-      rgba(156, 163, 175, 0.3) 21%,
-      transparent 22%,
-      transparent 40%
-    ),
+      repeating-linear-gradient(
+        0deg,
+        transparent 0%,
+        transparent 18%,
+        rgba(156, 163, 175, 0.3) 19%,
+        /* Seat dividers */ rgba(156, 163, 175, 0.3) 21%,
+        transparent 22%,
+        transparent 40%
+      ),
     /* Premium stainless steel fixtures and heating elements */
-    radial-gradient(circle at 15% 30%, rgba(220, 38, 38, 0.6) 0%, rgba(220, 38, 38, 0.6) 1px, transparent 2px),  /* Heated seat indicator */
-    radial-gradient(circle at 85% 30%, rgba(220, 38, 38, 0.6) 0%, rgba(220, 38, 38, 0.6) 1px, transparent 2px),  /* Heated seat indicator */
-    radial-gradient(circle at 15% 70%, #94a3b8 0%, #94a3b8 2px, transparent 3px),  /* Premium fixtures */
-    radial-gradient(circle at 85% 70%, #94a3b8 0%, #94a3b8 2px, transparent 3px);  /* Premium fixtures */
+      radial-gradient(
+        circle at 15% 30%,
+        rgba(220, 38, 38, 0.6) 0%,
+        rgba(220, 38, 38, 0.6) 1px,
+        transparent 2px
+      ),
+    /* Heated seat indicator */
+      radial-gradient(
+        circle at 85% 30%,
+        rgba(220, 38, 38, 0.6) 0%,
+        rgba(220, 38, 38, 0.6) 1px,
+        transparent 2px
+      ),
+    /* Heated seat indicator */
+      radial-gradient(
+        circle at 15% 70%,
+        #94a3b8 0%,
+        #94a3b8 2px,
+        transparent 3px
+      ),
+    /* Premium fixtures */
+      radial-gradient(
+        circle at 85% 70%,
+        #94a3b8 0%,
+        #94a3b8 2px,
+        transparent 3px
+      ); /* Premium fixtures */
   box-shadow:
     inset 0 0 40px rgba(0, 0, 0, 0.3),
     inset 0 4px 12px rgba(255, 255, 255, 0.08),
@@ -219,33 +246,33 @@
     /* Premium architectural metal with modern finish */
     linear-gradient(
       180deg,
-      #64748b 0%,      /* Premium steel top */
-      #94a3b8 8%,      /* Brushed metal highlight */
-      #475569 15%,     /* Architectural shadow */
-      #64748b 25%,     /* Mid-tone consistency */
-      #374151 40%,     /* Depth gradient */
-      #475569 100%     /* Professional base */
+      #64748b 0%,
+      /* Premium steel top */ #94a3b8 8%,
+      /* Brushed metal highlight */ #475569 15%,
+      /* Architectural shadow */ #64748b 25%,
+      /* Mid-tone consistency */ #374151 40%,
+      /* Depth gradient */ #475569 100% /* Professional base */
     ),
     /* Modern architectural support beams - Bernabéu inspired */
-    repeating-linear-gradient(
-      90deg,
-      transparent 0%,
-      transparent 12%,
-      rgba(148, 163, 184, 0.9) 12.5%,  /* Premium steel beams */
-      rgba(203, 213, 225, 0.7) 13%,    /* Highlight accent */
-      rgba(148, 163, 184, 0.9) 13.5%,
-      transparent 14%,
-      transparent 26%
-    ),
+      repeating-linear-gradient(
+        90deg,
+        transparent 0%,
+        transparent 12%,
+        rgba(148, 163, 184, 0.9) 12.5%,
+        /* Premium steel beams */ rgba(203, 213, 225, 0.7) 13%,
+        /* Highlight accent */ rgba(148, 163, 184, 0.9) 13.5%,
+        transparent 14%,
+        transparent 26%
+      ),
     /* Subtle luxury accent lighting */
-    linear-gradient(
-      90deg,
-      transparent 0%,
-      rgba(59, 130, 246, 0.1) 20%,     /* Premium blue accent */
-      rgba(99, 102, 241, 0.08) 50%,    /* Luxury lighting */
-      rgba(59, 130, 246, 0.1) 80%,
-      transparent 100%
-    );
+      linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(59, 130, 246, 0.1) 20%,
+        /* Premium blue accent */ rgba(99, 102, 241, 0.08) 50%,
+        /* Luxury lighting */ rgba(59, 130, 246, 0.1) 80%,
+        transparent 100%
+      );
   backdrop-filter: blur(6px);
   clip-path: ellipse(88% 100% at 50% 0%);
   box-shadow:
@@ -266,15 +293,15 @@
     /* Premium pitch surface */
     linear-gradient(to top, #15803d 0%, #16a34a 60%, #22c55e 100%),
     /* Technical zone markings */
-    repeating-linear-gradient(
-      90deg,
-      transparent 0%,
-      transparent 48%,
-      rgba(255, 255, 255, 0.3) 49%,   /* Pitch markings */
-      rgba(255, 255, 255, 0.3) 51%,
-      transparent 52%,
-      transparent 100%
-    );
+      repeating-linear-gradient(
+        90deg,
+        transparent 0%,
+        transparent 48%,
+        rgba(255, 255, 255, 0.3) 49%,
+        /* Pitch markings */ rgba(255, 255, 255, 0.3) 51%,
+        transparent 52%,
+        transparent 100%
+      );
   box-shadow:
     inset 0 4px 8px rgba(0, 0, 0, 0.2),
     0 -2px 6px rgba(34, 197, 94, 0.3);

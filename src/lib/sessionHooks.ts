@@ -1,3 +1,4 @@
+import { Logger } from "./logger";
 import { useState, useEffect } from "react";
 import { supabase } from "./supabaseClient";
 
@@ -42,7 +43,7 @@ export const useSession = (sessionId: string | null): UseSessionReturn => {
             filter: `session_id=eq.${sessionId}`,
           },
           (payload) => {
-            console.log("Session update:", payload);
+            Logger.log("Session update:", payload);
 
             if (!isMounted) return;
 
@@ -58,7 +59,7 @@ export const useSession = (sessionId: string | null): UseSessionReturn => {
           },
         )
         .subscribe((status) => {
-          console.log("Session subscription status:", status);
+          Logger.log("Session subscription status:", status);
 
           if (!isMounted) return;
 
@@ -93,7 +94,7 @@ export const useSession = (sessionId: string | null): UseSessionReturn => {
             // No rows returned
             setError("Session not found");
           } else {
-            console.error("Error loading session:", fetchError);
+            Logger.error("Error loading session:", fetchError);
             setError("Failed to load session data");
           }
           setSession(null);
@@ -104,7 +105,7 @@ export const useSession = (sessionId: string | null): UseSessionReturn => {
           }
         }
       } catch (err) {
-        console.error("Error in loadInitialSession:", err);
+        Logger.error("Error in loadInitialSession:", err);
         if (isMounted) {
           setError("An unexpected error occurred");
           setSession(null);

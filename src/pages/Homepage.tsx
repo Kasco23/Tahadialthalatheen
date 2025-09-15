@@ -1,3 +1,4 @@
+import { Logger } from "../lib/logger";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import PasswordModal from "../components/PasswordModal";
@@ -28,7 +29,7 @@ const Homepage: React.FC = () => {
         state: { hostPassword: password },
       });
     } catch (error) {
-      console.error("Error creating session:", error);
+      Logger.error("Error creating session:", error);
       setAlert({
         type: "error",
         message: `Error creating session: ${error instanceof Error ? error.message : "Unknown error"}`,

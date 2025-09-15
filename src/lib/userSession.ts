@@ -1,5 +1,6 @@
+import { Logger } from "./logger";
 // User session management with consolidated localStorage
-import type { ParticipantRole } from './types';
+import type { ParticipantRole } from "./types";
 
 export interface UserSessionData {
   participantId?: string;
@@ -12,7 +13,7 @@ export interface UserSessionData {
   teamName?: string;
 }
 
-const SESSION_KEY = 'tt_user_session';
+const SESSION_KEY = "tt_user_session";
 
 export class UserSession {
   private static data: UserSessionData = {};
@@ -28,7 +29,7 @@ export class UserSession {
         this.migrateOldKeys();
       }
     } catch (error) {
-      console.warn('Failed to parse user session data:', error);
+      Logger.warn("Failed to parse user session data:", error);
       this.data = {};
     }
   }
@@ -36,35 +37,43 @@ export class UserSession {
   // Migrate from old individual localStorage keys
   private static migrateOldKeys(): void {
     const oldKeys = [
-      'participantId', 'sessionCode', 'playerName', 'hostName', 
-      'tt_participant_name', 'isHost', 'userRole', 'selectedFlag', 
-      'teamLogoUrl', 'teamName'
+      "participantId",
+      "sessionCode",
+      "playerName",
+      "hostName",
+      "tt_participant_name",
+      "isHost",
+      "userRole",
+      "selectedFlag",
+      "teamLogoUrl",
+      "teamName",
     ];
 
     const migrated: UserSessionData = {};
-    
+
     // Consolidate participant name from various sources
-    migrated.participantName = 
-      localStorage.getItem('tt_participant_name') ||
-      localStorage.getItem('playerName') ||
-      localStorage.getItem('hostName') ||
+    migrated.participantName =
+      localStorage.getItem("tt_participant_name") ||
+      localStorage.getItem("playerName") ||
+      localStorage.getItem("hostName") ||
       undefined;
 
     // Consolidate other fields
-    migrated.participantId = localStorage.getItem('participantId') || undefined;
-    migrated.sessionCode = localStorage.getItem('sessionCode') || undefined;
-    migrated.isHost = localStorage.getItem('isHost') === 'true';
-    migrated.role = (localStorage.getItem('userRole') as ParticipantRole) || 
-                   (migrated.isHost ? 'Host' : 'Player1');
-    migrated.flag = localStorage.getItem('selectedFlag') || undefined;
-    migrated.teamLogoUrl = localStorage.getItem('teamLogoUrl') || undefined;
-    migrated.teamName = localStorage.getItem('teamName') || undefined;
+    migrated.participantId = localStorage.getItem("participantId") || undefined;
+    migrated.sessionCode = localStorage.getItem("sessionCode") || undefined;
+    migrated.isHost = localStorage.getItem("isHost") === "true";
+    migrated.role =
+      (localStorage.getItem("userRole") as ParticipantRole) ||
+      (migrated.isHost ? "Host" : "Player1");
+    migrated.flag = localStorage.getItem("selectedFlag") || undefined;
+    migrated.teamLogoUrl = localStorage.getItem("teamLogoUrl") || undefined;
+    migrated.teamName = localStorage.getItem("teamName") || undefined;
 
     // Save consolidated data
     this.set(migrated);
 
     // Clean up old keys
-    oldKeys.forEach(key => localStorage.removeItem(key));
+    oldKeys.forEach((key) => localStorage.removeItem(key));
   }
 
   // Get all session data
@@ -84,7 +93,10 @@ export class UserSession {
   }
 
   // Set specific field
-  static setField<K extends keyof UserSessionData>(key: K, value: UserSessionData[K]): void {
+  static setField<K extends keyof UserSessionData>(
+    key: K,
+    value: UserSessionData[K],
+  ): void {
     this.data[key] = value;
     this.save();
   }
@@ -100,7 +112,7 @@ export class UserSession {
     try {
       localStorage.setItem(SESSION_KEY, JSON.stringify(this.data));
     } catch (error) {
-      console.warn('Failed to save user session data:', error);
+      Logger.warn("Failed to save user session data:", error);
     }
   }
 
@@ -126,7 +138,7 @@ export class UserSession {
   }
 
   static get canModerate(): boolean {
-    return ['Host', 'GameMaster'].includes(this.data.role || '');
+    return ["Host", "GameMaster"].includes(this.data.role || "");
   }
 }
 

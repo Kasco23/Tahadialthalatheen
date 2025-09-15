@@ -20,14 +20,30 @@ export function Alert({
     return () => clearTimeout(id);
   }, [onClose, autoCloseMs]);
 
-  const style =
-    type === "success"
-      ? "bg-green-50 border-green-200 text-green-800"
-      : type === "error"
-        ? "bg-red-50 border-red-200 text-red-800"
-        : "bg-blue-50 border-blue-200 text-blue-800";
+  const getAlertStyles = (alertType: "success" | "error" | "info") => {
+    switch (alertType) {
+      case "success":
+        return "bg-green-50 border-green-200 text-green-800";
+      case "error":
+        return "bg-red-50 border-red-200 text-red-800";
+      default:
+        return "bg-blue-50 border-blue-200 text-blue-800";
+    }
+  };
 
-  const icon = type === "success" ? "✅" : type === "error" ? "⚠️" : "ℹ️";
+  const getAlertIcon = (alertType: "success" | "error" | "info") => {
+    switch (alertType) {
+      case "success":
+        return "✅";
+      case "error":
+        return "⚠️";
+      default:
+        return "ℹ️";
+    }
+  };
+
+  const style = getAlertStyles(type);
+  const icon = getAlertIcon(type);
 
   return (
     <AnimatePresence>

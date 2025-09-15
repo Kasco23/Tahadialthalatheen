@@ -1,22 +1,18 @@
+import { Logger } from "../lib/logger";
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAtom } from "jotai";
 
 import { supabase } from "../lib/supabaseClient";
 import { useSession } from "../lib/sessionHooks";
-import {
-  leaveLobby,
-} from "../lib/mutations";
+import { leaveLobby } from "../lib/mutations";
 import { useSessionData } from "../lib/useSessionData";
-import {
-  sessionAtom,
-  sessionCodeAtom,
-  participantsAtom,
-  dailyRoomUrlAtom,
-} from "../atoms";
+import { sessionAtom, sessionCodeAtom } from "../atoms";
 import { VideoCall } from "../components/VideoCall";
+import { VideoCallJoinButton } from "../components/VideoCallJoinButton";
 import { Flag } from "../components/Flag";
 import { LobbyLogo } from "../components/LobbyLogo";
+import { LOBBY_PRESENCE, PARTICIPANT_ROLE } from "../lib/types";
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 import type { Database } from "../lib/types/supabase";
 
@@ -29,16 +25,16 @@ interface ParticipantCardProps {
   getRoleDisplay: (player: ParticipantRow) => string;
 }
 
-const ParticipantCard: React.FC<ParticipantCardProps> = ({ 
-  player, 
-  lobbyPresence, 
-  videoPresence, 
-  getRoleDisplay 
+const ParticipantCard: React.FC<ParticipantCardProps> = ({
+  player,
+  lobbyPresence,
+  videoPresence,
+  getRoleDisplay,
 }) => {
   return (
     <div
       className={`bg-white/5 backdrop-blur-sm rounded-lg p-4 border-2 transition-all duration-300 ${
-        player.lobby_presence === "Joined"
+        player.lobby_presence === LOBBY_PRESENCE.JOINED
           ? "border-green-400 bg-green-500/10"
           : "border-red-400 bg-red-500/10"
       }`}
@@ -48,20 +44,19 @@ const ParticipantCard: React.FC<ParticipantCardProps> = ({
         <div className="flex items-center space-x-2">
           <Flag code={player.flag || "sa"} className="text-lg" />
           {player.team_logo_url && (
-            <LobbyLogo 
-              logoUrl={player.team_logo_url}
-              teamName={player.name}
-            />
+            <LobbyLogo logoUrl={player.team_logo_url} teamName={player.name} />
           )}
           <div>
             <div className="text-sm font-bold text-white">{player.name}</div>
-            <div className="text-xs text-blue-200">{getRoleDisplay(player)}</div>
+            <div className="text-xs text-blue-200">
+              {getRoleDisplay(player)}
+            </div>
           </div>
         </div>
         <div
-          className={`text-lg ${player.lobby_presence === "Joined" ? "animate-pulse text-green-500" : "text-red-500"}`}
+          className={`text-lg ${player.lobby_presence === LOBBY_PRESENCE.JOINED ? "animate-pulse text-green-500" : "text-red-500"}`}
         >
-          {player.lobby_presence === "Joined" ? "🟢" : "🔴"}
+          {player.lobby_presence === LOBBY_PRESENCE.JOINED ? "🟢" : "🔴"}
         </div>
       </div>
 
@@ -71,7 +66,7 @@ const ParticipantCard: React.FC<ParticipantCardProps> = ({
           <span className="text-xs text-blue-200">Lobby:</span>
           <span
             className={`text-xs font-medium ${
-              player.lobby_presence === "Joined"
+              player.lobby_presence === LOBBY_PRESENCE.JOINED
                 ? "text-green-400"
                 : "text-red-400"
             }`}
@@ -99,19 +94,18 @@ const Lobby: React.FC = () => {
   const navigate = useNavigate();
 
   // Use consolidated session data hook
-  const { sessionId, dailyRoom, loading: sessionLoading, error: sessionError } = useSessionData(sessionCode || null);
-  
+  const {
+    sessionId,
+    dailyRoom,
+    loading: sessionLoading,
+    error: sessionError,
+  } = useSessionData(sessionCode || null);
+
   // Use Jotai atoms
   const [, setSessionId] = useAtom(sessionAtom);
-  const [_currentSessionCode, setCurrentSessionCode] = useAtom(sessionCodeAtom);
-  const [_participants, _setParticipants] = useAtom(participantsAtom);
-  const [_dailyRoomUrl] = useAtom(dailyRoomUrlAtom);
+  const [, setCurrentSessionCode] = useAtom(sessionCodeAtom);
 
-  const {
-    session,
-    loading: _sessionHookLoading,
-    error: _sessionHookError,
-  } = useSession(sessionId);
+  const { session } = useSession(sessionId);
   const [players, setPlayers] = useState<ParticipantRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -162,7 +156,7 @@ const Lobby: React.FC = () => {
               Database["public"]["Tables"]["Participant"]["Row"]
             >,
           ) => {
-            console.log("Participant update:", payload);
+            Logger.log("Participant update:", payload);
 
             if (!isMounted) return;
 
@@ -189,7 +183,7 @@ const Lobby: React.FC = () => {
           },
         )
         .subscribe((status) => {
-          console.log("Participants subscription status:", status);
+          Logger.log("Participants subscription status:", status);
         });
 
       return channel;
@@ -208,7 +202,7 @@ const Lobby: React.FC = () => {
           .order("name", { ascending: true });
 
         if (fetchError) {
-          console.error("Error loading players:", fetchError);
+          Logger.error("Error loading players:", fetchError);
           setError("Failed to load participants");
         } else {
           if (isMounted) {
@@ -217,7 +211,7 @@ const Lobby: React.FC = () => {
           }
         }
       } catch (err) {
-        console.error("Error in loadInitialPlayers:", err);
+        Logger.error("Error in loadInitialPlayers:", err);
         if (isMounted) {
           setError("An unexpected error occurred");
         }
@@ -239,13 +233,11 @@ const Lobby: React.FC = () => {
     };
   }, [sessionId]);
 
-
-
   const getPresenceStatus = (p: ParticipantRow) => {
     const lobbyPresence =
-      p.lobby_presence === "Joined"
+      p.lobby_presence === LOBBY_PRESENCE.JOINED
         ? "🟢 Online"
-        : p.lobby_presence === "Disconnected"
+        : p.lobby_presence === LOBBY_PRESENCE.DISCONNECTED
           ? "🟠 Disconnected"
           : "🔴 Not Joined";
     const videoPresence = p.video_presence ? "📹 In Call" : "📵 Not in Call";
@@ -253,17 +245,20 @@ const Lobby: React.FC = () => {
   };
 
   const getRoleDisplay = (p: ParticipantRow) => {
-    if (p.role === "Host") return "👑 Host";
-    if (p.role === "GameMaster") return "🎮 Game Master";
-    if (p.role === "Player1") return "⚽ Player A";
-    if (p.role === "Player2") return "🏆 Player B";
+    if (p.role === PARTICIPANT_ROLE.HOST) return "👑 Host";
+    if (p.role === PARTICIPANT_ROLE.GAME_MASTER) return "🎮 Game Master";
+    if (p.role === PARTICIPANT_ROLE.PLAYER1) return "⚽ Player A";
+    if (p.role === PARTICIPANT_ROLE.PLAYER2) return "🏆 Player B";
     return `👤 ${p.role}`;
   };
 
   const canStartQuiz = () => {
     if (!session) return false;
     const joinedNonHostsAndGMs = players.filter(
-      (p) => !["Host", "GameMaster"].includes(p.role) && p.lobby_presence === "Joined",
+      (p) =>
+        p.role !== PARTICIPANT_ROLE.HOST &&
+        p.role !== PARTICIPANT_ROLE.GAME_MASTER &&
+        p.lobby_presence === LOBBY_PRESENCE.JOINED,
     );
     return joinedNonHostsAndGMs.length >= 2 && session.phase === "Lobby";
   };
@@ -296,13 +291,11 @@ const Lobby: React.FC = () => {
         await leaveLobby(pid);
       }
     } catch (e) {
-      console.error("Failed to update presence on leave:", e);
+      Logger.error("Failed to update presence on leave:", e);
     } finally {
       navigate("/");
     }
   };
-
-
 
   if (sessionLoading || loading) {
     return (
@@ -356,9 +349,7 @@ const Lobby: React.FC = () => {
       <div className="dugout-content p-4">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">
-            🎮 Game Lobby
-          </h1>
+          <h1 className="text-4xl font-bold text-white mb-2">🎮 Game Lobby</h1>
           <div className="text-xl text-blue-100">
             Session:{" "}
             <span className="font-bold text-yellow-300">{sessionCode}</span>
@@ -372,34 +363,45 @@ const Lobby: React.FC = () => {
         {/* Responsive Layout Container */}
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-            
             {/* Participants Sidebar */}
             <div className="xl:col-span-1 space-y-6">
               <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20">
                 <h2 className="text-2xl font-bold text-white mb-4 text-center">
-                  👥 Participants ({players.filter(p => p.role !== "GameMaster").length})
+                  👥 Participants (
+                  {
+                    players.filter(
+                      (p) => p.role !== PARTICIPANT_ROLE.GAME_MASTER,
+                    ).length
+                  }
+                  )
                 </h2>
 
-                {players.filter(p => p.role !== "GameMaster").length === 0 ? (
+                {players.filter((p) => p.role !== PARTICIPANT_ROLE.GAME_MASTER)
+                  .length === 0 ? (
                   <div className="text-center text-blue-200 py-8">
                     <div className="text-4xl mb-4">👤</div>
                     <div>No players have joined yet</div>
-                    <div className="text-sm mt-2">Waiting for participants...</div>
+                    <div className="text-sm mt-2">
+                      Waiting for participants...
+                    </div>
                   </div>
                 ) : (
                   <div className="space-y-3 max-h-96 overflow-y-auto">
-                    {players.filter(p => p.role !== "GameMaster").map((player) => {
-                      const { lobbyPresence, videoPresence } = getPresenceStatus(player);
-                      return (
-                        <ParticipantCard 
-                          key={player.participant_id}
-                          player={player}
-                          lobbyPresence={lobbyPresence}
-                          videoPresence={videoPresence}
-                          getRoleDisplay={getRoleDisplay}
-                        />
-                      );
-                    })}
+                    {players
+                      .filter((p) => p.role !== PARTICIPANT_ROLE.GAME_MASTER)
+                      .map((player) => {
+                        const { lobbyPresence, videoPresence } =
+                          getPresenceStatus(player);
+                        return (
+                          <ParticipantCard
+                            key={player.participant_id}
+                            player={player}
+                            lobbyPresence={lobbyPresence}
+                            videoPresence={videoPresence}
+                            getRoleDisplay={getRoleDisplay}
+                          />
+                        );
+                      })}
                   </div>
                 )}
               </div>
@@ -433,7 +435,6 @@ const Lobby: React.FC = () => {
 
             {/* Main Video Area */}
             <div className="xl:col-span-3 space-y-6">
-              
               {/* Industry-Grade Video Call Interface */}
               {dailyRoom ? (
                 <div className="bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 overflow-hidden">
@@ -441,7 +442,9 @@ const Lobby: React.FC = () => {
                   <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 px-6 py-4 border-b border-white/10">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
-                        <div className={`w-3 h-3 rounded-full ${dailyRoom?.ready ? 'bg-green-400 animate-pulse' : 'bg-yellow-400'}`}></div>
+                        <div
+                          className={`w-3 h-3 rounded-full ${dailyRoom?.ready ? "bg-green-400 animate-pulse" : "bg-yellow-400"}`}
+                        ></div>
                         <h3 className="text-xl font-bold text-white">
                           Video Conference
                         </h3>
@@ -449,13 +452,34 @@ const Lobby: React.FC = () => {
                       <div className="flex items-center space-x-4 text-sm text-blue-200">
                         <span className="flex items-center space-x-1">
                           <span>🏠</span>
-                          <span>{dailyRoom?.ready ? "Ready" : "Setting up"}</span>
+                          <span>
+                            {dailyRoom?.ready ? "Ready" : "Setting up"}
+                          </span>
                         </span>
                         {dailyRoom?.ready && (
-                          <span className="flex items-center space-x-1">
-                            <span>🔗</span>
-                            <span>Live</span>
-                          </span>
+                          <>
+                            <span className="flex items-center space-x-1">
+                              <span>🔗</span>
+                              <span>Live</span>
+                            </span>
+                            {/* Embedded Join Button */}
+                            <VideoCallJoinButton
+                              sessionId={sessionId || ""}
+                              sessionCode={sessionCode || ""}
+                              participantName={
+                                localStorage.getItem("tt_participant_name") ||
+                                localStorage.getItem("playerName") ||
+                                localStorage.getItem("hostName") ||
+                                (players.length > 0 &&
+                                  players.find(
+                                    (p) =>
+                                      p.participant_id ===
+                                      localStorage.getItem("participantId"),
+                                  )?.name) ||
+                                "Player"
+                              }
+                            />
+                          </>
                         )}
                       </div>
                     </div>
@@ -466,22 +490,32 @@ const Lobby: React.FC = () => {
                     <VideoCall
                       players={players}
                       sessionCode={sessionCode || ""}
+                      sessionId={sessionId || ""}
                       participantName={
-                        localStorage.getItem("tt_participant_name") || 
+                        localStorage.getItem("tt_participant_name") ||
                         localStorage.getItem("playerName") ||
                         localStorage.getItem("hostName") ||
-                        (players.length > 0 && players.find(p => p.participant_id === localStorage.getItem("participantId"))?.name) ||
+                        (players.length > 0 &&
+                          players.find(
+                            (p) =>
+                              p.participant_id ===
+                              localStorage.getItem("participantId"),
+                          )?.name) ||
                         "Player"
                       }
-                      showControlsAtTop={true}
+                      showControlsAtTop={false}
                     />
                   </div>
                 </div>
               ) : (
                 <div className="bg-white/10 backdrop-blur-sm rounded-lg p-8 border border-white/20 text-center">
                   <div className="text-6xl mb-4">⏳</div>
-                  <h3 className="text-2xl font-bold text-white mb-2">Initializing Video Room</h3>
-                  <p className="text-blue-200 mb-4">Host is setting up the video conference...</p>
+                  <h3 className="text-2xl font-bold text-white mb-2">
+                    Initializing Video Room
+                  </h3>
+                  <p className="text-blue-200 mb-4">
+                    Host is setting up the video conference...
+                  </p>
                   <div className="inline-flex items-center space-x-2 text-sm text-blue-300">
                     <div className="w-2 h-2 bg-blue-400 rounded-full animate-ping"></div>
                     <span>Please wait</span>

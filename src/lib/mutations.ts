@@ -313,11 +313,13 @@ export async function createDailyRoom(
     Logger.debug("Creating Daily room with:", { sessionId, sessionCode });
 
     // Check if we're in local development without Netlify CLI
-    const isLocalDev = window.location.hostname === "localhost" && window.location.port === "5173";
-    
+    const isLocalDev =
+      window.location.hostname === "localhost" &&
+      window.location.port === "5173";
+
     if (isLocalDev) {
       Logger.warn("Running in local development mode - using mock Daily room");
-      
+
       // Create mock Daily room for development
       const mockRoomUrl = `https://thirty.daily.co/${sessionCode.toLowerCase()}`;
       const mockResponse: CreateDailyRoomResponse = {
@@ -358,7 +360,7 @@ export async function createDailyRoom(
     if (!response.ok) {
       // Clone response to allow reading body multiple times
       const responseClone = response.clone();
-      
+
       // Try to get the error details from the response
       try {
         const errorData = await response.json();
@@ -492,7 +494,7 @@ export async function joinAsHost(
       join_at: new Date().toISOString(),
       disconnect_at: null,
     };
-    
+
     if (flag) updateData.flag = flag;
     if (logoUrl) updateData.team_logo_url = logoUrl;
 
@@ -545,7 +547,9 @@ export async function joinAsGameMaster(
     .maybeSingle();
 
   if (findError) {
-    throw new Error(`Failed to check for existing GameMaster: ${findError.message}`);
+    throw new Error(
+      `Failed to check for existing GameMaster: ${findError.message}`,
+    );
   }
 
   if (existingGameMaster) {

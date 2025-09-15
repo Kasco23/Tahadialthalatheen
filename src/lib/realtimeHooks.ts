@@ -1,3 +1,4 @@
+import { Logger } from "./logger";
 import { useEffect, useState } from "react";
 import { supabase } from "./supabaseClient";
 import type { Tables } from "./types";
@@ -34,7 +35,7 @@ export function useStrikes(sessionId: string | null) {
 
         setStrikes(strikesMap);
       } catch (error) {
-        console.error("Error fetching strikes:", error);
+        Logger.error("Error fetching strikes:", error);
       } finally {
         setLoading(false);
       }
@@ -54,7 +55,7 @@ export function useStrikes(sessionId: string | null) {
           filter: `session_id=eq.${sessionId}`,
         },
         (payload) => {
-          console.log("Strikes update:", payload);
+          Logger.log("Strikes update:", payload);
 
           if (
             payload.eventType === "INSERT" ||
@@ -111,7 +112,7 @@ export function useSegmentConfig(sessionId: string | null) {
         if (error) throw error;
         setSegmentConfig(data || []);
       } catch (error) {
-        console.error("Error fetching segment config:", error);
+        Logger.error("Error fetching segment config:", error);
       } finally {
         setLoading(false);
       }
@@ -131,7 +132,7 @@ export function useSegmentConfig(sessionId: string | null) {
           filter: `session_id=eq.${sessionId}`,
         },
         (payload) => {
-          console.log("SegmentConfig update:", payload);
+          Logger.log("SegmentConfig update:", payload);
 
           if (payload.eventType === "INSERT") {
             const newData = payload.new as Tables<"SegmentConfig">;
@@ -183,7 +184,7 @@ export function useParticipants(sessionId: string | null) {
         if (error) throw error;
         setParticipants(data || []);
       } catch (error) {
-        console.error("Error fetching participants:", error);
+        Logger.error("Error fetching participants:", error);
       } finally {
         setLoading(false);
       }
@@ -203,7 +204,7 @@ export function useParticipants(sessionId: string | null) {
           filter: `session_id=eq.${sessionId}`,
         },
         (payload) => {
-          console.log("Participant update:", payload);
+          Logger.log("Participant update:", payload);
 
           if (payload.eventType === "INSERT") {
             const newData = payload.new as Tables<"Participant">;

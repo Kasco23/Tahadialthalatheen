@@ -1,3 +1,4 @@
+import { Logger } from "../lib/logger";
 import { useState, useEffect, useCallback } from "react";
 import { useAtom } from "jotai";
 import { useDaily } from "@daily-co/daily-react";
@@ -57,9 +58,9 @@ export const DailyJoinButton: React.FC<DailyJoinButtonProps> = ({
           setTokenExpiry(tokenInfo.expires_at);
         }
 
-        console.log("Token refreshed successfully");
+        Logger.log("Token refreshed successfully");
       } catch (error) {
-        console.error("Failed to refresh token:", error);
+        Logger.error("Failed to refresh token:", error);
         setJoinError("Failed to refresh video token. Please try again.");
       } finally {
         setIsRefreshing(false);
@@ -119,13 +120,13 @@ export const DailyJoinButton: React.FC<DailyJoinButtonProps> = ({
         userName: participantName,
       });
 
-      console.log("Successfully joined Daily room:", {
+      Logger.log("Successfully joined Daily room:", {
         roomUrl: dailyRoomUrl,
         userName: participantName,
         tokenExpiry: tokenInfo?.expires_at,
       });
     } catch (error) {
-      console.error("Failed to join Daily room:", error);
+      Logger.error("Failed to join Daily room:", error);
       setJoinError(
         error instanceof Error ? error.message : "Failed to join video call",
       );
@@ -144,7 +145,7 @@ export const DailyJoinButton: React.FC<DailyJoinButtonProps> = ({
       setDailyUserName(null);
       setTokenExpiry(null);
 
-      console.log("Left Daily room and cleared token cache");
+      Logger.log("Left Daily room and cleared token cache");
     }
   };
 

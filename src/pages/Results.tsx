@@ -1,3 +1,4 @@
+import { Logger } from "../lib/logger";
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
@@ -44,7 +45,7 @@ const Results: React.FC = () => {
         const resolvedSessionId = await getSessionIdByCode(sessionCode);
         setSessionId(resolvedSessionId);
       } catch (error) {
-        console.error("Failed to resolve session code:", error);
+        Logger.error("Failed to resolve session code:", error);
         setError("Invalid session code");
         setLoading(false);
       }
@@ -84,7 +85,7 @@ const Results: React.FC = () => {
             filter: `session_id=eq.${sessionId}`,
           },
           (payload) => {
-            console.log("Player update in results:", payload);
+            Logger.log("Player update in results:", payload);
             loadPlayers();
           },
         )
@@ -103,13 +104,13 @@ const Results: React.FC = () => {
           .eq("session_id", sessionId);
 
         if (playersError) {
-          console.error("Error loading players:", playersError);
+          Logger.error("Error loading players:", playersError);
           setError("Failed to load player data");
         } else {
           setPlayers(playersData || []);
         }
       } catch (err) {
-        console.error("Error loading players:", err);
+        Logger.error("Error loading players:", err);
         setError("Failed to load results data");
       }
     };
@@ -127,7 +128,7 @@ const Results: React.FC = () => {
           { segment_code: "REMO", player1_score: 0, player2_score: 0 },
         ]);
       } catch (err) {
-        console.error("Error loading initial data:", err);
+        Logger.error("Error loading initial data:", err);
         setError("Failed to load results");
       } finally {
         setLoading(false);

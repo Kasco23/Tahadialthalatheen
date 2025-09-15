@@ -28,5 +28,5 @@ root.render(
         <App />
       </DailyProvider>
     )}
-  </StrictMode>
+  </StrictMode>,
 );

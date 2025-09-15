@@ -1,3 +1,4 @@
+import { Logger } from "../lib/logger";
 import React from "react";
 import {
   useParticipantIds,
@@ -17,6 +18,7 @@ type ParticipantRow = Database["public"]["Tables"]["Participant"]["Row"];
 interface VideoCallProps {
   players: ParticipantRow[];
   sessionCode: string;
+  sessionId: string;
   participantName: string;
   showControlsAtTop?: boolean;
 }
@@ -24,6 +26,7 @@ interface VideoCallProps {
 export const VideoCall: React.FC<VideoCallProps> = ({
   players,
   sessionCode,
+  sessionId,
   participantName,
   showControlsAtTop = false,
 }) => {
@@ -31,13 +34,17 @@ export const VideoCall: React.FC<VideoCallProps> = ({
   const { meetingError } = useDailyError();
   const callObject = useDaily();
   const [callError, setCallError] = React.useState<string | null>(null);
-  
+
   // Get all participant IDs in the call (including local user)
   const participantIds = useParticipantIds();
   const localParticipant = useLocalParticipant();
 
   // Determine if current user has moderation privileges (Host or GameMaster)
-  const currentUserRole = localStorage.getItem("userRole") || localStorage.getItem("isHost") === "true" ? "Host" : "Player";
+  const currentUserRole =
+    localStorage.getItem("userRole") ||
+    localStorage.getItem("isHost") === "true"
+      ? "Host"
+      : "Player";
   const canModerate = ["Host", "GameMaster"].includes(currentUserRole);
 
   // Get current user's participant ID
@@ -46,7 +53,7 @@ export const VideoCall: React.FC<VideoCallProps> = ({
   // Log errors if they occur
   React.useEffect(() => {
     if (meetingError) {
-      console.error("Daily meeting error:", meetingError);
+      Logger.error("Daily meeting error:", meetingError);
     }
   }, [meetingError]);
 
@@ -57,34 +64,44 @@ export const VideoCall: React.FC<VideoCallProps> = ({
       return;
     }
 
-    // Get Daily room info from Supabase
+    // Get Daily room info from Supabase using sessionId (not sessionCode)
     const { data: roomData } = await supabase
       .from("DailyRoom")
       .select("room_url, ready")
-      .eq("room_id", sessionCode)
+      .eq("room_id", sessionId)
       .single();
 
     if (!roomData?.room_url) {
-      setCallError("No Daily room available. Host needs to create a room first.");
+      setCallError(
+        "No Daily room available. Host needs to create a room first.",
+      );
       return;
     }
 
     // Check if we're in local development with mock room
-    const isLocalDev = window.location.hostname === "localhost" && window.location.port === "5173";
-    const isMockRoom = roomData.room_url.includes("thirty.daily.co") && isLocalDev;
+    const isLocalDev =
+      window.location.hostname === "localhost" &&
+      window.location.port === "5173";
+    const isMockRoom =
+      roomData.room_url.includes("thirty.daily.co") && isLocalDev;
 
     if (isMockRoom) {
-      setCallError("🚧 Video calls are disabled in development mode. Use 'netlify dev' for full functionality.");
+      setCallError(
+        "🚧 Video calls are disabled in development mode. Use 'netlify dev' for full functionality.",
+      );
       return;
     }
 
     setCallError(null);
 
     try {
-      console.log("Using participant name for token:", participantName);
+      Logger.log("Using participant name for token:", participantName);
 
       // Fetch the token for joining the Daily room
-      const tokenResponse = await createDailyToken(sessionCode, participantName);
+      const tokenResponse = await createDailyToken(
+        sessionCode,
+        participantName,
+      );
 
       // Join the Daily room using the modern hook-based approach
       await callObject.join({
@@ -93,12 +110,12 @@ export const VideoCall: React.FC<VideoCallProps> = ({
         userName: participantName,
       });
 
-      console.log("Successfully initiated Daily room join:", {
+      Logger.log("Successfully initiated Daily room join:", {
         roomUrl: roomData.room_url,
         userName: participantName,
       });
     } catch (error) {
-      console.error("Failed to join Daily room:", error);
+      Logger.error("Failed to join Daily room:", error);
       setCallError(
         error instanceof Error ? error.message : "Failed to join video call",
       );
@@ -109,9 +126,9 @@ export const VideoCall: React.FC<VideoCallProps> = ({
     if (callObject) {
       try {
         await callObject.leave();
-        console.log("Left Daily call");
+        Logger.log("Left Daily call");
       } catch (error) {
-        console.error("Error leaving Daily call:", error);
+        Logger.error("Error leaving Daily call:", error);
       }
     }
   };
@@ -145,7 +162,9 @@ export const VideoCall: React.FC<VideoCallProps> = ({
         <div className="inline-flex items-center space-x-3 bg-white/20 backdrop-blur-sm rounded-full px-6 py-3 border border-white/30">
           <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
           <span className="text-lg font-bold text-white">
-            {participantIds.length} {participantIds.length === 1 ? 'Participant' : 'Participants'} Connected
+            {participantIds.length}{" "}
+            {participantIds.length === 1 ? "Participant" : "Participants"}{" "}
+            Connected
           </span>
         </div>
       </div>
@@ -170,7 +189,9 @@ export const VideoCall: React.FC<VideoCallProps> = ({
       {participantIds.length === 0 && (
         <div className="text-center text-white/70 py-12">
           <div className="text-6xl mb-6">📹</div>
-          <div className="text-xl font-medium mb-2">Waiting for participants to join</div>
+          <div className="text-xl font-medium mb-2">
+            Waiting for participants to join
+          </div>
           <div className="text-sm text-blue-200">
             The video call is ready and waiting for participants
           </div>

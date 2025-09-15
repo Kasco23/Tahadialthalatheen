@@ -19,7 +19,24 @@ export type SegmentCode = "WDYK" | "AUCT" | "BELL" | "UPDW" | "REMO";
 // `types.ts`). Keep these small and explicit rather than relying on
 // regenerated DB types for behaviour-level enums.
 export type ParticipantRole = "Host" | "Player1" | "Player2" | "GameMaster";
+
+// Constants for participant roles
+export const PARTICIPANT_ROLE = {
+  HOST: "Host" as const,
+  PLAYER1: "Player1" as const,
+  PLAYER2: "Player2" as const,
+  GAME_MASTER: "GameMaster" as const,
+} satisfies Record<string, ParticipantRole>;
+
 export type LobbyPresence = "NotJoined" | "Joined" | "Disconnected";
+
+// Constants for lobby presence states
+export const LOBBY_PRESENCE = {
+  NOT_JOINED: "NotJoined" as const,
+  JOINED: "Joined" as const,
+  DISCONNECTED: "Disconnected" as const,
+} satisfies Record<string, LobbyPresence>;
+
 export type SessionPhase =
   | "Setup"
   | "Lobby"

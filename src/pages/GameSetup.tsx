@@ -16,6 +16,7 @@ import { motion } from "framer-motion";
 import { sessionAtom, sessionCodeAtom, dailyRoomUrlAtom } from "../atoms";
 import type { SegmentCode } from "../lib/types";
 import PresenceHelper from "../lib/presence";
+import { Logger } from "../lib/logger";
 
 const GameSetup: React.FC = () => {
   const navigate = useNavigate();
@@ -26,11 +27,11 @@ const GameSetup: React.FC = () => {
     (location.state as LocationState)?.hostPassword || null;
 
   // Use consolidated session data hook instead of separate fetches
-  const { sessionId, dailyRoom: _dailyRoom, loading: _sessionLoading, error: _sessionError } = useSessionData(sessionCode || null);
-  
+  const { sessionId } = useSessionData(sessionCode || null);
+
   // Use Jotai atoms for shared state
   const [, setSessionId] = useAtom(sessionAtom);
-  const [_currentSessionCode, setCurrentSessionCode] = useAtom(sessionCodeAtom);
+  const [, setCurrentSessionCode] = useAtom(sessionCodeAtom);
   const [, setDailyRoomUrl] = useAtom(dailyRoomUrlAtom);
 
   const [isLoading, setIsLoading] = useState(false);
@@ -79,7 +80,7 @@ const GameSetup: React.FC = () => {
       }
 
       try {
-        console.log("Joining as host...", { sessionCode, sessionId });
+        Logger.log("Joining as host...", { sessionCode, sessionId });
         const participantId = await joinAsHost(
           sessionCode,
           hostPasswordFromState,
@@ -90,16 +91,16 @@ const GameSetup: React.FC = () => {
         // Store in localStorage for persistence
         localStorage.setItem("hostParticipantId", participantId);
 
-        console.log("Successfully joined as host:", participantId);
+        Logger.log("Successfully joined as host:", participantId);
 
         // Set up presence tracking for the host
         const helper = new PresenceHelper(sessionId);
-        
+
         // Get host's selected flag and logo from localStorage
         const hostFlag = localStorage.getItem("selectedFlag") || "";
         const hostLogoUrl = localStorage.getItem("teamLogoUrl") || "";
         const hostTeamName = localStorage.getItem("teamName") || "";
-        
+
         await helper.joinPresence({
           id: participantId,
           user_id: participantId,
@@ -120,9 +121,9 @@ const GameSetup: React.FC = () => {
         const heartbeatInterval = PresenceHelper.createHeartbeat(helper);
         setHeartbeat(heartbeatInterval);
 
-        console.log("Host presence tracking started");
+        Logger.log("Host presence tracking started");
       } catch (error) {
-        console.error("Failed to join as host:", error);
+        Logger.error("Failed to join as host:", error);
         setNotice({
           type: "error",
           message: `Failed to join as host: ${error instanceof Error ? error.message : "Unknown error"}`,
@@ -140,7 +141,7 @@ const GameSetup: React.FC = () => {
         PresenceHelper.clearHeartbeat(heartbeat);
       }
       if (presenceHelper) {
-        presenceHelper.leavePresence().catch(console.error);
+        presenceHelper.leavePresence().catch(Logger.error);
       }
     };
   }, [heartbeat, presenceHelper]);
@@ -155,7 +156,7 @@ const GameSetup: React.FC = () => {
         .single();
 
       if (error && error.code !== "PGRST116") {
-        console.error("Error fetching room info:", error.message);
+        Logger.error("Error fetching room info:", error.message);
         return;
       }
 
@@ -164,7 +165,7 @@ const GameSetup: React.FC = () => {
         setRoomInfo(data);
       }
     } catch (error) {
-      console.error("Unexpected error fetching room info:", error);
+      Logger.error("Unexpected error fetching room info:", error);
     }
   }, [sessionId]);
 
@@ -186,7 +187,7 @@ const GameSetup: React.FC = () => {
         // Update local state with fetched config
         setSegments((prev) => ({ ...prev, ...configMap }));
       } catch (error) {
-        console.error("Failed to load segment config:", error);
+        Logger.error("Failed to load segment config:", error);
       }
     };
 
@@ -218,7 +219,7 @@ const GameSetup: React.FC = () => {
           },
         ]);
       } catch (error) {
-        console.error("Failed to update segment config:", error);
+        Logger.error("Failed to update segment config:", error);
       }
     }
   };
@@ -255,7 +256,7 @@ const GameSetup: React.FC = () => {
         message: "Daily room created successfully.",
       });
     } catch (error) {
-      console.error("Error setting up game:", error);
+      Logger.error("Error setting up game:", error);
       setNotice({
         type: "error",
         message: error instanceof Error ? error.message : "Unknown error",
@@ -311,7 +312,7 @@ const GameSetup: React.FC = () => {
         setNotice({ type: "success", message: "Session ended successfully." });
         navigate("/");
       } catch (error) {
-        console.error("Error ending session:", error);
+        Logger.error("Error ending session:", error);
         setNotice({
           type: "error",
           message: `Error ending session: ${error instanceof Error ? error.message : "Unknown error"}`,

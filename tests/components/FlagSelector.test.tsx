@@ -22,14 +22,19 @@ vi.mock("react-country-flag", () => ({
 }));
 
 // Mock Supabase
-const mockInvoke = vi.fn();
-vi.mock("../../src/lib/supabaseClient", () => ({
-  supabase: {
-    functions: {
-      invoke: mockInvoke,
+vi.mock("../../src/lib/supabaseClient", () => {
+  const mockInvoke = vi.fn();
+  return {
+    supabase: {
+      functions: {
+        invoke: mockInvoke,
+      },
     },
-  },
-}));
+  };
+});
+
+// Get the mock for use in tests
+import { supabase } from "../../src/lib/supabaseClient";
 
 describe("FlagSelector Component", () => {
   it("renders with default title", () => {
@@ -107,28 +112,28 @@ describe("FlagSelector Component", () => {
 
 describe("LogoSelector Component", () => {
   const mockLogosResponse = {
-    leagues: [
-      {
-        name: "premier-league",
+    categories: {
+      "premier-league": {
         displayName: "Premier League",
         teams: [
           {
-            name: "manchester-united",
-            displayName: "Manchester United",
-            logoUrl: "https://example.com/man-utd.png",
+            name: "Manchester United",
+            url: "https://example.com/man-utd.png",
           },
           {
-            name: "liverpool",
-            displayName: "Liverpool",
-            logoUrl: "https://example.com/liverpool.png",
+            name: "Liverpool",
+            url: "https://example.com/liverpool.png",
           },
         ],
       },
-    ],
+    },
   };
 
   beforeEach(() => {
-    mockInvoke.mockResolvedValue({ data: mockLogosResponse, error: null });
+    (supabase.functions.invoke as ReturnType<typeof vi.fn>).mockResolvedValue({
+      data: mockLogosResponse,
+      error: null,
+    });
   });
 
   afterEach(() => {
@@ -213,12 +218,19 @@ describe("LogoSelector Component", () => {
 
     render(<LogoSelector onLogoSelect={mockOnLogoSelect} />);
 
+    // Wait for the component to load and then set the search term
     await waitFor(() => {
-      const searchInput = screen.getByPlaceholderText(
-        "Search teams or leagues...",
-      );
-      fireEvent.change(searchInput, { target: { value: "liverpool" } });
+      expect(screen.getByText("Premier League")).toBeInTheDocument();
     });
+
+    const searchInput = screen.getByPlaceholderText(
+      "Search teams or leagues...",
+    );
+    fireEvent.change(searchInput, { target: { value: "liverpool" } });
+
+    // Click to expand the Premier League section
+    const leagueButton = screen.getByText("Premier League");
+    fireEvent.click(leagueButton);
 
     await waitFor(() => {
       expect(screen.getByText("Liverpool")).toBeInTheDocument();
@@ -227,7 +239,7 @@ describe("LogoSelector Component", () => {
   });
 
   it("shows error state when API fails", async () => {
-    mockInvoke.mockResolvedValue({
+    (supabase.functions.invoke as ReturnType<typeof vi.fn>).mockResolvedValue({
       data: null,
       error: { message: "API Error" },
     });

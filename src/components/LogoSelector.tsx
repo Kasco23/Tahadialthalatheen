@@ -1,3 +1,4 @@
+import { Logger } from "../lib/logger";
 import React, { useState, useEffect } from "react";
 import { supabase } from "../lib/supabaseClient";
 import ChromaLogo from "./ChromaLogo";
@@ -80,7 +81,7 @@ const LogoSelector: React.FC<LogoSelectorProps> = ({
 
       setLeagues(leaguesArray);
     } catch (err) {
-      console.error("Error fetching logos:", err);
+      Logger.error("Error fetching logos:", err);
       setError(
         err instanceof Error ? err.message : "Failed to load team logos",
       );
@@ -252,15 +253,22 @@ const LogoSelector: React.FC<LogoSelectorProps> = ({
               {/* Teams Grid */}
               {expandedLeague === league.name && (
                 <div className="p-4 bg-white">
-                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6" data-testid={useChromaGrid ? "chroma-grid" : "standard-grid"}>
-                    {league.teams.map((team) => (
+                  <div
+                    className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6"
+                    data-testid={
+                      useChromaGrid ? "chroma-grid" : "standard-grid"
+                    }
+                  >
+                    {league.teams.map((team) =>
                       useChromaGrid ? (
                         <ChromaLogo
                           key={team.name}
                           logoUrl={team.logoUrl}
                           teamName={team.displayName}
                           isSelected={selectedLogoUrl === team.logoUrl}
-                          onClick={() => onLogoSelect(team.logoUrl, team.displayName)}
+                          onClick={() =>
+                            onLogoSelect(team.logoUrl, team.displayName)
+                          }
                           size="md"
                           className="mx-auto"
                         />
@@ -305,8 +313,8 @@ const LogoSelector: React.FC<LogoSelectorProps> = ({
                             </div>
                           )}
                         </button>
-                      )
-                    ))}
+                      ),
+                    )}
                   </div>
                 </div>
               )}

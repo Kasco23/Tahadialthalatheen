@@ -15,6 +15,9 @@ vi.mock("@daily-co/daily-react", () => ({
   ),
 }));
 
+// Get the mock for use in tests
+import { useDaily } from "@daily-co/daily-react";
+
 type ParticipantRow = Database["public"]["Tables"]["Participant"]["Row"];
 
 describe("ParticipantTile", () => {
@@ -39,8 +42,6 @@ describe("ParticipantTile", () => {
       },
     ],
   ]);
-
-
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -90,6 +91,9 @@ describe("ParticipantTile", () => {
   });
 
   it("should not show moderation controls without call object", () => {
+    // Mock useDaily to return null (no call object)
+    (useDaily as ReturnType<typeof vi.fn>).mockReturnValueOnce(null);
+
     render(
       <ParticipantTile
         participantId="other-participant"
