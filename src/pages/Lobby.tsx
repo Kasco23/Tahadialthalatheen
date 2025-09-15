@@ -466,6 +466,7 @@ const Lobby: React.FC = () => {
                     <VideoCall
                       players={players}
                       sessionCode={sessionCode || ""}
+                      sessionId={sessionId || ""}
                       participantName={
                         localStorage.getItem("tt_participant_name") || 
                         localStorage.getItem("playerName") ||

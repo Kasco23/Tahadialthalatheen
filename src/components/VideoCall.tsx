@@ -17,6 +17,7 @@ type ParticipantRow = Database["public"]["Tables"]["Participant"]["Row"];
 interface VideoCallProps {
   players: ParticipantRow[];
   sessionCode: string;
+  sessionId: string;
   participantName: string;
   showControlsAtTop?: boolean;
 }
@@ -24,6 +25,7 @@ interface VideoCallProps {
 export const VideoCall: React.FC<VideoCallProps> = ({
   players,
   sessionCode,
+  sessionId,
   participantName,
   showControlsAtTop = false,
 }) => {
@@ -57,11 +59,11 @@ export const VideoCall: React.FC<VideoCallProps> = ({
       return;
     }
 
-    // Get Daily room info from Supabase
+    // Get Daily room info from Supabase using sessionId (not sessionCode)
     const { data: roomData } = await supabase
       .from("DailyRoom")
       .select("room_url, ready")
-      .eq("room_id", sessionCode)
+      .eq("room_id", sessionId)
       .single();
 
     if (!roomData?.room_url) {
