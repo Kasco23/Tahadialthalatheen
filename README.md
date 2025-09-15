@@ -65,4 +65,5 @@ VITE_DAILY_API_KEY=
 - sessions: id, host_name, host_password, phase
 - participants: session_id, name, role, flag, logo, connected
 - rounds: session_id, segment_code, question_count, powerup_used
+
 # Trigger CI
