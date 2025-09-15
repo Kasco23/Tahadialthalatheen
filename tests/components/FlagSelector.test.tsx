@@ -22,14 +22,19 @@ vi.mock("react-country-flag", () => ({
 }));
 
 // Mock Supabase
-const mockInvoke = vi.fn();
-vi.mock("../../src/lib/supabaseClient", () => ({
-  supabase: {
-    functions: {
-      invoke: mockInvoke,
+vi.mock("../../src/lib/supabaseClient", () => {
+  const mockInvoke = vi.fn();
+  return {
+    supabase: {
+      functions: {
+        invoke: mockInvoke,
+      },
     },
-  },
-}));
+  };
+});
+
+// Get the mock for use in tests
+import { supabase } from "../../src/lib/supabaseClient";
 
 describe("FlagSelector Component", () => {
   it("renders with default title", () => {
@@ -128,7 +133,7 @@ describe("LogoSelector Component", () => {
   };
 
   beforeEach(() => {
-    mockInvoke.mockResolvedValue({ data: mockLogosResponse, error: null });
+    (supabase.functions.invoke as ReturnType<typeof vi.fn>).mockResolvedValue({ data: mockLogosResponse, error: null });
   });
 
   afterEach(() => {
@@ -227,7 +232,7 @@ describe("LogoSelector Component", () => {
   });
 
   it("shows error state when API fails", async () => {
-    mockInvoke.mockResolvedValue({
+    (supabase.functions.invoke as ReturnType<typeof vi.fn>).mockResolvedValue({
       data: null,
       error: { message: "API Error" },
     });

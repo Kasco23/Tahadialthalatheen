@@ -4,12 +4,14 @@ import { ParticipantTile } from "./ParticipantTile";
 import type { Database } from "../lib/types/supabase";
 
 // Mock Daily React hooks
+const mockUseDaily = vi.fn(() => ({
+  updateParticipant: vi.fn(),
+}));
+
 vi.mock("@daily-co/daily-react", () => ({
   useParticipantProperty: vi.fn(() => "Test User"),
   useVideoTrack: vi.fn(() => ({ track: null, state: "off" })),
-  useDaily: vi.fn(() => ({
-    updateParticipant: vi.fn(),
-  })),
+  useDaily: mockUseDaily,
   DailyVideo: ({ sessionId }: { sessionId: string }) => (
     <div data-testid={`video-${sessionId}`}>Video</div>
   ),
@@ -88,6 +90,9 @@ describe("ParticipantTile", () => {
   });
 
   it("should not show moderation controls without call object", () => {
+    // Mock useDaily to return null (no call object)
+    mockUseDaily.mockReturnValueOnce(null);
+    
     render(
       <ParticipantTile
         participantId="other-participant"

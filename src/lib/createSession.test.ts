@@ -48,12 +48,20 @@ describe("createSession uses DB trigger to create session_code", () => {
       game_state: "pre-quiz",
     });
 
-    // Ensure participant was created for the new session as Host
-    expect(insertMockParticipant).toHaveBeenCalledWith({
-      session_id: "new-id",
-      name: "Host",
-      role: "Host",
-      lobby_presence: "NotJoined",
-    });
+    // Ensure participant was created for the new session as both GameMaster and Host
+    expect(insertMockParticipant).toHaveBeenCalledWith([
+      {
+        session_id: "new-id",
+        name: "GameMaster",
+        role: "GameMaster",
+        lobby_presence: "Joined",
+      },
+      {
+        session_id: "new-id",
+        name: "Host",
+        role: "Host",
+        lobby_presence: "NotJoined",
+      },
+    ]);
   });
 });
