@@ -144,3 +144,23 @@ export class UserSession {
 
 // Initialize on import
 UserSession.init();
+
+// Seat-based routing functions
+export const getSeatFromStorage = (): string | null => {
+  return localStorage.getItem('userSeat');
+};
+
+export const setSeatInStorage = (seat: string): void => {
+  localStorage.setItem('userSeat', seat);
+};
+
+export const clearSeatFromStorage = (): void => {
+  localStorage.removeItem('userSeat');
+};
+
+export const resolveSeatFromUrl = (seatParam?: string): string | null => {
+  if (seatParam && ['1', '2', '3'].includes(seatParam)) {
+    return seatParam;
+  }
+  return getSeatFromStorage();
+};
