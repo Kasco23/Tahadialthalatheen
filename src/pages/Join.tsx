@@ -134,9 +134,9 @@ const JoinRevolutionary: React.FC = () => {
   }, []);
 
   // Check for existing preset
-  const handleCheckPreset = async (name: string, role?: string) => {
+  const handleCheckPreset = async (name: string, sessionCode?: string, role?: string) => {
     try {
-      const preset = await checkExistingPreset(name, role);
+      const preset = await checkExistingPreset(name, sessionCode, role);
       if (preset && preset.flag && preset.team_logo_url) {
         setExistingPreset(preset);
         setShowPresetModal(true);
@@ -337,7 +337,7 @@ const JoinRevolutionary: React.FC = () => {
       }
       
       // Check for existing preset based on host role
-      const hasPreset = await handleCheckPreset("Host", "Host");
+      const hasPreset = await handleCheckPreset("Host", sessionCode, "Host");
       if (!hasPreset) {
         setCurrentStep("flag"); // Go to flag selection if no preset
       }
@@ -351,7 +351,7 @@ const JoinRevolutionary: React.FC = () => {
       }
       
       // Check for existing preset based on player name
-      const hasPreset = await handleCheckPreset(playerName);
+      const hasPreset = await handleCheckPreset(playerName, playerSessionCode);
       if (!hasPreset) {
         setCurrentStep("flag"); // Go to flag selection if no preset
       }

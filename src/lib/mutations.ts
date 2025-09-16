@@ -94,7 +94,9 @@ export async function getActiveSessions(): Promise<ActiveSession[]> {
     `,
     )
     // Show any session that hasn't ended yet
-    .is("ended_at", null);
+    .is("ended_at", null)
+    .order("created_at", { ascending: false }) // Most recent first
+    .limit(4); // Only get the 4 most recent
 
   if (error) {
     Logger.error("Error fetching active sessions:", error);
@@ -945,24 +947,29 @@ export interface ExistingPreset {
 
 export async function checkExistingPreset(
   name: string,
+  sessionCode?: string,
   role?: string,
 ): Promise<ExistingPreset | null> {
   // Search for existing participants with the same name (case insensitive)
-  // Optionally filter by role for hosts
+  // Optionally filter by session code and role
   let query = supabase
     .from("Participant")
-    .select("name, flag, team_logo_url, role")
+    .select("name, flag, team_logo_url, role, session_id, Session!inner(session_code)")
     .ilike("name", name) // Case insensitive match
     .not("flag", "is", null) // Only return participants with existing presets
     .not("team_logo_url", "is", null)
-    .order("join_at", { ascending: false }) // Get the most recent one
-    .limit(1);
+    .order("join_at", { ascending: false }); // Get the most recent one
+
+  if (sessionCode) {
+    // If session code is provided, filter by it
+    query = query.eq("Session.session_code", sessionCode.toUpperCase());
+  }
 
   if (role) {
     query = query.eq("role", role);
   }
 
-  const { data, error } = await query.maybeSingle();
+  const { data, error } = await query.limit(1).maybeSingle();
 
   if (error) {
     Logger.error("Error checking existing preset:", error);
