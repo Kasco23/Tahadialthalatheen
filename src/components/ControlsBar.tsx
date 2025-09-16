@@ -74,7 +74,7 @@ export const ControlsBar: React.FC<ControlsBarProps> = ({
   };
 
   return (
-    <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-10">
+    <div className="fixed left-1/2 -translate-x-1/2 z-50" style={{ bottom: '20px' }}>
       <div className="bg-white/10 backdrop-blur-sm rounded-full px-6 py-3 border border-white/20 shadow-lg">
         <div className="flex items-center space-x-4">
           {isInCall ? (
