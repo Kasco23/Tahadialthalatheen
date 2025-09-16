@@ -86,3 +86,18 @@ export interface DailyTokenRefreshConfig {
   maxDelay: number; // milliseconds
   refreshThresholdMinutes: number; // minutes before expiry to refresh
 }
+
+// Seat-based routing system types
+export type SeatRole = 'host' | 'player1' | 'player2';
+
+export const SEAT_TO_ROLE: Record<string, SeatRole> = {
+  '1': 'host',
+  '2': 'player1', 
+  '3': 'player2'
+};
+
+export const ROLE_TO_SEAT: Record<SeatRole, string> = {
+  'host': '1',
+  'player1': '2',
+  'player2': '3'
+};
