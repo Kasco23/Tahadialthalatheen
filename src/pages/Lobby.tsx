@@ -12,7 +12,8 @@ import { VideoCall } from "../components/VideoCall";
 import { VideoCallJoinButton } from "../components/VideoCallJoinButton";
 import { Flag } from "../components/Flag";
 import { LobbyLogo } from "../components/LobbyLogo";
-import { LOBBY_PRESENCE, PARTICIPANT_ROLE } from "../lib/types";
+import { LOBBY_PRESENCE, PARTICIPANT_ROLE, SEAT_TO_ROLE } from "../lib/types";
+import { resolveSeatFromUrl, setSeatInStorage } from "../lib/userSession";
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 import type { Database } from "../lib/types/supabase";
 
@@ -90,8 +91,35 @@ const ParticipantCard: React.FC<ParticipantCardProps> = ({
 };
 
 const Lobby: React.FC = () => {
-  const { sessionCode } = useParams<{ sessionCode: string }>();
+  const { sessionCode, seat } = useParams<{ sessionCode: string; seat?: string }>();
   const navigate = useNavigate();
+
+  // Resolve seat using priority: URL param > localStorage > null
+  const resolvedSeat = resolveSeatFromUrl(seat);
+  
+  // Set resolved seat in localStorage if found
+  useEffect(() => {
+    if (resolvedSeat) {
+      setSeatInStorage(resolvedSeat);
+    }
+  }, [resolvedSeat]);
+
+  // Navigate to canonical URL if seat is resolved but not in URL
+  useEffect(() => {
+    if (resolvedSeat && !seat && sessionCode) {
+      navigate(`/lobby/${sessionCode}/${resolvedSeat}`, { replace: true });
+    }
+  }, [resolvedSeat, seat, sessionCode, navigate]);
+
+  // Map seat to role using SEAT_TO_ROLE helper
+  const userRole = resolvedSeat ? SEAT_TO_ROLE[resolvedSeat] : null;
+
+  // Log user role for debugging (will be used in future steps)
+  useEffect(() => {
+    if (userRole) {
+      Logger.log("User role resolved from seat:", { seat: resolvedSeat, role: userRole });
+    }
+  }, [userRole, resolvedSeat]);
 
   // Use consolidated session data hook
   const {
