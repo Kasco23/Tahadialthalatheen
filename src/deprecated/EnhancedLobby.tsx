@@ -3,8 +3,8 @@ import {
   useEnhancedRealtime,
   useParticipants,
   useChat,
-} from "../lib/enhancedRealtimeHooks";
-import { EnhancedPresenceHelper } from "../lib/enhancedPresence";
+} from "./enhancedRealtimeHooks";
+import { EnhancedPresenceHelper } from "./enhancedPresence";
 
 interface EnhancedLobbyProps {
   sessionId: string;

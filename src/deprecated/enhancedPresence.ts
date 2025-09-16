@@ -1,6 +1,6 @@
-import { Logger } from "./logger";
-import { supabase } from "./supabaseClient";
-import { updateLobbyPresence } from "./mutations";
+import { Logger } from "../lib/logger";
+import { supabase } from "../lib/supabaseClient";
+import { updateLobbyPresence } from "../lib/mutations";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 
 const HEARTBEAT_INTERVAL_MS = 30000; // 30 seconds
