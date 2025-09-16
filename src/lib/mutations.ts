@@ -684,6 +684,7 @@ export async function updateLobbyPresence(
     updateData.disconnect_at = null;
   } else if (status === "Disconnected") {
     updateData.disconnect_at = new Date().toISOString();
+    updateData.join_at = null; // Clear join_at when leaving lobby
   }
 
   const { error } = await supabase

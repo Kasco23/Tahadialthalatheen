@@ -2,11 +2,7 @@ import { Logger } from "../lib/logger";
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient";
 import type { RealtimeChannel } from "@supabase/supabase-js";
-import type { Tables } from "../lib/types";t { Logger } from "./logger";
-import { useEffect, useState, useCallback } from "react";
-import { supabase } from "./supabaseClient";
-import type { RealtimeChannel } from "@supabase/supabase-js";
-import type { Tables } from "./types";
+import type { Tables } from "../lib/types";
 
 // Types for enhanced realtime functionality
 export interface GameActionPayload {

@@ -409,34 +409,67 @@ const Lobby: React.FC = () => {
                   )
                 </h2>
 
-                {players.filter((p) => p.role !== PARTICIPANT_ROLE.GAME_MASTER)
-                  .length === 0 ? (
-                  <div className="text-center text-blue-200 py-8">
-                    <div className="text-4xl mb-4">👤</div>
-                    <div>No players have joined yet</div>
-                    <div className="text-sm mt-2">
-                      Waiting for participants...
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-3 max-h-96 overflow-y-auto">
-                    {players
-                      .filter((p) => p.role !== PARTICIPANT_ROLE.GAME_MASTER)
-                      .map((player) => {
-                        const { lobbyPresence, videoPresence } =
-                          getPresenceStatus(player);
-                        return (
-                          <ParticipantCard
-                            key={player.participant_id}
-                            player={player}
-                            lobbyPresence={lobbyPresence}
-                            videoPresence={videoPresence}
-                            getRoleDisplay={getRoleDisplay}
-                          />
-                        );
-                      })}
-                  </div>
-                )}
+{/* Show 3 slots: Host, Player 1, Player 2 */}
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {[PARTICIPANT_ROLE.HOST, PARTICIPANT_ROLE.PLAYER1, PARTICIPANT_ROLE.PLAYER2].map((requiredRole) => {
+                    const player = players.find(
+                      (p) => p.role === requiredRole && p.lobby_presence !== LOBBY_PRESENCE.NOT_JOINED
+                    );
+                    
+                    if (player) {
+                      // Show actual participant
+                      const { lobbyPresence, videoPresence } = getPresenceStatus(player);
+                      return (
+                        <ParticipantCard
+                          key={player.participant_id}
+                          player={player}
+                          lobbyPresence={lobbyPresence}
+                          videoPresence={videoPresence}
+                          getRoleDisplay={getRoleDisplay}
+                        />
+                      );
+                    } else {
+                      // Show placeholder for empty slot
+                      const roleDisplayNames = {
+                        [PARTICIPANT_ROLE.HOST]: "Host",
+                        [PARTICIPANT_ROLE.PLAYER1]: "Player 1", 
+                        [PARTICIPANT_ROLE.PLAYER2]: "Player 2"
+                      };
+                      
+                      return (
+                        <div
+                          key={requiredRole}
+                          className="backdrop-blur-sm rounded-lg p-4 border-2 border-dashed border-gray-400 bg-gray-500/10"
+                        >
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center space-x-2">
+                              <div className="text-lg">👤</div>
+                              <div>
+                                <div className="text-sm font-bold text-gray-400">
+                                  Waiting for {roleDisplayNames[requiredRole]}...
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  {roleDisplayNames[requiredRole]}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-lg text-gray-500">⏳</div>
+                          </div>
+                          <div className="space-y-1">
+                            <div className="flex justify-between items-center">
+                              <span className="text-xs text-gray-500">Lobby:</span>
+                              <span className="text-xs font-medium text-gray-400">Not joined</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-xs text-gray-500">Video:</span>
+                              <span className="text-xs font-medium text-gray-400">Not connected</span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    }
+                  })}
+                </div>
               </div>
 
               {/* Action Buttons */}
