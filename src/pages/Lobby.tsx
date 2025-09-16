@@ -90,12 +90,15 @@ const ParticipantCard: React.FC<ParticipantCardProps> = ({
 };
 
 const Lobby: React.FC = () => {
-  const { sessionCode, seat } = useParams<{ sessionCode: string; seat?: string }>();
+  const { sessionCode, seat } = useParams<{
+    sessionCode: string;
+    seat?: string;
+  }>();
   const navigate = useNavigate();
 
   // Resolve seat using priority: URL param > localStorage > null
   const resolvedSeat = resolveSeatFromUrl(seat);
-  
+
   // Set resolved seat in localStorage if found
   useEffect(() => {
     if (resolvedSeat) {
@@ -116,7 +119,10 @@ const Lobby: React.FC = () => {
   // Log user role for debugging (will be used in future steps)
   useEffect(() => {
     if (userRole) {
-      Logger.log("User role resolved from seat:", { seat: resolvedSeat, role: userRole });
+      Logger.log("User role resolved from seat:", {
+        seat: resolvedSeat,
+        role: userRole,
+      });
     }
   }, [userRole, resolvedSeat]);
 

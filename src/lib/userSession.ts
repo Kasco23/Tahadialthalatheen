@@ -147,20 +147,36 @@ UserSession.init();
 
 // Seat-based routing functions
 export const getSeatFromStorage = (): string | null => {
-  return localStorage.getItem('userSeat');
+  return localStorage.getItem("userSeat");
 };
 
 export const setSeatInStorage = (seat: string): void => {
-  localStorage.setItem('userSeat', seat);
+  localStorage.setItem("userSeat", seat);
 };
 
 export const clearSeatFromStorage = (): void => {
-  localStorage.removeItem('userSeat');
+  localStorage.removeItem("userSeat");
 };
 
 export const resolveSeatFromUrl = (seatParam?: string): string | null => {
-  if (seatParam && ['1', '2', '3'].includes(seatParam)) {
+  if (seatParam && ["1", "2", "3"].includes(seatParam)) {
     return seatParam;
   }
   return getSeatFromStorage();
+};
+
+// Map participant roles to seat numbers for URL routing
+export const getSeatsFromRole = (role: ParticipantRole): string | null => {
+  switch (role) {
+    case "Host":
+      return "1";
+    case "Player1":
+      return "2";
+    case "Player2":
+      return "3";
+    case "GameMaster":
+      return "1"; // GameMaster shares seat with Host
+    default:
+      return null;
+  }
 };

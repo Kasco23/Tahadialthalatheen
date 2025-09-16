@@ -9,6 +9,27 @@ import { Phone, PhoneOff, Mic, MicOff, Video, VideoOff } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import { createDailyToken } from "../lib/mutations";
 
+// Helper function to check if environment is local development with mock room
+const isLocalDevWithMockRoom = (roomUrl: string): boolean => {
+  const isLocalDev =
+    window.location.hostname === "localhost" &&
+    window.location.port === "5173";
+  return roomUrl.includes("thirty.daily.co") && isLocalDev;
+};
+
+// Helper function to validate room availability
+const validateRoom = (roomData: { room_url?: string } | null): string | null => {
+  if (!roomData?.room_url) {
+    return "No Daily room available. Host needs to create a room first.";
+  }
+
+  if (isLocalDevWithMockRoom(roomData.room_url)) {
+    return "🚧 Video calls are disabled in development mode. Use 'netlify dev' for full functionality.";
+  }
+
+  return null;
+};
+
 interface VideoCallJoinButtonProps {
   sessionId: string;
   sessionCode: string;
@@ -32,6 +53,31 @@ export const VideoCallJoinButton: React.FC<VideoCallJoinButtonProps> = ({
   const isMuted = localParticipant?.tracks?.audio?.state !== "playable";
   const isCameraOff = localParticipant?.tracks?.video?.state !== "playable";
 
+  const getRoomData = async () => {
+    return await supabase
+      .from("DailyRoom")
+      .select("room_url, ready")
+      .eq("room_id", sessionId)
+      .single();
+  };
+
+  const joinDailyRoom = async (roomUrl: string, token: string) => {
+    if (!daily) {
+      throw new Error("Daily client not available");
+    }
+
+    await daily.join({
+      url: roomUrl,
+      token,
+      userName: participantName,
+    });
+
+    Logger.log("Successfully initiated Daily room join:", {
+      roomUrl,
+      userName: participantName,
+    });
+  };
+
   const handleJoinDailyCall = async () => {
     if (!sessionCode || !daily) {
       setCallError("No session code or call object available.");
@@ -42,53 +88,21 @@ export const VideoCallJoinButton: React.FC<VideoCallJoinButtonProps> = ({
     setCallError(null);
 
     try {
-      // Get Daily room info from Supabase using sessionId (not sessionCode)
-      const { data: roomData } = await supabase
-        .from("DailyRoom")
-        .select("room_url, ready")
-        .eq("room_id", sessionId)
-        .single();
+      // Get Daily room info
+      const { data: roomData } = await getRoomData();
 
-      if (!roomData?.room_url) {
-        setCallError(
-          "No Daily room available. Host needs to create a room first.",
-        );
-        return;
-      }
-
-      // Check if we're in local development with mock room
-      const isLocalDev =
-        window.location.hostname === "localhost" &&
-        window.location.port === "5173";
-      const isMockRoom =
-        roomData.room_url.includes("thirty.daily.co") && isLocalDev;
-
-      if (isMockRoom) {
-        setCallError(
-          "🚧 Video calls are disabled in development mode. Use 'netlify dev' for full functionality.",
-        );
+      // Validate room
+      const validationError = validateRoom(roomData);
+      if (validationError) {
+        setCallError(validationError);
         return;
       }
 
       Logger.log("Using participant name for token:", participantName);
 
-      // Fetch the token for joining the Daily room
-      const tokenResponse = await createDailyToken(
-        sessionCode,
-        participantName,
-      );
-
-      // Join the Daily room using the modern hook-based approach
-      await daily.join({
-        url: roomData.room_url,
-        token: tokenResponse.token,
-        userName: participantName,
-      });
-
-      Logger.log("Successfully initiated Daily room join:", {
-        roomUrl: roomData.room_url,
-        userName: participantName,
-      });
+      // Fetch the token and join
+      const tokenResponse = await createDailyToken(sessionCode, participantName);
+      await joinDailyRoom(roomData!.room_url, tokenResponse.token);
     } catch (error) {
       Logger.error("Failed to join Daily room:", error);
       setCallError(

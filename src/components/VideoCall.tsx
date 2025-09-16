@@ -141,7 +141,7 @@ export const VideoCall: React.FC<VideoCallProps> = ({
   }, [players]);
 
   return (
-    <div className="relative">
+    <div className="relative pb-24">
       {/* Participant count emphasis */}
       <div className="mb-6 text-center">
         <div className="inline-flex items-center space-x-3 bg-white/20 backdrop-blur-sm rounded-full px-6 py-3 border border-white/30">
@@ -172,7 +172,7 @@ export const VideoCall: React.FC<VideoCallProps> = ({
       </div>
 
       {participantIds.length === 0 && (
-        <div className="text-center text-white/70 py-12">
+        <div className="text-center text-white/70 py-12 pb-28">
           <div className="text-6xl mb-6">📹</div>
           <div className="text-xl font-medium mb-2">
             Waiting for participants to join

@@ -187,7 +187,7 @@ export async function joinAsPlayerWithCode(
   name: string,
   flag: string,
   logoUrl: string,
-): Promise<string> {
+): Promise<{ participantId: string; role: string }> {
   const sessionId = await getSessionIdByCode(sessionCode);
 
   // First, check if player with this name already exists for the session
@@ -213,7 +213,10 @@ export async function joinAsPlayerWithCode(
           disconnect_at: null,
         })
         .eq("participant_id", existingRow!.participant_id);
-      return existingRow!.participant_id;
+      return {
+        participantId: existingRow!.participant_id,
+        role: existingRow!.role || "Player1",
+      };
     }
   } catch (_e) {
     // ignore and continue to create
@@ -268,12 +271,28 @@ export async function joinAsPlayerWithCode(
     Array.isArray(insertDataPlayer) &&
     insertDataPlayer.length > 0
   ) {
-    return insertDataPlayer[0].participant_id;
+    return {
+      participantId: insertDataPlayer[0].participant_id,
+      role: assignedRole,
+    };
   }
 
   // If insert failed, try to find existing participant by name as a last resort
   try {
-    return await getParticipantIdBySessionAndName(sessionId, name);
+    const participantId = await getParticipantIdBySessionAndName(
+      sessionId,
+      name,
+    );
+    // Need to query for the role since getParticipantIdBySessionAndName only returns ID
+    const { data: roleData } = await supabase
+      .from("Participant")
+      .select("role")
+      .eq("participant_id", participantId)
+      .single();
+    return {
+      participantId,
+      role: roleData?.role || "Player1",
+    };
   } catch (err) {
     const insertMsg = extractErrorMessage(insertErrorPlayer);
     throw new Error(
@@ -436,7 +455,7 @@ export async function joinAsHost(
   hostPassword: string,
   flag?: string,
   logoUrl?: string,
-): Promise<string> {
+): Promise<{ participantId: string; role: string }> {
   // Verify host password using RPC with new parameter names
   const { data: isValidPassword, error: rpcError } = await supabase.rpc(
     "verify_host_password",
@@ -507,7 +526,10 @@ export async function joinAsHost(
       throw new Error(`Failed to update host: ${updateError.message}`);
     }
 
-    return existingHost.participant_id;
+    return {
+      participantId: existingHost.participant_id,
+      role: "Host",
+    };
   }
 
   // If no existing host found, this is an error - host should be created during session creation

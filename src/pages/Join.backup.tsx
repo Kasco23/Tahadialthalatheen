@@ -56,12 +56,14 @@ const Join: React.FC = () => {
 
     try {
       // Join as host using session code with flag and logo
-      const participantId = await joinAsHost(
+      const hostResult = await joinAsHost(
         sessionCode,
         hostPassword,
         hostSelectedFlag,
         hostTeamLogoUrl,
       );
+
+      const participantId = hostResult.participantId;
 
       // Persist participant id for presence updates
       try {
@@ -108,12 +110,14 @@ const Join: React.FC = () => {
     setPlayerLoading(true);
 
     try {
-      const participantId = await joinAsPlayerWithCode(
+      const playerResult = await joinAsPlayerWithCode(
         playerSessionCode,
         playerName,
         selectedFlag,
         teamLogoUrl,
       );
+
+      const participantId = playerResult.participantId;
 
       // Persist data to localStorage
       try {

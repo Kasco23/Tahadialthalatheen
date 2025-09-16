@@ -88,16 +88,16 @@ export interface DailyTokenRefreshConfig {
 }
 
 // Seat-based routing system types
-export type SeatRole = 'host' | 'player1' | 'player2';
+export type SeatRole = "host" | "player1" | "player2";
 
 export const SEAT_TO_ROLE: Record<string, SeatRole> = {
-  '1': 'host',
-  '2': 'player1', 
-  '3': 'player2'
+  "1": "host",
+  "2": "player1",
+  "3": "player2",
 };
 
 export const ROLE_TO_SEAT: Record<SeatRole, string> = {
-  'host': '1',
-  'player1': '2',
-  'player2': '3'
+  host: "1",
+  player1: "2",
+  player2: "3",
 };

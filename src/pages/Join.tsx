@@ -6,6 +6,8 @@ import { joinAsHost, joinAsPlayerWithCode } from "../lib/mutations";
 import { Alert } from "../components/Alert";
 import OptimizedFlagSelector from "../components/OptimizedFlagSelector";
 import { supabase } from "../lib/supabaseClient";
+import { getSeatsFromRole, setSeatInStorage } from "../lib/userSession";
+import type { ParticipantRole } from "../lib/types";
 
 // ReactBits Components
 import { AnimatedList, SpotlightCard, Dock } from "../components/ReactBits";
@@ -147,7 +149,7 @@ const JoinRevolutionary: React.FC = () => {
     setHostLoading(true);
 
     try {
-      const participantId = await joinAsHost(
+      const { participantId, role } = await joinAsHost(
         sessionCode,
         hostPassword,
         hostSelectedFlag,
@@ -159,7 +161,7 @@ const JoinRevolutionary: React.FC = () => {
         localStorage.setItem("participantId", participantId);
         localStorage.setItem("sessionCode", sessionCode);
         localStorage.setItem("isHost", "true");
-        localStorage.setItem("userRole", "Host");
+        localStorage.setItem("userRole", role);
         if (hostSelectedFlag) {
           localStorage.setItem("selectedFlag", hostSelectedFlag);
         }
@@ -173,7 +175,18 @@ const JoinRevolutionary: React.FC = () => {
         Logger.warn("Could not save to localStorage:", storageError);
       }
 
-      navigate(`/lobby/${sessionCode}`);
+      // Set seat in storage and navigate with seat in URL
+      const seat = getSeatsFromRole(role as ParticipantRole);
+      if (seat) {
+        try {
+          setSeatInStorage(seat);
+        } catch (storageError) {
+          Logger.warn("Could not save seat to localStorage:", storageError);
+        }
+        navigate(`/lobby/${sessionCode}/${seat}`);
+      } else {
+        navigate(`/lobby/${sessionCode}`);
+      }
     } catch (error) {
       Logger.error("Error joining as host:", error);
       setAlert({
@@ -199,7 +212,7 @@ const JoinRevolutionary: React.FC = () => {
     setPlayerLoading(true);
 
     try {
-      const participantId = await joinAsPlayerWithCode(
+      const { participantId, role } = await joinAsPlayerWithCode(
         playerSessionCode,
         playerName,
         selectedFlag,
@@ -212,7 +225,7 @@ const JoinRevolutionary: React.FC = () => {
         localStorage.setItem("sessionCode", playerSessionCode);
         localStorage.setItem("playerName", playerName);
         localStorage.setItem("isHost", "false");
-        localStorage.setItem("userRole", "Player");
+        localStorage.setItem("userRole", role);
         localStorage.setItem("tt_participant_name", playerName);
         if (selectedFlag) {
           localStorage.setItem("selectedFlag", selectedFlag);
@@ -227,7 +240,18 @@ const JoinRevolutionary: React.FC = () => {
         Logger.warn("Could not save to localStorage:", storageError);
       }
 
-      navigate(`/lobby/${playerSessionCode}`);
+      // Set seat in storage and navigate with seat in URL
+      const seat = getSeatsFromRole(role as ParticipantRole);
+      if (seat) {
+        try {
+          setSeatInStorage(seat);
+        } catch (storageError) {
+          Logger.warn("Could not save seat to localStorage:", storageError);
+        }
+        navigate(`/lobby/${playerSessionCode}/${seat}`);
+      } else {
+        navigate(`/lobby/${playerSessionCode}`);
+      }
     } catch (error) {
       Logger.error("Error joining as player:", error);
       setAlert({
