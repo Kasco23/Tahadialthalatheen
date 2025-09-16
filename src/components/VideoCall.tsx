@@ -157,10 +157,10 @@ export const VideoCall: React.FC<VideoCallProps> = ({
       {/* Audio component - handles all remote audio tracks */}
       <DailyAudio />
 
-      {/* Responsive Video grid with auto-fit */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 auto-rows-fr">
+      {/* Vertical Video Wall - 3-up stack layout */}
+      <div className="flex flex-col h-screen gap-4">
         {participantIds.map((participantId) => (
-          <div key={participantId} className="min-h-0">
+          <div key={participantId} className="flex-1 min-h-0">
             <ParticipantTile
               participantId={participantId}
               playersByName={playersByName}
