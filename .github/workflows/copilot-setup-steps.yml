@@ -1,49 +1,51 @@
-# .github/workflows/copilot-setup-steps.yml
 name: Copilot Setup Steps
 
-# Let you test changes manually and validate on PRs,
-# but Copilot will also trigger this automatically before it starts working
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - .github/workflows/copilot-setup-steps.yml
   pull_request:
     paths:
       - .github/workflows/copilot-setup-steps.yml
 
 jobs:
-  # The job **must** be called exactly this or Copilot ignores it
   copilot-setup-steps:
     runs-on: ubuntu-latest
     permissions:
-      contents: read # minimal permission Copilot needs
+      contents: read
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5 # Copilot will do this for you if you omit it, but we need it for Netlify link
+        uses: actions/checkout@v5
 
       - name: Set up pnpm
-        uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda
-      # with block removed to avoid empty block error
+        uses: pnpm/action-setup@v3
 
       - name: Set up Node.js
-        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
+        uses: actions/setup-node@v3
         with:
           node-version: "22"
-          cache: pnpm
+
+      - name: Get pnpm store directory
+        run: echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_ENV
+
+      - name: Cache pnpm modules
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
       - name: Install Netlify CLI
-        run: npm install -g netlify-cli
+        run: npm install -g netlify-cli@17
 
       - name: Link Netlify project
         run: netlify link --id "$NETLIFY_PROJECT_ID"
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_PROJECT_ID: ${{ vars.NETLIFY_PROJECT_ID }}
+          NETLIFY_PROJECT_ID: ${{ secrets.NETLIFY_PROJECT_ID }}
 
       - name: Authenticate Netlify CLI
         run: netlify status
@@ -52,7 +54,7 @@ jobs:
 
       - name: Verify required environment variables
         run: |
-          required=(VITE_SUPABASE_URL VITE_SUPABASE_ANON_KEY DAILY_API_KEY VITE_DAILY_DOMAIN NETLIFY_AUTH_TOKEN NETLIFY_PROJECT_ID)
+          required=(VITE_SUPABASE_DATABASE_URL VITE_SUPABASE_ANON_KEY DAILY_API_KEY VITE_DAILY_DOMAIN NETLIFY_AUTH_TOKEN NETLIFY_PROJECT_ID)
           missing=0
           for var in "${required[@]}"; do
             if [ -z "${!var}" ]; then
@@ -64,9 +66,22 @@ jobs:
           done
           exit $missing
         env:
-          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_DATABASE_URL }}
+          VITE_SUPABASE_DATABASE_URL: ${{ vars.VITE_SUPABASE_DATABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
           DAILY_API_KEY: ${{ secrets.DAILY_API_KEY }}
           VITE_DAILY_DOMAIN: ${{ vars.VITE_DAILY_DOMAIN }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_PROJECT_ID: ${{ vars.NETLIFY_PROJECT_ID }}
+
+      - name: List all repository variables
+        run: |
+          echo "📦 Repository variables available to this workflow:"
+          for var in $(compgen -v | grep '^VITE\|^NETLIFY'); do
+            echo "$var=${!var}"
+          done
+
+      - name: List all repository secrets
+        run: |
+          echo "🔐 Repository secrets (names only, values are masked):"
+          echo "NETLIFY_AUTH_TOKEN=${{ secrets.NETLIFY_AUTH_TOKEN != '' && 'set' || 'missing' }}"
+          echo "DAILY_API_KEY=${{ secrets.DAILY_API_KEY != '' && 'set' || 'missing' }}"
