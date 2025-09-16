@@ -7,23 +7,14 @@
     "../lib/mutations.ts"
   ],
   "../components/Alert.tsx": [],
-  "../components/ChromaLogo.tsx": [],
   "../components/ControlsBar.tsx": [],
   "../components/Flag.tsx": [
     "../lib/flagIcons.ts"
-  ],
-  "../components/FlagSelector.tsx": [
-    "../components/Flag.tsx"
   ],
   "../components/LobbyLogo.tsx": [],
   "../components/LobbyStatus.tsx": [
     "../lib/logger.ts",
     "../lib/roleUtils.ts",
-    "../lib/supabaseClient.ts"
-  ],
-  "../components/LogoSelector.tsx": [
-    "../components/ChromaLogo.tsx",
-    "../lib/logger.ts",
     "../lib/supabaseClient.ts"
   ],
   "../components/OptimizedFlagSelector.tsx": [
@@ -114,13 +105,6 @@
     "../components/ActiveGames.tsx",
     "../components/Alert.tsx",
     "../components/PasswordModal.tsx",
-    "../lib/logger.ts",
-    "../lib/mutations.ts"
-  ],
-  "Join.backup.tsx": [
-    "../components/Alert.tsx",
-    "../components/FlagSelector.tsx",
-    "../components/LogoSelector.tsx",
     "../lib/logger.ts",
     "../lib/mutations.ts"
   ],
