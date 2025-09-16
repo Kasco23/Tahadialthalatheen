@@ -935,6 +935,43 @@ export async function getSegmentConfig(
   return data || [];
 }
 
+// 14. Check for existing participant preset (flag and logo) by name
+export interface ExistingPreset {
+  flag: string | null;
+  team_logo_url: string | null;
+  name: string;
+  role: string;
+}
+
+export async function checkExistingPreset(
+  name: string,
+  role?: string,
+): Promise<ExistingPreset | null> {
+  // Search for existing participants with the same name (case insensitive)
+  // Optionally filter by role for hosts
+  let query = supabase
+    .from("Participant")
+    .select("name, flag, team_logo_url, role")
+    .ilike("name", name) // Case insensitive match
+    .not("flag", "is", null) // Only return participants with existing presets
+    .not("team_logo_url", "is", null)
+    .order("join_at", { ascending: false }) // Get the most recent one
+    .limit(1);
+
+  if (role) {
+    query = query.eq("role", role);
+  }
+
+  const { data, error } = await query.maybeSingle();
+
+  if (error) {
+    Logger.error("Error checking existing preset:", error);
+    return null;
+  }
+
+  return data;
+}
+
 // Helper function to extract message from unknown errors to avoid any casts.
 function extractErrorMessage(err: unknown): string {
   if (!err) return "";
