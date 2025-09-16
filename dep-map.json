@@ -1,22 +1,38 @@
 {
-  "../atoms/index.ts": ["../lib/types/supabase.ts"],
-  "../components/ActiveGames.tsx": ["../lib/mutations.ts"],
+  "../atoms/index.ts": [
+    "../lib/types/supabase.ts"
+  ],
+  "../components/ActiveGames.tsx": [
+    "../lib/logger.ts",
+    "../lib/mutations.ts"
+  ],
   "../components/Alert.tsx": [],
   "../components/ChromaLogo.tsx": [],
   "../components/ControlsBar.tsx": [],
-  "../components/Flag.tsx": ["../lib/flagIcons.ts"],
-  "../components/FlagSelector.tsx": ["../components/Flag.tsx"],
+  "../components/Flag.tsx": [
+    "../lib/flagIcons.ts"
+  ],
+  "../components/FlagSelector.tsx": [
+    "../components/Flag.tsx"
+  ],
   "../components/LobbyLogo.tsx": [],
   "../components/LobbyStatus.tsx": [
+    "../lib/logger.ts",
     "../lib/roleUtils.ts",
     "../lib/supabaseClient.ts"
   ],
   "../components/LogoSelector.tsx": [
     "../components/ChromaLogo.tsx",
+    "../lib/logger.ts",
     "../lib/supabaseClient.ts"
   ],
-  "../components/OptimizedFlagSelector.tsx": ["../components/Flag.tsx"],
-  "../components/ParticipantTile.tsx": ["../lib/types/supabase.ts"],
+  "../components/OptimizedFlagSelector.tsx": [
+    "../components/Flag.tsx"
+  ],
+  "../components/ParticipantTile.tsx": [
+    "../lib/logger.ts",
+    "../lib/types/supabase.ts"
+  ],
   "../components/PasswordModal.tsx": [],
   "../components/ReactBits/AnimatedList.tsx": [],
   "../components/ReactBits/Dock.tsx": [],
@@ -31,12 +47,18 @@
   "../components/VideoCall.tsx": [
     "../components/ControlsBar.tsx",
     "../components/ParticipantTile.tsx",
+    "../lib/logger.ts",
     "../lib/mutations.ts",
     "../lib/supabaseClient.ts",
     "../lib/types/supabase.ts"
   ],
-  "../lib/dailyTokenManager.ts": ["../lib/types.ts"],
-  "../lib/flagIcons.ts": [],
+  "../lib/dailyTokenManager.ts": [
+    "../lib/logger.ts",
+    "../lib/types.ts"
+  ],
+  "../lib/flagIcons.ts": [
+    "../lib/logger.ts"
+  ],
   "../lib/logger.ts": [],
   "../lib/mutations.ts": [
     "../lib/dailyTokenManager.ts",
@@ -44,19 +66,44 @@
     "../lib/supabaseClient.ts",
     "../lib/types.ts"
   ],
-  "../lib/presence.ts": ["../lib/mutations.ts", "../lib/supabaseClient.ts"],
-  "../lib/realtimeHooks.ts": ["../lib/supabaseClient.ts", "../lib/types.ts"],
-  "../lib/roleUtils.ts": ["../lib/types.ts"],
-  "../lib/sessionHooks.ts": ["../lib/supabaseClient.ts"],
+  "../lib/presence.ts": [
+    "../lib/logger.ts",
+    "../lib/mutations.ts",
+    "../lib/supabaseClient.ts"
+  ],
+  "../lib/realtimeHooks.ts": [
+    "../lib/logger.ts",
+    "../lib/supabaseClient.ts",
+    "../lib/types.ts"
+  ],
+  "../lib/roleUtils.ts": [
+    "../lib/types.ts"
+  ],
+  "../lib/sessionHooks.ts": [
+    "../lib/logger.ts",
+    "../lib/supabaseClient.ts"
+  ],
   "../lib/supabaseClient.ts": [],
-  "../lib/types.ts": ["../lib/types/index.ts"],
-  "../lib/types/index.ts": ["../lib/types/supabase.ts"],
+  "../lib/types.ts": [
+    "../lib/types/index.ts"
+  ],
+  "../lib/types/index.ts": [
+    "../lib/types/supabase.ts"
+  ],
   "../lib/types/supabase.ts": [],
-  "../lib/useSessionData.ts": ["../lib/mutations.ts"],
+  "../lib/useSessionData.ts": [
+    "../lib/logger.ts",
+    "../lib/mutations.ts"
+  ],
+  "../lib/userSession.ts": [
+    "../lib/logger.ts",
+    "../lib/types.ts"
+  ],
   "GameSetup.tsx": [
     "../atoms/index.ts",
     "../components/Alert.tsx",
     "../components/LobbyStatus.tsx",
+    "../lib/logger.ts",
     "../lib/mutations.ts",
     "../lib/presence.ts",
     "../lib/supabaseClient.ts",
@@ -67,18 +114,21 @@
     "../components/ActiveGames.tsx",
     "../components/Alert.tsx",
     "../components/PasswordModal.tsx",
+    "../lib/logger.ts",
     "../lib/mutations.ts"
   ],
   "Join.backup.tsx": [
     "../components/Alert.tsx",
     "../components/FlagSelector.tsx",
     "../components/LogoSelector.tsx",
+    "../lib/logger.ts",
     "../lib/mutations.ts"
   ],
   "Join.tsx": [
     "../components/Alert.tsx",
     "../components/OptimizedFlagSelector.tsx",
     "../components/ReactBits/index.ts",
+    "../lib/logger.ts",
     "../lib/mutations.ts",
     "../lib/supabaseClient.ts"
   ],
@@ -87,19 +137,24 @@
     "../components/Flag.tsx",
     "../components/LobbyLogo.tsx",
     "../components/VideoCall.tsx",
+    "../lib/logger.ts",
     "../lib/mutations.ts",
     "../lib/sessionHooks.ts",
     "../lib/supabaseClient.ts",
+    "../lib/types.ts",
     "../lib/types/supabase.ts",
-    "../lib/useSessionData.ts"
+    "../lib/useSessionData.ts",
+    "../lib/userSession.ts"
   ],
   "Quiz.tsx": [
+    "../lib/logger.ts",
     "../lib/mutations.ts",
     "../lib/realtimeHooks.ts",
     "../lib/sessionHooks.ts",
     "../lib/types.ts"
   ],
   "Results.tsx": [
+    "../lib/logger.ts",
     "../lib/mutations.ts",
     "../lib/sessionHooks.ts",
     "../lib/supabaseClient.ts"
