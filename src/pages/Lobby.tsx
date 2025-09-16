@@ -9,7 +9,6 @@ import { leaveLobby } from "../lib/mutations";
 import { useSessionData } from "../lib/useSessionData";
 import { sessionAtom, sessionCodeAtom } from "../atoms";
 import { VideoCall } from "../components/VideoCall";
-import { VideoCallJoinButton } from "../components/VideoCallJoinButton";
 import { Flag } from "../components/Flag";
 import { LobbyLogo } from "../components/LobbyLogo";
 import { LOBBY_PRESENCE, PARTICIPANT_ROLE, SEAT_TO_ROLE } from "../lib/types";
@@ -490,23 +489,6 @@ const Lobby: React.FC = () => {
                               <span>🔗</span>
                               <span>Live</span>
                             </span>
-                            {/* Embedded Join Button */}
-                            <VideoCallJoinButton
-                              sessionId={sessionId || ""}
-                              sessionCode={sessionCode || ""}
-                              participantName={
-                                localStorage.getItem("tt_participant_name") ||
-                                localStorage.getItem("playerName") ||
-                                localStorage.getItem("hostName") ||
-                                (players.length > 0 &&
-                                  players.find(
-                                    (p) =>
-                                      p.participant_id ===
-                                      localStorage.getItem("participantId"),
-                                  )?.name) ||
-                                "Player"
-                              }
-                            />
                           </>
                         )}
                       </div>
@@ -531,7 +513,6 @@ const Lobby: React.FC = () => {
                           )?.name) ||
                         "Player"
                       }
-                      showControlsAtTop={false}
                     />
                   </div>
                 </div>
