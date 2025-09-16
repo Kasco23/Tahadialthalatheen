@@ -20,7 +20,6 @@ interface VideoCallProps {
   sessionCode: string;
   sessionId: string;
   participantName: string;
-  showControlsAtTop?: boolean;
 }
 
 export const VideoCall: React.FC<VideoCallProps> = ({
@@ -28,7 +27,6 @@ export const VideoCall: React.FC<VideoCallProps> = ({
   sessionCode,
   sessionId,
   participantName,
-  showControlsAtTop = false,
 }) => {
   // Use modern Daily React hooks
   const { meetingError } = useDailyError();
@@ -144,19 +142,6 @@ export const VideoCall: React.FC<VideoCallProps> = ({
 
   return (
     <div className="relative">
-      {/* Controls Bar at top when requested */}
-      {showControlsAtTop && (
-        <div className="mb-6 flex justify-center">
-          <ControlsBar
-            sessionCode={sessionCode}
-            participantName={participantName}
-            onJoinCall={handleJoinDailyCall}
-            onLeaveCall={handleLeaveDailyCall}
-            isTopPosition={true}
-          />
-        </div>
-      )}
-
       {/* Participant count emphasis */}
       <div className="mb-6 text-center">
         <div className="inline-flex items-center space-x-3 bg-white/20 backdrop-blur-sm rounded-full px-6 py-3 border border-white/30">
@@ -172,10 +157,10 @@ export const VideoCall: React.FC<VideoCallProps> = ({
       {/* Audio component - handles all remote audio tracks */}
       <DailyAudio />
 
-      {/* Responsive Video grid with auto-fit */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 auto-rows-fr">
+      {/* Vertical Video Wall - 3-up stack layout */}
+      <div className="flex flex-col h-screen gap-4">
         {participantIds.map((participantId) => (
-          <div key={participantId} className="min-h-0">
+          <div key={participantId} className="flex-1 min-h-0">
             <ParticipantTile
               participantId={participantId}
               playersByName={playersByName}
@@ -209,16 +194,14 @@ export const VideoCall: React.FC<VideoCallProps> = ({
         </div>
       )}
 
-      {/* Controls Bar - Fixed at bottom when not at top */}
-      {!showControlsAtTop && (
-        <ControlsBar
-          sessionCode={sessionCode}
-          participantName={participantName}
-          onJoinCall={handleJoinDailyCall}
-          onLeaveCall={handleLeaveDailyCall}
-          isTopPosition={false}
-        />
-      )}
+      {/* Controls Bar - Fixed at bottom */}
+      <ControlsBar
+        sessionCode={sessionCode}
+        participantName={participantName}
+        onJoinCall={handleJoinDailyCall}
+        onLeaveCall={handleLeaveDailyCall}
+        isTopPosition={false}
+      />
     </div>
   );
 };

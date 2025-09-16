@@ -19,7 +19,7 @@ function App() {
             <Route path="/" element={<Homepage />} />
             <Route path="/gamesetup/:sessionCode" element={<GameSetup />} />
             <Route path="/join" element={<Join />} />
-            <Route path="/lobby/:sessionCode" element={<Lobby />} />
+            <Route path="/lobby/:sessionCode/:seat?" element={<Lobby />} />
             <Route path="/quiz/:sessionCode" element={<Quiz />} />
             <Route path="/results/:sessionCode" element={<Results />} />
             <Route path="/results" element={<Results />} />
