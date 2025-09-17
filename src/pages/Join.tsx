@@ -2,9 +2,10 @@ import { Logger } from "../lib/logger";
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { joinAsHost, joinAsPlayerWithCode } from "../lib/mutations";
+import { joinAsHost, joinAsPlayerWithCode, checkExistingPreset, type ExistingPreset } from "../lib/mutations";
 import { Alert } from "../components/Alert";
 import OptimizedFlagSelector from "../components/OptimizedFlagSelector";
+import PresetConfirmationModal from "../components/PresetConfirmationModal";
 import { supabase } from "../lib/supabaseClient";
 import { getSeatsFromRole, setSeatInStorage } from "../lib/userSession";
 import type { ParticipantRole } from "../lib/types";
@@ -40,7 +41,7 @@ const JoinRevolutionary: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState<"host" | "player">("host");
-  const [currentStep, setCurrentStep] = useState<"role" | "details" | "team">(
+  const [currentStep, setCurrentStep] = useState<"role" | "details" | "flag" | "team">(
     "role",
   );
 
@@ -49,6 +50,11 @@ const JoinRevolutionary: React.FC = () => {
     type: "error" | "success" | "info";
     message: string;
   } | null>(null);
+
+  // Preset confirmation state
+  const [showPresetModal, setShowPresetModal] = useState(false);
+  const [existingPreset, setExistingPreset] = useState<ExistingPreset | null>(null);
+  const [presetModalLoading, setPresetModalLoading] = useState(false);
 
   // Host form state
   const [sessionCode, setSessionCode] = useState("");
@@ -127,6 +133,188 @@ const JoinRevolutionary: React.FC = () => {
     loadLogos();
   }, []);
 
+  // Check for existing preset
+  const handleCheckPreset = async (name: string, sessionCode?: string, role?: string) => {
+    try {
+      const preset = await checkExistingPreset(name, sessionCode, role);
+      if (preset && preset.flag && preset.team_logo_url) {
+        setExistingPreset(preset);
+        setShowPresetModal(true);
+        return true; // Preset found
+      }
+      return false; // No preset found
+    } catch (error) {
+      Logger.error("Error checking preset:", error);
+      return false;
+    }
+  };
+
+  // Handle preset modal responses
+  const handleUseExistingPreset = async () => {
+    setPresetModalLoading(true);
+    
+    if (!existingPreset) return;
+
+    try {
+      // Set the existing preset values
+      if (activeTab === "host") {
+        setHostSelectedFlag(existingPreset.flag || "");
+        setHostTeamLogoUrl(existingPreset.team_logo_url || "");
+        // Extract team name from logo URL or use a default
+        const teamName = existingPreset.team_logo_url?.split('/').pop()?.split('.')[0] || "Selected Team";
+        setHostTeamName(teamName);
+        
+        // Proceed directly to join
+        await joinAsHostWithPreset();
+      } else {
+        setSelectedFlag(existingPreset.flag || "");
+        setTeamLogoUrl(existingPreset.team_logo_url || "");
+        // Extract team name from logo URL or use a default
+        const teamName = existingPreset.team_logo_url?.split('/').pop()?.split('.')[0] || "Selected Team";
+        setTeamName(teamName);
+        
+        // Proceed directly to join
+        await joinAsPlayerWithPreset();
+      }
+    } catch (error) {
+      Logger.error("Error using existing preset:", error);
+      setAlert({
+        type: "error",
+        message: "Failed to use existing preset. Please try again.",
+      });
+    } finally {
+      setPresetModalLoading(false);
+      setShowPresetModal(false);
+    }
+  };
+
+  const handleCreateNewPreset = () => {
+    setShowPresetModal(false);
+    setCurrentStep("flag"); // Go to flag selection step
+  };
+
+  // Separate join functions for preset flow
+  const joinAsHostWithPreset = async () => {
+    if (!sessionCode.trim() || !hostPassword.trim()) {
+      setAlert({ type: "error", message: "Please fill in all fields" });
+      return;
+    }
+
+    setHostLoading(true);
+
+    try {
+      const { participantId, role } = await joinAsHost(
+        sessionCode,
+        hostPassword,
+        hostSelectedFlag,
+        hostTeamLogoUrl,
+      );
+
+      // Persist participant data
+      try {
+        localStorage.setItem("participantId", participantId);
+        localStorage.setItem("sessionCode", sessionCode);
+        localStorage.setItem("isHost", "true");
+        localStorage.setItem("userRole", role);
+        if (hostSelectedFlag) {
+          localStorage.setItem("selectedFlag", hostSelectedFlag);
+        }
+        if (hostTeamLogoUrl) {
+          localStorage.setItem("teamLogoUrl", hostTeamLogoUrl);
+        }
+        if (hostTeamName) {
+          localStorage.setItem("teamName", hostTeamName);
+        }
+      } catch (storageError) {
+        Logger.warn("Could not save to localStorage:", storageError);
+      }
+
+      // Set seat in storage and navigate with seat in URL
+      const seat = getSeatsFromRole(role as ParticipantRole);
+      if (seat) {
+        try {
+          setSeatInStorage(seat);
+        } catch (storageError) {
+          Logger.warn("Could not save seat to localStorage:", storageError);
+        }
+        navigate(`/lobby/${sessionCode}/${seat}`);
+      } else {
+        navigate(`/lobby/${sessionCode}`);
+      }
+    } catch (error) {
+      Logger.error("Error joining as host:", error);
+      setAlert({
+        type: "error",
+        message: "Failed to join as host. Please check your credentials.",
+      });
+    } finally {
+      setHostLoading(false);
+    }
+  };
+
+  const joinAsPlayerWithPreset = async () => {
+    if (!playerSessionCode.trim() || !playerName.trim()) {
+      setAlert({
+        type: "error",
+        message: "Please fill in session code and player name",
+      });
+      return;
+    }
+
+    setPlayerLoading(true);
+
+    try {
+      const { participantId, role } = await joinAsPlayerWithCode(
+        playerSessionCode,
+        playerName,
+        selectedFlag,
+        teamLogoUrl,
+      );
+
+      // Persist data to localStorage
+      try {
+        localStorage.setItem("participantId", participantId);
+        localStorage.setItem("sessionCode", playerSessionCode);
+        localStorage.setItem("playerName", playerName);
+        localStorage.setItem("isHost", "false");
+        localStorage.setItem("userRole", role);
+        localStorage.setItem("tt_participant_name", playerName);
+        if (selectedFlag) {
+          localStorage.setItem("selectedFlag", selectedFlag);
+        }
+        if (teamLogoUrl) {
+          localStorage.setItem("teamLogoUrl", teamLogoUrl);
+        }
+        if (teamName) {
+          localStorage.setItem("teamName", teamName);
+        }
+      } catch (storageError) {
+        Logger.warn("Could not save to localStorage:", storageError);
+      }
+
+      // Set seat in storage and navigate with seat in URL
+      const seat = getSeatsFromRole(role as ParticipantRole);
+      if (seat) {
+        try {
+          setSeatInStorage(seat);
+        } catch (storageError) {
+          Logger.warn("Could not save seat to localStorage:", storageError);
+        }
+        navigate(`/lobby/${playerSessionCode}/${seat}`);
+      } else {
+        navigate(`/lobby/${playerSessionCode}`);
+      }
+    } catch (error) {
+      Logger.error("Error joining as player:", error);
+      setAlert({
+        type: "error",
+        message: "Failed to join as player. Please check your session code.",
+      });
+    } finally {
+      setPlayerLoading(false);
+    }
+  };
+
   // Event handlers
   const handleHostLogoSelect = (logoUrl: string, teamName: string) => {
     setHostTeamLogoUrl(logoUrl);
@@ -136,6 +324,39 @@ const JoinRevolutionary: React.FC = () => {
   const handlePlayerLogoSelect = (logoUrl: string, teamName: string) => {
     setTeamLogoUrl(logoUrl);
     setTeamName(teamName);
+  };
+
+  // Handle details form submission - now checks for presets
+  const handleDetailsFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (activeTab === "host") {
+      if (!sessionCode.trim() || !hostPassword.trim()) {
+        setAlert({ type: "error", message: "Please fill in all fields" });
+        return;
+      }
+      
+      // Check for existing preset based on host role
+      const hasPreset = await handleCheckPreset("Host", sessionCode, "Host");
+      if (!hasPreset) {
+        setCurrentStep("flag"); // Go to flag selection if no preset
+      }
+    } else {
+      if (!playerSessionCode.trim() || !playerName.trim()) {
+        setAlert({
+          type: "error",
+          message: "Please fill in session code and player name",
+        });
+        return;
+      }
+      
+      // Check for existing preset based on player name
+      const hasPreset = await handleCheckPreset(playerName, playerSessionCode);
+      if (!hasPreset) {
+        setCurrentStep("flag"); // Go to flag selection if no preset
+      }
+      // If preset exists, modal will handle the flow
+    }
   };
 
   const handleHostSubmit = async (e: React.FormEvent) => {
@@ -296,6 +517,13 @@ const JoinRevolutionary: React.FC = () => {
         currentStep === "details" ? "bg-green-500/20 border-green-400" : "",
     },
     {
+      icon: <span className="text-xl">🏴</span>,
+      label: "Flag",
+      onClick: () => setCurrentStep("flag"),
+      className:
+        currentStep === "flag" ? "bg-blue-500/20 border-blue-400" : "",
+    },
+    {
       icon: <span className="text-xl">🏆</span>,
       label: "Team",
       onClick: () => setCurrentStep("team"),
@@ -374,9 +602,7 @@ const JoinRevolutionary: React.FC = () => {
         </h2>
 
         <form
-          onSubmit={
-            activeTab === "host" ? handleHostSubmit : handlePlayerSubmit
-          }
+          onSubmit={handleDetailsFormSubmit}
           className="space-y-6"
         >
           <div>
@@ -427,6 +653,42 @@ const JoinRevolutionary: React.FC = () => {
             </div>
           )}
 
+          <div className="flex gap-4">
+            <button
+              type="button"
+              onClick={() => setCurrentStep("role")}
+              className="flex-1 px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white font-bold rounded-lg transition-colors"
+            >
+              ← Back
+            </button>
+
+            <button
+              type="submit"
+              className="flex-1 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-colors"
+            >
+              Continue →
+            </button>
+          </div>
+        </form>
+      </div>
+    </motion.div>
+  );
+
+  const renderFlagSelection = () => (
+    <motion.div
+      initial={{ opacity: 0, x: 50 }}
+      animate={{ opacity: 1, x: 0 }}
+      className="max-w-2xl mx-auto"
+    >
+      <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20">
+        <h2 className="text-3xl font-bold text-white mb-6 text-center">
+          🏴 Choose Your Flag
+        </h2>
+        <p className="text-blue-200 text-center mb-6">
+          Select your country flag to represent you in the game
+        </p>
+
+        <div className="space-y-6">
           <div>
             <label className="block text-white font-medium mb-2">
               Choose Your Country
@@ -446,7 +708,7 @@ const JoinRevolutionary: React.FC = () => {
           <div className="flex gap-4">
             <button
               type="button"
-              onClick={() => setCurrentStep("role")}
+              onClick={() => setCurrentStep("details")}
               className="flex-1 px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white font-bold rounded-lg transition-colors"
             >
               ← Back
@@ -460,7 +722,7 @@ const JoinRevolutionary: React.FC = () => {
               Choose Team →
             </button>
           </div>
-        </form>
+        </div>
       </div>
     </motion.div>
   );
@@ -610,7 +872,7 @@ const JoinRevolutionary: React.FC = () => {
               <div className="flex gap-4">
                 <button
                   type="button"
-                  onClick={() => setCurrentStep("details")}
+                  onClick={() => setCurrentStep("flag")}
                   className="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white font-bold rounded-lg transition-colors"
                 >
                   ← Back
@@ -691,6 +953,17 @@ const JoinRevolutionary: React.FC = () => {
             </motion.div>
           )}
 
+          {currentStep === "flag" && (
+            <motion.div
+              key="flag"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              {renderFlagSelection()}
+            </motion.div>
+          )}
+
           {currentStep === "team" && (
             <motion.div
               key="team"
@@ -714,6 +987,16 @@ const JoinRevolutionary: React.FC = () => {
           />
         </div>
       )}
+
+      {/* Preset Confirmation Modal */}
+      <PresetConfirmationModal
+        isOpen={showPresetModal}
+        onClose={() => setShowPresetModal(false)}
+        onUseExisting={handleUseExistingPreset}
+        onCreateNew={handleCreateNewPreset}
+        preset={existingPreset}
+        isLoading={presetModalLoading}
+      />
     </div>
   );
 };
