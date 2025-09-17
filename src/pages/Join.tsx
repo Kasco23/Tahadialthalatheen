@@ -336,10 +336,28 @@ const JoinRevolutionary: React.FC = () => {
         return;
       }
       
-      // Check for existing preset based on host role
-      const hasPreset = await handleCheckPreset("Host", sessionCode, "Host");
-      if (!hasPreset) {
-        setCurrentStep("flag"); // Go to flag selection if no preset
+      // Check for existing preset based on actual host name from session
+      try {
+        const { data: hostParticipant } = await supabase
+          .from("Participant")
+          .select("name, Session!inner(session_code)")
+          .eq("role", "Host")
+          .eq("Session.session_code", sessionCode.toUpperCase())
+          .single();
+        
+        if (hostParticipant) {
+          const hasPreset = await handleCheckPreset(hostParticipant.name, sessionCode, "Host");
+          if (!hasPreset) {
+            setCurrentStep("flag"); // Go to flag selection if no preset
+          }
+          // If preset exists, modal will handle the flow
+        } else {
+          // No host found, proceed to flag selection
+          setCurrentStep("flag");
+        }
+      } catch (error) {
+        Logger.error("Error checking host participant:", error);
+        setCurrentStep("flag"); // Default to flag selection on error
       }
     } else {
       if (!playerSessionCode.trim() || !playerName.trim()) {

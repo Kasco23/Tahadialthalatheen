@@ -5,7 +5,7 @@ import { useAtom } from "jotai";
 
 import { supabase } from "../lib/supabaseClient";
 import { useSession } from "../lib/sessionHooks";
-import { leaveLobby } from "../lib/mutations";
+import { leaveLobbyByRole } from "../lib/mutations";
 import { useSessionData } from "../lib/useSessionData";
 import { sessionAtom, sessionCodeAtom } from "../atoms";
 import { VideoCall } from "../components/VideoCall";
@@ -142,6 +142,7 @@ const Lobby: React.FC = () => {
   const [players, setPlayers] = useState<ParticipantRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showSeatValidationModal, setShowSeatValidationModal] = useState(false);
 
   // Update atoms when session data is resolved
   useEffect(() => {
@@ -239,8 +240,38 @@ const Lobby: React.FC = () => {
           setError("Failed to load participants");
         } else {
           if (isMounted) {
-            setPlayers((data as ParticipantRow[]) || []);
+            const playersData = (data as ParticipantRow[]) || [];
+            setPlayers(playersData);
             setError(null);
+            
+            // Validate seat access after players are loaded
+            if (resolvedSeat && playersData.length > 0) {
+              const seatRole = SEAT_TO_ROLE[resolvedSeat];
+              
+              // Convert seat role to participant role
+              let participantRole: string;
+              switch (seatRole) {
+                case "host":
+                  participantRole = PARTICIPANT_ROLE.HOST;
+                  break;
+                case "player1":
+                  participantRole = PARTICIPANT_ROLE.PLAYER1;
+                  break;
+                case "player2":
+                  participantRole = PARTICIPANT_ROLE.PLAYER2;
+                  break;
+                default:
+                  return; // Invalid seat role
+              }
+              
+              // Find participant with this role
+              const participant = playersData.find(p => p.role === participantRole);
+              
+              // If participant doesn't exist or hasn't joined, show validation modal
+              if (!participant || participant.lobby_presence !== LOBBY_PRESENCE.JOINED) {
+                setShowSeatValidationModal(true);
+              }
+            }
           }
         }
       } catch (err) {
@@ -264,7 +295,7 @@ const Lobby: React.FC = () => {
       isMounted = false;
       channel.unsubscribe();
     };
-  }, [sessionId]);
+  }, [sessionId, resolvedSeat]);
 
   const getPresenceStatus = (p: ParticipantRow) => {
     const lobbyPresence =
@@ -319,15 +350,39 @@ const Lobby: React.FC = () => {
 
   const handleLeaveLobby = async () => {
     try {
-      const pid = localStorage.getItem("tt_participant_id");
-      if (pid) {
-        await leaveLobby(pid);
+      // Use role-based lookup instead of localStorage participant_id
+      if (sessionId && userRole) {
+        // Convert seat role to participant role
+        let participantRole: string;
+        switch (userRole) {
+          case "host":
+            participantRole = PARTICIPANT_ROLE.HOST;
+            break;
+          case "player1":
+            participantRole = PARTICIPANT_ROLE.PLAYER1;
+            break;
+          case "player2":
+            participantRole = PARTICIPANT_ROLE.PLAYER2;
+            break;
+          default:
+            Logger.error("Invalid user role for leaving lobby:", userRole);
+            return;
+        }
+        
+        await leaveLobbyByRole(sessionId, participantRole);
+      } else {
+        Logger.error("No session ID or user role available for leaving lobby");
       }
     } catch (e) {
       Logger.error("Failed to update presence on leave:", e);
     } finally {
       navigate("/");
     }
+  };
+
+  const handleSeatValidationRedirect = () => {
+    setShowSeatValidationModal(false);
+    navigate(`/join?sessionCode=${sessionCode}`);
   };
 
   if (sessionLoading || loading) {
@@ -535,7 +590,7 @@ const Lobby: React.FC = () => {
                   </div>
 
                   {/* Video Content */}
-                  <div className="p-6">
+                  <div className="p-3">
                     <VideoCall
                       players={players}
                       sessionCode={sessionCode || ""}
@@ -574,6 +629,29 @@ const Lobby: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Seat Validation Modal */}
+      {showSeatValidationModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 shadow-xl p-8 max-w-md w-full mx-4">
+            <div className="text-center">
+              <div className="text-4xl mb-4">🚫</div>
+              <h2 className="text-2xl font-bold text-white mb-4">
+                Player Not Joined
+              </h2>
+              <p className="text-blue-200 mb-6">
+                This player has not joined the game yet. You will be redirected to the joining page for this session.
+              </p>
+              <button
+                onClick={handleSeatValidationRedirect}
+                className="w-full px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold rounded-lg transition-all transform hover:scale-105"
+              >
+                Okay
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

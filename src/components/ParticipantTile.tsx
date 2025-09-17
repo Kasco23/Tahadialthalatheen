@@ -102,7 +102,7 @@ const ParticipantTile: React.FC<ParticipantTileProps> = ({
   };
 
   return (
-    <div className="relative bg-gradient-to-br from-gray-800 via-gray-700 to-gray-800 rounded-lg overflow-hidden aspect-video shadow-lg border border-gray-600">
+    <div className="relative bg-gradient-to-br from-gray-800 via-gray-700 to-gray-800 rounded-xl overflow-hidden aspect-[3/4] shadow-2xl border border-gray-600/50 backdrop-blur-sm">
       {/* Video stream */}
       {hasVideo ? (
         <DailyVideo
@@ -111,7 +111,7 @@ const ParticipantTile: React.FC<ParticipantTileProps> = ({
           className="w-full h-full object-cover"
           style={{
             objectFit: "cover",
-            aspectRatio: "16/9",
+            aspectRatio: "3/4",
           }}
         />
       ) : (

@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import type { ExistingPreset } from "../lib/mutations";
+import { Flag } from "./Flag";
 
 interface PresetConfirmationModalProps {
   isOpen: boolean;
@@ -45,8 +46,8 @@ const PresetConfirmationModal: React.FC<PresetConfirmationModalProps> = ({
             {/* Flag Display */}
             <div className="text-center">
               <div className="text-sm text-blue-200 mb-2">Country Flag</div>
-              <div className="w-16 h-12 bg-white/10 rounded-lg flex items-center justify-center text-2xl border border-white/20">
-                {preset.flag}
+              <div className="w-16 h-12 bg-white/10 rounded-lg flex items-center justify-center border border-white/20">
+                <Flag code={preset.flag || "sa"} className="text-3xl" />
               </div>
             </div>
 

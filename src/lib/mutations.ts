@@ -89,7 +89,7 @@ export async function getActiveSessions(): Promise<ActiveSession[]> {
       game_state,
       created_at,
       ended_at,
-      Participant(name, role),
+      Participant(name, role, lobby_presence),
       DailyRoom(room_url)
     `,
     )
@@ -113,7 +113,7 @@ export async function getActiveSessions(): Promise<ActiveSession[]> {
     game_state: GameState;
     created_at: string;
     ended_at?: string | null;
-    Participant?: Array<{ name: string; role: string }> | null;
+    Participant?: Array<{ name: string; role: string; lobby_presence: string }> | null;
     DailyRoom?: Array<{ room_url?: string }> | null;
   };
 
@@ -124,9 +124,9 @@ export async function getActiveSessions(): Promise<ActiveSession[]> {
       ? session.Participant
       : [];
     const hostParticipant = participants.find((p) => p.role === "Host");
-    // Only count Player1 and Player2 roles for participant count
+    // Only count Player1 and Player2 roles that have lobby_presence "Joined"
     const playerCount = participants.filter(
-      (p) => p.role === "Player1" || p.role === "Player2",
+      (p) => (p.role === "Player1" || p.role === "Player2") && p.lobby_presence === "Joined",
     ).length;
     const hasDailyRoom = !!(session.DailyRoom && session.DailyRoom.length > 0);
 
@@ -192,13 +192,13 @@ export async function joinAsPlayerWithCode(
 ): Promise<{ participantId: string; role: string }> {
   const sessionId = await getSessionIdByCode(sessionCode);
 
-  // First, check if player with this name already exists for the session
+  // First, check if player with this name already exists for the session (case-insensitive)
   try {
     const { data: existing, error: existingErr } = await supabase
       .from("Participant")
       .select("participant_id, role")
       .eq("session_id", sessionId)
-      .eq("name", name)
+      .ilike("name", name)
       .limit(1)
       .maybeSingle();
 
@@ -702,6 +702,31 @@ export async function updateLobbyPresence(
 // Helper function to leave the lobby (disconnect)
 export async function leaveLobby(participantId: string): Promise<void> {
   await updateLobbyPresence(participantId, "Disconnected");
+}
+
+// Helper function to leave the lobby by role and session (role-based lookup)
+export async function leaveLobbyByRole(
+  sessionId: string,
+  role: string,
+): Promise<void> {
+  // Find participant by session and role
+  const { data: participant, error: findError } = await supabase
+    .from("Participant")
+    .select("participant_id")
+    .eq("session_id", sessionId)
+    .eq("role", role)
+    .single();
+
+  if (findError) {
+    throw new Error(`Failed to find participant: ${findError.message}`);
+  }
+
+  if (!participant) {
+    throw new Error(`No participant found with role ${role} in session ${sessionId}`);
+  }
+
+  // Update presence to disconnected
+  await updateLobbyPresence(participant.participant_id, "Disconnected");
 }
 
 // Daily token retrieval with caching and refresh

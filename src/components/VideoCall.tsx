@@ -141,7 +141,7 @@ export const VideoCall: React.FC<VideoCallProps> = ({
   }, [players]);
 
   return (
-    <div className="relative pb-24">
+    <div className="relative pb-24 px-4">
       {/* Participant count emphasis */}
       <div className="mb-6 text-center">
         <div className="inline-flex items-center space-x-3 bg-white/20 backdrop-blur-sm rounded-full px-6 py-3 border border-white/30">
@@ -157,10 +157,10 @@ export const VideoCall: React.FC<VideoCallProps> = ({
       {/* Audio component - handles all remote audio tracks */}
       <DailyAudio />
 
-      {/* Vertical Video Wall - 3-up stack layout */}
-      <div className="flex flex-col h-screen gap-4">
+      {/* FaceTime-style Video Layout */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 auto-rows-auto max-h-[80vh] overflow-y-auto">
         {participantIds.map((participantId) => (
-          <div key={participantId} className="flex-1 min-h-0">
+          <div key={participantId} className="w-full max-w-sm mx-auto">
             <ParticipantTile
               participantId={participantId}
               playersByName={playersByName}
@@ -172,12 +172,12 @@ export const VideoCall: React.FC<VideoCallProps> = ({
       </div>
 
       {participantIds.length === 0 && (
-        <div className="text-center text-white/70 py-12 pb-28">
-          <div className="text-6xl mb-6">📹</div>
-          <div className="text-xl font-medium mb-2">
+        <div className="text-center text-white/70 py-16">
+          <div className="text-8xl mb-8">📹</div>
+          <div className="text-2xl font-medium mb-4">
             Waiting for participants to join
           </div>
-          <div className="text-sm text-blue-200">
+          <div className="text-lg text-blue-200">
             The video call is ready and waiting for participants
           </div>
         </div>
