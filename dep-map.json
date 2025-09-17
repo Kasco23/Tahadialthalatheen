@@ -25,6 +25,9 @@
     "../lib/types/supabase.ts"
   ],
   "../components/PasswordModal.tsx": [],
+  "../components/PresetConfirmationModal.tsx": [
+    "../lib/mutations.ts"
+  ],
   "../components/ReactBits/AnimatedList.tsx": [],
   "../components/ReactBits/Dock.tsx": [],
   "../components/ReactBits/PixelCard.tsx": [],
@@ -111,6 +114,7 @@
   "Join.tsx": [
     "../components/Alert.tsx",
     "../components/OptimizedFlagSelector.tsx",
+    "../components/PresetConfirmationModal.tsx",
     "../components/ReactBits/index.ts",
     "../lib/logger.ts",
     "../lib/mutations.ts",
