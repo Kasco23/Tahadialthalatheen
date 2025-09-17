@@ -26,6 +26,7 @@
   ],
   "../components/PasswordModal.tsx": [],
   "../components/PresetConfirmationModal.tsx": [
+    "../components/Flag.tsx",
     "../lib/mutations.ts"
   ],
   "../components/ReactBits/AnimatedList.tsx": [],
