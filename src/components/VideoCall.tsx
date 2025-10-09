@@ -3,7 +3,6 @@ import React from "react";
 import {
   useParticipantIds,
   DailyAudio,
-  useLocalParticipant,
   useDailyError,
   useDaily,
 } from "@daily-co/daily-react";
@@ -12,6 +11,24 @@ import { ControlsBar } from "./ControlsBar";
 import type { Database } from "../lib/types/supabase";
 import { supabase } from "../lib/supabaseClient";
 import { createDailyToken } from "../lib/mutations";
+
+/**
+ * VideoCall Component - Daily.co video integration
+ * 
+ * WebSocket Stability:
+ * - Daily.co handles WebSocket connections internally via the callObject
+ * - The useDaily() hook provides access to the stable call instance
+ * - Participant updates are handled reactively through Daily's hooks
+ * - No manual WebSocket management needed - Daily.co handles reconnection automatically
+ * 
+ * Removed Features:
+ * - Mute/Eject moderation controls (caused video freezing due to state conflicts)
+ * - Host-specific moderation UI (simplified to prevent WebSocket state issues)
+ * 
+ * Video Persistence:
+ * - The call object persists across component remounts when wrapped in DailyProvider
+ * - To maintain video across routes (Lobby -> Quiz), ensure DailyProvider is at App level
+ */
 
 type ParticipantRow = Database["public"]["Tables"]["Participant"]["Row"];
 
@@ -35,18 +52,6 @@ export const VideoCall: React.FC<VideoCallProps> = ({
 
   // Get all participant IDs in the call (including local user)
   const participantIds = useParticipantIds();
-  const localParticipant = useLocalParticipant();
-
-  // Determine if current user has moderation privileges (Host or GameMaster)
-  const currentUserRole =
-    localStorage.getItem("userRole") ||
-    localStorage.getItem("isHost") === "true"
-      ? "Host"
-      : "Player";
-  const canModerate = ["Host", "GameMaster"].includes(currentUserRole);
-
-  // Get current user's participant ID
-  const currentUserParticipantId = localParticipant?.session_id;
 
   // Log errors if they occur
   React.useEffect(() => {
@@ -164,8 +169,6 @@ export const VideoCall: React.FC<VideoCallProps> = ({
             <ParticipantTile
               participantId={participantId}
               playersByName={playersByName}
-              isHost={canModerate}
-              currentUserParticipantId={currentUserParticipantId}
             />
           </div>
         ))}
