@@ -2,6 +2,22 @@ import { Logger } from "./logger";
 // User session management with consolidated localStorage
 import type { ParticipantRole } from "./types";
 
+/**
+ * User Session Management
+ * 
+ * Current Implementation: localStorage (client-side only)
+ * - Session data persists only in the browser
+ * - Lost on browser clear/incognito mode
+ * - Cannot be shared across devices
+ * 
+ * Future Enhancement: Netlify Blobs
+ * - Consider migrating to Netlify Blobs for server-side session storage
+ * - Benefits: Cross-device access, better persistence, server-side validation
+ * - Use Netlify Blobs as key-value store with session_id as key
+ * - Implementation: https://docs.netlify.com/build/data-and-storage/netlify-blobs/
+ * - Keep localStorage as fallback for offline functionality
+ */
+
 export interface UserSessionData {
   participantId?: string;
   sessionCode?: string;

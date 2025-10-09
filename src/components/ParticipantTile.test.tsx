@@ -7,16 +7,10 @@ import type { Database } from "../lib/types/supabase";
 vi.mock("@daily-co/daily-react", () => ({
   useParticipantProperty: vi.fn(() => "Test User"),
   useVideoTrack: vi.fn(() => ({ track: null, state: "off" })),
-  useDaily: vi.fn(() => ({
-    updateParticipant: vi.fn(),
-  })),
   DailyVideo: ({ sessionId }: { sessionId: string }) => (
     <div data-testid={`video-${sessionId}`}>Video</div>
   ),
 }));
-
-// Get the mock for use in tests
-import { useDaily } from "@daily-co/daily-react";
 
 type ParticipantRow = Database["public"]["Tables"]["Participant"]["Row"];
 
@@ -47,63 +41,54 @@ describe("ParticipantTile", () => {
     vi.clearAllMocks();
   });
 
-  it("should not show moderation controls when user is not host", () => {
-    render(
-      <ParticipantTile
-        participantId="other-participant"
-        playersByName={mockPlayersByName}
-        isHost={false}
-        currentUserParticipantId="test-participant"
-      />,
-    );
-
-    expect(screen.queryByTitle(/Mute/)).not.toBeInTheDocument();
-    expect(screen.queryByTitle(/Remove/)).not.toBeInTheDocument();
-  });
-
-  it("should not show moderation controls for current user's own tile", () => {
+  it("should render participant tile without moderation controls", () => {
     render(
       <ParticipantTile
         participantId="test-participant"
         playersByName={mockPlayersByName}
-        isHost={true}
-        currentUserParticipantId="test-participant"
       />,
     );
 
+    // Moderation controls should never be present
     expect(screen.queryByTitle(/Mute/)).not.toBeInTheDocument();
     expect(screen.queryByTitle(/Remove/)).not.toBeInTheDocument();
   });
 
-  it("should show moderation controls when host views other participant", () => {
+  it("should display participant information correctly", () => {
     render(
       <ParticipantTile
-        participantId="other-participant"
+        participantId="test-participant"
         playersByName={mockPlayersByName}
-        isHost={true}
-        currentUserParticipantId="test-participant"
       />,
     );
 
-    // Name may fallback to Unknown Participant under current mocks
-    expect(screen.getByTitle(/Mute/)).toBeInTheDocument();
-    expect(screen.getByTitle(/Remove.*from call/)).toBeInTheDocument();
+    // Check that participant info is displayed
+    expect(screen.getByText(/Test User/)).toBeInTheDocument();
+    expect(screen.getByText(/Player 1/)).toBeInTheDocument();
   });
 
-  it("should not show moderation controls without call object", () => {
-    // Mock useDaily to return null (no call object)
-    (useDaily as ReturnType<typeof vi.fn>).mockReturnValueOnce(null);
-
-    render(
+  it("should show connection status indicator", () => {
+    const { container } = render(
       <ParticipantTile
-        participantId="other-participant"
+        participantId="test-participant"
         playersByName={mockPlayersByName}
-        isHost={true}
-        currentUserParticipantId="test-participant"
       />,
     );
 
-    expect(screen.queryByTitle(/Mute/)).not.toBeInTheDocument();
-    expect(screen.queryByTitle(/Remove/)).not.toBeInTheDocument();
+    // Check for connection status indicator (green pulse dot)
+    const connectionIndicator = container.querySelector('.bg-green-500.rounded-full.animate-pulse');
+    expect(connectionIndicator).toBeInTheDocument();
+  });
+
+  it("should handle video status correctly", () => {
+    render(
+      <ParticipantTile
+        participantId="test-participant"
+        playersByName={mockPlayersByName}
+      />,
+    );
+
+    // Since mock returns video state as "off", should show camera off indicator
+    expect(screen.getByText(/Camera Off/)).toBeInTheDocument();
   });
 });

@@ -1,20 +1,36 @@
-import { Logger } from "../lib/logger";
-import React, { useState } from "react";
+import React from "react";
 import {
   useParticipantProperty,
   useVideoTrack,
   DailyVideo,
-  useDaily,
 } from "@daily-co/daily-react";
 import type { Database } from "../lib/types/supabase";
+
+/**
+ * ParticipantTile Component - Individual video participant display
+ * 
+ * Simplified Design:
+ * - Removed mute/eject moderation controls to prevent video freezing issues
+ * - The controls were causing WebSocket state conflicts when clicked, even if canceled
+ * - Video streams now maintain stability without moderation interference
+ * 
+ * Display Features:
+ * - Player name, role, flag, and team logo
+ * - Live video stream or "Camera Off" placeholder
+ * - Connection status indicator (green pulse)
+ * - Video status indicator (camera on/off emoji)
+ * 
+ * WebSocket Stability:
+ * - Uses Daily.co's reactive hooks for participant data
+ * - No direct WebSocket manipulation - all handled by Daily.co internally
+ * - Video state updates automatically through useVideoTrack hook
+ */
 
 type ParticipantRow = Database["public"]["Tables"]["Participant"]["Row"];
 
 interface ParticipantTileProps {
   participantId: string;
   playersByName: Map<string, ParticipantRow>;
-  isHost?: boolean;
-  currentUserParticipantId?: string;
 }
 
 // Helper function to get role display (copied from Lobby logic)
@@ -34,14 +50,7 @@ const getRoleDisplay = (player: ParticipantRow) => {
 const ParticipantTile: React.FC<ParticipantTileProps> = ({
   participantId,
   playersByName,
-  isHost = false,
-  currentUserParticipantId,
 }) => {
-  const [isActioning, setIsActioning] = useState(false);
-
-  // Use Daily hook for moderation controls
-  const callObject = useDaily();
-
   // Get participant's display name and video track state
   const userName = useParticipantProperty(participantId, "user_name");
   const videoTrack = useVideoTrack(participantId);
@@ -61,45 +70,6 @@ const ParticipantTile: React.FC<ParticipantTileProps> = ({
 
   // Check if video is available
   const hasVideo = videoTrack?.track && videoTrack.state === "playable";
-
-  // Determine if this is the current user's tile
-  const isCurrentUser = participantId === currentUserParticipantId;
-
-  // Show moderation controls only if user is host and this is not their own tile
-  const showModerationControls = isHost && !isCurrentUser && callObject;
-
-  const handleMute = async () => {
-    if (!callObject || isActioning) return;
-
-    setIsActioning(true);
-    try {
-      await callObject.updateParticipant(participantId, { setAudio: false });
-      Logger.log(`Muted participant: ${displayName}`);
-    } catch (error) {
-      Logger.error("Failed to mute participant:", error);
-    } finally {
-      setIsActioning(false);
-    }
-  };
-
-  const handleEject = async () => {
-    if (!callObject || isActioning) return;
-
-    const confirmEject = confirm(
-      `Are you sure you want to remove ${displayName} from the call?`,
-    );
-    if (!confirmEject) return;
-
-    setIsActioning(true);
-    try {
-      await callObject.updateParticipant(participantId, { eject: true });
-      Logger.log(`Ejected participant: ${displayName}`);
-    } catch (error) {
-      Logger.error("Failed to eject participant:", error);
-    } finally {
-      setIsActioning(false);
-    }
-  };
 
   return (
     <div className="relative bg-gradient-to-br from-gray-800 via-gray-700 to-gray-800 rounded-xl overflow-hidden aspect-[3/4] shadow-2xl border border-gray-600/50 backdrop-blur-sm">
@@ -167,36 +137,6 @@ const ParticipantTile: React.FC<ParticipantTileProps> = ({
       <div className="absolute top-2 right-2">
         <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
       </div>
-
-      {/* Host Moderation Controls */}
-      {showModerationControls && (
-        <div className="absolute top-2 left-2 flex space-x-1">
-          <button
-            onClick={handleMute}
-            disabled={isActioning}
-            className={`p-2 rounded-full bg-orange-500 hover:bg-orange-600 text-white text-sm transition-all duration-200 ${
-              isActioning
-                ? "opacity-50 cursor-not-allowed"
-                : "shadow-lg hover:shadow-xl"
-            }`}
-            title={`Mute ${displayName}`}
-          >
-            🔈
-          </button>
-          <button
-            onClick={handleEject}
-            disabled={isActioning}
-            className={`p-2 rounded-full bg-red-500 hover:bg-red-600 text-white text-sm transition-all duration-200 ${
-              isActioning
-                ? "opacity-50 cursor-not-allowed"
-                : "shadow-lg hover:shadow-xl"
-            }`}
-            title={`Remove ${displayName} from call`}
-          >
-            ❌
-          </button>
-        </div>
-      )}
     </div>
   );
 };

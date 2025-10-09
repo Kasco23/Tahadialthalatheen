@@ -15,6 +15,17 @@ import {
 } from "../lib/mutations";
 import type { Tables, SegmentCode } from "../lib/types";
 
+/**
+ * Quiz Page - Main gameplay interface
+ * 
+ * TODO: Video Call Integration
+ * - The video call from Lobby should persist into the Quiz page
+ * - Consider using DailyProvider at the App level to maintain call state across routes
+ * - Add VideoCall component to this page (similar to Lobby implementation)
+ * - Ensure Daily.co WebSocket connections remain stable during route transitions
+ * - The call object should be accessible via useDaily() hook throughout the session
+ */
+
 const Quiz: React.FC = () => {
   const { sessionCode } = useParams<{ sessionCode: string }>();
   const [sessionId, setSessionId] = useState<string | null>(null);
