@@ -21,7 +21,6 @@
     "../components/Flag.tsx"
   ],
   "../components/ParticipantTile.tsx": [
-    "../lib/logger.ts",
     "../lib/types/supabase.ts"
   ],
   "../components/PasswordModal.tsx": [],
