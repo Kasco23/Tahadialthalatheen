@@ -28,5 +28,10 @@
     "**/*.test.tsx",
     "env.d.ts"
   ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "netlify/edge-functions"
+  ],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

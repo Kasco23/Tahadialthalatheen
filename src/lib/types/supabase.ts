@@ -50,6 +50,7 @@ export type Database = {
         Row: {
           disconnect_at: string | null;
           flag: string | null;
+          isReady: boolean | null;
           join_at: string | null;
           lobby_presence: string;
           name: string;
@@ -66,6 +67,7 @@ export type Database = {
         Insert: {
           disconnect_at?: string | null;
           flag?: string | null;
+          isReady?: boolean | null;
           join_at?: string | null;
           lobby_presence?: string;
           name: string;
@@ -82,6 +84,7 @@ export type Database = {
         Update: {
           disconnect_at?: string | null;
           flag?: string | null;
+          isReady?: boolean | null;
           join_at?: string | null;
           lobby_presence?: string;
           name?: string;

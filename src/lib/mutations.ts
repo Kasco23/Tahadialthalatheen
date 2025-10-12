@@ -1017,3 +1017,144 @@ function extractErrorMessage(err: unknown): string {
   }
   return String(err);
 }
+
+// 15. Mark Player as Ready/Not Ready
+/**
+ * Update a participant's ready status for the lobby
+ * 
+ * Note: Requires 'isReady' boolean field in Participant table
+ * Migration: ALTER TABLE "Participant" ADD COLUMN "isReady" BOOLEAN DEFAULT false;
+ * 
+ * Can be called via serverless function for better security:
+ * POST /.netlify/functions/mark-player-ready
+ * Body: { participantId, isReady }
+ */
+export async function markPlayerReady(
+  participantId: string,
+  isReady: boolean,
+  useServerless = false
+): Promise<void> {
+  if (useServerless) {
+    // Use serverless function to keep service role key secure
+    const response = await fetch("/.netlify/functions/mark-player-ready", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ participantId, isReady }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: "Unknown error" }));
+      throw new Error(`Failed to update ready status: ${error.error || "Unknown error"}`);
+    }
+
+    Logger.log(`Player ${participantId} ready status set to: ${isReady} (via serverless)`);
+    return;
+  }
+
+  // Direct database call (requires client to have appropriate permissions)
+  const { error } = await supabase
+    .from("Participant")
+    .update({ isReady: isReady } as TablesUpdate<"Participant">)
+    .eq("participant_id", participantId);
+
+  if (error) {
+    throw new Error(`Failed to update ready status: ${error.message}`);
+  }
+
+  Logger.log(`Participant ${participantId} ready status set to: ${isReady}`);
+}
+
+// 16. Get All Participants Ready Status
+/**
+ * Check if all non-Host participants in a session are ready
+ * 
+ * Note: Requires 'isReady' boolean field in Participant table
+ * 
+ * Can be called via serverless function for better security:
+ * POST /.netlify/functions/check-ready-status
+ * Body: { sessionId }
+ */
+export async function checkAllPlayersReady(
+  sessionId: string,
+  useServerless = false
+): Promise<{
+  allReady: boolean;
+  readyCount: number;
+  totalPlayers: number;
+  participants: Array<{
+    participant_id: string;
+    name: string;
+    role: string;
+    isReady: boolean;
+  }>;
+}> {
+  if (useServerless) {
+    // Use serverless function to keep service role key secure
+    const response = await fetch("/.netlify/functions/check-ready-status", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sessionId }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: "Unknown error" }));
+      throw new Error(`Failed to check ready status: ${error.error || "Unknown error"}`);
+    }
+
+    const result = await response.json();
+    return {
+      allReady: result.allReady,
+      readyCount: result.readyCount,
+      totalPlayers: result.totalPlayers,
+      participants: result.participants,
+    };
+  }
+
+  // Direct database call (requires client to have appropriate permissions)
+  const { data, error } = await supabase
+    .from("Participant")
+    .select("participant_id, name, role, isReady")
+    .eq("session_id", sessionId)
+    .in("role", ["Player1", "Player2"])
+    .eq("lobby_presence", "Joined");
+
+  if (error) {
+    throw new Error(`Failed to check ready status: ${error.message}`);
+  }
+
+  const participants = (data || []) as Array<{
+    participant_id: string;
+    name: string;
+    role: string;
+    isReady: boolean;
+  }>;
+
+  const totalPlayers = participants.length;
+  const readyCount = participants.filter((p) => p.isReady).length;
+  const allReady = totalPlayers > 0 && readyCount === totalPlayers;
+
+  return {
+    allReady,
+    readyCount,
+    totalPlayers,
+    participants,
+  };
+}
+
+// 17. Reset All Players Ready Status
+/**
+ * Reset ready status for all players in a session (e.g., when starting a new round)
+ */
+export async function resetAllPlayersReady(sessionId: string): Promise<void> {
+  const { error } = await supabase
+    .from("Participant")
+    .update({ isReady: false } as TablesUpdate<"Participant">)
+    .eq("session_id", sessionId)
+    .in("role", ["Player1", "Player2"]);
+
+  if (error) {
+    throw new Error(`Failed to reset ready status: ${error.message}`);
+  }
+
+  Logger.log(`All players ready status reset for session: ${sessionId}`);
+}
