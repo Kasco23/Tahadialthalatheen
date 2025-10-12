@@ -43,15 +43,16 @@ The application integrates [Daily.co](https://www.daily.co/) for real-time video
 
 ```
 src/
-├── atoms/index.ts              # Daily state atoms
+├── atoms/index.ts              # Daily state atoms (persistence storage)
 ├── components/
-│   ├── DailyJoinButton.tsx     # Join/leave video call button
+│   ├── VideoRoom.tsx           # Wrapper for persistent video calls (NEW)
 │   ├── VideoCall.tsx           # Main video call container
 │   ├── ParticipantTile.tsx     # Individual participant video tile
 │   └── ControlsBar.tsx         # Call controls (mute, video toggle)
 ├── pages/
 │   ├── GameSetup.tsx          # Host room creation
-│   └── Lobby.tsx              # Participant room joining
+│   ├── Lobby.tsx              # Participant room joining & token storage
+│   └── Quiz.tsx               # Quiz page with persisted video call
 └── lib/
     └── mutations.ts           # API functions
 ```
@@ -62,6 +63,61 @@ src/
 netlify/functions/
 ├── createDailyRoom.ts         # Creates Daily.co rooms
 └── create-daily-token.ts      # Creates meeting tokens
+```
+
+## Video Call Persistence
+
+### Architecture
+
+The video call persists across routes (Lobby → Quiz) using:
+
+1. **Shared DailyProvider**: Wrapped at App.tsx root level, maintaining a single Daily call instance
+2. **Jotai Atoms**: Global state stores room URL, token, and username
+3. **VideoRoom Component**: Wrapper that consumes atoms and handles auto-join logic
+
+### State Flow
+
+```
+Lobby Page:
+  ↓
+  1. Fetch Daily room from database
+  2. Create token for participant
+  3. Store roomUrl + token + userName in atoms
+  ↓
+Quiz Page:
+  ↓
+  1. Read roomUrl + token from atoms
+  2. VideoRoom auto-joins if autoJoin=true
+  3. Existing call persists via DailyProvider
+```
+
+### Implementation
+
+**VideoRoom Component** (`src/components/VideoRoom.tsx`):
+- Reads `dailyRoomUrlAtom`, `dailyTokenAtom`, `dailyUserNameAtom`
+- Supports `autoJoin` prop for automatic connection
+- Wraps VideoCall component with shared state
+
+**Usage in Lobby** (manual join):
+```tsx
+<VideoRoom
+  players={players}
+  sessionCode={sessionCode}
+  sessionId={sessionId}
+  participantName={participantName}
+  autoJoin={false} // User clicks join button
+/>
+```
+
+**Usage in Quiz** (auto-join):
+```tsx
+<VideoRoom
+  players={participants}
+  sessionCode={sessionCode}
+  sessionId={sessionId}
+  participantName={participantName}
+  autoJoin={true} // Automatically connects
+/>
 ```
 
 ## API Flow
