@@ -243,7 +243,7 @@ netlify dev
 ### ✅ Completed
 - [x] Netlify Blobs integration with edge functions
 - [x] Readiness system UI in Lobby
-- [x] Database migration for `is_ready` column
+- [x] Database migration for `isReady` column
 - [x] Serverless functions for secure operations
 - [x] Timer component (reusable)
 - [x] Comprehensive documentation

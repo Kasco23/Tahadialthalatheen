@@ -73,7 +73,7 @@ export default async (req: Request, _context: Context) => {
     // Query ready status
     const { data, error } = await supabase
       .from("Participant")
-      .select("participant_id, name, role, is_ready")
+      .select("participant_id, name, role, isReady")
       .eq("session_id", sessionId)
       .in("role", ["Player1", "Player2"])
       .eq("lobby_presence", "Joined");
@@ -94,7 +94,7 @@ export default async (req: Request, _context: Context) => {
 
     const participants = data || [];
     const totalPlayers = participants.length;
-    const readyCount = participants.filter((p) => p.is_ready).length;
+    const readyCount = participants.filter((p) => p.isReady).length;
     const allReady = totalPlayers > 0 && readyCount === totalPlayers;
 
     return new Response(

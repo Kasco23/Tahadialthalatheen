@@ -106,16 +106,16 @@ NETLIFY_PERSONAL_ACCESS_TOKEN=<your-netlify-personal-access-token>
 
 ### Participant Table
 
-The readiness system requires adding an `is_ready` column:
+The readiness system requires adding an `isReady` column:
 
 ```sql
--- Add is_ready column to Participant table
+-- Add isReady column to Participant table
 ALTER TABLE "Participant" 
-ADD COLUMN "is_ready" BOOLEAN DEFAULT false;
+ADD COLUMN "isReady" BOOLEAN DEFAULT false;
 
 -- Optional: Add index for performance
 CREATE INDEX idx_participant_ready 
-ON "Participant"(session_id, is_ready) 
+ON "Participant"(session_id, isReady) 
 WHERE lobby_presence = 'Joined';
 ```
 
@@ -256,7 +256,7 @@ Note: For pure frontend development without edge functions, use `pnpm dev` inste
 
 ### Ready Status Not Syncing
 
-1. Confirm database migration was applied (is_ready column exists)
+1. Confirm database migration was applied (isReady column exists)
 2. Check Supabase real-time subscriptions are active
 3. Verify participantId is correct in markPlayerReady calls
 4. Review network tab for failed Supabase queries

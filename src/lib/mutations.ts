@@ -1022,8 +1022,8 @@ function extractErrorMessage(err: unknown): string {
 /**
  * Update a participant's ready status for the lobby
  * 
- * Note: Requires 'is_ready' boolean field in Participant table
- * Migration: ALTER TABLE "Participant" ADD COLUMN "is_ready" BOOLEAN DEFAULT false;
+ * Note: Requires 'isReady' boolean field in Participant table
+ * Migration: ALTER TABLE "Participant" ADD COLUMN "isReady" BOOLEAN DEFAULT false;
  * 
  * Can be called via serverless function for better security:
  * POST /.netlify/functions/mark-player-ready
@@ -1054,7 +1054,7 @@ export async function markPlayerReady(
   // Direct database call (requires client to have appropriate permissions)
   const { error } = await supabase
     .from("Participant")
-    .update({ is_ready: isReady } as TablesUpdate<"Participant">)
+    .update({ isReady: isReady } as TablesUpdate<"Participant">)
     .eq("participant_id", participantId);
 
   if (error) {
@@ -1068,7 +1068,7 @@ export async function markPlayerReady(
 /**
  * Check if all non-Host participants in a session are ready
  * 
- * Note: Requires 'is_ready' boolean field in Participant table
+ * Note: Requires 'isReady' boolean field in Participant table
  * 
  * Can be called via serverless function for better security:
  * POST /.netlify/functions/check-ready-status
@@ -1085,7 +1085,7 @@ export async function checkAllPlayersReady(
     participant_id: string;
     name: string;
     role: string;
-    is_ready: boolean;
+    isReady: boolean;
   }>;
 }> {
   if (useServerless) {
@@ -1113,7 +1113,7 @@ export async function checkAllPlayersReady(
   // Direct database call (requires client to have appropriate permissions)
   const { data, error } = await supabase
     .from("Participant")
-    .select("participant_id, name, role, is_ready")
+    .select("participant_id, name, role, isReady")
     .eq("session_id", sessionId)
     .in("role", ["Player1", "Player2"])
     .eq("lobby_presence", "Joined");
@@ -1126,11 +1126,11 @@ export async function checkAllPlayersReady(
     participant_id: string;
     name: string;
     role: string;
-    is_ready: boolean;
+    isReady: boolean;
   }>;
 
   const totalPlayers = participants.length;
-  const readyCount = participants.filter((p) => p.is_ready).length;
+  const readyCount = participants.filter((p) => p.isReady).length;
   const allReady = totalPlayers > 0 && readyCount === totalPlayers;
 
   return {
@@ -1148,7 +1148,7 @@ export async function checkAllPlayersReady(
 export async function resetAllPlayersReady(sessionId: string): Promise<void> {
   const { error } = await supabase
     .from("Participant")
-    .update({ is_ready: false } as TablesUpdate<"Participant">)
+    .update({ isReady: false } as TablesUpdate<"Participant">)
     .eq("session_id", sessionId)
     .in("role", ["Player1", "Player2"]);
 

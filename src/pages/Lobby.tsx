@@ -423,7 +423,7 @@ const Lobby: React.FC = () => {
         // Update ready states map
         const newReadyStates: Record<string, boolean> = {};
         result.participants.forEach(p => {
-          newReadyStates[p.participant_id] = p.is_ready;
+          newReadyStates[p.participant_id] = p.isReady;
         });
         setReadyStates(newReadyStates);
       } catch (error) {

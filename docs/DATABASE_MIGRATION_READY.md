@@ -2,7 +2,7 @@
 
 ## Overview
 
-This migration adds the `is_ready` boolean field to the `Participant` table to support the lobby readiness system. This allows players to signal when they're ready to start the quiz.
+This migration adds the `isReady` boolean field to the `Participant` table to support the lobby readiness system. This allows players to signal when they're ready to start the quiz.
 
 ## Migration File
 
@@ -10,19 +10,19 @@ This migration adds the `is_ready` boolean field to the `Participant` table to s
 
 ## Changes Made
 
-1. **New Column**: `is_ready BOOLEAN DEFAULT false`
+1. **New Column**: `isReady BOOLEAN DEFAULT false`
    - Type: Boolean
    - Default: `false`
    - Nullable: No (NOT NULL after default is applied)
    - Purpose: Track player readiness status in lobby
 
 2. **Performance Index**: `idx_participant_ready`
-   - Columns: `(session_id, is_ready)`
+   - Columns: `(session_id, isReady)`
    - Filter: `WHERE lobby_presence = 'Joined'`
    - Purpose: Optimize queries checking ready status of joined players
 
 3. **Data Cleanup**:
-   - Updates existing rows to set `is_ready = false`
+   - Updates existing rows to set `isReady = false`
    - Ensures consistency across all existing participants
 
 ## How to Apply
@@ -52,19 +52,19 @@ supabase migration up
 Connect to your database and run:
 
 ```sql
--- Add the is_ready column
+-- Add the isReady column
 ALTER TABLE "public"."Participant" 
-ADD COLUMN IF NOT EXISTS "is_ready" BOOLEAN DEFAULT false;
+ADD COLUMN IF NOT EXISTS "isReady" BOOLEAN DEFAULT false;
 
 -- Add performance index
 CREATE INDEX IF NOT EXISTS "idx_participant_ready" 
-ON "public"."Participant"("session_id", "is_ready") 
+ON "public"."Participant"("session_id", "isReady") 
 WHERE "lobby_presence" = 'Joined';
 
 -- Update existing rows
 UPDATE "public"."Participant" 
-SET "is_ready" = false 
-WHERE "is_ready" IS NULL;
+SET "isReady" = false 
+WHERE "isReady" IS NULL;
 ```
 
 ## Verification
@@ -76,7 +76,7 @@ After applying the migration, verify it worked:
 SELECT column_name, data_type, column_default 
 FROM information_schema.columns 
 WHERE table_name = 'Participant' 
-  AND column_name = 'is_ready';
+  AND column_name = 'isReady';
 
 -- Check index exists
 SELECT indexname, indexdef 
@@ -85,15 +85,15 @@ WHERE tablename = 'Participant'
   AND indexname = 'idx_participant_ready';
 
 -- Verify data
-SELECT COUNT(*), is_ready 
+SELECT COUNT(*), isReady 
 FROM "Participant" 
-GROUP BY is_ready;
+GROUP BY isReady;
 ```
 
 Expected results:
-- Column `is_ready` should exist with type `boolean` and default `false`
+- Column `isReady` should exist with type `boolean` and default `false`
 - Index `idx_participant_ready` should exist
-- All existing rows should have `is_ready = false`
+- All existing rows should have `isReady = false`
 
 ## Rollback
 
@@ -105,7 +105,7 @@ DROP INDEX IF EXISTS "public"."idx_participant_ready";
 
 -- Remove column
 ALTER TABLE "public"."Participant" 
-DROP COLUMN IF EXISTS "is_ready";
+DROP COLUMN IF EXISTS "isReady";
 ```
 
 **Warning**: Rolling back will remove readiness data. Only do this if necessary.

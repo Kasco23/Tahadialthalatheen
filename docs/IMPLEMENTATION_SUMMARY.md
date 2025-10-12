@@ -43,7 +43,7 @@ Fallback: localStorage (offline support)
 - `src/components/Timer.tsx` - Created reusable timer component
 
 **Database Changes**:
-- New column: `Participant.is_ready` (boolean, default false)
+- New column: `Participant.isReady` (boolean, default false)
 - Performance index for ready status queries
 - Migration file: `supabase/migrations/20251012000000_add_participant_ready_column.sql`
 
@@ -162,7 +162,7 @@ supabase db push
 ```
 
 **What It Does**:
-- Adds `is_ready` boolean column to Participant table
+- Adds `isReady` boolean column to Participant table
 - Creates performance index for ready queries
 - Sets default value (false) for all existing rows
 
@@ -179,7 +179,7 @@ supabase db push
 
 1. **Apply Database Migration**
    - [ ] Run migration in Supabase
-   - [ ] Verify `is_ready` column exists
+   - [ ] Verify `isReady` column exists
    - [ ] Check index created
 
 2. **Deploy to Netlify**
@@ -311,7 +311,7 @@ await resetAllPlayersReady(sessionId);
 ## Next Steps
 
 ### Immediate (Required for Functionality)
-1. Apply database migration for `is_ready` column
+1. Apply database migration for `isReady` column
 2. Deploy to Netlify and configure environment variables
 3. Test readiness flow end-to-end
 
