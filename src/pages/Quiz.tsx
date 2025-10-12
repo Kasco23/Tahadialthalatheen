@@ -1,6 +1,7 @@
 import { Logger } from "../lib/logger";
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
+import { useAtom } from "jotai";
 import { useSession } from "../lib/sessionHooks";
 import {
   useStrikes,
@@ -13,17 +14,18 @@ import {
   activatePowerup,
   getSessionIdByCode,
 } from "../lib/mutations";
+import { dailyUserNameAtom } from "../atoms";
+import { VideoRoom } from "../components/VideoRoom";
 import type { Tables, SegmentCode } from "../lib/types";
 
 /**
  * Quiz Page - Main gameplay interface
  * 
- * TODO: Video Call Integration
- * - The video call from Lobby should persist into the Quiz page
- * - Consider using DailyProvider at the App level to maintain call state across routes
- * - Add VideoCall component to this page (similar to Lobby implementation)
- * - Ensure Daily.co WebSocket connections remain stable during route transitions
- * - The call object should be accessible via useDaily() hook throughout the session
+ * Video Call Integration:
+ * - VideoRoom component consumes roomUrl and token from global Jotai atoms
+ * - The call persists from Lobby via shared DailyProvider at App level
+ * - VideoRoom auto-joins on mount using stored credentials
+ * - Daily.co WebSocket connections remain stable during route transitions
  */
 
 const Quiz: React.FC = () => {
@@ -35,9 +37,18 @@ const Quiz: React.FC = () => {
   const { participants, loading: participantsLoading } =
     useParticipants(sessionId);
 
+  const [userName] = useAtom(dailyUserNameAtom);
   const [currentSegment, setCurrentSegment] = useState<SegmentCode>("WDYK");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Get participant name
+  const participantName =
+    userName ||
+    localStorage.getItem("tt_participant_name") ||
+    localStorage.getItem("playerName") ||
+    localStorage.getItem("hostName") ||
+    "Player";
 
   // Convert sessionCode to sessionId when component mounts
   useEffect(() => {
@@ -169,6 +180,17 @@ const Quiz: React.FC = () => {
           <p className="text-lg opacity-80">
             Phase: {session.phase} | Game State: {session.game_state}
           </p>
+        </div>
+
+        {/* Video Room - Persists from Lobby */}
+        <div className="mb-8">
+          <VideoRoom
+            players={participants}
+            sessionCode={sessionCode || ""}
+            sessionId={sessionId || ""}
+            participantName={participantName}
+            autoJoin={true} // Auto-join in Quiz to maintain call from Lobby
+          />
         </div>
 
         {/* Current Segment Info */}

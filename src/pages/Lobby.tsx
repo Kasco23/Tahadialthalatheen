@@ -5,10 +5,16 @@ import { useAtom } from "jotai";
 
 import { supabase } from "../lib/supabaseClient";
 import { useSession } from "../lib/sessionHooks";
-import { leaveLobbyByRole } from "../lib/mutations";
+import { leaveLobbyByRole, createDailyToken } from "../lib/mutations";
 import { useSessionData } from "../lib/useSessionData";
-import { sessionAtom, sessionCodeAtom } from "../atoms";
-import { VideoCall } from "../components/VideoCall";
+import { 
+  sessionAtom, 
+  sessionCodeAtom,
+  dailyRoomUrlAtom,
+  dailyTokenAtom,
+  dailyUserNameAtom
+} from "../atoms";
+import { VideoRoom } from "../components/VideoRoom";
 import { Flag } from "../components/Flag";
 import { LobbyLogo } from "../components/LobbyLogo";
 import { LOBBY_PRESENCE, PARTICIPANT_ROLE, SEAT_TO_ROLE } from "../lib/types";
@@ -137,12 +143,22 @@ const Lobby: React.FC = () => {
   // Use Jotai atoms
   const [, setSessionId] = useAtom(sessionAtom);
   const [, setCurrentSessionCode] = useAtom(sessionCodeAtom);
+  const [, setDailyRoomUrl] = useAtom(dailyRoomUrlAtom);
+  const [, setDailyToken] = useAtom(dailyTokenAtom);
+  const [, setDailyUserName] = useAtom(dailyUserNameAtom);
 
   const { session } = useSession(sessionId);
   const [players, setPlayers] = useState<ParticipantRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showSeatValidationModal, setShowSeatValidationModal] = useState(false);
+
+  // Get participant name from localStorage
+  const participantName =
+    localStorage.getItem("tt_participant_name") ||
+    localStorage.getItem("playerName") ||
+    localStorage.getItem("hostName") ||
+    "Unknown";
 
   // Update atoms when session data is resolved
   useEffect(() => {
@@ -153,6 +169,32 @@ const Lobby: React.FC = () => {
       }
     }
   }, [sessionId, sessionCode, setSessionId, setCurrentSessionCode]);
+
+  // Store Daily room data in atoms when available and create token
+  useEffect(() => {
+    const setupDailyRoom = async () => {
+      if (dailyRoom?.room_url && sessionCode && participantName) {
+        Logger.log("Lobby: Storing Daily room data in atoms", {
+          roomUrl: dailyRoom.room_url,
+          participantName,
+        });
+
+        setDailyRoomUrl(dailyRoom.room_url);
+        setDailyUserName(participantName);
+
+        // Create and store token
+        try {
+          const { token } = await createDailyToken(sessionCode, participantName);
+          setDailyToken(token);
+          Logger.log("Lobby: Daily token created and stored");
+        } catch (error) {
+          Logger.error("Lobby: Failed to create Daily token:", error);
+        }
+      }
+    };
+
+    setupDailyRoom();
+  }, [dailyRoom, sessionCode, participantName, setDailyRoomUrl, setDailyToken, setDailyUserName]);
 
   // Handle session resolution errors
   useEffect(() => {
@@ -558,58 +600,13 @@ const Lobby: React.FC = () => {
             <div className="xl:col-span-3 space-y-6">
               {/* Industry-Grade Video Call Interface */}
               {dailyRoom ? (
-                <div className="bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 overflow-hidden">
-                  {/* Video Header */}
-                  <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 px-6 py-4 border-b border-white/10">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <div
-                          className={`w-3 h-3 rounded-full ${dailyRoom?.ready ? "bg-green-400 animate-pulse" : "bg-yellow-400"}`}
-                        ></div>
-                        <h3 className="text-xl font-bold text-white">
-                          Video Conference
-                        </h3>
-                      </div>
-                      <div className="flex items-center space-x-4 text-sm text-blue-200">
-                        <span className="flex items-center space-x-1">
-                          <span>🏠</span>
-                          <span>
-                            {dailyRoom?.ready ? "Ready" : "Setting up"}
-                          </span>
-                        </span>
-                        {dailyRoom?.ready && (
-                          <>
-                            <span className="flex items-center space-x-1">
-                              <span>🔗</span>
-                              <span>Live</span>
-                            </span>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Video Content */}
-                  <div className="p-3">
-                    <VideoCall
-                      players={players}
-                      sessionCode={sessionCode || ""}
-                      sessionId={sessionId || ""}
-                      participantName={
-                        localStorage.getItem("tt_participant_name") ||
-                        localStorage.getItem("playerName") ||
-                        localStorage.getItem("hostName") ||
-                        (players.length > 0 &&
-                          players.find(
-                            (p) =>
-                              p.participant_id ===
-                              localStorage.getItem("participantId"),
-                          )?.name) ||
-                        "Player"
-                      }
-                    />
-                  </div>
-                </div>
+                <VideoRoom
+                  players={players}
+                  sessionCode={sessionCode || ""}
+                  sessionId={sessionId || ""}
+                  participantName={participantName}
+                  autoJoin={false} // Manual join in Lobby, allow users to click join button
+                />
               ) : (
                 <div className="bg-white/10 backdrop-blur-sm rounded-lg p-8 border border-white/20 text-center">
                   <div className="text-6xl mb-4">⏳</div>
