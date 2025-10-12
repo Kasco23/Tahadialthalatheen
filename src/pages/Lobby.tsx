@@ -5,7 +5,7 @@ import { useAtom } from "jotai";
 
 import { supabase } from "../lib/supabaseClient";
 import { useSession } from "../lib/sessionHooks";
-import { leaveLobbyByRole, createDailyToken } from "../lib/mutations";
+import { leaveLobbyByRole, createDailyToken, markPlayerReady, checkAllPlayersReady } from "../lib/mutations";
 import { useSessionData } from "../lib/useSessionData";
 import { 
   sessionAtom, 
@@ -29,6 +29,9 @@ interface ParticipantCardProps {
   lobbyPresence: string;
   videoPresence: string;
   getRoleDisplay: (player: ParticipantRow) => string;
+  isReady?: boolean;
+  onToggleReady?: (participantId: string, currentReady: boolean) => void;
+  canToggleReady?: boolean;
 }
 
 const ParticipantCard: React.FC<ParticipantCardProps> = ({
@@ -36,7 +39,12 @@ const ParticipantCard: React.FC<ParticipantCardProps> = ({
   lobbyPresence,
   videoPresence,
   getRoleDisplay,
+  isReady = false,
+  onToggleReady,
+  canToggleReady = false,
 }) => {
+  const isPlayer = player.role === "Player1" || player.role === "Player2";
+  
   return (
     <div
       className={`bg-white/5 backdrop-blur-sm rounded-lg p-4 border-2 transition-all duration-300 ${
@@ -90,6 +98,33 @@ const ParticipantCard: React.FC<ParticipantCardProps> = ({
             {videoPresence}
           </span>
         </div>
+        
+        {/* Ready Status - Only show for players */}
+        {isPlayer && (
+          <div className="flex justify-between items-center mt-2 pt-2 border-t border-white/10">
+            <span className="text-xs text-blue-200">Ready:</span>
+            <div className="flex items-center gap-2">
+              <span
+                className={`text-xs font-medium ${
+                  isReady ? "text-green-400" : "text-yellow-400"
+                }`}
+              >
+                {isReady ? "✓ Ready" : "⏳ Not Ready"}
+              </span>
+              {canToggleReady && onToggleReady && (
+                <button
+                  onClick={() => onToggleReady(player.participant_id, isReady)}
+                  className={`btn btn-xs ${
+                    isReady ? "btn-warning" : "btn-success"
+                  }`}
+                  type="button"
+                >
+                  {isReady ? "Unready" : "Ready"}
+                </button>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -152,6 +187,8 @@ const Lobby: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showSeatValidationModal, setShowSeatValidationModal] = useState(false);
+  const [readyStates, setReadyStates] = useState<Record<string, boolean>>({});
+  const [allPlayersReady, setAllPlayersReady] = useState(false);
 
   // Get participant name from localStorage
   const participantName =
@@ -366,7 +403,56 @@ const Lobby: React.FC = () => {
         p.role !== PARTICIPANT_ROLE.GAME_MASTER &&
         p.lobby_presence === LOBBY_PRESENCE.JOINED,
     );
-    return joinedNonHostsAndGMs.length >= 2 && session.phase === "Lobby";
+    // Check if we have at least 2 players AND all players are ready
+    return (
+      joinedNonHostsAndGMs.length >= 2 && 
+      session.phase === "Lobby" && 
+      allPlayersReady
+    );
+  };
+
+  // Check all players ready status
+  useEffect(() => {
+    if (!sessionId) return;
+
+    const checkReadyStatus = async () => {
+      try {
+        const result = await checkAllPlayersReady(sessionId);
+        setAllPlayersReady(result.allReady);
+        
+        // Update ready states map
+        const newReadyStates: Record<string, boolean> = {};
+        result.participants.forEach(p => {
+          newReadyStates[p.participant_id] = p.is_ready;
+        });
+        setReadyStates(newReadyStates);
+      } catch (error) {
+        Logger.error("Failed to check ready status:", error);
+      }
+    };
+
+    checkReadyStatus();
+    
+    // Poll every 2 seconds for ready status updates
+    const interval = setInterval(checkReadyStatus, 2000);
+    
+    return () => clearInterval(interval);
+  }, [sessionId, players]);
+
+  // Handle ready toggle for current player
+  const handleToggleReady = async (participantId: string, currentReady: boolean) => {
+    try {
+      await markPlayerReady(participantId, !currentReady);
+      Logger.log(`Player ${participantId} ready status toggled to: ${!currentReady}`);
+      
+      // Update local state immediately for better UX
+      setReadyStates(prev => ({
+        ...prev,
+        [participantId]: !currentReady
+      }));
+    } catch (error) {
+      Logger.error("Failed to toggle ready status:", error);
+    }
   };
 
   const handleStartQuiz = () => {
@@ -520,6 +606,9 @@ const Lobby: React.FC = () => {
                     if (player) {
                       // Show actual participant
                       const { lobbyPresence, videoPresence } = getPresenceStatus(player);
+                      const isPlayer = player.role === "Player1" || player.role === "Player2";
+                      const isCurrentPlayer = resolvedSeat ? SEAT_TO_ROLE[resolvedSeat] === player.role.toLowerCase() : false;
+                      
                       return (
                         <ParticipantCard
                           key={player.participant_id}
@@ -527,6 +616,9 @@ const Lobby: React.FC = () => {
                           lobbyPresence={lobbyPresence}
                           videoPresence={videoPresence}
                           getRoleDisplay={getRoleDisplay}
+                          isReady={readyStates[player.participant_id] || false}
+                          onToggleReady={handleToggleReady}
+                          canToggleReady={isPlayer && isCurrentPlayer}
                         />
                       );
                     } else {
