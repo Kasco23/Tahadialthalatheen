@@ -418,6 +418,10 @@ const Lobby: React.FC = () => {
     } catch (e) {
       Logger.error("Failed to update presence on leave:", e);
     } finally {
+      // Clear Daily atoms when leaving lobby
+      setDailyRoomUrl(null);
+      setDailyToken(null);
+      setDailyUserName(null);
       navigate("/");
     }
   };
