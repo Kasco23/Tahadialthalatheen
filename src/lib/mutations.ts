@@ -1024,11 +1024,34 @@ function extractErrorMessage(err: unknown): string {
  * 
  * Note: Requires 'is_ready' boolean field in Participant table
  * Migration: ALTER TABLE "Participant" ADD COLUMN "is_ready" BOOLEAN DEFAULT false;
+ * 
+ * Can be called via serverless function for better security:
+ * POST /.netlify/functions/mark-player-ready
+ * Body: { participantId, isReady }
  */
 export async function markPlayerReady(
   participantId: string,
-  isReady: boolean
+  isReady: boolean,
+  useServerless = false
 ): Promise<void> {
+  if (useServerless) {
+    // Use serverless function to keep service role key secure
+    const response = await fetch("/.netlify/functions/mark-player-ready", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ participantId, isReady }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: "Unknown error" }));
+      throw new Error(`Failed to update ready status: ${error.error || "Unknown error"}`);
+    }
+
+    Logger.log(`Player ${participantId} ready status set to: ${isReady} (via serverless)`);
+    return;
+  }
+
+  // Direct database call (requires client to have appropriate permissions)
   const { error } = await supabase
     .from("Participant")
     .update({ is_ready: isReady } as TablesUpdate<"Participant">)
@@ -1046,8 +1069,15 @@ export async function markPlayerReady(
  * Check if all non-Host participants in a session are ready
  * 
  * Note: Requires 'is_ready' boolean field in Participant table
+ * 
+ * Can be called via serverless function for better security:
+ * POST /.netlify/functions/check-ready-status
+ * Body: { sessionId }
  */
-export async function checkAllPlayersReady(sessionId: string): Promise<{
+export async function checkAllPlayersReady(
+  sessionId: string,
+  useServerless = false
+): Promise<{
   allReady: boolean;
   readyCount: number;
   totalPlayers: number;
@@ -1058,6 +1088,29 @@ export async function checkAllPlayersReady(sessionId: string): Promise<{
     is_ready: boolean;
   }>;
 }> {
+  if (useServerless) {
+    // Use serverless function to keep service role key secure
+    const response = await fetch("/.netlify/functions/check-ready-status", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sessionId }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: "Unknown error" }));
+      throw new Error(`Failed to check ready status: ${error.error || "Unknown error"}`);
+    }
+
+    const result = await response.json();
+    return {
+      allReady: result.allReady,
+      readyCount: result.readyCount,
+      totalPlayers: result.totalPlayers,
+      participants: result.participants,
+    };
+  }
+
+  // Direct database call (requires client to have appropriate permissions)
   const { data, error } = await supabase
     .from("Participant")
     .select("participant_id, name, role, is_ready")
