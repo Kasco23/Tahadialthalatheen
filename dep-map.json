@@ -46,6 +46,12 @@
     "../lib/supabaseClient.ts",
     "../lib/types/supabase.ts"
   ],
+  "../components/VideoRoom.tsx": [
+    "../atoms/index.ts",
+    "../components/VideoCall.tsx",
+    "../lib/logger.ts",
+    "../lib/types/supabase.ts"
+  ],
   "../lib/dailyTokenManager.ts": [
     "../lib/logger.ts",
     "../lib/types.ts"
@@ -126,7 +132,7 @@
     "../atoms/index.ts",
     "../components/Flag.tsx",
     "../components/LobbyLogo.tsx",
-    "../components/VideoCall.tsx",
+    "../components/VideoRoom.tsx",
     "../lib/logger.ts",
     "../lib/mutations.ts",
     "../lib/sessionHooks.ts",
@@ -137,6 +143,8 @@
     "../lib/userSession.ts"
   ],
   "Quiz.tsx": [
+    "../atoms/index.ts",
+    "../components/VideoRoom.tsx",
     "../lib/logger.ts",
     "../lib/mutations.ts",
     "../lib/realtimeHooks.ts",
