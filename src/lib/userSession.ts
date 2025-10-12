@@ -1,21 +1,29 @@
 import { Logger } from "./logger";
-// User session management with consolidated localStorage
+import { saveSession, loadSession, type BlobSessionData } from "./blobStore";
+// User session management with Netlify Blobs and localStorage fallback
 import type { ParticipantRole } from "./types";
 
 /**
  * User Session Management
  * 
- * Current Implementation: localStorage (client-side only)
- * - Session data persists only in the browser
- * - Lost on browser clear/incognito mode
- * - Cannot be shared across devices
+ * Hybrid Implementation: Netlify Blobs + localStorage
  * 
- * Future Enhancement: Netlify Blobs
- * - Consider migrating to Netlify Blobs for server-side session storage
- * - Benefits: Cross-device access, better persistence, server-side validation
- * - Use Netlify Blobs as key-value store with session_id as key
- * - Implementation: https://docs.netlify.com/build/data-and-storage/netlify-blobs/
- * - Keep localStorage as fallback for offline functionality
+ * Primary Storage (Netlify Blobs via Edge Functions):
+ * - Cross-device session persistence
+ * - Server-side storage through edge functions
+ * - Better security and validation
+ * - Persists across browser clears
+ * 
+ * Fallback Storage (localStorage):
+ * - Offline support when network unavailable
+ * - Fast synchronous access
+ * - Browser-specific persistence
+ * 
+ * Rationale:
+ * - Netlify Blobs provide the best of both worlds for session management
+ * - Edge Functions act as secure proxy for blob operations
+ * - localStorage ensures app works offline and provides instant feedback
+ * - This hybrid approach maximizes availability and user experience
  */
 
 export interface UserSessionData {
@@ -101,6 +109,13 @@ export class UserSession {
   static set(updates: Partial<UserSessionData>): void {
     this.data = { ...this.data, ...updates };
     this.save();
+    
+    // Attempt to sync to blob store if we have session and participant info
+    if (this.data.sessionCode && this.data.participantId) {
+      this.syncToBlob().catch((error) => {
+        Logger.warn("Failed to sync session to blob store:", error);
+      });
+    }
   }
 
   // Get specific field
@@ -155,6 +170,57 @@ export class UserSession {
 
   static get canModerate(): boolean {
     return ["Host", "GameMaster"].includes(this.data.role || "");
+  }
+
+  // Sync session data to Netlify Blobs (async operation)
+  private static async syncToBlob(): Promise<void> {
+    const { sessionCode, participantId } = this.data;
+    
+    if (!sessionCode || !participantId) {
+      Logger.warn("Cannot sync to blob: missing sessionCode or participantId");
+      return;
+    }
+
+    try {
+      const blobData: BlobSessionData = {
+        ...this.data,
+      };
+      
+      const success = await saveSession(sessionCode, participantId, blobData);
+      if (success) {
+        Logger.log("Session synced to blob store successfully");
+      }
+    } catch (error) {
+      Logger.error("Error syncing session to blob store:", error);
+      // Don't throw - we have localStorage as fallback
+    }
+  }
+
+  // Load session data from Netlify Blobs (async operation)
+  static async loadFromBlob(
+    sessionCode: string,
+    participantId: string
+  ): Promise<boolean> {
+    try {
+      const blobData = await loadSession(sessionCode, participantId);
+      
+      if (blobData) {
+        // Merge blob data with existing data, preferring blob data
+        this.data = {
+          ...this.data,
+          ...blobData,
+        };
+        this.save(); // Save to localStorage as well
+        Logger.log("Session loaded from blob store successfully");
+        return true;
+      }
+      
+      Logger.log("No session data found in blob store");
+      return false;
+    } catch (error) {
+      Logger.error("Error loading session from blob store:", error);
+      return false;
+    }
   }
 }
 

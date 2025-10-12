@@ -1017,3 +1017,91 @@ function extractErrorMessage(err: unknown): string {
   }
   return String(err);
 }
+
+// 15. Mark Player as Ready/Not Ready
+/**
+ * Update a participant's ready status for the lobby
+ * 
+ * Note: Requires 'is_ready' boolean field in Participant table
+ * Migration: ALTER TABLE "Participant" ADD COLUMN "is_ready" BOOLEAN DEFAULT false;
+ */
+export async function markPlayerReady(
+  participantId: string,
+  isReady: boolean
+): Promise<void> {
+  const { error } = await supabase
+    .from("Participant")
+    .update({ is_ready: isReady } as TablesUpdate<"Participant">)
+    .eq("participant_id", participantId);
+
+  if (error) {
+    throw new Error(`Failed to update ready status: ${error.message}`);
+  }
+
+  Logger.log(`Participant ${participantId} ready status set to: ${isReady}`);
+}
+
+// 16. Get All Participants Ready Status
+/**
+ * Check if all non-Host participants in a session are ready
+ * 
+ * Note: Requires 'is_ready' boolean field in Participant table
+ */
+export async function checkAllPlayersReady(sessionId: string): Promise<{
+  allReady: boolean;
+  readyCount: number;
+  totalPlayers: number;
+  participants: Array<{
+    participant_id: string;
+    name: string;
+    role: string;
+    is_ready: boolean;
+  }>;
+}> {
+  const { data, error } = await supabase
+    .from("Participant")
+    .select("participant_id, name, role, is_ready")
+    .eq("session_id", sessionId)
+    .in("role", ["Player1", "Player2"])
+    .eq("lobby_presence", "Joined");
+
+  if (error) {
+    throw new Error(`Failed to check ready status: ${error.message}`);
+  }
+
+  const participants = (data || []) as Array<{
+    participant_id: string;
+    name: string;
+    role: string;
+    is_ready: boolean;
+  }>;
+
+  const totalPlayers = participants.length;
+  const readyCount = participants.filter((p) => p.is_ready).length;
+  const allReady = totalPlayers > 0 && readyCount === totalPlayers;
+
+  return {
+    allReady,
+    readyCount,
+    totalPlayers,
+    participants,
+  };
+}
+
+// 17. Reset All Players Ready Status
+/**
+ * Reset ready status for all players in a session (e.g., when starting a new round)
+ */
+export async function resetAllPlayersReady(sessionId: string): Promise<void> {
+  const { error } = await supabase
+    .from("Participant")
+    .update({ is_ready: false } as TablesUpdate<"Participant">)
+    .eq("session_id", sessionId)
+    .in("role", ["Player1", "Player2"]);
+
+  if (error) {
+    throw new Error(`Failed to reset ready status: ${error.message}`);
+  }
+
+  Logger.log(`All players ready status reset for session: ${sessionId}`);
+}

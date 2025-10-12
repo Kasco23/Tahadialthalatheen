@@ -20,6 +20,18 @@
   node_bundler  = "esbuild"
   external_node_modules = ["@supabase/supabase-js"]
 
+[edge_functions]
+  directory = "netlify/edge-functions"
+
+# Edge function routes for session management
+[[edge_functions]]
+  function = "get-session"
+  path = "/.netlify/edge-functions/get-session"
+
+[[edge_functions]]
+  function = "set-session"
+  path = "/.netlify/edge-functions/set-session"
+
 # ─────────────────────────────── Security Headers ─────────────────────────────
 [[headers]]
   for = "/*"
