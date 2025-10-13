@@ -7,12 +7,14 @@
 **Problem**: pnpm-action-setup was not properly configured with version specification, causing workflow failures.
 
 **Solution**: Updated all workflow files to:
+
 - Use pnpm-action-setup v4.0.0 (commit hash: fe02b34f77f8bc703788d5817da081398fad5dd2)
 - Explicitly specify pnpm version: 10.16.1 (matching package.json)
 - Add cache configuration for faster builds
 - Ensure proper ordering: pnpm-action-setup → setup-node → install → run
 
 **Files Updated**:
+
 - `.github/workflows/ci.yml`
 - `.github/workflows/lint.yml`
 - `.github/workflows/format.yml`
@@ -30,7 +32,7 @@ All workflows now follow this pattern:
 - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
   with:
     node-version: 22
-    cache: pnpm  # Important: speeds up workflow runs
+    cache: pnpm # Important: speeds up workflow runs
 - run: pnpm install --frozen-lockfile
 ```
 
@@ -39,6 +41,7 @@ All workflows now follow this pattern:
 ### Local Testing Results
 
 All checks passing:
+
 ```bash
 ✅ pnpm lint     → 0 errors, 0 warnings
 ✅ pnpm build    → Success in 5.63s
@@ -49,6 +52,7 @@ All checks passing:
 ### Build Artifacts
 
 Build produces optimized chunks:
+
 - Main bundle: ~350KB (gzipped: ~113KB)
 - Vendor chunks properly split (React, Supabase, Daily.co)
 - Brotli compression enabled
@@ -57,6 +61,7 @@ Build produces optimized chunks:
 ### Netlify Deployment Configuration
 
 The `netlify.toml` is properly configured:
+
 - Build command: `corepack enable && pnpm install --frozen-lockfile && pnpm run build`
 - Node version: 22
 - pnpm version: 10
@@ -94,16 +99,19 @@ With these fixes, the following workflows should now succeed:
 Ensure these are set in Netlify UI (Site settings → Environment variables):
 
 **For Edge Functions**:
+
 - `NETLIFY_SITE_ID` (from Netlify site settings)
 - `NETLIFY_PERSONAL_ACCESS_TOKEN` (from Netlify user settings)
 
 **For Serverless Functions**:
+
 - `SUPABASE_DATABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `SUPABASE_ANON_KEY`
 - `DAILY_API_KEY`
 
 **For Frontend (Vite)**:
+
 - `VITE_SUPABASE_DATABASE_URL`
 - `VITE_SUPABASE_ANON_KEY`
 - `VITE_DAILY_DOMAIN`
@@ -111,6 +119,7 @@ Ensure these are set in Netlify UI (Site settings → Environment variables):
 ### Deployment Checklist
 
 Before deploying:
+
 - [x] All GitHub Actions workflows passing
 - [x] Local build succeeds
 - [x] All tests passing
@@ -149,6 +158,7 @@ Before deploying:
 ## Summary
 
 All workflow files have been updated with:
+
 - Consistent pnpm version (10.16.1)
 - Proper caching configuration
 - Latest stable action versions (pinned by commit hash)

@@ -94,11 +94,13 @@ Quiz Page:
 ### Implementation
 
 **VideoRoom Component** (`src/components/VideoRoom.tsx`):
+
 - Reads `dailyRoomUrlAtom`, `dailyTokenAtom`, `dailyUserNameAtom`
 - Supports `autoJoin` prop for automatic connection
 - Wraps VideoCall component with shared state
 
 **Usage in Lobby** (manual join):
+
 ```tsx
 <VideoRoom
   players={players}
@@ -110,6 +112,7 @@ Quiz Page:
 ```
 
 **Usage in Quiz** (auto-join):
+
 ```tsx
 <VideoRoom
   players={participants}

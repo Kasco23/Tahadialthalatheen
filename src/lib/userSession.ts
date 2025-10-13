@@ -5,20 +5,20 @@ import type { ParticipantRole } from "./types";
 
 /**
  * User Session Management
- * 
+ *
  * Hybrid Implementation: Netlify Blobs + localStorage
- * 
+ *
  * Primary Storage (Netlify Blobs via Edge Functions):
  * - Cross-device session persistence
  * - Server-side storage through edge functions
  * - Better security and validation
  * - Persists across browser clears
- * 
+ *
  * Fallback Storage (localStorage):
  * - Offline support when network unavailable
  * - Fast synchronous access
  * - Browser-specific persistence
- * 
+ *
  * Rationale:
  * - Netlify Blobs provide the best of both worlds for session management
  * - Edge Functions act as secure proxy for blob operations
@@ -109,7 +109,7 @@ export class UserSession {
   static set(updates: Partial<UserSessionData>): void {
     this.data = { ...this.data, ...updates };
     this.save();
-    
+
     // Attempt to sync to blob store if we have session and participant info
     if (this.data.sessionCode && this.data.participantId) {
       this.syncToBlob().catch((error) => {
@@ -175,7 +175,7 @@ export class UserSession {
   // Sync session data to Netlify Blobs (async operation)
   private static async syncToBlob(): Promise<void> {
     const { sessionCode, participantId } = this.data;
-    
+
     if (!sessionCode || !participantId) {
       Logger.warn("Cannot sync to blob: missing sessionCode or participantId");
       return;
@@ -185,7 +185,7 @@ export class UserSession {
       const blobData: BlobSessionData = {
         ...this.data,
       };
-      
+
       const success = await saveSession(sessionCode, participantId, blobData);
       if (success) {
         Logger.log("Session synced to blob store successfully");
@@ -199,11 +199,11 @@ export class UserSession {
   // Load session data from Netlify Blobs (async operation)
   static async loadFromBlob(
     sessionCode: string,
-    participantId: string
+    participantId: string,
   ): Promise<boolean> {
     try {
       const blobData = await loadSession(sessionCode, participantId);
-      
+
       if (blobData) {
         // Merge blob data with existing data, preferring blob data
         this.data = {
@@ -214,7 +214,7 @@ export class UserSession {
         Logger.log("Session loaded from blob store successfully");
         return true;
       }
-      
+
       Logger.log("No session data found in blob store");
       return false;
     } catch (error) {

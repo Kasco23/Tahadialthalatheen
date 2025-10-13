@@ -12,13 +12,14 @@ import { createDailyToken } from "../lib/mutations";
 // Helper function to check if environment is local development with mock room
 const isLocalDevWithMockRoom = (roomUrl: string): boolean => {
   const isLocalDev =
-    window.location.hostname === "localhost" &&
-    window.location.port === "5173";
+    window.location.hostname === "localhost" && window.location.port === "5173";
   return roomUrl.includes("thirty.daily.co") && isLocalDev;
 };
 
 // Helper function to validate room availability
-const validateRoom = (roomData: { room_url?: string } | null): string | null => {
+const validateRoom = (
+  roomData: { room_url?: string } | null,
+): string | null => {
   if (!roomData?.room_url) {
     return "No Daily room available. Host needs to create a room first.";
   }
@@ -101,7 +102,10 @@ export const VideoCallJoinButton: React.FC<VideoCallJoinButtonProps> = ({
       Logger.log("Using participant name for token:", participantName);
 
       // Fetch the token and join
-      const tokenResponse = await createDailyToken(sessionCode, participantName);
+      const tokenResponse = await createDailyToken(
+        sessionCode,
+        participantName,
+      );
       await joinDailyRoom(roomData!.room_url, tokenResponse.token);
     } catch (error) {
       Logger.error("Failed to join Daily room:", error);

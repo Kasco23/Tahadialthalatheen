@@ -13,6 +13,7 @@ Based on Codacy analysis, the project has an overall **Grade A (91%)** which is 
 ## 🔧 Critical Issues in mutations.ts
 
 ### File Statistics
+
 - **Grade**: C (68%) - Needs Improvement
 - **Total Issues**: 13
 - **Lines of Code**: 757 (Very Large File)
@@ -22,7 +23,9 @@ Based on Codacy analysis, the project has an overall **Grade A (91%)** which is 
 ### High Priority Issues
 
 #### 1. **Non-null Assertions (High Priority)**
+
 **Lines**: 215, 217, 218
+
 ```typescript
 // ❌ Current (Dangerous)
 participantId: existingRow!.participant_id,
@@ -34,7 +37,9 @@ role: existingRow?.role ?? "Player1",
 ```
 
 #### 2. **Object Injection Security Risk (High Priority)**
+
 **Line**: 823
+
 ```typescript
 // ❌ Current (Security Risk)
 const column = powerupColumnMap[powerup];
@@ -49,7 +54,9 @@ const column = powerupColumnMap[powerup];
 ```
 
 #### 3. **Unhandled Async Errors (High Priority)**
+
 **Line**: 321
+
 ```typescript
 // ❌ Current (Missing error handling)
 if (error) {
@@ -60,13 +67,15 @@ if (error) {
 try {
   // async operations
 } catch (error) {
-  Logger.error('Operation failed:', error);
-  throw new Error('Operation failed');
+  Logger.error("Operation failed:", error);
+  throw new Error("Operation failed");
 }
 ```
 
 #### 4. **Unnecessary Conditions (Medium Priority)**
+
 **Lines**: 118, 944
+
 ```typescript
 // ❌ Current (Unnecessary condition)
 const rows = (data as SessionRow[]) || [];
@@ -78,7 +87,9 @@ if (typeof asObj.message === "string") return asObj.message;
 ```
 
 #### 5. **Prefer Nullish Coalescing (Best Practice)**
+
 **Lines**: 58, 239, 583, 584
+
 ```typescript
 // ❌ Current (Less safe)
 name: hostName || "Host",
@@ -96,11 +107,12 @@ team_logo_url: logoUrl ?? null,
 ### 1. Split mutations.ts (757 lines is too large)
 
 **Suggested Split**:
+
 ```
 src/lib/mutations/
 ├── index.ts           # Main exports
 ├── sessionMutations.ts    # Session-related operations
-├── participantMutations.ts # Participant operations  
+├── participantMutations.ts # Participant operations
 ├── scoreMutations.ts      # Score and strikes
 ├── dailyRoomMutations.ts  # Daily.co integration
 └── types.ts              # Shared mutation types
@@ -109,6 +121,7 @@ src/lib/mutations/
 ### 2. Extract Common Patterns
 
 **Error Handling Pattern**:
+
 ```typescript
 // Create reusable error handler
 export const handleSupabaseError = (error: any, operation: string) => {
@@ -124,6 +137,7 @@ export const handleSupabaseError = (error: any, operation: string) => {
 ```
 
 **Validation Pattern**:
+
 ```typescript
 // Create validation utilities
 export const validateRequired = (value: unknown, name: string) => {
@@ -131,9 +145,9 @@ export const validateRequired = (value: unknown, name: string) => {
 };
 
 export const validateSessionCode = (code: string) => {
-  validateRequired(code, 'Session code');
+  validateRequired(code, "Session code");
   if (!/^[A-Z0-9]{6}$/.test(code)) {
-    throw new Error('Invalid session code format');
+    throw new Error("Invalid session code format");
   }
 };
 ```
@@ -141,36 +155,39 @@ export const validateSessionCode = (code: string) => {
 ## 🧪 Testing Recommendations
 
 ### Add Unit Tests for Critical Functions
+
 ```typescript
 // Example test structure
-describe('mutations', () => {
-  describe('createSession', () => {
-    it('should create session with valid password');
-    it('should throw error with invalid password');
-    it('should handle database errors gracefully');
+describe("mutations", () => {
+  describe("createSession", () => {
+    it("should create session with valid password");
+    it("should throw error with invalid password");
+    it("should handle database errors gracefully");
   });
-  
-  describe('joinAsHost', () => {
-    it('should join existing session as host');
-    it('should handle non-existent session');
-    it('should return correct participant data structure');
+
+  describe("joinAsHost", () => {
+    it("should join existing session as host");
+    it("should handle non-existent session");
+    it("should return correct participant data structure");
   });
 });
 ```
 
 ### Add Integration Tests
+
 ```typescript
 // Test database operations with test database
-describe('Database Integration', () => {
-  it('should handle concurrent participant joins');
-  it('should maintain data consistency during session creation');
-  it('should clean up resources on session end');
+describe("Database Integration", () => {
+  it("should handle concurrent participant joins");
+  it("should maintain data consistency during session creation");
+  it("should clean up resources on session end");
 });
 ```
 
 ## 🔍 Additional Improvements
 
 ### 1. Type Safety Enhancements
+
 ```typescript
 // Add proper return type interfaces
 interface CreateSessionResult {
@@ -184,59 +201,65 @@ interface JoinResult {
 }
 
 // Use discriminated unions for better error handling
-type MutationResult<T> = 
+type MutationResult<T> =
   | { success: true; data: T }
   | { success: false; error: string };
 ```
 
 ### 2. Performance Optimizations
+
 ```typescript
 // Use transaction for multi-table operations
-const { error } = await supabase.rpc('create_session_with_participants', {
+const { error } = await supabase.rpc("create_session_with_participants", {
   host_password: password,
-  participants_data: participantsToCreate
+  participants_data: participantsToCreate,
 });
 ```
 
 ### 3. Better Logging and Monitoring
+
 ```typescript
 // Add structured logging
-Logger.info('Session creation started', {
-  operation: 'createSession',
+Logger.info("Session creation started", {
+  operation: "createSession",
   timestamp: new Date().toISOString(),
-  metadata: { hostName }
+  metadata: { hostName },
 });
 
 // Add performance monitoring
 const startTime = performance.now();
 // ... operation
-Logger.info('Session creation completed', {
-  operation: 'createSession',
-  duration: performance.now() - startTime
+Logger.info("Session creation completed", {
+  operation: "createSession",
+  duration: performance.now() - startTime,
 });
 ```
 
 ## 🚀 Implementation Priority
 
 ### Immediate (Security & Stability)
+
 1. ✅ Fix non-null assertions (security risk)
 2. ✅ Fix object injection vulnerability
 3. ✅ Add proper async error handling
 4. ✅ Replace `||` with `??` operators
 
 ### High Priority (Code Quality)
+
 1. ✅ Split mutations.ts into smaller modules
 2. ✅ Add comprehensive error handling
 3. ✅ Add unit tests for critical functions
 4. ✅ Improve TypeScript strict mode compliance
 
 ### Medium Priority (Enhancement)
+
 1. ✅ Add integration tests
 2. ✅ Implement structured logging
 3. ✅ Add performance monitoring
 4. ✅ Create reusable validation utilities
 
 ### Low Priority (Optimization)
+
 1. ✅ Optimize database queries
 2. ✅ Add caching where appropriate
 3. ✅ Document complex functions
@@ -253,7 +276,7 @@ find src -name "*.ts" -exec sed -i 's/ || null/ ?? null/g' {} \;
 find src -name "*.ts" -exec sed -i 's/ || ""/ ?? ""/g' {} \;
 
 # Add proper error handling (manual review required)
-# Fix non-null assertions (manual review required) 
+# Fix non-null assertions (manual review required)
 # Split large files (manual refactoring required)
 
 # Commit fixes
@@ -269,12 +292,14 @@ git commit -m "fix: improve code quality based on Codacy analysis
 ## 📈 Success Metrics
 
 **Target Improvements**:
+
 - mutations.ts grade: C (68%) → A (85%+)
 - Overall project grade: A (91%) → A+ (95%+)
 - Reduce total issues: 342 → <200
 - Add test coverage: 0% → 60%+
 
 **Quality Gates**:
+
 - No High priority security issues
 - No files >500 lines of code
 - Complexity score <15 per function

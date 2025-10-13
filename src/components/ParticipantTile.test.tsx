@@ -78,7 +78,9 @@ describe("ParticipantTile", () => {
     );
 
     // Check for connection status indicator (green pulse dot)
-    const connectionIndicator = container.querySelector('.bg-green-500.rounded-full.animate-pulse');
+    const connectionIndicator = container.querySelector(
+      ".bg-green-500.rounded-full.animate-pulse",
+    );
     expect(connectionIndicator).toBeInTheDocument();
   });
 

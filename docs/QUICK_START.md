@@ -40,12 +40,14 @@ docs/
 ## ⚡ Quick Setup (5 Steps)
 
 ### 1. Install Dependencies (Already Done ✅)
+
 ```bash
 pnpm install
 # @netlify/blobs already added to package.json
 ```
 
 ### 2. Apply Database Migration
+
 ```bash
 # Option A: Using Supabase CLI
 supabase db push
@@ -75,10 +77,12 @@ DAILY_API_KEY=your-daily-api-key
 ```
 
 **How to get these values:**
+
 - `NETLIFY_SITE_ID`: Netlify dashboard → Site settings → General → Site ID
 - `NETLIFY_PERSONAL_ACCESS_TOKEN`: Netlify dashboard → User settings → Applications → Personal access tokens
 
 ### 4. Deploy to Netlify
+
 ```bash
 # Commit and push your changes
 git push origin your-branch
@@ -89,6 +93,7 @@ netlify deploy --prod
 ```
 
 ### 5. Test the Features
+
 1. Create a new session
 2. Join as two players
 3. Click "Ready" button as each player
@@ -136,31 +141,31 @@ netlify deploy --prod
 ### Blob Storage API
 
 ```typescript
-import { saveSession, loadSession, deleteSession } from './lib/blobStore';
+import { saveSession, loadSession, deleteSession } from "./lib/blobStore";
 
 // Save session data
-await saveSession('session-id', 'participant-id', {
-  participantName: 'Player 1',
-  role: 'Player1',
-  flag: 'us',
-  isReady: true
+await saveSession("session-id", "participant-id", {
+  participantName: "Player 1",
+  role: "Player1",
+  flag: "us",
+  isReady: true,
 });
 
 // Load session data
-const data = await loadSession('session-id', 'participant-id');
+const data = await loadSession("session-id", "participant-id");
 
 // Delete session data
-await deleteSession('session-id', 'participant-id');
+await deleteSession("session-id", "participant-id");
 ```
 
 ### Readiness Mutations
 
 ```typescript
-import { 
-  markPlayerReady, 
-  checkAllPlayersReady, 
-  resetAllPlayersReady 
-} from './lib/mutations';
+import {
+  markPlayerReady,
+  checkAllPlayersReady,
+  resetAllPlayersReady,
+} from "./lib/mutations";
 
 // Mark player ready (direct Supabase call)
 await markPlayerReady(participantId, true);
@@ -169,7 +174,7 @@ await markPlayerReady(participantId, true);
 await markPlayerReady(participantId, true, true);
 
 // Check if all players ready
-const { allReady, readyCount, totalPlayers, participants } = 
+const { allReady, readyCount, totalPlayers, participants } =
   await checkAllPlayersReady(sessionId);
 
 // Reset all players to not ready
@@ -182,7 +187,7 @@ await resetAllPlayersReady(sessionId);
 import Timer from './components/Timer';
 
 // Basic usage
-<Timer 
+<Timer
   duration={30}
   autoStart={true}
   onComplete={() => {
@@ -211,6 +216,7 @@ import Timer from './components/Timer';
 ## 🔧 Development
 
 ### Local Development
+
 ```bash
 # Standard dev server (no edge functions)
 pnpm dev
@@ -220,6 +226,7 @@ pnpm dev:netlify
 ```
 
 ### Build & Test
+
 ```bash
 # Lint
 pnpm lint
@@ -232,7 +239,9 @@ pnpm test
 ```
 
 ### Edge Functions Testing
+
 Edge functions require deployment to test properly. For local testing:
+
 ```bash
 netlify dev
 # Then access: http://localhost:8888/.netlify/edge-functions/get-session
@@ -241,6 +250,7 @@ netlify dev
 ## 📊 Current Status
 
 ### ✅ Completed
+
 - [x] Netlify Blobs integration with edge functions
 - [x] Readiness system UI in Lobby
 - [x] Database migration for `isReady` column
@@ -251,6 +261,7 @@ netlify dev
 - [x] Build successful
 
 ### ⏳ Requires Deployment
+
 - [ ] Apply database migration
 - [ ] Configure Netlify environment variables
 - [ ] Deploy to Netlify
@@ -259,6 +270,7 @@ netlify dev
 - [ ] Verify readiness flow end-to-end
 
 ### 🔮 Future Enhancements
+
 - [ ] Replace polling with Supabase real-time subscriptions
 - [ ] Integrate Timer component in Quiz page
 - [ ] Add TTL for blob storage (auto-cleanup)
@@ -295,21 +307,25 @@ Detailed guides available in `docs/`:
 ## 🐛 Troubleshooting
 
 ### Edge Functions Not Working
+
 1. Check `NETLIFY_SITE_ID` and `NETLIFY_PERSONAL_ACCESS_TOKEN` in Netlify UI
 2. Verify `netlify.toml` configuration
 3. Check edge function logs in Netlify dashboard
 
 ### Ready Status Not Updating
+
 1. Confirm database migration was applied
 2. Check browser console for errors
 3. Verify participant has Player1 or Player2 role
 
 ### Blob Storage Errors
+
 1. Verify `NETLIFY_SITE_ID` matches your site
 2. Check token permissions
 3. Review edge function logs
 
 ### Build Errors
+
 ```bash
 # Clean install
 rm -rf node_modules pnpm-lock.yaml
@@ -330,6 +346,7 @@ When modifying this implementation:
 5. **Mutations**: Changes go in `src/lib/mutations.ts`
 
 Always:
+
 - Run `pnpm lint` before committing
 - Run `pnpm build` to verify no errors
 - Run `pnpm test` to ensure tests pass
@@ -338,6 +355,7 @@ Always:
 ## 📝 Summary
 
 This implementation adds:
+
 - **2,000+ lines** of new code
 - **11 new files** (components, functions, migrations)
 - **8 modified files** (enhanced existing features)

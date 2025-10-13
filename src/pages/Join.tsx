@@ -2,7 +2,12 @@ import { Logger } from "../lib/logger";
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { joinAsHost, joinAsPlayerWithCode, checkExistingPreset, type ExistingPreset } from "../lib/mutations";
+import {
+  joinAsHost,
+  joinAsPlayerWithCode,
+  checkExistingPreset,
+  type ExistingPreset,
+} from "../lib/mutations";
 import { Alert } from "../components/Alert";
 import OptimizedFlagSelector from "../components/OptimizedFlagSelector";
 import PresetConfirmationModal from "../components/PresetConfirmationModal";
@@ -41,9 +46,9 @@ const JoinRevolutionary: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState<"host" | "player">("host");
-  const [currentStep, setCurrentStep] = useState<"role" | "details" | "flag" | "team">(
-    "role",
-  );
+  const [currentStep, setCurrentStep] = useState<
+    "role" | "details" | "flag" | "team"
+  >("role");
 
   // Alert state
   const [alert, setAlert] = useState<{
@@ -53,7 +58,9 @@ const JoinRevolutionary: React.FC = () => {
 
   // Preset confirmation state
   const [showPresetModal, setShowPresetModal] = useState(false);
-  const [existingPreset, setExistingPreset] = useState<ExistingPreset | null>(null);
+  const [existingPreset, setExistingPreset] = useState<ExistingPreset | null>(
+    null,
+  );
   const [presetModalLoading, setPresetModalLoading] = useState(false);
 
   // Host form state
@@ -134,7 +141,11 @@ const JoinRevolutionary: React.FC = () => {
   }, []);
 
   // Check for existing preset
-  const handleCheckPreset = async (name: string, sessionCode?: string, role?: string) => {
+  const handleCheckPreset = async (
+    name: string,
+    sessionCode?: string,
+    role?: string,
+  ) => {
     try {
       const preset = await checkExistingPreset(name, sessionCode, role);
       if (preset && preset.flag && preset.team_logo_url) {
@@ -152,7 +163,7 @@ const JoinRevolutionary: React.FC = () => {
   // Handle preset modal responses
   const handleUseExistingPreset = async () => {
     setPresetModalLoading(true);
-    
+
     if (!existingPreset) return;
 
     try {
@@ -161,18 +172,22 @@ const JoinRevolutionary: React.FC = () => {
         setHostSelectedFlag(existingPreset.flag || "");
         setHostTeamLogoUrl(existingPreset.team_logo_url || "");
         // Extract team name from logo URL or use a default
-        const teamName = existingPreset.team_logo_url?.split('/').pop()?.split('.')[0] || "Selected Team";
+        const teamName =
+          existingPreset.team_logo_url?.split("/").pop()?.split(".")[0] ||
+          "Selected Team";
         setHostTeamName(teamName);
-        
+
         // Proceed directly to join
         await joinAsHostWithPreset();
       } else {
         setSelectedFlag(existingPreset.flag || "");
         setTeamLogoUrl(existingPreset.team_logo_url || "");
         // Extract team name from logo URL or use a default
-        const teamName = existingPreset.team_logo_url?.split('/').pop()?.split('.')[0] || "Selected Team";
+        const teamName =
+          existingPreset.team_logo_url?.split("/").pop()?.split(".")[0] ||
+          "Selected Team";
         setTeamName(teamName);
-        
+
         // Proceed directly to join
         await joinAsPlayerWithPreset();
       }
@@ -335,7 +350,7 @@ const JoinRevolutionary: React.FC = () => {
         setAlert({ type: "error", message: "Please fill in all fields" });
         return;
       }
-      
+
       // Check for existing preset based on actual host name from session
       try {
         const { data: hostParticipant } = await supabase
@@ -344,9 +359,13 @@ const JoinRevolutionary: React.FC = () => {
           .eq("role", "Host")
           .eq("Session.session_code", sessionCode.toUpperCase())
           .single();
-        
+
         if (hostParticipant) {
-          const hasPreset = await handleCheckPreset(hostParticipant.name, sessionCode, "Host");
+          const hasPreset = await handleCheckPreset(
+            hostParticipant.name,
+            sessionCode,
+            "Host",
+          );
           if (!hasPreset) {
             setCurrentStep("flag"); // Go to flag selection if no preset
           }
@@ -367,7 +386,7 @@ const JoinRevolutionary: React.FC = () => {
         });
         return;
       }
-      
+
       // Check for existing preset based on player name
       const hasPreset = await handleCheckPreset(playerName, playerSessionCode);
       if (!hasPreset) {
@@ -538,8 +557,7 @@ const JoinRevolutionary: React.FC = () => {
       icon: <span className="text-xl">🏴</span>,
       label: "Flag",
       onClick: () => setCurrentStep("flag"),
-      className:
-        currentStep === "flag" ? "bg-blue-500/20 border-blue-400" : "",
+      className: currentStep === "flag" ? "bg-blue-500/20 border-blue-400" : "",
     },
     {
       icon: <span className="text-xl">🏆</span>,
@@ -619,10 +637,7 @@ const JoinRevolutionary: React.FC = () => {
           {activeTab === "host" ? "👑 Host Details" : "🎮 Player Details"}
         </h2>
 
-        <form
-          onSubmit={handleDetailsFormSubmit}
-          className="space-y-6"
-        >
+        <form onSubmit={handleDetailsFormSubmit} className="space-y-6">
           <div>
             <label className="block text-white font-medium mb-2">
               Session Code

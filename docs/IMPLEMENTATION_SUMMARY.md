@@ -11,23 +11,26 @@ This implementation integrates Netlify Blobs for cross-device session persistenc
 **Purpose**: Cross-device session persistence for unstructured data
 
 **Components Created**:
+
 - `src/lib/blobStore.ts` - Client-side blob operations utility
 - `netlify/edge-functions/get-session.ts` - Edge function to retrieve session data
 - `netlify/edge-functions/set-session.ts` - Edge function to save/delete session data
 - `src/lib/userSession.ts` - Enhanced with hybrid localStorage + blob storage
 
 **Architecture**:
+
 ```
 Client App
     ↓
 Edge Functions (secure proxy)
     ↓
 Netlify Blobs (key-value store)
-    
+
 Fallback: localStorage (offline support)
 ```
 
 **Key Features**:
+
 - Automatic sync to blob storage when session data changes
 - Async operations with localStorage fallback
 - Secure access via edge functions (no direct blob access from client)
@@ -38,16 +41,19 @@ Fallback: localStorage (offline support)
 **Purpose**: Allow players to signal readiness before quiz starts
 
 **Components Updated**:
+
 - `src/lib/mutations.ts` - Added `markPlayerReady`, `checkAllPlayersReady`, `resetAllPlayersReady`
 - `src/pages/Lobby.tsx` - Added ready status UI and controls
 - `src/components/Timer.tsx` - Created reusable timer component
 
 **Database Changes**:
+
 - New column: `Participant.isReady` (boolean, default false)
 - Performance index for ready status queries
 - Migration file: `supabase/migrations/20251012000000_add_participant_ready_column.sql`
 
 **User Experience**:
+
 ```
 Player View:
   ┌─────────────────────┐
@@ -73,10 +79,12 @@ Host View:
 **Purpose**: Keep Supabase service role key secure on server
 
 **Functions Created**:
+
 - `netlify/functions/check-ready-status.ts` - Check all players ready status
 - `netlify/functions/mark-player-ready.ts` - Update player ready status
 
 **Benefits**:
+
 - Supabase service role key never exposed to client
 - Row Level Security (RLS) policies enforced server-side
 - Rate limiting and validation on server
@@ -87,6 +95,7 @@ Host View:
 **Purpose**: Reusable countdown timer for quiz questions and lobby
 
 **Features**:
+
 - Configurable duration
 - Visual countdown display
 - Color-coded warnings (green → yellow → red)
@@ -100,11 +109,12 @@ Host View:
 ## File Changes Summary
 
 ### New Files (14)
+
 ```
 src/lib/blobStore.ts                          - Blob storage utility
 src/components/Timer.tsx                      - Timer component
 netlify/edge-functions/get-session.ts         - Get session edge function
-netlify/edge-functions/set-session.ts         - Set session edge function  
+netlify/edge-functions/set-session.ts         - Set session edge function
 netlify/edge-functions/tsconfig.json          - Edge functions TypeScript config
 netlify/functions/check-ready-status.ts       - Ready status serverless function
 netlify/functions/mark-player-ready.ts        - Mark ready serverless function
@@ -114,6 +124,7 @@ docs/DATABASE_MIGRATION_READY.md              - Migration documentation
 ```
 
 ### Modified Files (7)
+
 ```
 package.json                  - Added @netlify/blobs dependency
 pnpm-lock.yaml               - Updated dependencies
@@ -128,6 +139,7 @@ src/pages/Lobby.tsx          - Added readiness UI
 ## Environment Variables Required
 
 ### Production (Netlify UI)
+
 ```bash
 # Netlify Blobs (for edge functions)
 NETLIFY_SITE_ID=your-site-id
@@ -143,6 +155,7 @@ DAILY_API_KEY=your-daily-key
 ```
 
 ### Development (.env.local)
+
 ```bash
 # Same as production
 # Edge functions require Netlify CLI: netlify dev
@@ -153,6 +166,7 @@ DAILY_API_KEY=your-daily-key
 **File**: `supabase/migrations/20251012000000_add_participant_ready_column.sql`
 
 **To Apply**:
+
 ```bash
 # Option 1: Using Supabase CLI
 supabase db push
@@ -162,6 +176,7 @@ supabase db push
 ```
 
 **What It Does**:
+
 - Adds `isReady` boolean column to Participant table
 - Creates performance index for ready queries
 - Sets default value (false) for all existing rows
@@ -169,6 +184,7 @@ supabase db push
 ## Testing & Validation
 
 ### Build & Tests ✅
+
 ```bash
 ✓ pnpm lint     - 0 errors
 ✓ pnpm build    - 5.35s, all chunks within size limits
@@ -240,11 +256,12 @@ supabase db push
 ## API Reference
 
 ### Blob Storage
+
 ```typescript
 // Save session
 await saveSession(sessionId, participantId, data);
 
-// Load session  
+// Load session
 const data = await loadSession(sessionId, participantId);
 
 // Delete session
@@ -252,6 +269,7 @@ await deleteSession(sessionId, participantId);
 ```
 
 ### Readiness Mutations
+
 ```typescript
 // Mark player ready (direct)
 await markPlayerReady(participantId, true);
@@ -260,7 +278,7 @@ await markPlayerReady(participantId, true);
 await markPlayerReady(participantId, true, true);
 
 // Check all players
-const { allReady, readyCount, totalPlayers } = 
+const { allReady, readyCount, totalPlayers } =
   await checkAllPlayersReady(sessionId);
 
 // Reset all players
@@ -268,6 +286,7 @@ await resetAllPlayersReady(sessionId);
 ```
 
 ### Timer Component
+
 ```tsx
 <Timer
   duration={30}
@@ -281,6 +300,7 @@ await resetAllPlayersReady(sessionId);
 ## Security Considerations
 
 ### ✅ Implemented
+
 1. Edge functions proxy blob access (no direct client access)
 2. Serverless functions available for sensitive Supabase operations
 3. Service role key never exposed to client
@@ -288,6 +308,7 @@ await resetAllPlayersReady(sessionId);
 5. Row Level Security (RLS) compatible
 
 ### 🔒 Recommended
+
 1. Apply Supabase RLS policies on Participant table
 2. Rate limit edge functions in production
 3. Add request validation/sanitization
@@ -311,16 +332,19 @@ await resetAllPlayersReady(sessionId);
 ## Next Steps
 
 ### Immediate (Required for Functionality)
+
 1. Apply database migration for `isReady` column
 2. Deploy to Netlify and configure environment variables
 3. Test readiness flow end-to-end
 
 ### Short-term (Performance)
+
 1. Replace polling with Supabase real-time subscriptions
 2. Add debouncing to ready toggle
 3. Optimize blob storage queries
 
 ### Long-term (Features)
+
 1. Integrate Timer component in Quiz page
 2. Add TTL for blob store entries
 3. Implement analytics for readiness metrics
@@ -338,16 +362,19 @@ await resetAllPlayersReady(sessionId);
 ### Common Issues
 
 **Edge functions not working**:
+
 - Check environment variables in Netlify UI
 - Verify `netlify.toml` configuration
 - Review edge function logs in Netlify dashboard
 
 **Ready status not updating**:
+
 - Confirm database migration applied
 - Check browser console for errors
 - Verify participant has correct role (Player1/Player2)
 
 **Blob storage errors**:
+
 - Verify NETLIFY_SITE_ID matches your site
 - Check token has correct permissions
 - Review edge function logs
@@ -362,6 +389,7 @@ await resetAllPlayersReady(sessionId);
 ## Conclusion
 
 This implementation successfully:
+
 - ✅ Integrates Netlify Blobs for cross-device persistence
 - ✅ Adds comprehensive readiness system to Lobby
 - ✅ Creates reusable Timer component

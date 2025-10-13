@@ -9,7 +9,15 @@ import react from "eslint-plugin-react";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["dist", "node_modules", ".netlify", "supabase/.temp", "deprecated"] },
+  {
+    ignores: [
+      "dist",
+      "node_modules",
+      ".netlify",
+      "supabase/.temp",
+      "deprecated",
+    ],
+  },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx}"],

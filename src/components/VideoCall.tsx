@@ -14,17 +14,17 @@ import { createDailyToken } from "../lib/mutations";
 
 /**
  * VideoCall Component - Daily.co video integration
- * 
+ *
  * WebSocket Stability:
  * - Daily.co handles WebSocket connections internally via the callObject
  * - The useDaily() hook provides access to the stable call instance
  * - Participant updates are handled reactively through Daily's hooks
  * - No manual WebSocket management needed - Daily.co handles reconnection automatically
- * 
+ *
  * Removed Features:
  * - Mute/Eject moderation controls (caused video freezing due to state conflicts)
  * - Host-specific moderation UI (simplified to prevent WebSocket state issues)
- * 
+ *
  * Video Persistence:
  * - The call object persists across component remounts when wrapped in DailyProvider
  * - To maintain video across routes (Lobby -> Quiz), ensure DailyProvider is at App level
@@ -68,22 +68,22 @@ export const VideoCall: React.FC<VideoCallProps> = ({
         try {
           // Find current participant in players list
           const currentPlayer = players.find(
-            p => p.name.toLowerCase() === participantName.toLowerCase()
+            (p) => p.name.toLowerCase() === participantName.toLowerCase(),
           );
-          
+
           if (currentPlayer?.participant_id) {
             await supabase
               .from("Participant")
               .update({ video_presence: false })
               .eq("participant_id", currentPlayer.participant_id);
-            
+
             Logger.log("Video presence cleared on unmount");
           }
         } catch (error) {
           Logger.error("Failed to update video presence on unmount:", error);
         }
       };
-      
+
       updateVideoPresence();
     };
   }, [players, participantName]);

@@ -113,7 +113,11 @@ export async function getActiveSessions(): Promise<ActiveSession[]> {
     game_state: GameState;
     created_at: string;
     ended_at?: string | null;
-    Participant?: Array<{ name: string; role: string; lobby_presence: string }> | null;
+    Participant?: Array<{
+      name: string;
+      role: string;
+      lobby_presence: string;
+    }> | null;
     DailyRoom?: Array<{ room_url?: string }> | null;
   };
 
@@ -126,7 +130,9 @@ export async function getActiveSessions(): Promise<ActiveSession[]> {
     const hostParticipant = participants.find((p) => p.role === "Host");
     // Only count Player1 and Player2 roles that have lobby_presence "Joined"
     const playerCount = participants.filter(
-      (p) => (p.role === "Player1" || p.role === "Player2") && p.lobby_presence === "Joined",
+      (p) =>
+        (p.role === "Player1" || p.role === "Player2") &&
+        p.lobby_presence === "Joined",
     ).length;
     const hasDailyRoom = !!(session.DailyRoom && session.DailyRoom.length > 0);
 
@@ -722,7 +728,9 @@ export async function leaveLobbyByRole(
   }
 
   if (!participant) {
-    throw new Error(`No participant found with role ${role} in session ${sessionId}`);
+    throw new Error(
+      `No participant found with role ${role} in session ${sessionId}`,
+    );
   }
 
   // Update presence to disconnected
@@ -979,7 +987,9 @@ export async function checkExistingPreset(
   // Optionally filter by session code and role
   let query = supabase
     .from("Participant")
-    .select("name, flag, team_logo_url, role, session_id, Session!inner(session_code)")
+    .select(
+      "name, flag, team_logo_url, role, session_id, Session!inner(session_code)",
+    )
     .ilike("name", name) // Case insensitive match
     .not("flag", "is", null) // Only return participants with existing presets
     .not("team_logo_url", "is", null)
@@ -1021,10 +1031,10 @@ function extractErrorMessage(err: unknown): string {
 // 15. Mark Player as Ready/Not Ready
 /**
  * Update a participant's ready status for the lobby
- * 
+ *
  * Note: Requires 'isReady' boolean field in Participant table
  * Migration: ALTER TABLE "Participant" ADD COLUMN "isReady" BOOLEAN DEFAULT false;
- * 
+ *
  * Can be called via serverless function for better security:
  * POST /.netlify/functions/mark-player-ready
  * Body: { participantId, isReady }
@@ -1032,7 +1042,7 @@ function extractErrorMessage(err: unknown): string {
 export async function markPlayerReady(
   participantId: string,
   isReady: boolean,
-  useServerless = false
+  useServerless = false,
 ): Promise<void> {
   if (useServerless) {
     // Use serverless function to keep service role key secure
@@ -1043,11 +1053,17 @@ export async function markPlayerReady(
     });
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: "Unknown error" }));
-      throw new Error(`Failed to update ready status: ${error.error || "Unknown error"}`);
+      const error = await response
+        .json()
+        .catch(() => ({ error: "Unknown error" }));
+      throw new Error(
+        `Failed to update ready status: ${error.error || "Unknown error"}`,
+      );
     }
 
-    Logger.log(`Player ${participantId} ready status set to: ${isReady} (via serverless)`);
+    Logger.log(
+      `Player ${participantId} ready status set to: ${isReady} (via serverless)`,
+    );
     return;
   }
 
@@ -1067,16 +1083,16 @@ export async function markPlayerReady(
 // 16. Get All Participants Ready Status
 /**
  * Check if all non-Host participants in a session are ready
- * 
+ *
  * Note: Requires 'isReady' boolean field in Participant table
- * 
+ *
  * Can be called via serverless function for better security:
  * POST /.netlify/functions/check-ready-status
  * Body: { sessionId }
  */
 export async function checkAllPlayersReady(
   sessionId: string,
-  useServerless = false
+  useServerless = false,
 ): Promise<{
   allReady: boolean;
   readyCount: number;
@@ -1097,8 +1113,12 @@ export async function checkAllPlayersReady(
     });
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: "Unknown error" }));
-      throw new Error(`Failed to check ready status: ${error.error || "Unknown error"}`);
+      const error = await response
+        .json()
+        .catch(() => ({ error: "Unknown error" }));
+      throw new Error(
+        `Failed to check ready status: ${error.error || "Unknown error"}`,
+      );
     }
 
     const result = await response.json();
@@ -1163,13 +1183,13 @@ export async function resetAllPlayersReady(sessionId: string): Promise<void> {
 /**
  * Update the lastHeartbeat timestamp for a participant to indicate they are still active.
  * Should be called every 30 seconds by active clients to maintain presence.
- * 
+ *
  * @param participantId - The participant ID to update
  * @param sessionId - Optional session ID for validation
  */
 export async function updateParticipantHeartbeat(
   participantId: string,
-  sessionId?: string
+  sessionId?: string,
 ): Promise<void> {
   const updateData: TablesUpdate<"Participant"> = {
     lastHeartbeat: new Date().toISOString(),
@@ -1200,11 +1220,11 @@ export async function updateParticipantHeartbeat(
 /**
  * Mark a participant as disconnected when they leave the lobby or video call.
  * Updates presence, ready status, and video state.
- * 
+ *
  * @param participantId - The participant ID to mark as disconnected
  */
 export async function markParticipantDisconnected(
-  participantId: string
+  participantId: string,
 ): Promise<void> {
   const { error } = await supabase
     .from("Participant")
@@ -1223,4 +1243,3 @@ export async function markParticipantDisconnected(
 
   Logger.log(`Participant marked as disconnected: ${participantId}`);
 }
-

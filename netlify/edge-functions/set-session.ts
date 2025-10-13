@@ -3,16 +3,16 @@ import { getStore } from "@netlify/blobs";
 
 /**
  * Edge Function: Set/Delete Session Data
- * 
+ *
  * Saves or deletes session data in Netlify Blobs storage
- * 
+ *
  * POST Body (for save):
  * - key: The session key (format: "sessionId:participantId")
  * - data: The session data object to store
- * 
+ *
  * DELETE Body (for delete):
  * - key: The session key to delete
- * 
+ *
  * Returns:
  * - 200: { success: true }
  * - 400: { success: false, error: "Missing required parameters" }
@@ -27,7 +27,7 @@ export default async (req: Request, context: Context) => {
         {
           status: 405,
           headers: { "Content-Type": "application/json" },
-        }
+        },
       );
     }
 
@@ -41,7 +41,7 @@ export default async (req: Request, context: Context) => {
         {
           status: 400,
           headers: { "Content-Type": "application/json" },
-        }
+        },
       );
     }
 
@@ -55,7 +55,7 @@ export default async (req: Request, context: Context) => {
         {
           status: 400,
           headers: { "Content-Type": "application/json" },
-        }
+        },
       );
     }
 
@@ -70,14 +70,11 @@ export default async (req: Request, context: Context) => {
       // Delete session data
       await store.delete(key);
       console.log(`Deleted session data for key: ${key}`);
-      
-      return new Response(
-        JSON.stringify({ success: true }),
-        {
-          status: 200,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+
+      return new Response(JSON.stringify({ success: true }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
     // POST: Save/update session data
@@ -87,7 +84,7 @@ export default async (req: Request, context: Context) => {
         {
           status: 400,
           headers: { "Content-Type": "application/json" },
-        }
+        },
       );
     }
 
@@ -95,13 +92,10 @@ export default async (req: Request, context: Context) => {
     await store.setJSON(key, data);
     console.log(`Saved session data for key: ${key}`);
 
-    return new Response(
-      JSON.stringify({ success: true }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
   } catch (error) {
     console.error("Error in set-session edge function:", error);
     return new Response(
@@ -112,7 +106,7 @@ export default async (req: Request, context: Context) => {
       {
         status: 500,
         headers: { "Content-Type": "application/json" },
-      }
+      },
     );
   }
 };

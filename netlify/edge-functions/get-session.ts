@@ -3,12 +3,12 @@ import { getStore } from "@netlify/blobs";
 
 /**
  * Edge Function: Get Session Data
- * 
+ *
  * Retrieves session data from Netlify Blobs storage
- * 
+ *
  * Query Parameters:
  * - key: The session key (format: "sessionId:participantId")
- * 
+ *
  * Returns:
  * - 200: { success: true, data: <session-data> }
  * - 404: { success: false, error: "Session not found" }
@@ -24,7 +24,7 @@ export default async (req: Request, context: Context) => {
         {
           status: 405,
           headers: { "Content-Type": "application/json" },
-        }
+        },
       );
     }
 
@@ -38,7 +38,7 @@ export default async (req: Request, context: Context) => {
         {
           status: 400,
           headers: { "Content-Type": "application/json" },
-        }
+        },
       );
     }
 
@@ -52,7 +52,7 @@ export default async (req: Request, context: Context) => {
         {
           status: 400,
           headers: { "Content-Type": "application/json" },
-        }
+        },
       );
     }
 
@@ -72,7 +72,7 @@ export default async (req: Request, context: Context) => {
         {
           status: 404,
           headers: { "Content-Type": "application/json" },
-        }
+        },
       );
     }
 
@@ -85,7 +85,7 @@ export default async (req: Request, context: Context) => {
       {
         status: 200,
         headers: { "Content-Type": "application/json" },
-      }
+      },
     );
   } catch (error) {
     console.error("Error in get-session edge function:", error);
@@ -97,7 +97,7 @@ export default async (req: Request, context: Context) => {
       {
         status: 500,
         headers: { "Content-Type": "application/json" },
-      }
+      },
     );
   }
 };
