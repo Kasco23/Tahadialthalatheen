@@ -56,6 +56,7 @@ export type Database = {
           lobby_presence: string;
           name: string;
           participant_id: string;
+          password: string | null;
           powerup_alhabeed: boolean | null;
           powerup_bellegoal: boolean | null;
           powerup_pass_used: boolean | null;
@@ -74,6 +75,7 @@ export type Database = {
           lobby_presence?: string;
           name: string;
           participant_id?: string;
+          password?: string | null;
           powerup_alhabeed?: boolean | null;
           powerup_bellegoal?: boolean | null;
           powerup_pass_used?: boolean | null;
@@ -92,6 +94,7 @@ export type Database = {
           lobby_presence?: string;
           name?: string;
           participant_id?: string;
+          password?: string | null;
           powerup_alhabeed?: boolean | null;
           powerup_bellegoal?: boolean | null;
           powerup_pass_used?: boolean | null;

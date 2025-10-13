@@ -8,7 +8,7 @@ This project uses Netlify Blobs for cross-device session persistence, complement
 
 ### Data Storage Strategy
 
-- **Supabase Database**: Structured relational data (players, scores, segments, phases)
+- **Supabase Database**: Structured relational data (players, scores, segments, phases, passwords)
 - **Netlify Blobs**: Unstructured session data (Daily room tokens, participant roles, readiness state)
 - **localStorage**: Browser-side fallback for offline support
 
@@ -18,6 +18,39 @@ This project uses Netlify Blobs for cross-device session persistence, complement
 2. **High availability**: Optimized for frequent reads and writes
 3. **Simple key-value store**: Perfect for temporary session state
 4. **Edge Function integration**: Secure server-side access with client proxy
+
+## Features
+
+### Readiness System
+
+Players can mark themselves as ready/not ready in the lobby before starting the quiz. This state is persisted both in Supabase and Netlify Blobs for cross-device consistency.
+
+**Implementation:**
+- Database: `isReady` boolean column in Participant table
+- Real-time updates via Supabase subscriptions
+- Persistence in Netlify Blobs for reconnection scenarios
+- UI: Ready/Unready toggle button in lobby
+
+### Rejoin System (New)
+
+Participants can rejoin sessions with password authentication and optionally update their configuration (name, flag, logo).
+
+**Key Features:**
+- Password authentication for secure rejoin
+- Automatic detection of existing participants when entering session code
+- Option to keep existing configuration or update it
+- Works for both Host and Player roles
+- Password stored as SHA-256 hash in Supabase
+
+**User Flow:**
+1. **First Join**: Enter session code → Create password → Select flag/logo → Join lobby
+2. **Rejoin**: Enter session code → Click "Rejoin" button → Select participant → Enter password → Optionally update config → Rejoin lobby
+
+**Implementation:**
+- Database: `password` column in Participant table (nullable)
+- Password hashing: SHA-256 via Web Crypto API (client-side)
+- UI: RejoinModal component for participant selection
+- Mutations: Complete rejoin flow with verification and config updates
 
 ## Implementation
 
@@ -110,20 +143,40 @@ NETLIFY_PERSONAL_ACCESS_TOKEN=<your-netlify-personal-access-token>
 
 ### Participant Table
 
-The readiness system requires adding an `isReady` column:
+The readiness and rejoin systems require additional columns in the Participant table:
+
+#### isReady Column (for Readiness System)
 
 ```sql
 -- Add isReady column to Participant table
-ALTER TABLE "Participant"
-ADD COLUMN "isReady" BOOLEAN DEFAULT false;
+ALTER TABLE "public"."Participant" 
+ADD COLUMN IF NOT EXISTS "isReady" BOOLEAN DEFAULT false;
 
 -- Optional: Add index for performance
-CREATE INDEX idx_participant_ready
-ON "Participant"(session_id, isReady)
-WHERE lobby_presence = 'Joined';
+CREATE INDEX IF NOT EXISTS "idx_participant_ready" 
+ON "public"."Participant"("session_id", "isReady") 
+WHERE "lobby_presence" = 'Joined';
 ```
 
-Run this migration in your Supabase SQL editor before using the readiness features.
+#### password Column (for Rejoin System)
+
+```sql
+-- Add password column to Participant table
+ALTER TABLE "public"."Participant" 
+ADD COLUMN IF NOT EXISTS "password" TEXT DEFAULT NULL;
+```
+
+**Security Notes:**
+- Passwords are hashed using SHA-256 on the client side before storage
+- Password column is nullable for backward compatibility
+- Never store plain-text passwords
+- Password hashes are stored in the database for verification during rejoin
+
+Run these migrations in your Supabase SQL editor before using the readiness and rejoin features.
+
+**Migration Files:**
+- `supabase/migrations/20251012000000_add_participant_ready_column.sql`
+- `supabase/migrations/20251013000000_add_participant_password.sql`
 
 ## API Reference
 
@@ -187,6 +240,52 @@ if (allReady) {
 }
 ```
 
+### Rejoin System
+
+```typescript
+import {
+  getSessionParticipants,
+  rejoinAsParticipant,
+  updateParticipantConfig,
+} from "./lib/mutations";
+import { hashPassword } from "./lib/passwordHash";
+
+// Check for existing participants when session code is entered
+const participants = await getSessionParticipants(sessionId);
+
+// User selects a participant and enters password
+const passwordHash = await hashPassword(password);
+
+// Option 1: Rejoin with existing configuration
+const { participantId, role, sessionId } = await rejoinAsParticipant(
+  participantId,
+  passwordHash,
+);
+
+// Option 2: Rejoin and update configuration
+const result = await rejoinAsParticipant(participantId, passwordHash, {
+  name: "New Name",
+  flag: "us",
+  team_logo_url: "https://example.com/logo.png",
+});
+
+// Navigate to lobby
+navigate(`/lobby/${sessionCode}/${seat}`);
+```
+
+### Password Management
+
+```typescript
+import { setParticipantPassword } from "./lib/mutations";
+import { hashPassword } from "./lib/passwordHash";
+
+// Set password when participant first joins
+const passwordHash = await hashPassword(userPassword);
+await setParticipantPassword(participantId, passwordHash);
+
+// Password is automatically verified during rejoin
+```
+
 ### Timer Integration
 
 ```typescript
@@ -242,11 +341,26 @@ Note: For pure frontend development without edge functions, use `pnpm dev` inste
    - Players mark themselves ready
    - Host sees updated ready status
    - "Start Quiz" button enables when all ready
+   - Ready state persists after reconnection
 
-4. **Timer Component**
+4. **Rejoin Flow**
+   - **Initial Join**: Enter session code → Create password → Select flag/logo → Join
+   - **Rejoin Detection**: Enter session code → See rejoin button appear
+   - **Password Authentication**: Select participant → Enter password → Verify success
+   - **Config Update**: Choose to update config → Change name/flag/logo → Verify updates in Supabase
+   - **Quick Rejoin**: Rejoin without config update → Verify immediate lobby access
+   - **Failed Authentication**: Enter wrong password → Verify error message
+
+5. **Timer Component**
    - Timer counts down correctly
    - Warning colors activate at thresholds
    - onComplete callback fires when time expires
+
+6. **Integration Testing**
+   - Test rejoin from "Active Games" quick join button
+   - Test multiple participants rejoining same session
+   - Test rejoin after session disconnect
+   - Verify password security (cannot rejoin without correct password)
 
 ## Troubleshooting
 

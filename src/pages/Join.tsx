@@ -5,12 +5,22 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   joinAsHost,
   joinAsPlayerWithCode,
-  checkExistingPreset,
-  type ExistingPreset,
+  rejoinAsParticipant,
+  setParticipantPassword,
 } from "../lib/mutations";
+import {
+  checkForExistingPreset,
+  checkForExistingParticipants,
+  storeParticipantData,
+  getLobbyUrl,
+  extractTeamNameFromLogoUrl,
+  type ExistingPreset,
+  type ExistingParticipant,
+} from "../lib/joinHelpers";
 import { Alert } from "../components/Alert";
 import OptimizedFlagSelector from "../components/OptimizedFlagSelector";
 import PresetConfirmationModal from "../components/PresetConfirmationModal";
+import RejoinModal from "../components/RejoinModal";
 import { supabase } from "../lib/supabaseClient";
 import { getSeatsFromRole, setSeatInStorage } from "../lib/userSession";
 import type { ParticipantRole } from "../lib/types";
@@ -63,6 +73,13 @@ const JoinRevolutionary: React.FC = () => {
   );
   const [presetModalLoading, setPresetModalLoading] = useState(false);
 
+  // Rejoin state
+  const [showRejoinModal, setShowRejoinModal] = useState(false);
+  const [rejoinParticipants, setRejoinParticipants] = useState<
+    ExistingParticipant[]
+  >([]);
+  const [rejoinLoading, setRejoinLoading] = useState(false);
+
   // Host form state
   const [sessionCode, setSessionCode] = useState("");
   const [hostPassword, setHostPassword] = useState("");
@@ -74,6 +91,7 @@ const JoinRevolutionary: React.FC = () => {
   // Player form state
   const [playerSessionCode, setPlayerSessionCode] = useState("");
   const [playerName, setPlayerName] = useState("");
+  const [playerPassword, setPlayerPassword] = useState("");
   const [selectedFlag, setSelectedFlag] = useState("");
   const [teamLogoUrl, setTeamLogoUrl] = useState("");
   const [teamName, setTeamName] = useState("");
@@ -101,6 +119,29 @@ const JoinRevolutionary: React.FC = () => {
       setCurrentStep("details"); // Skip role selection and go directly to details
     }
   }, [searchParams]);
+
+  // Check for existing participants when session code changes (for rejoin)
+  useEffect(() => {
+    const checkExistingParticipantsForRejoin = async () => {
+      const codeToCheck = activeTab === "host" ? sessionCode : playerSessionCode;
+      
+      if (!codeToCheck.trim() || codeToCheck.length < 4) {
+        setRejoinParticipants([]);
+        return;
+      }
+
+      const participants = await checkForExistingParticipants(
+        codeToCheck,
+        activeTab
+      );
+      
+      setRejoinParticipants(participants);
+    };
+
+    // Debounce the check by 500ms
+    const timer = setTimeout(checkExistingParticipantsForRejoin, 500);
+    return () => clearTimeout(timer);
+  }, [sessionCode, playerSessionCode, activeTab]);
 
   // Load team logos from Supabase
   useEffect(() => {
@@ -146,18 +187,13 @@ const JoinRevolutionary: React.FC = () => {
     sessionCode?: string,
     role?: string,
   ) => {
-    try {
-      const preset = await checkExistingPreset(name, sessionCode, role);
-      if (preset && preset.flag && preset.team_logo_url) {
-        setExistingPreset(preset);
-        setShowPresetModal(true);
-        return true; // Preset found
-      }
-      return false; // No preset found
-    } catch (error) {
-      Logger.error("Error checking preset:", error);
-      return false;
+    const preset = await checkForExistingPreset(name, sessionCode, role);
+    if (preset && preset.flag && preset.team_logo_url) {
+      setExistingPreset(preset);
+      setShowPresetModal(true);
+      return true; // Preset found
     }
+    return false; // No preset found
   };
 
   // Handle preset modal responses
@@ -171,10 +207,7 @@ const JoinRevolutionary: React.FC = () => {
       if (activeTab === "host") {
         setHostSelectedFlag(existingPreset.flag || "");
         setHostTeamLogoUrl(existingPreset.team_logo_url || "");
-        // Extract team name from logo URL or use a default
-        const teamName =
-          existingPreset.team_logo_url?.split("/").pop()?.split(".")[0] ||
-          "Selected Team";
+        const teamName = extractTeamNameFromLogoUrl(existingPreset.team_logo_url || "");
         setHostTeamName(teamName);
 
         // Proceed directly to join
@@ -182,10 +215,7 @@ const JoinRevolutionary: React.FC = () => {
       } else {
         setSelectedFlag(existingPreset.flag || "");
         setTeamLogoUrl(existingPreset.team_logo_url || "");
-        // Extract team name from logo URL or use a default
-        const teamName =
-          existingPreset.team_logo_url?.split("/").pop()?.split(".")[0] ||
-          "Selected Team";
+        const teamName = extractTeamNameFromLogoUrl(existingPreset.team_logo_url || "");
         setTeamName(teamName);
 
         // Proceed directly to join
@@ -225,37 +255,27 @@ const JoinRevolutionary: React.FC = () => {
         hostTeamLogoUrl,
       );
 
-      // Persist participant data
-      try {
-        localStorage.setItem("participantId", participantId);
-        localStorage.setItem("sessionCode", sessionCode);
-        localStorage.setItem("isHost", "true");
-        localStorage.setItem("userRole", role);
-        if (hostSelectedFlag) {
-          localStorage.setItem("selectedFlag", hostSelectedFlag);
-        }
-        if (hostTeamLogoUrl) {
-          localStorage.setItem("teamLogoUrl", hostTeamLogoUrl);
-        }
-        if (hostTeamName) {
-          localStorage.setItem("teamName", hostTeamName);
-        }
-      } catch (storageError) {
-        Logger.warn("Could not save to localStorage:", storageError);
-      }
+      // Store password for rejoin (database handles hashing)
+      await setParticipantPassword(participantId, hostPassword);
 
-      // Set seat in storage and navigate with seat in URL
+      // Store participant data in localStorage
+      storeParticipantData(
+        participantId,
+        sessionCode,
+        role,
+        true,
+        undefined,
+        hostSelectedFlag ?? undefined,
+        hostTeamLogoUrl ?? undefined,
+        hostTeamName ?? undefined
+      );
+
+      // Navigate to lobby
       const seat = getSeatsFromRole(role as ParticipantRole);
       if (seat) {
-        try {
-          setSeatInStorage(seat);
-        } catch (storageError) {
-          Logger.warn("Could not save seat to localStorage:", storageError);
-        }
-        navigate(`/lobby/${sessionCode}/${seat}`);
-      } else {
-        navigate(`/lobby/${sessionCode}`);
+        setSeatInStorage(seat);
       }
+      navigate(getLobbyUrl(sessionCode, role as ParticipantRole, seat));
     } catch (error) {
       Logger.error("Error joining as host:", error);
       setAlert({
@@ -276,6 +296,14 @@ const JoinRevolutionary: React.FC = () => {
       return;
     }
 
+    if (!playerPassword.trim()) {
+      setAlert({
+        type: "error",
+        message: "Please create a password for rejoining",
+      });
+      return;
+    }
+
     setPlayerLoading(true);
 
     try {
@@ -286,39 +314,27 @@ const JoinRevolutionary: React.FC = () => {
         teamLogoUrl,
       );
 
-      // Persist data to localStorage
-      try {
-        localStorage.setItem("participantId", participantId);
-        localStorage.setItem("sessionCode", playerSessionCode);
-        localStorage.setItem("playerName", playerName);
-        localStorage.setItem("isHost", "false");
-        localStorage.setItem("userRole", role);
-        localStorage.setItem("tt_participant_name", playerName);
-        if (selectedFlag) {
-          localStorage.setItem("selectedFlag", selectedFlag);
-        }
-        if (teamLogoUrl) {
-          localStorage.setItem("teamLogoUrl", teamLogoUrl);
-        }
-        if (teamName) {
-          localStorage.setItem("teamName", teamName);
-        }
-      } catch (storageError) {
-        Logger.warn("Could not save to localStorage:", storageError);
-      }
+      // Store password for rejoin (database handles hashing)
+      await setParticipantPassword(participantId, playerPassword);
 
-      // Set seat in storage and navigate with seat in URL
+      // Store participant data in localStorage
+      storeParticipantData(
+        participantId,
+        playerSessionCode,
+        role,
+        false,
+        playerName,
+        selectedFlag ?? undefined,
+        teamLogoUrl ?? undefined,
+        teamName ?? undefined
+      );
+
+      // Navigate to lobby
       const seat = getSeatsFromRole(role as ParticipantRole);
       if (seat) {
-        try {
-          setSeatInStorage(seat);
-        } catch (storageError) {
-          Logger.warn("Could not save seat to localStorage:", storageError);
-        }
-        navigate(`/lobby/${playerSessionCode}/${seat}`);
-      } else {
-        navigate(`/lobby/${playerSessionCode}`);
+        setSeatInStorage(seat);
       }
+      navigate(getLobbyUrl(playerSessionCode, role as ParticipantRole, seat));
     } catch (error) {
       Logger.error("Error joining as player:", error);
       setAlert({
@@ -339,6 +355,75 @@ const JoinRevolutionary: React.FC = () => {
   const handlePlayerLogoSelect = (logoUrl: string, teamName: string) => {
     setTeamLogoUrl(logoUrl);
     setTeamName(teamName);
+  };
+
+  // Handle rejoin flow
+  const handleRejoin = async (
+    participantId: string,
+    password: string,
+    updateConfig: boolean,
+  ) => {
+    setRejoinLoading(true);
+    try {
+      // Rejoin with password (database handles verification)
+      const { role, sessionId } = await rejoinAsParticipant(
+        participantId,
+        password,
+      );
+
+      // Get session code
+      const { data: sessionData } = await supabase
+        .from("Session")
+        .select("session_code")
+        .eq("session_id", sessionId)
+        .single();
+
+      const code = sessionData?.session_code;
+
+      if (!code) {
+        throw new Error("Failed to get session code");
+      }
+
+      // Store participant data
+      storeParticipantData(
+        participantId,
+        code,
+        role,
+        role === "Host",
+        undefined,
+        undefined,
+        undefined,
+        undefined
+      );
+
+      // Navigate based on update config preference
+      if (updateConfig) {
+        // Close rejoin modal and let user update config through normal flow
+        setShowRejoinModal(false);
+        setCurrentStep("flag"); // Go to flag selection
+        
+        // Pre-fill the session code
+        if (activeTab === "host") {
+          setSessionCode(code);
+        } else {
+          setPlayerSessionCode(code);
+        }
+      } else {
+        // Navigate directly to lobby
+        const seat = getSeatsFromRole(role as ParticipantRole);
+        if (seat) {
+          setSeatInStorage(seat);
+        }
+        navigate(getLobbyUrl(code, role as ParticipantRole, seat));
+      }
+    } catch (error) {
+      Logger.error("Error rejoining:", error);
+      throw new Error(
+        error instanceof Error ? error.message : "Failed to rejoin session",
+      );
+    } finally {
+      setRejoinLoading(false);
+    }
   };
 
   // Handle details form submission - now checks for presets
@@ -654,6 +739,15 @@ const JoinRevolutionary: React.FC = () => {
               placeholder="Enter session code"
               required
             />
+            {rejoinParticipants.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setShowRejoinModal(true)}
+                className="mt-2 w-full px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold rounded-lg transition-all shadow-md"
+              >
+                🔄 Rejoin as Existing Participant
+              </button>
+            )}
           </div>
 
           {activeTab === "host" ? (
@@ -671,19 +765,38 @@ const JoinRevolutionary: React.FC = () => {
               />
             </div>
           ) : (
-            <div>
-              <label className="block text-white font-medium mb-2">
-                Player Name
-              </label>
-              <input
-                type="text"
-                value={playerName}
-                onChange={(e) => setPlayerName(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg bg-white/20 text-white placeholder-white/60 border border-white/30 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                placeholder="Enter your name"
-                required
-              />
-            </div>
+            <>
+              <div>
+                <label className="block text-white font-medium mb-2">
+                  Player Name
+                </label>
+                <input
+                  type="text"
+                  value={playerName}
+                  onChange={(e) => setPlayerName(e.target.value)}
+                  className="w-full px-4 py-3 rounded-lg bg-white/20 text-white placeholder-white/60 border border-white/30 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  placeholder="Enter your name"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-white font-medium mb-2">
+                  Create Password (for rejoining later)
+                </label>
+                <input
+                  type="password"
+                  value={playerPassword}
+                  onChange={(e) => setPlayerPassword(e.target.value)}
+                  className="w-full px-4 py-3 rounded-lg bg-white/20 text-white placeholder-white/60 border border-white/30 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  placeholder="Create a password"
+                  required
+                  minLength={4}
+                />
+                <p className="mt-1 text-xs text-blue-200">
+                  You'll need this password to rejoin the session later
+                </p>
+              </div>
+            </>
           )}
 
           <div className="flex gap-4">
@@ -1029,6 +1142,15 @@ const JoinRevolutionary: React.FC = () => {
         onCreateNew={handleCreateNewPreset}
         preset={existingPreset}
         isLoading={presetModalLoading}
+      />
+
+      {/* Rejoin Modal */}
+      <RejoinModal
+        isOpen={showRejoinModal}
+        participants={rejoinParticipants}
+        onClose={() => setShowRejoinModal(false)}
+        onRejoin={handleRejoin}
+        isLoading={rejoinLoading}
       />
     </div>
   );
