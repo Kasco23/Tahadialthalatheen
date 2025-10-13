@@ -1,4 +1,4 @@
-import type { Context } from "@netlify/functions";
+import type { Context, Handler } from "@netlify/functions";
 import { createClient } from "@supabase/supabase-js";
 
 /**
@@ -19,7 +19,7 @@ import { createClient } from "@supabase/supabase-js";
  * name = "cleanupStatus"
  * schedule = "0 * * * *"  # Runs hourly at the top of the hour
  */
-export default async (_req: Request, _context: Context) => {
+export const handler: Handler = async (_event, _context: Context) => {
   try {
     // Initialize Supabase client with service role key
     const supabaseUrl = process.env.SUPABASE_DATABASE_URL;
@@ -27,17 +27,14 @@ export default async (_req: Request, _context: Context) => {
 
     if (!supabaseUrl || !supabaseKey) {
       console.error("Missing Supabase environment variables");
-      return new Response(
-        JSON.stringify({
+      return {
+        statusCode: 500,
+        body: JSON.stringify({
           success: false,
           error: "Server configuration error",
           cleaned: 0,
         }),
-        {
-          status: 500,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+      };
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey, {
@@ -58,17 +55,14 @@ export default async (_req: Request, _context: Context) => {
 
     if (selectError) {
       console.error("Error querying stale participants:", selectError);
-      return new Response(
-        JSON.stringify({
+      return {
+        statusCode: 500,
+        body: JSON.stringify({
           success: false,
           error: `Database query error: ${selectError.message}`,
           cleaned: 0,
         }),
-        {
-          status: 500,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+      };
     }
 
     const cleanedCount = staleUsers?.length || 0;
@@ -91,17 +85,14 @@ export default async (_req: Request, _context: Context) => {
 
       if (updateError) {
         console.error("Error updating stale participants:", updateError);
-        return new Response(
-          JSON.stringify({
+        return {
+          statusCode: 500,
+          body: JSON.stringify({
             success: false,
             error: `Database update error: ${updateError.message}`,
             cleaned: 0,
           }),
-          {
-            status: 500,
-            headers: { "Content-Type": "application/json" },
-          }
-        );
+        };
       }
 
       console.log(`Successfully cleaned up ${cleanedCount} stale participants`);
@@ -109,29 +100,23 @@ export default async (_req: Request, _context: Context) => {
       console.log("No stale participants found");
     }
 
-    return new Response(
-      JSON.stringify({
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
         success: true,
         cleaned: cleanedCount,
         timestamp: new Date().toISOString(),
       }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+    };
   } catch (error) {
     console.error("Unexpected error in cleanupStatus function:", error);
-    return new Response(
-      JSON.stringify({
+    return {
+      statusCode: 500,
+      body: JSON.stringify({
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",
         cleaned: 0,
       }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+    };
   }
 };
