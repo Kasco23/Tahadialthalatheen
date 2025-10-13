@@ -1,4 +1,6 @@
 name: Copilot Setup
+permissions:
+  contents: read
 
 on:
   push:
