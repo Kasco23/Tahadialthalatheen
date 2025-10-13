@@ -32,6 +32,7 @@ interface ParticipantCardProps {
   isReady?: boolean;
   onToggleReady?: (participantId: string, currentReady: boolean) => void;
   canToggleReady?: boolean;
+  isTogglingReady?: boolean;
 }
 
 const ParticipantCard: React.FC<ParticipantCardProps> = ({
@@ -42,6 +43,7 @@ const ParticipantCard: React.FC<ParticipantCardProps> = ({
   isReady = false,
   onToggleReady,
   canToggleReady = false,
+  isTogglingReady = false,
 }) => {
   const isPlayer = player.role === "Player1" || player.role === "Player2";
   
@@ -114,12 +116,37 @@ const ParticipantCard: React.FC<ParticipantCardProps> = ({
               {canToggleReady && onToggleReady && (
                 <button
                   onClick={() => onToggleReady(player.participant_id, isReady)}
-                  className={`btn btn-xs ${
-                    isReady ? "bg-red-500 hover:bg-red-600 text-white border-red-500" : "bg-green-500 hover:bg-green-600 text-white border-green-500"
-                  }`}
+                  disabled={isTogglingReady}
+                  className={`
+                    relative px-3 py-1.5 rounded-lg font-semibold text-xs
+                    transition-all duration-200 ease-in-out
+                    focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-transparent
+                    disabled:opacity-50 disabled:cursor-not-allowed
+                    shadow-sm hover:shadow-md
+                    ${
+                      isReady 
+                        ? "bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white focus:ring-red-400 border border-red-400/50" 
+                        : "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white focus:ring-green-400 border border-green-400/50"
+                    }
+                    ${isTogglingReady ? 'animate-pulse' : ''}
+                  `}
                   type="button"
+                  aria-label={isReady ? "Mark as not ready" : "Mark as ready"}
+                  aria-pressed={isReady}
                 >
-                  {isReady ? "Unready?" : "Ready"}
+                  {isTogglingReady ? (
+                    <span className="flex items-center gap-1">
+                      <svg className="animate-spin h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <span>...</span>
+                    </span>
+                  ) : isReady ? (
+                    "✗ Unready"
+                  ) : (
+                    "✓ Ready"
+                  )}
                 </button>
               )}
             </div>
@@ -189,6 +216,7 @@ const Lobby: React.FC = () => {
   const [showSeatValidationModal, setShowSeatValidationModal] = useState(false);
   const [readyStates, setReadyStates] = useState<Record<string, boolean>>({});
   const [allPlayersReady, setAllPlayersReady] = useState(false);
+  const [togglingReadyParticipant, setTogglingReadyParticipant] = useState<string | null>(null);
 
   // Get participant name from localStorage
   const participantName =
@@ -274,16 +302,29 @@ const Lobby: React.FC = () => {
             if (!isMounted) return;
 
             if (payload.eventType === "INSERT") {
-              if (payload.new)
-                setPlayers((prev) => [...prev, payload.new as ParticipantRow]);
+              if (payload.new) {
+                const newParticipant = payload.new as ParticipantRow;
+                setPlayers((prev) => [...prev, newParticipant]);
+                // Sync ready state (handle null/undefined, default to false)
+                setReadyStates((prev) => ({
+                  ...prev,
+                  [newParticipant.participant_id]: newParticipant.isReady ?? false
+                }));
+              }
             } else if (payload.eventType === "UPDATE") {
+              const updatedParticipant = payload.new as ParticipantRow;
               setPlayers((prev) =>
                 prev.map((player) =>
-                  player.participant_id === (payload.new?.participant_id || "")
-                    ? { ...player, ...(payload.new as ParticipantRow) }
+                  player.participant_id === (updatedParticipant.participant_id || "")
+                    ? { ...player, ...updatedParticipant }
                     : player,
                 ),
               );
+              // Sync ready state immediately from realtime update (handle null/undefined, default to false)
+              setReadyStates((prev) => ({
+                ...prev,
+                [updatedParticipant.participant_id]: updatedParticipant.isReady ?? false
+              }));
             } else if (payload.eventType === "DELETE") {
               setPlayers((prev) =>
                 prev.filter(
@@ -483,11 +524,12 @@ const Lobby: React.FC = () => {
 
   // Handle ready toggle for current player
   const handleToggleReady = async (participantId: string, currentReady: boolean) => {
+    setTogglingReadyParticipant(participantId);
     try {
       await markPlayerReady(participantId, !currentReady);
       Logger.log(`Player ${participantId} ready status toggled to: ${!currentReady}`);
       
-      // Update local state immediately for better UX
+      // Update local state immediately for better UX (optimistic update)
       setReadyStates(prev => ({
         ...prev,
         [participantId]: !currentReady
@@ -507,6 +549,13 @@ const Lobby: React.FC = () => {
       }
     } catch (error) {
       Logger.error("Failed to toggle ready status:", error);
+      // Revert optimistic update on error
+      setReadyStates(prev => ({
+        ...prev,
+        [participantId]: currentReady
+      }));
+    } finally {
+      setTogglingReadyParticipant(null);
     }
   };
 
@@ -674,6 +723,7 @@ const Lobby: React.FC = () => {
                           isReady={readyStates[player.participant_id] || false}
                           onToggleReady={handleToggleReady}
                           canToggleReady={isPlayer && isCurrentPlayer}
+                          isTogglingReady={togglingReadyParticipant === player.participant_id}
                         />
                       );
                     } else {
