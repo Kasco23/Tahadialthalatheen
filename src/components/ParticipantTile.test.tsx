@@ -30,6 +30,7 @@ describe("ParticipantTile", () => {
         join_at: new Date().toISOString(),
         disconnect_at: null,
         lastHeartbeat: new Date().toISOString(),
+        password: null,
         powerup_alhabeed: null,
         powerup_bellegoal: null,
         powerup_pass_used: null,

@@ -1243,3 +1243,190 @@ export async function markParticipantDisconnected(
 
   Logger.log(`Participant marked as disconnected: ${participantId}`);
 }
+
+// 17. Get Participants for Session (for rejoin)
+/**
+ * Get list of participants for a session to enable rejoin functionality
+ * Returns participant info without password for security
+ */
+export async function getSessionParticipants(
+  sessionId: string,
+): Promise<
+  Array<{
+    participant_id: string;
+    name: string;
+    role: string;
+    flag: string | null;
+    team_logo_url: string | null;
+    lobby_presence: string;
+  }>
+> {
+  const { data, error } = await supabase
+    .from("Participant")
+    .select("participant_id, name, role, flag, team_logo_url, lobby_presence")
+    .eq("session_id", sessionId)
+    .order("join_at", { ascending: true });
+
+  if (error) {
+    throw new Error(`Failed to get session participants: ${error.message}`);
+  }
+
+  return data || [];
+}
+
+// 18. Set Participant Password
+/**
+ * Set or update a participant's password for rejoin authentication
+ * Password should be hashed before calling this function
+ */
+export async function setParticipantPassword(
+  participantId: string,
+  passwordHash: string,
+): Promise<void> {
+  const { error } = await supabase
+    .from("Participant")
+    .update({ password: passwordHash } as TablesUpdate<"Participant">)
+    .eq("participant_id", participantId);
+
+  if (error) {
+    throw new Error(`Failed to set participant password: ${error.message}`);
+  }
+
+  Logger.log(`Password set for participant: ${participantId}`);
+}
+
+// 19. Verify Participant Password
+/**
+ * Verify a participant's password for rejoin authentication
+ * Returns the participant data if password matches
+ */
+export async function verifyParticipantPassword(
+  participantId: string,
+  passwordHash: string,
+): Promise<{
+  valid: boolean;
+  participant?: {
+    participant_id: string;
+    name: string;
+    role: string;
+    flag: string | null;
+    team_logo_url: string | null;
+    session_id: string;
+  };
+}> {
+  const { data, error } = await supabase
+    .from("Participant")
+    .select("participant_id, name, role, flag, team_logo_url, session_id, password")
+    .eq("participant_id", participantId)
+    .single();
+
+  if (error || !data) {
+    return { valid: false };
+  }
+
+  // Check if password matches
+  if (data.password !== passwordHash) {
+    return { valid: false };
+  }
+
+  // Return participant data without password
+  return {
+    valid: true,
+    participant: {
+      participant_id: data.participant_id,
+      name: data.name,
+      role: data.role,
+      flag: data.flag,
+      team_logo_url: data.team_logo_url,
+      session_id: data.session_id,
+    },
+  };
+}
+
+// 20. Update Participant Configuration (for rejoin)
+/**
+ * Update participant's name, flag, and logo when rejoining
+ * Allows participants to change their configuration on rejoin
+ */
+export async function updateParticipantConfig(
+  participantId: string,
+  config: {
+    name?: string;
+    flag?: string;
+    team_logo_url?: string;
+  },
+): Promise<void> {
+  const updateData: TablesUpdate<"Participant"> = {};
+
+  if (config.name !== undefined) updateData.name = config.name;
+  if (config.flag !== undefined) updateData.flag = config.flag;
+  if (config.team_logo_url !== undefined)
+    updateData.team_logo_url = config.team_logo_url;
+
+  const { error } = await supabase
+    .from("Participant")
+    .update(updateData)
+    .eq("participant_id", participantId);
+
+  if (error) {
+    throw new Error(`Failed to update participant config: ${error.message}`);
+  }
+
+  Logger.log(`Participant config updated: ${participantId}`, config);
+}
+
+// 21. Rejoin as Participant
+/**
+ * Complete rejoin flow for an existing participant
+ * Updates presence, optionally updates config, and returns participant data
+ */
+export async function rejoinAsParticipant(
+  participantId: string,
+  passwordHash: string,
+  config?: {
+    name?: string;
+    flag?: string;
+    team_logo_url?: string;
+  },
+): Promise<{
+  participantId: string;
+  role: string;
+  sessionId: string;
+}> {
+  // First verify password
+  const verification = await verifyParticipantPassword(
+    participantId,
+    passwordHash,
+  );
+
+  if (!verification.valid || !verification.participant) {
+    throw new Error("Invalid password or participant not found");
+  }
+
+  // Update config if provided
+  if (config) {
+    await updateParticipantConfig(participantId, config);
+  }
+
+  // Update presence to rejoin
+  const { error } = await supabase
+    .from("Participant")
+    .update({
+      lobby_presence: "Joined",
+      join_at: new Date().toISOString(),
+      disconnect_at: null,
+    } as TablesUpdate<"Participant">)
+    .eq("participant_id", participantId);
+
+  if (error) {
+    throw new Error(`Failed to rejoin as participant: ${error.message}`);
+  }
+
+  Logger.log(`Participant rejoined: ${participantId}`);
+
+  return {
+    participantId: verification.participant.participant_id,
+    role: verification.participant.role,
+    sessionId: verification.participant.session_id,
+  };
+}
