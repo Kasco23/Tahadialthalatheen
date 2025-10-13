@@ -60,6 +60,34 @@ export const VideoCall: React.FC<VideoCallProps> = ({
     }
   }, [meetingError]);
 
+  // Cleanup: Update video presence when unmounting
+  React.useEffect(() => {
+    return () => {
+      // When component unmounts, update Supabase to reflect disconnection
+      const updateVideoPresence = async () => {
+        try {
+          // Find current participant in players list
+          const currentPlayer = players.find(
+            p => p.name.toLowerCase() === participantName.toLowerCase()
+          );
+          
+          if (currentPlayer?.participant_id) {
+            await supabase
+              .from("Participant")
+              .update({ video_presence: false })
+              .eq("participant_id", currentPlayer.participant_id);
+            
+            Logger.log("Video presence cleared on unmount");
+          }
+        } catch (error) {
+          Logger.error("Failed to update video presence on unmount:", error);
+        }
+      };
+      
+      updateVideoPresence();
+    };
+  }, [players, participantName]);
+
   // Handle joining Daily call
   const handleJoinDailyCall = async () => {
     if (!sessionCode || !callObject) {
