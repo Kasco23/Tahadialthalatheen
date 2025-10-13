@@ -1158,3 +1158,69 @@ export async function resetAllPlayersReady(sessionId: string): Promise<void> {
 
   Logger.log(`All players ready status reset for session: ${sessionId}`);
 }
+
+// 18. Update Participant Heartbeat
+/**
+ * Update the lastHeartbeat timestamp for a participant to indicate they are still active.
+ * Should be called every 30 seconds by active clients to maintain presence.
+ * 
+ * @param participantId - The participant ID to update
+ * @param sessionId - Optional session ID for validation
+ */
+export async function updateParticipantHeartbeat(
+  participantId: string,
+  sessionId?: string
+): Promise<void> {
+  const updateData: TablesUpdate<"Participant"> = {
+    lastHeartbeat: new Date().toISOString(),
+  };
+
+  let query = supabase
+    .from("Participant")
+    .update(updateData)
+    .eq("participant_id", participantId);
+
+  // Optionally filter by session ID for additional safety
+  if (sessionId) {
+    query = query.eq("session_id", sessionId);
+  }
+
+  const { error } = await query;
+
+  if (error) {
+    Logger.error(`Failed to update heartbeat for ${participantId}:`, error);
+    // Don't throw - heartbeat failures shouldn't break the app
+    return;
+  }
+
+  Logger.debug(`Heartbeat updated for participant: ${participantId}`);
+}
+
+// 19. Mark Participant as Disconnected
+/**
+ * Mark a participant as disconnected when they leave the lobby or video call.
+ * Updates presence, ready status, and video state.
+ * 
+ * @param participantId - The participant ID to mark as disconnected
+ */
+export async function markParticipantDisconnected(
+  participantId: string
+): Promise<void> {
+  const { error } = await supabase
+    .from("Participant")
+    .update({
+      lobby_presence: "Disconnected",
+      video_presence: false,
+      isReady: false,
+      disconnect_at: new Date().toISOString(),
+    } as TablesUpdate<"Participant">)
+    .eq("participant_id", participantId);
+
+  if (error) {
+    Logger.error(`Failed to mark participant disconnected:`, error);
+    throw new Error(`Failed to update participant status: ${error.message}`);
+  }
+
+  Logger.log(`Participant marked as disconnected: ${participantId}`);
+}
+

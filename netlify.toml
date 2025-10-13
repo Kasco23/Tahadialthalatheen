@@ -20,6 +20,11 @@
   node_bundler  = "esbuild"
   external_node_modules = ["@supabase/supabase-js"]
 
+# Scheduled function for cleaning up stale participant status
+[[functions]]
+  name = "cleanupStatus"
+  schedule = "0 * * * *"  # Runs hourly at the top of the hour
+
 # Edge function routes for session management
 [[edge_functions]]
   function = "get-session"
