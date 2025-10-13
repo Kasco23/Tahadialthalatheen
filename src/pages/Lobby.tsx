@@ -5,7 +5,7 @@ import { useAtom } from "jotai";
 
 import { supabase } from "../lib/supabaseClient";
 import { useSession } from "../lib/sessionHooks";
-import { leaveLobbyByRole, createDailyToken, markPlayerReady, checkAllPlayersReady } from "../lib/mutations";
+import { leaveLobbyByRole, createDailyToken, markPlayerReady, checkAllPlayersReady, updateParticipantHeartbeat, markParticipantDisconnected } from "../lib/mutations";
 import { useSessionData } from "../lib/useSessionData";
 import { 
   sessionAtom, 
@@ -17,7 +17,7 @@ import {
 import { VideoRoom } from "../components/VideoRoom";
 import { Flag } from "../components/Flag";
 import { LobbyLogo } from "../components/LobbyLogo";
-import { LOBBY_PRESENCE, PARTICIPANT_ROLE, SEAT_TO_ROLE } from "../lib/types";
+import { LOBBY_PRESENCE, PARTICIPANT_ROLE, SEAT_TO_ROLE, type ParticipantRole } from "../lib/types";
 import { resolveSeatFromUrl, setSeatInStorage } from "../lib/userSession";
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 import type { Database } from "../lib/types/supabase";
@@ -115,11 +115,11 @@ const ParticipantCard: React.FC<ParticipantCardProps> = ({
                 <button
                   onClick={() => onToggleReady(player.participant_id, isReady)}
                   className={`btn btn-xs ${
-                    isReady ? "btn-warning" : "btn-success"
+                    isReady ? "bg-red-500 hover:bg-red-600 text-white border-red-500" : "bg-green-500 hover:bg-green-600 text-white border-green-500"
                   }`}
                   type="button"
                 >
-                  {isReady ? "Unready" : "Ready"}
+                  {isReady ? "Unready?" : "Ready"}
                 </button>
               )}
             </div>
@@ -439,6 +439,48 @@ const Lobby: React.FC = () => {
     return () => clearInterval(interval);
   }, [sessionId, players]);
 
+  // Heartbeat mechanism - send heartbeat every 30 seconds for current participant
+  useEffect(() => {
+    if (!sessionId || !resolvedSeat) return;
+
+    // Find current participant by role
+    const seatRole = SEAT_TO_ROLE[resolvedSeat];
+    let participantRole: string;
+    switch (seatRole) {
+      case "host":
+        participantRole = PARTICIPANT_ROLE.HOST;
+        break;
+      case "player1":
+        participantRole = PARTICIPANT_ROLE.PLAYER1;
+        break;
+      case "player2":
+        participantRole = PARTICIPANT_ROLE.PLAYER2;
+        break;
+      default:
+        return;
+    }
+
+    const currentParticipant = players.find(p => p.role === participantRole);
+    if (!currentParticipant) return;
+
+    // Send initial heartbeat
+    updateParticipantHeartbeat(currentParticipant.participant_id, sessionId);
+
+    // Set up interval to send heartbeat every 30 seconds
+    const heartbeatInterval = setInterval(() => {
+      updateParticipantHeartbeat(currentParticipant.participant_id, sessionId);
+    }, 30000); // 30 seconds
+
+    // Cleanup on unmount or when dependencies change
+    return () => {
+      clearInterval(heartbeatInterval);
+      // Mark as disconnected when leaving
+      markParticipantDisconnected(currentParticipant.participant_id).catch(err => {
+        Logger.error("Failed to mark participant as disconnected:", err);
+      });
+    };
+  }, [sessionId, resolvedSeat, players]);
+
   // Handle ready toggle for current player
   const handleToggleReady = async (participantId: string, currentReady: boolean) => {
     try {
@@ -450,6 +492,19 @@ const Lobby: React.FC = () => {
         ...prev,
         [participantId]: !currentReady
       }));
+
+      // Persist ready state to Netlify Blobs for reconnection
+      if (sessionId) {
+        const { saveSession } = await import("../lib/blobStore");
+        const currentPlayer = players.find(p => p.participant_id === participantId);
+        await saveSession(sessionId, participantId, {
+          isReady: !currentReady,
+          participantId,
+          sessionCode: sessionCode || "",
+          participantName,
+          role: currentPlayer?.role as ParticipantRole | undefined,
+        });
+      }
     } catch (error) {
       Logger.error("Failed to toggle ready status:", error);
     }

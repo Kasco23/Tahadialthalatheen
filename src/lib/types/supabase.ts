@@ -52,6 +52,7 @@ export type Database = {
           flag: string | null;
           isReady: boolean | null;
           join_at: string | null;
+          lastHeartbeat: string | null;
           lobby_presence: string;
           name: string;
           participant_id: string;
@@ -69,6 +70,7 @@ export type Database = {
           flag?: string | null;
           isReady?: boolean | null;
           join_at?: string | null;
+          lastHeartbeat?: string | null;
           lobby_presence?: string;
           name: string;
           participant_id?: string;
@@ -86,6 +88,7 @@ export type Database = {
           flag?: string | null;
           isReady?: boolean | null;
           join_at?: string | null;
+          lastHeartbeat?: string | null;
           lobby_presence?: string;
           name?: string;
           participant_id?: string;

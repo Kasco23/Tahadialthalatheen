@@ -29,6 +29,7 @@ describe("ParticipantTile", () => {
         video_presence: false,
         join_at: new Date().toISOString(),
         disconnect_at: null,
+        lastHeartbeat: new Date().toISOString(),
         powerup_alhabeed: null,
         powerup_bellegoal: null,
         powerup_pass_used: null,
