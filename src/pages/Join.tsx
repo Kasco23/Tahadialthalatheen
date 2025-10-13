@@ -5,20 +5,22 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   joinAsHost,
   joinAsPlayerWithCode,
-  checkExistingPreset,
-  type ExistingPreset,
-  getSessionParticipants,
-  getSessionIdByCode,
   rejoinAsParticipant,
   setParticipantPassword,
 } from "../lib/mutations";
-import { hashPassword } from "../lib/passwordHash";
+import {
+  checkForExistingPreset,
+  checkForExistingParticipants,
+  storeParticipantData,
+  getLobbyUrl,
+  extractTeamNameFromLogoUrl,
+  type ExistingPreset,
+  type ExistingParticipant,
+} from "../lib/joinHelpers";
 import { Alert } from "../components/Alert";
 import OptimizedFlagSelector from "../components/OptimizedFlagSelector";
 import PresetConfirmationModal from "../components/PresetConfirmationModal";
-import RejoinModal, {
-  type RejoinParticipant,
-} from "../components/RejoinModal";
+import RejoinModal from "../components/RejoinModal";
 import { supabase } from "../lib/supabaseClient";
 import { getSeatsFromRole, setSeatInStorage } from "../lib/userSession";
 import type { ParticipantRole } from "../lib/types";
@@ -74,7 +76,7 @@ const JoinRevolutionary: React.FC = () => {
   // Rejoin state
   const [showRejoinModal, setShowRejoinModal] = useState(false);
   const [rejoinParticipants, setRejoinParticipants] = useState<
-    RejoinParticipant[]
+    ExistingParticipant[]
   >([]);
   const [rejoinLoading, setRejoinLoading] = useState(false);
 
@@ -120,36 +122,24 @@ const JoinRevolutionary: React.FC = () => {
 
   // Check for existing participants when session code changes (for rejoin)
   useEffect(() => {
-    const checkExistingParticipants = async () => {
+    const checkExistingParticipantsForRejoin = async () => {
       const codeToCheck = activeTab === "host" ? sessionCode : playerSessionCode;
       
       if (!codeToCheck.trim() || codeToCheck.length < 4) {
+        setRejoinParticipants([]);
         return;
       }
 
-      try {
-        // Get session ID from code
-        const sessionId = await getSessionIdByCode(codeToCheck);
-        
-        // Get participants for the session
-        const participants = await getSessionParticipants(sessionId);
-        
-        // Filter participants based on role
-        const filteredParticipants = activeTab === "host"
-          ? participants.filter((p) => p.role === "Host")
-          : participants.filter((p) => p.role === "Player1" || p.role === "Player2");
-        
-        if (filteredParticipants.length > 0) {
-          setRejoinParticipants(filteredParticipants);
-        }
-      } catch (error) {
-        Logger.error("Error checking existing participants:", error);
-        // Don't show error to user, just continue with normal join flow
-      }
+      const participants = await checkForExistingParticipants(
+        codeToCheck,
+        activeTab
+      );
+      
+      setRejoinParticipants(participants);
     };
 
     // Debounce the check by 500ms
-    const timer = setTimeout(checkExistingParticipants, 500);
+    const timer = setTimeout(checkExistingParticipantsForRejoin, 500);
     return () => clearTimeout(timer);
   }, [sessionCode, playerSessionCode, activeTab]);
 
@@ -197,18 +187,13 @@ const JoinRevolutionary: React.FC = () => {
     sessionCode?: string,
     role?: string,
   ) => {
-    try {
-      const preset = await checkExistingPreset(name, sessionCode, role);
-      if (preset && preset.flag && preset.team_logo_url) {
-        setExistingPreset(preset);
-        setShowPresetModal(true);
-        return true; // Preset found
-      }
-      return false; // No preset found
-    } catch (error) {
-      Logger.error("Error checking preset:", error);
-      return false;
+    const preset = await checkForExistingPreset(name, sessionCode, role);
+    if (preset && preset.flag && preset.team_logo_url) {
+      setExistingPreset(preset);
+      setShowPresetModal(true);
+      return true; // Preset found
     }
+    return false; // No preset found
   };
 
   // Handle preset modal responses
@@ -222,10 +207,7 @@ const JoinRevolutionary: React.FC = () => {
       if (activeTab === "host") {
         setHostSelectedFlag(existingPreset.flag || "");
         setHostTeamLogoUrl(existingPreset.team_logo_url || "");
-        // Extract team name from logo URL or use a default
-        const teamName =
-          existingPreset.team_logo_url?.split("/").pop()?.split(".")[0] ||
-          "Selected Team";
+        const teamName = extractTeamNameFromLogoUrl(existingPreset.team_logo_url || "");
         setHostTeamName(teamName);
 
         // Proceed directly to join
@@ -233,10 +215,7 @@ const JoinRevolutionary: React.FC = () => {
       } else {
         setSelectedFlag(existingPreset.flag || "");
         setTeamLogoUrl(existingPreset.team_logo_url || "");
-        // Extract team name from logo URL or use a default
-        const teamName =
-          existingPreset.team_logo_url?.split("/").pop()?.split(".")[0] ||
-          "Selected Team";
+        const teamName = extractTeamNameFromLogoUrl(existingPreset.team_logo_url || "");
         setTeamName(teamName);
 
         // Proceed directly to join
@@ -276,41 +255,27 @@ const JoinRevolutionary: React.FC = () => {
         hostTeamLogoUrl,
       );
 
-      // Hash and store host password for rejoin
-      const passwordHash = await hashPassword(hostPassword);
-      await setParticipantPassword(participantId, passwordHash);
+      // Store password for rejoin (database handles hashing)
+      await setParticipantPassword(participantId, hostPassword);
 
-      // Persist participant data
-      try {
-        localStorage.setItem("participantId", participantId);
-        localStorage.setItem("sessionCode", sessionCode);
-        localStorage.setItem("isHost", "true");
-        localStorage.setItem("userRole", role);
-        if (hostSelectedFlag) {
-          localStorage.setItem("selectedFlag", hostSelectedFlag);
-        }
-        if (hostTeamLogoUrl) {
-          localStorage.setItem("teamLogoUrl", hostTeamLogoUrl);
-        }
-        if (hostTeamName) {
-          localStorage.setItem("teamName", hostTeamName);
-        }
-      } catch (storageError) {
-        Logger.warn("Could not save to localStorage:", storageError);
-      }
+      // Store participant data in localStorage
+      storeParticipantData(
+        participantId,
+        sessionCode,
+        role,
+        true,
+        undefined,
+        hostSelectedFlag ?? undefined,
+        hostTeamLogoUrl ?? undefined,
+        hostTeamName ?? undefined
+      );
 
-      // Set seat in storage and navigate with seat in URL
+      // Navigate to lobby
       const seat = getSeatsFromRole(role as ParticipantRole);
       if (seat) {
-        try {
-          setSeatInStorage(seat);
-        } catch (storageError) {
-          Logger.warn("Could not save seat to localStorage:", storageError);
-        }
-        navigate(`/lobby/${sessionCode}/${seat}`);
-      } else {
-        navigate(`/lobby/${sessionCode}`);
+        setSeatInStorage(seat);
       }
+      navigate(getLobbyUrl(sessionCode, role as ParticipantRole, seat));
     } catch (error) {
       Logger.error("Error joining as host:", error);
       setAlert({
@@ -349,43 +314,27 @@ const JoinRevolutionary: React.FC = () => {
         teamLogoUrl,
       );
 
-      // Hash and store password
-      const passwordHash = await hashPassword(playerPassword);
-      await setParticipantPassword(participantId, passwordHash);
+      // Store password for rejoin (database handles hashing)
+      await setParticipantPassword(participantId, playerPassword);
 
-      // Persist data to localStorage
-      try {
-        localStorage.setItem("participantId", participantId);
-        localStorage.setItem("sessionCode", playerSessionCode);
-        localStorage.setItem("playerName", playerName);
-        localStorage.setItem("isHost", "false");
-        localStorage.setItem("userRole", role);
-        localStorage.setItem("tt_participant_name", playerName);
-        if (selectedFlag) {
-          localStorage.setItem("selectedFlag", selectedFlag);
-        }
-        if (teamLogoUrl) {
-          localStorage.setItem("teamLogoUrl", teamLogoUrl);
-        }
-        if (teamName) {
-          localStorage.setItem("teamName", teamName);
-        }
-      } catch (storageError) {
-        Logger.warn("Could not save to localStorage:", storageError);
-      }
+      // Store participant data in localStorage
+      storeParticipantData(
+        participantId,
+        playerSessionCode,
+        role,
+        false,
+        playerName,
+        selectedFlag ?? undefined,
+        teamLogoUrl ?? undefined,
+        teamName ?? undefined
+      );
 
-      // Set seat in storage and navigate with seat in URL
+      // Navigate to lobby
       const seat = getSeatsFromRole(role as ParticipantRole);
       if (seat) {
-        try {
-          setSeatInStorage(seat);
-        } catch (storageError) {
-          Logger.warn("Could not save seat to localStorage:", storageError);
-        }
-        navigate(`/lobby/${playerSessionCode}/${seat}`);
-      } else {
-        navigate(`/lobby/${playerSessionCode}`);
+        setSeatInStorage(seat);
       }
+      navigate(getLobbyUrl(playerSessionCode, role as ParticipantRole, seat));
     } catch (error) {
       Logger.error("Error joining as player:", error);
       setAlert({
@@ -416,13 +365,10 @@ const JoinRevolutionary: React.FC = () => {
   ) => {
     setRejoinLoading(true);
     try {
-      // Hash the password
-      const passwordHash = await hashPassword(password);
-
-      // Rejoin without config update first
+      // Rejoin with password (database handles verification)
       const { role, sessionId } = await rejoinAsParticipant(
         participantId,
-        passwordHash,
+        password,
       );
 
       // Get session code
@@ -439,10 +385,16 @@ const JoinRevolutionary: React.FC = () => {
       }
 
       // Store participant data
-      localStorage.setItem("participantId", participantId);
-      localStorage.setItem("sessionCode", code);
-      localStorage.setItem("userRole", role);
-      localStorage.setItem("isHost", role === "Host" ? "true" : "false");
+      storeParticipantData(
+        participantId,
+        code,
+        role,
+        role === "Host",
+        undefined,
+        undefined,
+        undefined,
+        undefined
+      );
 
       // Navigate based on update config preference
       if (updateConfig) {
@@ -461,10 +413,8 @@ const JoinRevolutionary: React.FC = () => {
         const seat = getSeatsFromRole(role as ParticipantRole);
         if (seat) {
           setSeatInStorage(seat);
-          navigate(`/lobby/${code}/${seat}`);
-        } else {
-          navigate(`/lobby/${code}`);
         }
+        navigate(getLobbyUrl(code, role as ParticipantRole, seat));
       }
     } catch (error) {
       Logger.error("Error rejoining:", error);

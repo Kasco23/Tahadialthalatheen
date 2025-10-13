@@ -1277,32 +1277,29 @@ export async function getSessionParticipants(
 // 18. Set Participant Password
 /**
  * Set or update a participant's password for rejoin authentication
- * Password should be hashed before calling this function
+ * @deprecated Use setParticipantPassword from participantAuth.ts instead
+ * This function is kept for backward compatibility but uses the new module internally
  */
 export async function setParticipantPassword(
   participantId: string,
-  passwordHash: string,
+  password: string,
 ): Promise<void> {
-  const { error } = await supabase
-    .from("Participant")
-    .update({ password: passwordHash } as TablesUpdate<"Participant">)
-    .eq("participant_id", participantId);
-
-  if (error) {
-    throw new Error(`Failed to set participant password: ${error.message}`);
-  }
-
-  Logger.log(`Password set for participant: ${participantId}`);
+  // Use the new participantAuth module which handles hashing via database function
+  const { setParticipantPassword: setPassword } = await import(
+    "./participantAuth"
+  );
+  await setPassword(participantId, password);
 }
 
 // 19. Verify Participant Password
 /**
  * Verify a participant's password for rejoin authentication
- * Returns the participant data if password matches
+ * @deprecated Use verifyParticipantPassword from participantAuth.ts instead
+ * This function is kept for backward compatibility but uses the new module internally
  */
 export async function verifyParticipantPassword(
   participantId: string,
-  passwordHash: string,
+  password: string,
 ): Promise<{
   valid: boolean;
   participant?: {
@@ -1314,9 +1311,20 @@ export async function verifyParticipantPassword(
     session_id: string;
   };
 }> {
+  // Use the new participantAuth module
+  const { verifyParticipantPassword: verifyPassword } = await import(
+    "./participantAuth"
+  );
+  const isValid = await verifyPassword(participantId, password);
+
+  if (!isValid) {
+    return { valid: false };
+  }
+
+  // Fetch participant data if password is valid
   const { data, error } = await supabase
     .from("Participant")
-    .select("participant_id, name, role, flag, team_logo_url, session_id, password")
+    .select("participant_id, name, role, flag, team_logo_url, session_id")
     .eq("participant_id", participantId)
     .single();
 
@@ -1324,12 +1332,6 @@ export async function verifyParticipantPassword(
     return { valid: false };
   }
 
-  // Check if password matches
-  if (data.password !== passwordHash) {
-    return { valid: false };
-  }
-
-  // Return participant data without password
   return {
     valid: true,
     participant: {
@@ -1379,10 +1381,13 @@ export async function updateParticipantConfig(
 /**
  * Complete rejoin flow for an existing participant
  * Updates presence, optionally updates config, and returns participant data
+ * @param participantId - The participant's ID
+ * @param password - Plain text password (will be verified via database function)
+ * @param config - Optional configuration updates
  */
 export async function rejoinAsParticipant(
   participantId: string,
-  passwordHash: string,
+  password: string,
   config?: {
     name?: string;
     flag?: string;
@@ -1393,11 +1398,8 @@ export async function rejoinAsParticipant(
   role: string;
   sessionId: string;
 }> {
-  // First verify password
-  const verification = await verifyParticipantPassword(
-    participantId,
-    passwordHash,
-  );
+  // Verify password using the new auth module
+  const verification = await verifyParticipantPassword(participantId, password);
 
   if (!verification.valid || !verification.participant) {
     throw new Error("Invalid password or participant not found");
