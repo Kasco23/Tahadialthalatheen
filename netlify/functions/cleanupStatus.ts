@@ -3,17 +3,17 @@ import { createClient } from "@supabase/supabase-js";
 
 /**
  * Netlify Scheduled Function: Cleanup Stale Participant Status
- * 
+ *
  * Purpose:
  * - Reset stale participants who haven't sent a heartbeat recently
  * - Maintains accurate presence information in the database
  * - Runs hourly via Netlify scheduled functions
- * 
+ *
  * Logic:
  * - Finds participants with lastHeartbeat > 10 minutes ago
  * - Sets isConnected=false, isReady=false, inCall=false for stale participants
  * - Returns count of cleaned participants
- * 
+ *
  * Scheduled in netlify.toml:
  * [[functions]]
  * name = "cleanupStatus"
@@ -44,7 +44,9 @@ export const handler: Handler = async (_event, _context: Context) => {
     // Calculate timestamp for 10 minutes ago
     const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
 
-    console.log(`Checking for stale participants (lastHeartbeat < ${tenMinutesAgo})`);
+    console.log(
+      `Checking for stale participants (lastHeartbeat < ${tenMinutesAgo})`,
+    );
 
     // Find stale participants who appear connected but haven't sent heartbeat
     const { data: staleUsers, error: selectError } = await supabase
@@ -68,8 +70,13 @@ export const handler: Handler = async (_event, _context: Context) => {
     const cleanedCount = staleUsers?.length || 0;
 
     if (cleanedCount > 0) {
-      console.log(`Found ${cleanedCount} stale participants to clean up:`, 
-        staleUsers.map(u => ({ id: u.participant_id, name: u.name, role: u.role }))
+      console.log(
+        `Found ${cleanedCount} stale participants to clean up:`,
+        staleUsers.map((u) => ({
+          id: u.participant_id,
+          name: u.name,
+          role: u.role,
+        })),
       );
 
       // Update stale participants to disconnected state
@@ -81,7 +88,10 @@ export const handler: Handler = async (_event, _context: Context) => {
           video_presence: false,
           disconnect_at: new Date().toISOString(),
         })
-        .in("participant_id", staleUsers.map(u => u.participant_id));
+        .in(
+          "participant_id",
+          staleUsers.map((u) => u.participant_id),
+        );
 
       if (updateError) {
         console.error("Error updating stale participants:", updateError);

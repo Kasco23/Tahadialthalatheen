@@ -37,7 +37,9 @@ const PresetConfirmationModal: React.FC<PresetConfirmationModalProps> = ({
           </h2>
           <p className="text-blue-200">
             There is an existing flag and logo preset for{" "}
-            <span className="font-bold text-white">{roleName} "{preset.name}"</span>
+            <span className="font-bold text-white">
+              {roleName} "{preset.name}"
+            </span>
           </p>
         </div>
 
@@ -87,7 +89,7 @@ const PresetConfirmationModal: React.FC<PresetConfirmationModalProps> = ({
           >
             {isLoading ? "⏳ Loading..." : "🆕 Create New"}
           </button>
-          
+
           <button
             type="button"
             onClick={onUseExisting}

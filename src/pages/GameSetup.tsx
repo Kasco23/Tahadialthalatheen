@@ -81,10 +81,7 @@ const GameSetup: React.FC = () => {
 
       try {
         Logger.log("Joining as host...", { sessionCode, sessionId });
-        const hostResult = await joinAsHost(
-          sessionCode,
-          hostPasswordFromState,
-        );
+        const hostResult = await joinAsHost(sessionCode, hostPasswordFromState);
 
         const participantId = hostResult.participantId;
 

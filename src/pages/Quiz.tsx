@@ -20,7 +20,7 @@ import type { Tables, SegmentCode } from "../lib/types";
 
 /**
  * Quiz Page - Main gameplay interface
- * 
+ *
  * Video Call Integration:
  * - VideoRoom component consumes roomUrl and token from global Jotai atoms
  * - The call persists from Lobby via shared DailyProvider at App level

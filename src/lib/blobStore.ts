@@ -3,20 +3,20 @@ import type { UserSessionData } from "./userSession";
 
 /**
  * Netlify Blobs Session Store
- * 
+ *
  * This module provides cross-device session persistence using Netlify Blobs
  * as a key-value store. It's designed to complement localStorage with
  * server-side storage that persists across devices and browsers.
- * 
+ *
  * Architecture:
  * - Primary storage: Netlify Blobs (server-side, cross-device)
  * - Fallback: localStorage (client-side, browser-specific)
  * - Use case: Store session data, participant info, Daily room tokens, etc.
- * 
+ *
  * Environment Variables Required:
  * - NETLIFY_SITE_ID: Your Netlify site ID
  * - NETLIFY_PERSONAL_ACCESS_TOKEN: Personal access token for Netlify API
- * 
+ *
  * Note: Direct blob access from client is not supported. Use Edge Functions
  * (get-session.ts, set-session.ts) as a proxy layer for security.
  */
@@ -39,11 +39,11 @@ export interface BlobSessionData extends UserSessionData {
 export async function saveSession(
   sessionId: string,
   participantId: string,
-  data: BlobSessionData
+  data: BlobSessionData,
 ): Promise<boolean> {
   try {
     const key = `${sessionId}:${participantId}`;
-    
+
     // Call edge function to save data
     const response = await fetch(`/.netlify/edge-functions/set-session`, {
       method: "POST",
@@ -60,13 +60,18 @@ export async function saveSession(
     });
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: "Unknown error" }));
+      const error = await response
+        .json()
+        .catch(() => ({ error: "Unknown error" }));
       Logger.error("Failed to save session to blob store:", error);
       return false;
     }
 
     const result = await response.json();
-    Logger.log("Session saved to blob store:", { key, success: result.success });
+    Logger.log("Session saved to blob store:", {
+      key,
+      success: result.success,
+    });
     return result.success;
   } catch (error) {
     Logger.error("Error saving session to blob store:", error);
@@ -82,11 +87,11 @@ export async function saveSession(
  */
 export async function loadSession(
   sessionId: string,
-  participantId: string
+  participantId: string,
 ): Promise<BlobSessionData | null> {
   try {
     const key = `${sessionId}:${participantId}`;
-    
+
     // Call edge function to load data
     const response = await fetch(
       `/.netlify/edge-functions/get-session?key=${encodeURIComponent(key)}`,
@@ -95,7 +100,7 @@ export async function loadSession(
         headers: {
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     if (!response.ok) {
@@ -103,7 +108,9 @@ export async function loadSession(
         Logger.log("Session not found in blob store:", key);
         return null;
       }
-      const error = await response.json().catch(() => ({ error: "Unknown error" }));
+      const error = await response
+        .json()
+        .catch(() => ({ error: "Unknown error" }));
       Logger.error("Failed to load session from blob store:", error);
       return null;
     }
@@ -130,11 +137,11 @@ export async function loadSession(
  */
 export async function deleteSession(
   sessionId: string,
-  participantId: string
+  participantId: string,
 ): Promise<boolean> {
   try {
     const key = `${sessionId}:${participantId}`;
-    
+
     // Call edge function to delete data
     const response = await fetch(`/.netlify/edge-functions/set-session`, {
       method: "DELETE",
@@ -145,13 +152,18 @@ export async function deleteSession(
     });
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: "Unknown error" }));
+      const error = await response
+        .json()
+        .catch(() => ({ error: "Unknown error" }));
       Logger.error("Failed to delete session from blob store:", error);
       return false;
     }
 
     const result = await response.json();
-    Logger.log("Session deleted from blob store:", { key, success: result.success });
+    Logger.log("Session deleted from blob store:", {
+      key,
+      success: result.success,
+    });
     return result.success;
   } catch (error) {
     Logger.error("Error deleting session from blob store:", error);

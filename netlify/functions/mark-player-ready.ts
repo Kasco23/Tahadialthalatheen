@@ -3,16 +3,16 @@ import { createClient } from "@supabase/supabase-js";
 
 /**
  * Netlify Function: Mark Player Ready
- * 
+ *
  * Server-side endpoint to update a player's ready status.
  * Keeps Supabase service role key secure on the server.
- * 
+ *
  * POST Body:
  * {
  *   "participantId": "uuid-of-participant",
  *   "isReady": boolean
  * }
- * 
+ *
  * Returns:
  * {
  *   "success": true
@@ -26,7 +26,7 @@ export default async (req: Request, _context: Context) => {
       {
         status: 405,
         headers: { "Content-Type": "application/json" },
-      }
+      },
     );
   }
 
@@ -43,7 +43,7 @@ export default async (req: Request, _context: Context) => {
         {
           status: 400,
           headers: { "Content-Type": "application/json" },
-        }
+        },
       );
     }
 
@@ -62,7 +62,7 @@ export default async (req: Request, _context: Context) => {
         {
           status: 500,
           headers: { "Content-Type": "application/json" },
-        }
+        },
       );
     }
 
@@ -86,19 +86,16 @@ export default async (req: Request, _context: Context) => {
         {
           status: 500,
           headers: { "Content-Type": "application/json" },
-        }
+        },
       );
     }
 
     console.log(`Player ${participantId} ready status set to: ${isReady}`);
 
-    return new Response(
-      JSON.stringify({ success: true }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
   } catch (error) {
     console.error("Error in mark-player-ready function:", error);
     return new Response(
@@ -109,7 +106,7 @@ export default async (req: Request, _context: Context) => {
       {
         status: 500,
         headers: { "Content-Type": "application/json" },
-      }
+      },
     );
   }
 };

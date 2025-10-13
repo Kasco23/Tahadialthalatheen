@@ -18,7 +18,7 @@ interface VideoRoomProps {
 
 /**
  * VideoRoom Component - Manages persistent video call state across routes
- * 
+ *
  * This component:
  * - Reads roomUrl and token from global Jotai atoms
  * - Automatically joins the call when autoJoin is true and room data is available
@@ -46,7 +46,10 @@ export const VideoRoom: React.FC<VideoRoomProps> = ({
     }
 
     // Only join if we're not already in a meeting
-    if (meetingState !== "joined-meeting" && meetingState !== "joining-meeting") {
+    if (
+      meetingState !== "joined-meeting" &&
+      meetingState !== "joining-meeting"
+    ) {
       const join = async () => {
         try {
           Logger.log("VideoRoom: Auto-joining call", {
@@ -65,14 +68,24 @@ export const VideoRoom: React.FC<VideoRoomProps> = ({
         } catch (error) {
           Logger.error("VideoRoom: Failed to auto-join call:", error);
           setJoinError(
-            error instanceof Error ? error.message : "Failed to join video call"
+            error instanceof Error
+              ? error.message
+              : "Failed to join video call",
           );
         }
       };
 
       join();
     }
-  }, [autoJoin, callObject, roomUrl, token, userName, participantName, meetingState]);
+  }, [
+    autoJoin,
+    callObject,
+    roomUrl,
+    token,
+    userName,
+    participantName,
+    meetingState,
+  ]);
 
   // If no room data available, show a message
   if (!roomUrl || !token) {
@@ -108,7 +121,9 @@ export const VideoRoom: React.FC<VideoRoomProps> = ({
             <span className="flex items-center space-x-1">
               <span>🏠</span>
               <span>
-                {meetingState === "joined-meeting" ? "Connected" : "Connecting..."}
+                {meetingState === "joined-meeting"
+                  ? "Connected"
+                  : "Connecting..."}
               </span>
             </span>
             {meetingState === "joined-meeting" && (

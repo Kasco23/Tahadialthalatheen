@@ -3,15 +3,15 @@ import { createClient } from "@supabase/supabase-js";
 
 /**
  * Netlify Function: Check Ready Status
- * 
+ *
  * Server-side endpoint to check if all players are ready in a session.
  * Keeps Supabase service role key secure on the server.
- * 
+ *
  * POST Body:
  * {
  *   "sessionId": "uuid-of-session"
  * }
- * 
+ *
  * Returns:
  * {
  *   "success": true,
@@ -29,7 +29,7 @@ export default async (req: Request, _context: Context) => {
       {
         status: 405,
         headers: { "Content-Type": "application/json" },
-      }
+      },
     );
   }
 
@@ -43,7 +43,7 @@ export default async (req: Request, _context: Context) => {
         {
           status: 400,
           headers: { "Content-Type": "application/json" },
-        }
+        },
       );
     }
 
@@ -62,7 +62,7 @@ export default async (req: Request, _context: Context) => {
         {
           status: 500,
           headers: { "Content-Type": "application/json" },
-        }
+        },
       );
     }
 
@@ -88,7 +88,7 @@ export default async (req: Request, _context: Context) => {
         {
           status: 500,
           headers: { "Content-Type": "application/json" },
-        }
+        },
       );
     }
 
@@ -108,7 +108,7 @@ export default async (req: Request, _context: Context) => {
       {
         status: 200,
         headers: { "Content-Type": "application/json" },
-      }
+      },
     );
   } catch (error) {
     console.error("Error in check-ready-status function:", error);
@@ -120,7 +120,7 @@ export default async (req: Request, _context: Context) => {
       {
         status: 500,
         headers: { "Content-Type": "application/json" },
-      }
+      },
     );
   }
 };

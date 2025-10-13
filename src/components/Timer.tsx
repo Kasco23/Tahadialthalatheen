@@ -20,21 +20,21 @@ export interface TimerProps {
 
 /**
  * Timer Component
- * 
+ *
  * A flexible countdown timer that can be used for quiz questions,
  * lobby countdowns, or any time-limited interactions.
- * 
+ *
  * Features:
  * - Countdown display with visual feedback
  * - Color changes based on remaining time (green → yellow → red)
  * - Callback support for completion and tick events
  * - Manual start/stop/reset controls
  * - Auto-start option
- * 
+ *
  * Usage:
  * ```tsx
- * <Timer 
- *   duration={30} 
+ * <Timer
+ *   duration={30}
  *   onComplete={() => console.log('Time up!')}
  *   autoStart={true}
  * />
@@ -71,7 +71,7 @@ export const Timer: React.FC<TimerProps> = ({
     const intervalId = setInterval(() => {
       setTimeRemaining((prev) => {
         const newTime = prev - 1;
-        
+
         // Call onTick callback
         if (onTick) {
           onTick(newTime);

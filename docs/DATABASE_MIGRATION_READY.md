@@ -53,17 +53,17 @@ Connect to your database and run:
 
 ```sql
 -- Add the isReady column
-ALTER TABLE "public"."Participant" 
+ALTER TABLE "public"."Participant"
 ADD COLUMN IF NOT EXISTS "isReady" BOOLEAN DEFAULT false;
 
 -- Add performance index
-CREATE INDEX IF NOT EXISTS "idx_participant_ready" 
-ON "public"."Participant"("session_id", "isReady") 
+CREATE INDEX IF NOT EXISTS "idx_participant_ready"
+ON "public"."Participant"("session_id", "isReady")
 WHERE "lobby_presence" = 'Joined';
 
 -- Update existing rows
-UPDATE "public"."Participant" 
-SET "isReady" = false 
+UPDATE "public"."Participant"
+SET "isReady" = false
 WHERE "isReady" IS NULL;
 ```
 
@@ -73,24 +73,25 @@ After applying the migration, verify it worked:
 
 ```sql
 -- Check column exists
-SELECT column_name, data_type, column_default 
-FROM information_schema.columns 
-WHERE table_name = 'Participant' 
+SELECT column_name, data_type, column_default
+FROM information_schema.columns
+WHERE table_name = 'Participant'
   AND column_name = 'isReady';
 
 -- Check index exists
-SELECT indexname, indexdef 
-FROM pg_indexes 
-WHERE tablename = 'Participant' 
+SELECT indexname, indexdef
+FROM pg_indexes
+WHERE tablename = 'Participant'
   AND indexname = 'idx_participant_ready';
 
 -- Verify data
-SELECT COUNT(*), isReady 
-FROM "Participant" 
+SELECT COUNT(*), isReady
+FROM "Participant"
 GROUP BY isReady;
 ```
 
 Expected results:
+
 - Column `isReady` should exist with type `boolean` and default `false`
 - Index `idx_participant_ready` should exist
 - All existing rows should have `isReady = false`
@@ -104,7 +105,7 @@ If you need to rollback this migration:
 DROP INDEX IF EXISTS "public"."idx_participant_ready";
 
 -- Remove column
-ALTER TABLE "public"."Participant" 
+ALTER TABLE "public"."Participant"
 DROP COLUMN IF EXISTS "isReady";
 ```
 
@@ -113,16 +114,19 @@ DROP COLUMN IF EXISTS "isReady";
 ## Impact Analysis
 
 ### Application Impact
+
 - **Minimal**: Application has fallback for missing field
 - **Compatible**: Existing code continues to work without migration
 - **Enhanced**: New readiness features become available after migration
 
 ### Performance Impact
+
 - **Positive**: Index improves ready status queries
 - **Negligible**: Boolean column adds minimal storage overhead
 - **Optimized**: Partial index only covers joined participants
 
 ### Database Size
+
 - Additional storage per row: ~1 byte (boolean)
 - Index overhead: Minimal (only joined participants)
 - Total estimated increase: < 1 MB for 10,000 participants

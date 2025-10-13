@@ -42,11 +42,13 @@ src/
 ### Edge Functions
 
 #### get-session.ts
+
 - **Method**: GET
 - **Query Params**: `key` (format: `sessionId:participantId`)
 - **Returns**: Session data JSON or 404 if not found
 
 #### set-session.ts
+
 - **Method**: POST (save), DELETE (remove)
 - **Body**: `{ key, data }` for POST, `{ key }` for DELETE
 - **Returns**: Success status
@@ -54,7 +56,7 @@ src/
 ### Client Integration
 
 ```typescript
-import { saveSession, loadSession } from './lib/blobStore';
+import { saveSession, loadSession } from "./lib/blobStore";
 
 // Save session data
 await saveSession(sessionId, participantId, {
@@ -62,7 +64,7 @@ await saveSession(sessionId, participantId, {
   role: "Player1",
   flag: "us",
   isReady: true,
-  dailyRoomToken: "token123"
+  dailyRoomToken: "token123",
 });
 
 // Load session data
@@ -72,10 +74,12 @@ const data = await loadSession(sessionId, participantId);
 ### Hybrid Storage in UserSession
 
 The `UserSession` class automatically syncs to blob storage when:
+
 - Session code and participant ID are available
 - User updates session data via `UserSession.set()`
 
 Falls back to localStorage for:
+
 - Offline operation
 - Fast synchronous reads
 - Initial data before network sync
@@ -94,7 +98,7 @@ NETLIFY_PERSONAL_ACCESS_TOKEN=<your-netlify-personal-access-token>
 
 ### How to Get These Values
 
-1. **NETLIFY_SITE_ID**: 
+1. **NETLIFY_SITE_ID**:
    - Go to Netlify dashboard → Your site → Site settings → General
    - Copy the "Site ID" (also called API ID)
 
@@ -110,12 +114,12 @@ The readiness system requires adding an `isReady` column:
 
 ```sql
 -- Add isReady column to Participant table
-ALTER TABLE "Participant" 
+ALTER TABLE "Participant"
 ADD COLUMN "isReady" BOOLEAN DEFAULT false;
 
 -- Optional: Add index for performance
-CREATE INDEX idx_participant_ready 
-ON "Participant"(session_id, isReady) 
+CREATE INDEX idx_participant_ready
+ON "Participant"(session_id, isReady)
 WHERE lobby_presence = 'Joined';
 ```
 
@@ -126,26 +130,31 @@ Run this migration in your Supabase SQL editor before using the readiness featur
 ### Blob Store Functions
 
 #### `saveSession(sessionId, participantId, data)`
+
 - Saves session data to blob store via edge function
 - Returns `Promise<boolean>` indicating success
 - Automatically adds `lastUpdated` timestamp
 
 #### `loadSession(sessionId, participantId)`
+
 - Loads session data from blob store via edge function
 - Returns `Promise<BlobSessionData | null>`
 - Returns null if not found
 
 #### `deleteSession(sessionId, participantId)`
+
 - Removes session data from blob store
 - Returns `Promise<boolean>` indicating success
 
 ### Readiness Mutations
 
 #### `markPlayerReady(participantId, isReady)`
+
 - Updates participant's ready status
 - Throws error on failure
 
 #### `checkAllPlayersReady(sessionId)`
+
 - Returns object with:
   - `allReady`: boolean (true if all players ready)
   - `readyCount`: number of ready players
@@ -153,6 +162,7 @@ Run this migration in your Supabase SQL editor before using the readiness featur
   - `participants`: array of participant objects with ready status
 
 #### `resetAllPlayersReady(sessionId)`
+
 - Resets all players' ready status to false
 - Useful when starting new rounds
 
@@ -161,7 +171,7 @@ Run this migration in your Supabase SQL editor before using the readiness featur
 ### Lobby Ready System
 
 ```typescript
-import { markPlayerReady, checkAllPlayersReady } from './lib/mutations';
+import { markPlayerReady, checkAllPlayersReady } from "./lib/mutations";
 
 // Player marks themselves ready
 const handleReadyClick = async () => {
@@ -169,7 +179,7 @@ const handleReadyClick = async () => {
 };
 
 // Host checks if all players ready
-const { allReady, readyCount, totalPlayers } = 
+const { allReady, readyCount, totalPlayers } =
   await checkAllPlayersReady(sessionId);
 
 if (allReady) {

@@ -8,18 +8,18 @@ import type { Database } from "../lib/types/supabase";
 
 /**
  * ParticipantTile Component - Individual video participant display
- * 
+ *
  * Simplified Design:
  * - Removed mute/eject moderation controls to prevent video freezing issues
  * - The controls were causing WebSocket state conflicts when clicked, even if canceled
  * - Video streams now maintain stability without moderation interference
- * 
+ *
  * Display Features:
  * - Player name, role, flag, and team logo
  * - Live video stream or "Camera Off" placeholder
  * - Connection status indicator (green pulse)
  * - Video status indicator (camera on/off emoji)
- * 
+ *
  * WebSocket Stability:
  * - Uses Daily.co's reactive hooks for participant data
  * - No direct WebSocket manipulation - all handled by Daily.co internally
