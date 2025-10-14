@@ -28,8 +28,8 @@ const PasswordModal: React.FC<PasswordModalProps> = ({
       newErrors.push("Password is required");
     }
 
-    if (password.length < 3) {
-      newErrors.push("Password must be at least 3 characters long");
+    if (password.length < 4) {
+      newErrors.push("Password must be at least 4 characters long");
     }
 
     if (!hostName.trim()) {

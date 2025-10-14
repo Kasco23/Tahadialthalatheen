@@ -30,51 +30,84 @@ export async function createSession(
   hostPassword: string,
   hostName?: string,
 ): Promise<{ sessionId: string; sessionCode: string }> {
-  // Create the session; DB trigger will populate session_code
-  const { data: sessionData, error: sessionError } = await supabase
-    .from("Session")
-    .insert({
-      host_password: hostPassword,
-      phase: "Setup",
-      game_state: "pre-quiz",
-    })
-    .select("session_id, session_code")
-    .single();
-
-  if (sessionError) {
-    throw new Error(`Failed to create session: ${sessionError.message}`);
+  // Input validation
+  if (!hostPassword || hostPassword.trim().length === 0) {
+    throw new Error("Host password is required");
   }
 
-  // Create both GameMaster (PC user) and Host (mobile user) participants
-  const participantsToCreate = [
-    {
-      session_id: sessionData.session_id,
-      name: "GameMaster", // PC user who created the session
-      role: "GameMaster",
-      lobby_presence: "Joined", // PC user is immediately joined
-    },
-    {
-      session_id: sessionData.session_id,
-      name: hostName || "Host", // Mobile user who will join later
-      role: "Host",
-      lobby_presence: "NotJoined", // Will join via mobile
-    },
-  ];
-
-  const { error: participantError } = await supabase
-    .from("Participant")
-    .insert(participantsToCreate);
-
-  if (participantError) {
-    throw new Error(
-      `Failed to create participants: ${participantError.message}`,
-    );
+  if (hostPassword.length < 4) {
+    throw new Error("Host password must be at least 4 characters long");
   }
 
-  return {
-    sessionId: sessionData.session_id,
-    sessionCode: sessionData.session_code,
-  };
+  // Sanitize host name
+  const sanitizedHostName = hostName?.trim() || "Host";
+
+  try {
+    // Create the session; DB trigger will populate session_code and hash password
+    const { data: sessionData, error: sessionError } = await supabase
+      .from("Session")
+      .insert({
+        host_password: hostPassword,
+        phase: "Setup",
+        game_state: "pre-quiz",
+      })
+      .select("session_id, session_code")
+      .single();
+
+    if (sessionError) {
+      Logger.error("Session creation failed:", sessionError);
+      throw new Error(`Failed to create session: ${sessionError.message}`);
+    }
+
+    if (!sessionData?.session_id || !sessionData?.session_code) {
+      throw new Error("Session created but missing required data");
+    }
+
+    // Create both GameMaster (PC user) and Host (mobile user) participants
+    const participantsToCreate = [
+      {
+        session_id: sessionData.session_id,
+        name: "GameMaster", // PC user who created the session
+        role: "GameMaster" as ParticipantRole,
+        lobby_presence: "Joined" as LobbyPresence, // PC user is immediately joined
+      },
+      {
+        session_id: sessionData.session_id,
+        name: sanitizedHostName, // Mobile user who will join later
+        role: "Host" as ParticipantRole,
+        lobby_presence: "NotJoined" as LobbyPresence, // Will join via mobile
+      },
+    ];
+
+    const { error: participantError } = await supabase
+      .from("Participant")
+      .insert(participantsToCreate);
+
+    if (participantError) {
+      Logger.error("Participant creation failed:", participantError);
+      // Try to clean up the session if participant creation fails
+      await supabase.from("Session").delete().eq("session_id", sessionData.session_id);
+      throw new Error(
+        `Failed to create participants: ${participantError.message}`,
+      );
+    }
+
+    Logger.log("Session created successfully:", {
+      sessionId: sessionData.session_id,
+      sessionCode: sessionData.session_code,
+    });
+
+    return {
+      sessionId: sessionData.session_id,
+      sessionCode: sessionData.session_code,
+    };
+  } catch (error) {
+    // Re-throw with better context if it's not already an Error object
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error(`Unexpected error creating session: ${String(error)}`);
+  }
 }
 
 // Function to fetch active sessions for the Active Games component
