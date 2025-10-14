@@ -203,6 +203,16 @@ const GameSetup: React.FC = () => {
     value: string,
   ) => {
     const numValue = parseInt(value) || 0;
+    
+    // Validate range (1-50 questions per segment)
+    if (numValue < 0 || numValue > 50) {
+      setNotice({
+        type: "error",
+        message: "Question count must be between 1 and 50",
+      });
+      return;
+    }
+
     setSegments((prev) => ({
       ...prev,
       [segment]: numValue,
@@ -219,6 +229,10 @@ const GameSetup: React.FC = () => {
         ]);
       } catch (error) {
         Logger.error("Failed to update segment config:", error);
+        setNotice({
+          type: "error",
+          message: "Failed to save segment configuration",
+        });
       }
     }
   };
@@ -234,6 +248,18 @@ const GameSetup: React.FC = () => {
     }
     if (!sessionCode) {
       setNotice({ type: "error", message: "Missing session code." });
+      return;
+    }
+
+    // Validate segment configuration
+    const hasInvalidSegments = Object.entries(segments).some(
+      ([, count]) => count < 1 || count > 50
+    );
+    if (hasInvalidSegments) {
+      setNotice({
+        type: "error",
+        message: "All segments must have between 1 and 50 questions.",
+      });
       return;
     }
 
@@ -676,7 +702,8 @@ const GameSetup: React.FC = () => {
                       <input
                         type="number"
                         id="wdyk"
-                        min="0"
+                        min="1"
+                        max="50"
                         value={segments.WDYK}
                         onChange={(e) =>
                           handleSegmentChange("WDYK", e.target.value)
@@ -695,7 +722,8 @@ const GameSetup: React.FC = () => {
                       <input
                         type="number"
                         id="auct"
-                        min="0"
+                        min="1"
+                        max="50"
                         value={segments.AUCT}
                         onChange={(e) =>
                           handleSegmentChange("AUCT", e.target.value)
@@ -714,7 +742,8 @@ const GameSetup: React.FC = () => {
                       <input
                         type="number"
                         id="bell"
-                        min="0"
+                        min="1"
+                        max="50"
                         value={segments.BELL}
                         onChange={(e) =>
                           handleSegmentChange("BELL", e.target.value)
@@ -733,7 +762,8 @@ const GameSetup: React.FC = () => {
                       <input
                         type="number"
                         id="updw"
-                        min="0"
+                        min="1"
+                        max="50"
                         value={segments.UPDW}
                         onChange={(e) =>
                           handleSegmentChange("UPDW", e.target.value)
@@ -752,7 +782,8 @@ const GameSetup: React.FC = () => {
                       <input
                         type="number"
                         id="remo"
-                        min="0"
+                        min="1"
+                        max="50"
                         value={segments.REMO}
                         onChange={(e) =>
                           handleSegmentChange("REMO", e.target.value)

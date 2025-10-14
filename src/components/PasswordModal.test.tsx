@@ -91,7 +91,7 @@ describe("PasswordModal", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText("• Password must be at least 3 characters long"),
+        screen.getByText("• Password must be at least 4 characters long"),
       ).toBeInTheDocument();
     });
 
