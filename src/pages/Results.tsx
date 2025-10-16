@@ -97,7 +97,7 @@ const Results: React.FC = () => {
     const loadPlayers = async () => {
       try {
         const { data: playersData, error: playersError } = await supabase
-          .from("Participant")
+          .from("Participants")
           .select(
             "participant_id, session_id, name, role, flag, team_logo_url, score, is_connected, is_host",
           )

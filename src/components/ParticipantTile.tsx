@@ -26,7 +26,7 @@ import type { Database } from "../lib/types/supabase";
  * - Video state updates automatically through useVideoTrack hook
  */
 
-type ParticipantRow = Database["public"]["Tables"]["Participant"]["Row"];
+type ParticipantRow = Database["public"]["Tables"]["Participants"]["Row"];
 
 interface ParticipantTileProps {
   participantId: string;

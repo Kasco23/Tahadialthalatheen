@@ -41,7 +41,7 @@ export async function createSession(
   try {
     // Create the session with host_profile_id
     const { data: sessionData, error: sessionError } = await supabase
-      .from("Session")
+      .from("Sessions")
       .insert({
         host_profile_id: hostProfileId,
         phase: "Setup",
@@ -76,14 +76,14 @@ export async function createSession(
     ];
 
     const { error: participantError } = await supabase
-      .from("Participant")
+      .from("Participants")
       .insert(participantsToCreate);
 
     if (participantError) {
       Logger.error("Participant creation failed:", participantError);
       // Try to clean up the session if participant creation fails
       await supabase
-        .from("Session")
+        .from("Sessions")
         .delete()
         .eq("session_id", sessionData.session_id);
       throw new Error(
@@ -112,7 +112,7 @@ export async function createSession(
 // Function to fetch active sessions for the Active Games component
 export async function getActiveSessions(): Promise<ActiveSession[]> {
   const { data, error } = await supabase
-    .from("Session")
+    .from("Sessions")
     .select(
       `
       session_id,
@@ -187,7 +187,7 @@ export async function getActiveSessions(): Promise<ActiveSession[]> {
 // Helper function to resolve session_code to session_id
 export async function getSessionIdByCode(sessionCode: string): Promise<string> {
   const { data, error } = await supabase
-    .from("Session")
+    .from("Sessions")
     .select("session_id")
     .eq("session_code", sessionCode.toUpperCase())
     .single();
@@ -207,7 +207,7 @@ async function getParticipantIdBySessionAndName(
   name: string,
 ): Promise<string> {
   const { data, error } = await supabase
-    .from("Participant")
+    .from("Participants")
     .select("participant_id")
     .eq("session_id", sessionId)
     .eq("name", name)
@@ -233,7 +233,7 @@ export async function joinAsPlayerWithCode(
   // First, check if player with this name already exists for the session (case-insensitive)
   try {
     const { data: existing, error: existingErr } = await supabase
-      .from("Participant")
+      .from("Participants")
       .select("participant_id, role")
       .eq("session_id", sessionId)
       .ilike("name", name)
@@ -246,7 +246,7 @@ export async function joinAsPlayerWithCode(
       const existingRow = existing as ExistingRow;
       // Update presence with timestamps and return existing id
       await supabase
-        .from("Participant")
+        .from("Participants")
         .update({
           lobby_presence: "Joined",
           join_at: new Date().toISOString(),
@@ -264,7 +264,7 @@ export async function joinAsPlayerWithCode(
 
   // Determine available player role (Player1 or Player2)
   const { data: playersData, error: playersError } = await supabase
-    .from("Participant")
+    .from("Participants")
     .select("role")
     .eq("session_id", sessionId)
     .in("role", ["Player1", "Player2"]);
@@ -285,7 +285,7 @@ export async function joinAsPlayerWithCode(
 
   // Try insert with assigned role
   const insertResultPlayer = await supabase
-    .from("Participant")
+    .from("Participants")
     .insert({
       session_id: sessionId,
       name,
@@ -325,7 +325,7 @@ export async function joinAsPlayerWithCode(
     );
     // Need to query for the role since getParticipantIdBySessionAndName only returns ID
     const { data: roleData } = await supabase
-      .from("Participant")
+      .from("Participants")
       .select("role")
       .eq("participant_id", participantId)
       .single();
@@ -388,7 +388,7 @@ export async function createDailyRoom(
       };
 
       // Still update the database for consistency
-      const { error } = await supabase.from("DailyRoom").upsert({
+      const { error } = await supabase.from("DailyRooms").upsert({
         room_id: sessionId,
         room_url: mockRoomUrl,
         ready: true,
@@ -445,7 +445,7 @@ export async function createDailyRoom(
     Logger.debug("Daily room created successfully:", data);
 
     // Insert/update DailyRoom table
-    const { error } = await supabase.from("DailyRoom").upsert({
+    const { error } = await supabase.from("DailyRooms").upsert({
       room_id: sessionId,
       room_url: data.room_url,
       ready: true,
@@ -469,7 +469,7 @@ export async function getDailyRoom(
 ): Promise<{ room_url: string; ready: boolean } | null> {
   try {
     const { data, error } = await supabase
-      .from("DailyRoom")
+      .from("DailyRooms")
       .select("room_url, ready")
       .eq("room_id", sessionId)
       .single();
@@ -498,7 +498,7 @@ export async function joinAsHost(
 ): Promise<{ participantId: string; role: string }> {
   // Get the session and verify host_profile_id matches
   const { data: sessionRow, error: sessionError } = await supabase
-    .from("Session")
+    .from("Sessions")
     .select("session_id, host_profile_id")
     .eq("session_code", sessionCode.toUpperCase())
     .single();
@@ -518,7 +518,7 @@ export async function joinAsHost(
 
   // First, try to find existing host participant
   const { data: existingHost, error: findError } = await supabase
-    .from("Participant")
+    .from("Participants")
     .select("participant_id")
     .eq("session_id", sessionId)
     .eq("role", "Host")
@@ -546,7 +546,7 @@ export async function joinAsHost(
     if (logoUrl) updateData.team_logo_url = logoUrl;
 
     const { error: updateError } = await supabase
-      .from("Participant")
+      .from("Participants")
       .update(updateData)
       .eq("participant_id", existingHost.participant_id);
 
@@ -575,7 +575,7 @@ export async function joinAsGameMaster(
 ): Promise<string> {
   // Get the session ID
   const { data: sessionRow, error: sessionError } = await supabase
-    .from("Session")
+    .from("Sessions")
     .select("session_id")
     .eq("session_code", sessionCode.toUpperCase())
     .single();
@@ -590,7 +590,7 @@ export async function joinAsGameMaster(
 
   // Check for existing GameMaster
   const { data: existingGameMaster, error: findError } = await supabase
-    .from("Participant")
+    .from("Participants")
     .select("participant_id")
     .eq("session_id", sessionId)
     .eq("role", "GameMaster")
@@ -605,7 +605,7 @@ export async function joinAsGameMaster(
   if (existingGameMaster) {
     // Update existing GameMaster
     const { error: updateError } = await supabase
-      .from("Participant")
+      .from("Participants")
       .update({
         name: gameMasterName,
         flag: flag || null,
@@ -625,7 +625,7 @@ export async function joinAsGameMaster(
 
   // Create new GameMaster participant
   const { data: newGameMaster, error: insertError } = await supabase
-    .from("Participant")
+    .from("Participants")
     .insert({
       session_id: sessionId,
       name: gameMasterName,
@@ -654,7 +654,7 @@ export async function joinAsPlayer(
 ): Promise<string> {
   // Check existing players to determine role
   const { data: existingPlayers, error: countError } = await supabase
-    .from("Participant")
+    .from("Participants")
     .select("role")
     .eq("session_id", sessionId)
     .in("role", ["Player1", "Player2"]);
@@ -678,7 +678,7 @@ export async function joinAsPlayer(
 
   // Insert participant as player
   const { data, error } = await supabase
-    .from("Participant")
+    .from("Participants")
     .insert({
       session_id: sessionId,
       name: name,
@@ -704,7 +704,7 @@ export async function updateLobbyPresence(
   participantId: string,
   status: LobbyPresence,
 ): Promise<void> {
-  const updateData: TablesUpdate<"Participant"> = { lobby_presence: status };
+  const updateData: TablesUpdate<"Participants"> = { lobby_presence: status };
 
   // Set timestamps based on status
   if (status === "Joined") {
@@ -716,7 +716,7 @@ export async function updateLobbyPresence(
   }
 
   const { error } = await supabase
-    .from("Participant")
+    .from("Participants")
     .update(updateData)
     .eq("participant_id", participantId);
 
@@ -737,7 +737,7 @@ export async function leaveLobbyByRole(
 ): Promise<void> {
   // Find participant by session and role
   const { data: participant, error: findError } = await supabase
-    .from("Participant")
+    .from("Participants")
     .select("participant_id")
     .eq("session_id", sessionId)
     .eq("role", role)
@@ -792,7 +792,7 @@ export async function updateVideoPresence(
   connected: boolean,
 ): Promise<void> {
   const { error } = await supabase
-    .from("Participant")
+    .from("Participants")
     .update({ video_presence: connected })
     .eq("participant_id", participantId);
 
@@ -807,14 +807,14 @@ export async function updatePhase(
   phase: SessionPhase,
   gameState?: GameState,
 ): Promise<void> {
-  const updateData: TablesUpdate<"Session"> = { phase };
+  const updateData: TablesUpdate<"Sessions"> = { phase };
 
   if (gameState) {
     updateData.game_state = gameState;
   }
 
   const { error } = await supabase
-    .from("Session")
+    .from("Sessions")
     .update(updateData)
     .eq("session_id", sessionId);
 
@@ -832,7 +832,7 @@ export async function updateScore(
 ): Promise<void> {
   // First try to get existing score
   const { data: existingScore, error: selectError } = await supabase
-    .from("Score")
+    .from("Scores")
     .select("points")
     .eq("session_id", sessionId)
     .eq("participant_id", participantId)
@@ -847,7 +847,7 @@ export async function updateScore(
   }
 
   // Upsert the score
-  const { error } = await supabase.from("Score").upsert(
+  const { error } = await supabase.from("Scores").upsert(
     {
       session_id: sessionId,
       participant_id: participantId,
@@ -879,7 +879,7 @@ export async function activatePowerup(
   const column = powerupColumnMap[powerup];
 
   const { error } = await supabase
-    .from("Participant")
+    .from("Participants")
     .update({ [column]: true })
     .eq("participant_id", participantId);
 
@@ -894,7 +894,7 @@ export async function endSession(
   sessionCode?: string,
 ): Promise<void> {
   const { error } = await supabase
-    .from("Session")
+    .from("Sessions")
     .update({
       game_state: "concluded",
       ended_at: new Date().toISOString(),
@@ -1006,7 +1006,7 @@ export async function checkExistingPreset(
   // Search for existing participants with the same name (case insensitive)
   // Optionally filter by session code and role
   let query = supabase
-    .from("Participant")
+    .from("Participants")
     .select(
       "name, flag, team_logo_url, role, session_id, Session!inner(session_code)",
     )
@@ -1089,8 +1089,8 @@ export async function markPlayerReady(
 
   // Direct database call (requires client to have appropriate permissions)
   const { error } = await supabase
-    .from("Participant")
-    .update({ isReady: isReady } as TablesUpdate<"Participant">)
+    .from("Participants")
+    .update({ isReady: isReady } as TablesUpdate<"Participants">)
     .eq("participant_id", participantId);
 
   if (error) {
@@ -1152,7 +1152,7 @@ export async function checkAllPlayersReady(
 
   // Direct database call (requires client to have appropriate permissions)
   const { data, error } = await supabase
-    .from("Participant")
+    .from("Participants")
     .select("participant_id, name, role, isReady")
     .eq("session_id", sessionId)
     .in("role", ["Player1", "Player2"])
@@ -1187,8 +1187,8 @@ export async function checkAllPlayersReady(
  */
 export async function resetAllPlayersReady(sessionId: string): Promise<void> {
   const { error } = await supabase
-    .from("Participant")
-    .update({ isReady: false } as TablesUpdate<"Participant">)
+    .from("Participants")
+    .update({ isReady: false } as TablesUpdate<"Participants">)
     .eq("session_id", sessionId)
     .in("role", ["Player1", "Player2"]);
 
@@ -1211,12 +1211,12 @@ export async function updateParticipantHeartbeat(
   participantId: string,
   sessionId?: string,
 ): Promise<void> {
-  const updateData: TablesUpdate<"Participant"> = {
+  const updateData: TablesUpdate<"Participants"> = {
     lastHeartbeat: new Date().toISOString(),
   };
 
   let query = supabase
-    .from("Participant")
+    .from("Participants")
     .update(updateData)
     .eq("participant_id", participantId);
 
@@ -1247,13 +1247,13 @@ export async function markParticipantDisconnected(
   participantId: string,
 ): Promise<void> {
   const { error } = await supabase
-    .from("Participant")
+    .from("Participants")
     .update({
       lobby_presence: "Disconnected",
       video_presence: false,
       isReady: false,
       disconnect_at: new Date().toISOString(),
-    } as TablesUpdate<"Participant">)
+    } as TablesUpdate<"Participants">)
     .eq("participant_id", participantId);
 
   if (error) {
@@ -1280,7 +1280,7 @@ export async function getSessionParticipants(sessionId: string): Promise<
   }>
 > {
   const { data, error } = await supabase
-    .from("Participant")
+    .from("Participants")
     .select("participant_id, name, role, flag, team_logo_url, lobby_presence")
     .eq("session_id", sessionId)
     .order("join_at", { ascending: true });
@@ -1341,7 +1341,7 @@ export async function verifyParticipantPassword(
 
   // Fetch participant data if password is valid
   const { data, error } = await supabase
-    .from("Participant")
+    .from("Participants")
     .select("participant_id, name, role, flag, team_logo_url, session_id")
     .eq("participant_id", participantId)
     .single();
@@ -1376,7 +1376,7 @@ export async function updateParticipantConfig(
     team_logo_url?: string;
   },
 ): Promise<void> {
-  const updateData: TablesUpdate<"Participant"> = {};
+  const updateData: TablesUpdate<"Participants"> = {};
 
   if (config.name !== undefined) updateData.name = config.name;
   if (config.flag !== undefined) updateData.flag = config.flag;
@@ -1384,7 +1384,7 @@ export async function updateParticipantConfig(
     updateData.team_logo_url = config.team_logo_url;
 
   const { error } = await supabase
-    .from("Participant")
+    .from("Participants")
     .update(updateData)
     .eq("participant_id", participantId);
 
@@ -1430,12 +1430,12 @@ export async function rejoinAsParticipant(
 
   // Update presence to rejoin
   const { error } = await supabase
-    .from("Participant")
+    .from("Participants")
     .update({
       lobby_presence: "Joined",
       join_at: new Date().toISOString(),
       disconnect_at: null,
-    } as TablesUpdate<"Participant">)
+    } as TablesUpdate<"Participants">)
     .eq("participant_id", participantId);
 
   if (error) {

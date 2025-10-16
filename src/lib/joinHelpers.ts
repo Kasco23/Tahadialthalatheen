@@ -29,7 +29,7 @@ export async function checkForExistingParticipants(
   try {
     // Get session ID from code
     const { data: sessionData, error: sessionError } = await supabase
-      .from("Session")
+      .from("Sessions")
       .select("session_id")
       .eq("session_code", sessionCode.toUpperCase())
       .single();
@@ -41,7 +41,7 @@ export async function checkForExistingParticipants(
 
     // Get participants for the session
     const { data: participants, error: participantsError } = await supabase
-      .from("Participant")
+      .from("Participants")
       .select("participant_id, name, role, flag, team_logo_url, lobby_presence")
       .eq("session_id", sessionData.session_id)
       .order("join_at", { ascending: true });
@@ -151,7 +151,7 @@ export async function checkForExistingPreset(
 ): Promise<ExistingPreset | null> {
   try {
     let query = supabase
-      .from("Participant")
+      .from("Participants")
       .select(
         "name, flag, team_logo_url, role, session_id, Session!inner(session_code)",
       )

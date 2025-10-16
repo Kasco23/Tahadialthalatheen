@@ -340,7 +340,7 @@ export function useSegmentConfig(sessionId: string | null) {
 
 // Enhanced participants hook with native presence
 export function useParticipants(sessionId: string | null) {
-  const [participants, setParticipants] = useState<Tables<"Participant">[]>([]);
+  const [participants, setParticipants] = useState<Tables<"Participants">[]>([]);
   const [presenceState, setPresenceState] = useState<
     Record<string, PresenceData>
   >({});
@@ -356,7 +356,7 @@ export function useParticipants(sessionId: string | null) {
     const fetchParticipants = async () => {
       try {
         const { data, error } = await supabase
-          .from("Participant")
+          .from("Participants")
           .select("*")
           .eq("session_id", sessionId);
 
@@ -386,10 +386,10 @@ export function useParticipants(sessionId: string | null) {
           Logger.log("Participant DB update:", payload);
 
           if (payload.eventType === "INSERT") {
-            const newData = payload.new as Tables<"Participant">;
+            const newData = payload.new as Tables<"Participants">;
             setParticipants((prev) => [...prev, newData]);
           } else if (payload.eventType === "UPDATE") {
-            const newData = payload.new as Tables<"Participant">;
+            const newData = payload.new as Tables<"Participants">;
             setParticipants((prev) =>
               prev.map((participant) =>
                 participant.participant_id === newData.participant_id
@@ -398,7 +398,7 @@ export function useParticipants(sessionId: string | null) {
               ),
             );
           } else if (payload.eventType === "DELETE") {
-            const oldData = payload.old as Tables<"Participant">;
+            const oldData = payload.old as Tables<"Participants">;
             setParticipants((prev) =>
               prev.filter(
                 (participant) =>

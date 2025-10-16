@@ -12,7 +12,7 @@ vi.mock("@daily-co/daily-react", () => ({
   ),
 }));
 
-type ParticipantRow = Database["public"]["Tables"]["Participant"]["Row"];
+type ParticipantRow = Database["public"]["Tables"]["Participants"]["Row"];
 
 describe("ParticipantTile", () => {
   const mockPlayersByName = new Map<string, ParticipantRow>([

@@ -1,14 +1,12 @@
 import { Logger } from "../lib/logger";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import PasswordModal from "../components/PasswordModal";
 import ActiveGames from "../components/ActiveGames";
 import { createSession } from "../lib/mutations";
 import { Alert } from "../components/Alert";
 import { useAuth } from "../contexts/AuthContext";
 
 const Homepage: React.FC = () => {
-  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [isCreatingSession, setIsCreatingSession] = useState(false);
   const [alert, setAlert] = useState<{
     type: "error" | "success" | "info";
@@ -17,7 +15,7 @@ const Homepage: React.FC = () => {
   const navigate = useNavigate();
   const { user, profile, signOut } = useAuth();
 
-  const handleCreateSession = () => {
+  const handleCreateSession = async () => {
     // Check if user is authenticated
     if (!user) {
       setAlert({
@@ -27,17 +25,15 @@ const Homepage: React.FC = () => {
       setTimeout(() => navigate("/login"), 1500);
       return;
     }
-    setIsPasswordModalOpen(true);
-  };
 
-  const handlePasswordConfirm = async (_password: string, hostName: string) => {
     setIsCreatingSession(true);
     try {
       if (!user?.id) {
         throw new Error("User not authenticated");
       }
+      // Use profile name as host name, or default to "Host"
+      const hostName = profile?.name || "Host";
       const { sessionCode } = await createSession(user.id, hostName);
-      setIsPasswordModalOpen(false);
       // Navigate to game setup
       navigate(`/gamesetup/${sessionCode}`);
     } catch (error) {
@@ -49,10 +45,6 @@ const Homepage: React.FC = () => {
     } finally {
       setIsCreatingSession(false);
     }
-  };
-
-  const handlePasswordModalClose = () => {
-    setIsPasswordModalOpen(false);
   };
 
   const handleSignOut = async () => {
@@ -194,9 +186,10 @@ const Homepage: React.FC = () => {
             <div className="space-y-6 w-full max-w-sm">
               <button
                 onClick={handleCreateSession}
-                className="block w-full bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 hover:from-yellow-500 hover:via-yellow-600 hover:to-yellow-700 text-black font-bold text-xl md:text-2xl py-6 px-8 rounded-2xl shadow-2xl transform transition-all duration-300 hover:scale-105 hover:shadow-3xl border-4 border-yellow-300"
+                disabled={isCreatingSession}
+                className="block w-full bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 hover:from-yellow-500 hover:via-yellow-600 hover:to-yellow-700 disabled:from-gray-300 disabled:to-gray-400 text-black font-bold text-xl md:text-2xl py-6 px-8 rounded-2xl shadow-2xl transform transition-all duration-300 hover:scale-105 hover:shadow-3xl border-4 border-yellow-300 disabled:cursor-not-allowed disabled:transform-none"
               >
-                🏆 Create Session
+                {isCreatingSession ? "Creating..." : "🏆 Create Session"}
               </button>
 
               <div className="grid grid-cols-1 gap-4">
@@ -247,14 +240,6 @@ const Homepage: React.FC = () => {
 
       {/* Stadium atmosphere effects */}
       <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black via-transparent to-transparent opacity-30"></div>
-
-      {/* Password Modal */}
-      <PasswordModal
-        isOpen={isPasswordModalOpen}
-        onClose={handlePasswordModalClose}
-        onConfirm={handlePasswordConfirm}
-        isLoading={isCreatingSession}
-      />
 
       {/* Alert Component */}
       {alert && (

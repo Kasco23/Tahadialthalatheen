@@ -34,7 +34,7 @@ import { resolveSeatFromUrl, setSeatInStorage } from "../lib/userSession";
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 import type { Database } from "../lib/types/supabase";
 
-type ParticipantRow = Database["public"]["Tables"]["Participant"]["Row"];
+type ParticipantRow = Database["public"]["Tables"]["Participants"]["Row"];
 
 interface ParticipantCardProps {
   player: ParticipantRow;
@@ -334,7 +334,7 @@ const Lobby: React.FC = () => {
           },
           (
             payload: RealtimePostgresChangesPayload<
-              Database["public"]["Tables"]["Participant"]["Row"]
+              Database["public"]["Tables"]["Participants"]["Row"]
             >,
           ) => {
             Logger.log("Participant update:", payload);
@@ -393,7 +393,7 @@ const Lobby: React.FC = () => {
         setError(null);
 
         const { data, error: fetchError } = await supabase
-          .from("Participant")
+          .from("Participants")
           .select("*")
           .eq("session_id", sessionId)
           .order("name", { ascending: true });
@@ -628,7 +628,7 @@ const Lobby: React.FC = () => {
       setError(null);
       // Participants
       const { data: pData, error: pErr } = await supabase
-        .from("Participant")
+        .from("Participants")
         .select("*")
         .eq("session_id", sessionId);
       if (!pErr) setPlayers((pData as ParticipantRow[]) || []);

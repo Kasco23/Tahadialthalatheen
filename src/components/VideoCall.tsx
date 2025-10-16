@@ -30,7 +30,7 @@ import { createDailyToken } from "../lib/mutations";
  * - To maintain video across routes (Lobby -> Quiz), ensure DailyProvider is at App level
  */
 
-type ParticipantRow = Database["public"]["Tables"]["Participant"]["Row"];
+type ParticipantRow = Database["public"]["Tables"]["Participants"]["Row"];
 
 interface VideoCallProps {
   players: ParticipantRow[];
@@ -73,7 +73,7 @@ export const VideoCall: React.FC<VideoCallProps> = ({
 
           if (currentPlayer?.participant_id) {
             await supabase
-              .from("Participant")
+              .from("Participants")
               .update({ video_presence: false })
               .eq("participant_id", currentPlayer.participant_id);
 
@@ -97,7 +97,7 @@ export const VideoCall: React.FC<VideoCallProps> = ({
 
     // Get Daily room info from Supabase using sessionId (not sessionCode)
     const { data: roomData } = await supabase
-      .from("DailyRoom")
+      .from("DailyRooms")
       .select("room_url, ready")
       .eq("room_id", sessionId)
       .single();

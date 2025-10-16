@@ -147,7 +147,7 @@ const GameSetup: React.FC = () => {
     if (!sessionId) return;
     try {
       const { data, error } = await supabase
-        .from("DailyRoom")
+        .from("DailyRooms")
         .select("*")
         .eq("room_id", sessionId)
         .single();

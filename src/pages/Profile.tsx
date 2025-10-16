@@ -269,6 +269,29 @@ export default function Profile() {
           </div>
         </form>
 
+        {/* Re-onboarding Section */}
+        <div className="mt-8 pt-6 border-t-2 border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+            Update Preferences
+          </h3>
+          <div className="flex gap-3">
+            <button
+              onClick={() => navigate("/select-flag")}
+              className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+            >
+              <span>🏴</span>
+              Change Flag
+            </button>
+            <button
+              onClick={() => navigate("/select-team")}
+              className="flex-1 px-4 py-3 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+            >
+              <span>⚽</span>
+              Change Team
+            </button>
+          </div>
+        </div>
+
         <div className="mt-6 text-center">
           <button
             onClick={() => navigate("/")}

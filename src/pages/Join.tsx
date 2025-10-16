@@ -388,7 +388,7 @@ const JoinRevolutionary: React.FC = () => {
 
       // Get session code
       const { data: sessionData } = await supabase
-        .from("Session")
+        .from("Sessions")
         .select("session_code")
         .eq("session_id", sessionId)
         .single();
@@ -454,7 +454,7 @@ const JoinRevolutionary: React.FC = () => {
       // Check for existing preset based on actual host name from session
       try {
         const { data: hostParticipant } = await supabase
-          .from("Participant")
+          .from("Participants")
           .select("name, Session!inner(session_code)")
           .eq("role", "Host")
           .eq("Session.session_code", sessionCode.toUpperCase())

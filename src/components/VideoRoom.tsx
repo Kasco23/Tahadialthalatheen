@@ -6,7 +6,7 @@ import { dailyRoomUrlAtom, dailyTokenAtom, dailyUserNameAtom } from "../atoms";
 import { VideoCall } from "./VideoCall";
 import type { Database } from "../lib/types/supabase";
 
-type ParticipantRow = Database["public"]["Tables"]["Participant"]["Row"];
+type ParticipantRow = Database["public"]["Tables"]["Participants"]["Row"];
 
 interface VideoRoomProps {
   players: ParticipantRow[];
