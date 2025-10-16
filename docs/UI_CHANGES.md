@@ -5,6 +5,7 @@
 ### Location: Lobby Page (`src/pages/Lobby.tsx`)
 
 **Existing Implementation:**
+
 - Ready/Unready toggle button for players
 - Visual states: "✓ Ready" (green) / "⏳ Not Ready" (yellow)
 - Loading spinner during toggle
@@ -40,6 +41,7 @@ Loading State:
 **New UI Element:** Rejoin button appears below session code input
 
 **Before:**
+
 ```
 ┌──────────────────────────────────┐
 │ Session Code                     │
@@ -53,6 +55,7 @@ Loading State:
 ```
 
 **After (with existing participants):**
+
 ```
 ┌──────────────────────────────────┐
 │ Session Code                     │
@@ -105,6 +108,7 @@ Loading State:
 ```
 
 **With "Update configuration" checked:**
+
 ```
 ┌────────────────────────────────────────────┐
 │  👋 Rejoin Session                    [×]  │
@@ -120,6 +124,7 @@ Loading State:
 ```
 
 **Loading State:**
+
 ```
 ┌────────────────────────────────────────────┐
 │  👋 Rejoin Session                    [×]  │
@@ -132,6 +137,7 @@ Loading State:
 ```
 
 **Error State:**
+
 ```
 ┌────────────────────────────────────────────┐
 │  👋 Rejoin Session                    [×]  │
@@ -284,6 +290,7 @@ Step 3: Update Configuration
 ## Visual Feedback Elements
 
 ### 1. Loading States
+
 ```
 Button during action:
 ┌────────────────────┐
@@ -292,6 +299,7 @@ Button during action:
 ```
 
 ### 2. Success States
+
 ```
 Participant selected:
 ┌────────────────────────────┐
@@ -301,6 +309,7 @@ Participant selected:
 ```
 
 ### 3. Error States
+
 ```
 ┌────────────────────────────┐
 │ ⚠️ Invalid password       │  ← Red banner
@@ -309,6 +318,7 @@ Participant selected:
 ```
 
 ### 4. Info Messages
+
 ```
 Password field helper text:
 ┌────────────────────────────┐
@@ -325,6 +335,7 @@ Password field helper text:
 All components are responsive:
 
 ### Mobile View (< 768px)
+
 ```
 ┌─────────────────┐
 │ Session Code    │
@@ -345,6 +356,7 @@ All components are responsive:
 ```
 
 ### Desktop View (> 768px)
+
 ```
 ┌─────────────────────────────────┐
 │  Session Code                   │
@@ -367,12 +379,14 @@ All components are responsive:
 ## Color Scheme
 
 ### Primary Actions
+
 - **Green gradient**: Ready button, Join button, Success states
 - **Blue gradient**: Rejoin button, Selected items, Info messages
 - **Red gradient**: Unready button, Error messages
 - **Purple gradient**: Host-related actions
 
 ### Status Indicators
+
 - 🟢 Green: Online/Ready/Available
 - 🟠 Orange: Disconnected/Warning
 - 🔴 Red: Offline/Not Ready/Error
@@ -383,18 +397,21 @@ All components are responsive:
 ## Accessibility
 
 ### Keyboard Navigation
+
 - All buttons are keyboard accessible
 - Tab order follows logical flow
 - Enter key submits forms
 - Escape key closes modals
 
 ### Screen Readers
+
 - All interactive elements have labels
 - Error messages announced
 - Loading states communicated
 - Success/failure feedback provided
 
 ### Visual Feedback
+
 - High contrast colors
 - Clear focus indicators
 - Loading spinners for operations
@@ -405,6 +422,7 @@ All components are responsive:
 ## Summary of UI Changes
 
 **New UI Elements:**
+
 1. ✅ Rejoin button on Join page (conditional)
 2. ✅ Password field for new player joins
 3. ✅ RejoinModal component (new modal)
@@ -414,11 +432,13 @@ All components are responsive:
 7. ✅ Error banners for failed operations
 
 **Modified UI Elements:**
+
 1. Join page now shows rejoin option when applicable
 2. Session code input triggers participant detection
 3. Quick Join from Active Games works with rejoin flow
 
 **No Changes to:**
+
 1. Ready button in Lobby (verified working)
 2. Homepage layout
 3. Other game flow pages

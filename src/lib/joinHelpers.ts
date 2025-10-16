@@ -4,7 +4,7 @@ import type { ParticipantRole } from "./types";
 
 /**
  * Join Helper Functions
- * 
+ *
  * Extracted from Join.tsx to improve code organization and maintainability.
  * Contains reusable logic for join operations, preset checking, and navigation.
  */
@@ -24,7 +24,7 @@ export interface ExistingParticipant {
  */
 export async function checkForExistingParticipants(
   sessionCode: string,
-  role: "host" | "player"
+  role: "host" | "player",
 ): Promise<ExistingParticipant[]> {
   try {
     // Get session ID from code
@@ -56,7 +56,7 @@ export async function checkForExistingParticipants(
       role === "host"
         ? (participants || []).filter((p) => p.role === "Host")
         : (participants || []).filter(
-            (p) => p.role === "Player1" || p.role === "Player2"
+            (p) => p.role === "Player1" || p.role === "Player2",
           );
 
     return filtered as ExistingParticipant[];
@@ -77,7 +77,7 @@ export function storeParticipantData(
   participantName?: string,
   flag?: string,
   logoUrl?: string,
-  teamName?: string
+  teamName?: string,
 ): void {
   try {
     localStorage.setItem("participantId", participantId);
@@ -115,7 +115,7 @@ export function storeParticipantData(
 export function getLobbyUrl(
   sessionCode: string,
   _role: ParticipantRole,
-  seat?: string | null
+  seat?: string | null,
 ): string {
   if (seat) {
     return `/lobby/${sessionCode}/${seat}`;
@@ -147,13 +147,13 @@ export async function checkForExistingPreset(
   name: string,
   sessionCode?: string,
   // Note: Role parameter kept for backward compatibility but not used for more flexible preset matching
-  _role?: string
+  _role?: string,
 ): Promise<ExistingPreset | null> {
   try {
     let query = supabase
       .from("Participant")
       .select(
-        "name, flag, team_logo_url, role, session_id, Session!inner(session_code)"
+        "name, flag, team_logo_url, role, session_id, Session!inner(session_code)",
       )
       .ilike("name", name)
       .not("flag", "is", null)

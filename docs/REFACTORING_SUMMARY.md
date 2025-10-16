@@ -43,11 +43,11 @@ BEGIN
   SELECT password INTO stored_password
   FROM "Participant"
   WHERE participant_id = participant_id_input;
-  
+
   IF stored_password IS NULL THEN
     RETURN FALSE;
   END IF;
-  
+
   RETURN crypt(password_input, stored_password) = stored_password;
 END;
 $$;
@@ -69,6 +69,7 @@ await setParticipantPassword(participantId, password);
 ```
 
 **Benefits:**
+
 - ✅ Same security as host passwords (bcrypt)
 - ✅ Server-side hashing is more secure
 - ✅ Automatic salt generation
@@ -81,6 +82,7 @@ await setParticipantPassword(participantId, password);
 Extracted reusable functions from Join.tsx:
 
 **Participant Management:**
+
 ```typescript
 // Check for existing participants (for rejoin detection)
 const participants = await checkForExistingParticipants(sessionCode, role);
@@ -90,6 +92,7 @@ const preset = await checkForExistingPreset(name, sessionCode, role);
 ```
 
 **Data Management:**
+
 ```typescript
 // Store participant data in localStorage
 storeParticipantData(
@@ -100,17 +103,19 @@ storeParticipantData(
   name,
   flag,
   logoUrl,
-  teamName
+  teamName,
 );
 ```
 
 **URL Generation:**
+
 ```typescript
 // Generate lobby URL with optional seat
 const url = getLobbyUrl(sessionCode, role, seat);
 ```
 
 **Utilities:**
+
 ```typescript
 // Extract team name from logo URL
 const teamName = extractTeamNameFromLogoUrl(logoUrl);
@@ -133,6 +138,7 @@ const {
 ```
 
 **Benefits:**
+
 - Separates state management from UI logic
 - Ready for further componentization
 - Makes testing easier
@@ -141,12 +147,14 @@ const {
 #### Updated: Join.tsx
 
 **Before:**
+
 - 1209 lines
 - Complex logic mixed with UI
 - Manual password hashing
 - Duplicate code patterns
 
 **After:**
+
 - Cleaner separation of concerns
 - Uses helper functions
 - Simplified password handling
@@ -154,7 +162,8 @@ const {
 
 **Example Improvement:**
 
-*Before:*
+_Before:_
+
 ```typescript
 // Manual localStorage storage
 localStorage.setItem("participantId", participantId);
@@ -179,10 +188,20 @@ const passwordHash = await hashPassword(password);
 await setParticipantPassword(participantId, passwordHash);
 ```
 
-*After:*
+_After:_
+
 ```typescript
 // Helper function handles localStorage
-storeParticipantData(participantId, sessionCode, role, true, name, flag, logoUrl, teamName);
+storeParticipantData(
+  participantId,
+  sessionCode,
+  role,
+  true,
+  name,
+  flag,
+  logoUrl,
+  teamName,
+);
 
 // Helper function handles URL construction
 const seat = getSeatsFromRole(role);
@@ -250,6 +269,7 @@ This creates the two password RPC functions.
 ### 2. No Code Changes Required
 
 All code changes are backward compatible:
+
 - Existing participants without passwords continue to work
 - New participants get passwords automatically
 - Password column is nullable
@@ -298,14 +318,14 @@ All code changes are backward compatible:
 
 ### Lines of Code
 
-| File | Type | Lines | Purpose |
-|------|------|-------|---------|
-| participantAuth.ts | New | 76 | Password operations |
-| joinHelpers.ts | New | 186 | Helper functions |
-| useJoinForm.ts | New | 154 | State management |
-| **Total Added** | | **416** | Better organization |
-| passwordHash.ts | Deleted | 58 | Deprecated |
-| **Net Change** | | **+358** | Cleaner architecture |
+| File               | Type    | Lines    | Purpose              |
+| ------------------ | ------- | -------- | -------------------- |
+| participantAuth.ts | New     | 76       | Password operations  |
+| joinHelpers.ts     | New     | 186      | Helper functions     |
+| useJoinForm.ts     | New     | 154      | State management     |
+| **Total Added**    |         | **416**  | Better organization  |
+| passwordHash.ts    | Deleted | 58       | Deprecated           |
+| **Net Change**     |         | **+358** | Cleaner architecture |
 
 ## Future Refactoring Opportunities
 
@@ -314,6 +334,7 @@ The code is now well-structured for further improvements:
 ### 1. Component Extraction
 
 Split Join.tsx into smaller components:
+
 - `components/join/RoleSelection.tsx`
 - `components/join/DetailsForm.tsx`
 - `components/join/FlagSelection.tsx`
@@ -322,6 +343,7 @@ Split Join.tsx into smaller components:
 ### 2. Use Custom Hook
 
 Replace inline state with `useJoinForm()` hook:
+
 ```typescript
 const formState = useJoinForm();
 // Pass formState to child components
@@ -330,6 +352,7 @@ const formState = useJoinForm();
 ### 3. Additional Helpers
 
 Create more specialized helper modules:
+
 - `joinValidation.ts` - Form validation logic
 - `joinNavigation.ts` - Navigation helpers
 - `joinPresets.ts` - Preset management
@@ -342,7 +365,7 @@ Create more specialized helper modules:
 ✅ **Consistent with System:** Uses same encryption as host passwords  
 ✅ **Backward Compatible:** No breaking changes  
 ✅ **Future-Ready:** Well-structured for further refactoring  
-✅ **All Tests Pass:** No regressions introduced  
+✅ **All Tests Pass:** No regressions introduced
 
 ## Conclusion
 

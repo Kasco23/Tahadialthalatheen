@@ -86,7 +86,10 @@ export async function createSession(
     if (participantError) {
       Logger.error("Participant creation failed:", participantError);
       // Try to clean up the session if participant creation fails
-      await supabase.from("Session").delete().eq("session_id", sessionData.session_id);
+      await supabase
+        .from("Session")
+        .delete()
+        .eq("session_id", sessionData.session_id);
       throw new Error(
         `Failed to create participants: ${participantError.message}`,
       );
@@ -1282,9 +1285,7 @@ export async function markParticipantDisconnected(
  * Get list of participants for a session to enable rejoin functionality
  * Returns participant info without password for security
  */
-export async function getSessionParticipants(
-  sessionId: string,
-): Promise<
+export async function getSessionParticipants(sessionId: string): Promise<
   Array<{
     participant_id: string;
     name: string;

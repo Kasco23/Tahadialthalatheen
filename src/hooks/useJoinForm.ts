@@ -2,7 +2,7 @@ import { useState } from "react";
 
 /**
  * Custom hook for managing Join form state
- * 
+ *
  * Separates state management from Join.tsx to improve code organization.
  * This hook manages all form fields, loading states, and modal states.
  */
@@ -16,7 +16,9 @@ export interface UseJoinFormReturn {
 
   // Alert state
   alert: { type: "error" | "success" | "info"; message: string } | null;
-  setAlert: (alert: { type: "error" | "success" | "info"; message: string } | null) => void;
+  setAlert: (
+    alert: { type: "error" | "success" | "info"; message: string } | null,
+  ) => void;
 
   // Host form state
   sessionCode: string;

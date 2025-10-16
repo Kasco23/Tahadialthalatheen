@@ -57,6 +57,7 @@ export type Database = {
           name: string;
           participant_id: string;
           password: string | null;
+          profile_id: string | null;
           powerup_alhabeed: boolean | null;
           powerup_bellegoal: boolean | null;
           powerup_pass_used: boolean | null;
@@ -76,6 +77,7 @@ export type Database = {
           name: string;
           participant_id?: string;
           password?: string | null;
+          profile_id?: string | null;
           powerup_alhabeed?: boolean | null;
           powerup_bellegoal?: boolean | null;
           powerup_pass_used?: boolean | null;
@@ -95,6 +97,7 @@ export type Database = {
           name?: string;
           participant_id?: string;
           password?: string | null;
+          profile_id?: string | null;
           powerup_alhabeed?: boolean | null;
           powerup_bellegoal?: boolean | null;
           powerup_pass_used?: boolean | null;
@@ -106,11 +109,56 @@ export type Database = {
         };
         Relationships: [
           {
+            foreignKeyName: "Participant_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "Profiles";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "Participant_session_id_fkey";
             columns: ["session_id"];
             isOneToOne: false;
             referencedRelation: "Session";
             referencedColumns: ["session_id"];
+          },
+        ];
+      };
+      Profiles: {
+        Row: {
+          id: string;
+          name: string | null;
+          team: string | null;
+          flag: string | null;
+          avatar_url: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id: string;
+          name?: string | null;
+          team?: string | null;
+          flag?: string | null;
+          avatar_url?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string | null;
+          team?: string | null;
+          flag?: string | null;
+          avatar_url?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "Profiles_id_fkey";
+            columns: ["id"];
+            isOneToOne: true;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
           },
         ];
       };
@@ -187,7 +235,7 @@ export type Database = {
           created_at: string | null;
           ended_at: string | null;
           game_state: string;
-          host_password: string;
+          host_profile_id: string | null;
           phase: string;
           session_code: string;
           session_id: string;
@@ -196,21 +244,29 @@ export type Database = {
           created_at?: string | null;
           ended_at?: string | null;
           game_state: string;
-          host_password: string;
+          host_profile_id?: string | null;
           phase: string;
-          session_code: string;
+          session_code?: string;
           session_id?: string;
         };
         Update: {
           created_at?: string | null;
           ended_at?: string | null;
           game_state?: string;
-          host_password?: string;
+          host_profile_id?: string | null;
           phase?: string;
           session_code?: string;
           session_id?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "Session_host_profile_id_fkey";
+            columns: ["host_profile_id"];
+            isOneToOne: false;
+            referencedRelation: "Profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       Strikes: {
         Row: {

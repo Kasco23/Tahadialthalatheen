@@ -5,6 +5,7 @@ import PasswordModal from "../components/PasswordModal";
 import ActiveGames from "../components/ActiveGames";
 import { createSession } from "../lib/mutations";
 import { Alert } from "../components/Alert";
+import { useAuth } from "../contexts/AuthContext";
 
 const Homepage: React.FC = () => {
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
@@ -14,8 +15,18 @@ const Homepage: React.FC = () => {
     message: string;
   } | null>(null);
   const navigate = useNavigate();
+  const { user, profile, signOut } = useAuth();
 
   const handleCreateSession = () => {
+    // Check if user is authenticated
+    if (!user) {
+      setAlert({
+        type: "info",
+        message: "Please sign in to create a session",
+      });
+      setTimeout(() => navigate("/login"), 1500);
+      return;
+    }
     setIsPasswordModalOpen(true);
   };
 
@@ -41,6 +52,18 @@ const Homepage: React.FC = () => {
 
   const handlePasswordModalClose = () => {
     setIsPasswordModalOpen(false);
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      setAlert({
+        type: "success",
+        message: "Signed out successfully",
+      });
+    } catch (error) {
+      Logger.error("Error signing out:", error);
+    }
   };
 
   return (
@@ -96,6 +119,60 @@ const Homepage: React.FC = () => {
         {/* Pitch boundary */}
         <div className="absolute inset-4 border-2 border-white opacity-60 rounded-sm"></div>
       </div>
+
+      {/* User menu in top right */}
+      {user && (
+        <div className="absolute top-4 right-4 z-20">
+          <div className="bg-white rounded-xl shadow-lg p-3 flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center">
+                {profile?.avatar_url ? (
+                  <img
+                    src={profile.avatar_url}
+                    alt="Avatar"
+                    className="w-full h-full rounded-full object-cover"
+                  />
+                ) : (
+                  <span className="text-sm">👤</span>
+                )}
+              </div>
+              <span className="font-semibold text-gray-800 text-sm">
+                {profile?.name || user.email}
+              </span>
+            </div>
+            <Link
+              to="/profile"
+              className="px-3 py-1 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-medium transition-colors"
+            >
+              Profile
+            </Link>
+            <button
+              onClick={handleSignOut}
+              className="px-3 py-1 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg text-sm font-medium transition-colors"
+            >
+              Sign Out
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Sign in/Sign up buttons when not authenticated */}
+      {!user && (
+        <div className="absolute top-4 right-4 z-20 flex gap-2">
+          <Link
+            to="/login"
+            className="px-4 py-2 bg-white hover:bg-gray-100 text-gray-800 font-semibold rounded-lg shadow-lg transition-colors"
+          >
+            Sign In
+          </Link>
+          <Link
+            to="/signup"
+            className="px-4 py-2 bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black font-semibold rounded-lg shadow-lg transition-colors"
+          >
+            Sign Up
+          </Link>
+        </div>
+      )}
 
       {/* Main content container */}
       <div className="relative z-10 flex-1 max-w-7xl mx-auto w-full">

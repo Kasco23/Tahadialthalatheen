@@ -3,7 +3,7 @@ import { Logger } from "./logger";
 
 /**
  * Participant Authentication Module
- * 
+ *
  * Handles password hashing and verification for participants using Supabase's pgcrypto extension.
  * This uses the same secure encryption as host passwords (bcrypt via crypt()).
  */
@@ -13,7 +13,7 @@ import { Logger } from "./logger";
  * This uses bcrypt (blowfish) algorithm, same as host passwords
  */
 export async function hashParticipantPassword(
-  password: string
+  password: string,
 ): Promise<string> {
   const { data, error } = await supabase.rpc("hash_participant_password", {
     password_input: password,
@@ -37,7 +37,7 @@ export async function hashParticipantPassword(
  */
 export async function verifyParticipantPassword(
   participantId: string,
-  password: string
+  password: string,
 ): Promise<boolean> {
   const { data, error } = await supabase.rpc("verify_participant_password", {
     participant_id_input: participantId,
@@ -58,7 +58,7 @@ export async function verifyParticipantPassword(
  */
 export async function setParticipantPassword(
   participantId: string,
-  password: string
+  password: string,
 ): Promise<void> {
   // Hash the password using the database function
   const hashedPassword = await hashParticipantPassword(password);

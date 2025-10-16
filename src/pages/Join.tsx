@@ -123,8 +123,9 @@ const JoinRevolutionary: React.FC = () => {
   // Check for existing participants when session code changes (for rejoin)
   useEffect(() => {
     const checkExistingParticipantsForRejoin = async () => {
-      const codeToCheck = activeTab === "host" ? sessionCode : playerSessionCode;
-      
+      const codeToCheck =
+        activeTab === "host" ? sessionCode : playerSessionCode;
+
       if (!codeToCheck.trim() || codeToCheck.length < 4) {
         setRejoinParticipants([]);
         return;
@@ -132,9 +133,9 @@ const JoinRevolutionary: React.FC = () => {
 
       const participants = await checkForExistingParticipants(
         codeToCheck,
-        activeTab
+        activeTab,
       );
-      
+
       setRejoinParticipants(participants);
     };
 
@@ -207,7 +208,9 @@ const JoinRevolutionary: React.FC = () => {
       if (activeTab === "host") {
         setHostSelectedFlag(existingPreset.flag || "");
         setHostTeamLogoUrl(existingPreset.team_logo_url || "");
-        const teamName = extractTeamNameFromLogoUrl(existingPreset.team_logo_url || "");
+        const teamName = extractTeamNameFromLogoUrl(
+          existingPreset.team_logo_url || "",
+        );
         setHostTeamName(teamName);
 
         // Proceed directly to join
@@ -215,7 +218,9 @@ const JoinRevolutionary: React.FC = () => {
       } else {
         setSelectedFlag(existingPreset.flag || "");
         setTeamLogoUrl(existingPreset.team_logo_url || "");
-        const teamName = extractTeamNameFromLogoUrl(existingPreset.team_logo_url || "");
+        const teamName = extractTeamNameFromLogoUrl(
+          existingPreset.team_logo_url || "",
+        );
         setTeamName(teamName);
 
         // Proceed directly to join
@@ -267,7 +272,7 @@ const JoinRevolutionary: React.FC = () => {
         undefined,
         hostSelectedFlag ?? undefined,
         hostTeamLogoUrl ?? undefined,
-        hostTeamName ?? undefined
+        hostTeamName ?? undefined,
       );
 
       // Navigate to lobby
@@ -326,7 +331,7 @@ const JoinRevolutionary: React.FC = () => {
         playerName,
         selectedFlag ?? undefined,
         teamLogoUrl ?? undefined,
-        teamName ?? undefined
+        teamName ?? undefined,
       );
 
       // Navigate to lobby
@@ -393,7 +398,7 @@ const JoinRevolutionary: React.FC = () => {
         undefined,
         undefined,
         undefined,
-        undefined
+        undefined,
       );
 
       // Navigate based on update config preference
@@ -401,7 +406,7 @@ const JoinRevolutionary: React.FC = () => {
         // Close rejoin modal and let user update config through normal flow
         setShowRejoinModal(false);
         setCurrentStep("flag"); // Go to flag selection
-        
+
         // Pre-fill the session code
         if (activeTab === "host") {
           setSessionCode(code);

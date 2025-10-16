@@ -12,21 +12,25 @@ The Rejoin System allows participants (both Hosts and Players) to securely rejoi
 ## Key Features
 
 ### 🔐 Password-Protected Rejoin
+
 - Participants create a password when first joining a session
 - Passwords are hashed using SHA-256 before storage
 - Authentication required for all rejoin attempts
 
 ### 🎨 Configuration Updates
+
 - Participants can keep their existing configuration
 - Or update their name, flag, and team logo when rejoining
 - Changes are immediately reflected in the Supabase database
 
 ### 🚀 Quick Rejoin Detection
+
 - System automatically detects existing participants when entering a session code
 - "Rejoin as Existing Participant" button appears when applicable
 - Works seamlessly with the "Quick Join" button from Active Games
 
 ### 👥 Role Support
+
 - Works for both Host and Player roles
 - Host can rejoin using their session password
 - Players create their own passwords independent of the session password
@@ -36,6 +40,7 @@ The Rejoin System allows participants (both Hosts and Players) to securely rejoi
 ### First-Time Join Flow
 
 #### For Players:
+
 1. Navigate to Join page (or click "Quick Join" from Active Games)
 2. Enter session code
 3. Enter player name
@@ -45,6 +50,7 @@ The Rejoin System allows participants (both Hosts and Players) to securely rejoi
 7. Join lobby
 
 #### For Hosts:
+
 1. Navigate to Join page
 2. Enter session code
 3. Enter host password (session password)
@@ -74,11 +80,12 @@ The Rejoin System allows participants (both Hosts and Players) to securely rejoi
 
 ```sql
 -- Participant table with password column
-ALTER TABLE "public"."Participant" 
+ALTER TABLE "public"."Participant"
 ADD COLUMN IF NOT EXISTS "password" TEXT DEFAULT NULL;
 ```
 
 **Notes:**
+
 - Password field is nullable for backward compatibility
 - Stores SHA-256 hash, never plain text
 - 64-character hexadecimal string
@@ -100,6 +107,7 @@ const isValid = await verifyPassword("mySecurePassword", hash);
 ```
 
 **Security:**
+
 - Uses Web Crypto API's SHA-256 algorithm
 - Client-side hashing before transmission
 - No plain-text passwords stored or transmitted
@@ -109,24 +117,28 @@ const isValid = await verifyPassword("mySecurePassword", hash);
 **File:** `src/lib/mutations.ts`
 
 #### 1. getSessionParticipants()
+
 ```typescript
 const participants = await getSessionParticipants(sessionId);
 // Returns array of participants without passwords
 ```
 
 #### 2. setParticipantPassword()
+
 ```typescript
 await setParticipantPassword(participantId, passwordHash);
 // Sets password hash for a participant
 ```
 
 #### 3. verifyParticipantPassword()
+
 ```typescript
 const result = await verifyParticipantPassword(participantId, passwordHash);
 // Returns: { valid: boolean, participant?: ParticipantData }
 ```
 
 #### 4. updateParticipantConfig()
+
 ```typescript
 await updateParticipantConfig(participantId, {
   name: "New Name",
@@ -136,6 +148,7 @@ await updateParticipantConfig(participantId, {
 ```
 
 #### 5. rejoinAsParticipant()
+
 ```typescript
 const { participantId, role, sessionId } = await rejoinAsParticipant(
   participantId,
@@ -145,27 +158,34 @@ const { participantId, role, sessionId } = await rejoinAsParticipant(
     name: "Updated Name",
     flag: "gb",
     team_logo_url: "https://example.com/new-logo.png",
-  }
+  },
 );
 ```
 
 ### Components
 
 #### RejoinModal
+
 **File:** `src/components/RejoinModal.tsx`
 
 **Props:**
+
 ```typescript
 interface RejoinModalProps {
   isOpen: boolean;
   participants: RejoinParticipant[];
   onClose: () => void;
-  onRejoin: (participantId: string, password: string, updateConfig: boolean) => Promise<void>;
+  onRejoin: (
+    participantId: string,
+    password: string,
+    updateConfig: boolean,
+  ) => Promise<void>;
   isLoading: boolean;
 }
 ```
 
 **Features:**
+
 - Visual list of participants with flags and logos
 - Password input with validation
 - "Update configuration" checkbox
@@ -177,17 +197,18 @@ interface RejoinModalProps {
 ### Join.tsx Updates
 
 **Automatic Participant Detection:**
+
 ```typescript
 useEffect(() => {
   const checkExistingParticipants = async () => {
     const sessionId = await getSessionIdByCode(sessionCode);
     const participants = await getSessionParticipants(sessionId);
-    
+
     if (participants.length > 0) {
       setRejoinParticipants(participants);
     }
   };
-  
+
   // Debounced check when session code changes
   const timer = setTimeout(checkExistingParticipants, 500);
   return () => clearTimeout(timer);
@@ -195,6 +216,7 @@ useEffect(() => {
 ```
 
 **Password Storage on First Join:**
+
 ```typescript
 // For players
 const passwordHash = await hashPassword(playerPassword);
@@ -218,13 +240,16 @@ This triggers the rejoin detection flow in Join.tsx, showing the rejoin button i
 ## Security Considerations
 
 ### Password Security
+
 ✅ **What We Do:**
+
 - SHA-256 hashing on client side
 - No plain-text storage
 - Hash comparison for verification
 - Nullable password field (backward compatible)
 
 ⚠️ **Limitations:**
+
 - SHA-256 is not the most secure for passwords (consider bcrypt/argon2 for production)
 - Client-side hashing means passwords are known to the client
 - No rate limiting on rejoin attempts (implement server-side for production)
@@ -232,6 +257,7 @@ This triggers the rejoin detection flow in Join.tsx, showing the rejoin button i
 ### Recommended Improvements for Production
 
 1. **Server-Side Password Hashing:**
+
    ```typescript
    // Create Netlify function for password operations
    // POST /.netlify/functions/set-password
@@ -239,6 +265,7 @@ This triggers the rejoin detection flow in Join.tsx, showing the rejoin button i
    ```
 
 2. **Use bcrypt or argon2:**
+
    ```bash
    npm install bcryptjs
    ```
@@ -257,6 +284,7 @@ This triggers the rejoin detection flow in Join.tsx, showing the rejoin button i
 ### Manual Testing Scenarios
 
 #### Scenario 1: Player First Join with Password
+
 1. Navigate to `/join?sessionCode=ABC123`
 2. Enter player name: "TestPlayer"
 3. Enter password: "test1234"
@@ -265,6 +293,7 @@ This triggers the rejoin detection flow in Join.tsx, showing the rejoin button i
 6. Check Supabase: Password hash stored in Participant table
 
 #### Scenario 2: Player Rejoin (Keep Config)
+
 1. Disconnect from session
 2. Navigate to `/join`
 3. Enter session code: "ABC123"
@@ -276,6 +305,7 @@ This triggers the rejoin detection flow in Join.tsx, showing the rejoin button i
 9. Verify: Navigate directly to lobby with existing config
 
 #### Scenario 3: Player Rejoin (Update Config)
+
 1. Navigate to `/join`
 2. Enter session code: "ABC123"
 3. Click "Rejoin"
@@ -289,6 +319,7 @@ This triggers the rejoin detection flow in Join.tsx, showing the rejoin button i
 11. Check Supabase: Config updated in Participant table
 
 #### Scenario 4: Failed Authentication
+
 1. Navigate to `/join`
 2. Enter session code
 3. Click "Rejoin"
@@ -298,6 +329,7 @@ This triggers the rejoin detection flow in Join.tsx, showing the rejoin button i
 7. Verify: Cannot proceed to lobby
 
 #### Scenario 5: Quick Join from Active Games
+
 1. Navigate to Homepage
 2. See "Active Games" section
 3. Click "Quick Join" on a session
@@ -309,22 +341,24 @@ This triggers the rejoin detection flow in Join.tsx, showing the rejoin button i
 
 ### Common Errors and Solutions
 
-| Error | Cause | Solution |
-|-------|-------|----------|
-| "Invalid password or participant not found" | Wrong password | Re-enter correct password |
-| "Failed to get session code" | Database query error | Check Supabase connection |
-| "Session is full" | All player slots taken | Wait for slot to open |
-| "Failed to rejoin as participant" | Database update error | Check permissions, retry |
+| Error                                       | Cause                  | Solution                  |
+| ------------------------------------------- | ---------------------- | ------------------------- |
+| "Invalid password or participant not found" | Wrong password         | Re-enter correct password |
+| "Failed to get session code"                | Database query error   | Check Supabase connection |
+| "Session is full"                           | All player slots taken | Wait for slot to open     |
+| "Failed to rejoin as participant"           | Database update error  | Check permissions, retry  |
 
 ### Error States in UI
 
 **RejoinModal:**
+
 - Shows error message in red banner
 - Keeps modal open for retry
 - Disables buttons during loading
 - Clear error on modal close
 
 **Join.tsx:**
+
 - Alert component for critical errors
 - Form validation before submission
 - Loading states on buttons
@@ -374,7 +408,7 @@ setParticipantPassword(participantId: string, passwordHash: string): Promise<voi
 
 // Verify participant password
 verifyParticipantPassword(
-  participantId: string, 
+  participantId: string,
   passwordHash: string
 ): Promise<{ valid: boolean, participant?: ParticipantData }>
 
@@ -397,11 +431,13 @@ rejoinAsParticipant(
 ### Issue: Rejoin button not appearing
 
 **Possible causes:**
+
 - Session code not yet entered
 - No existing participants in session
 - Database query failed
 
 **Solution:**
+
 - Ensure session code is entered correctly
 - Check browser console for errors
 - Verify Supabase connection
@@ -409,11 +445,13 @@ rejoinAsParticipant(
 ### Issue: Password authentication failing
 
 **Possible causes:**
+
 - Incorrect password
 - Password hash mismatch
 - Database issue
 
 **Solution:**
+
 - Double-check password
 - Verify password was set during first join
 - Check Supabase logs
@@ -421,11 +459,13 @@ rejoinAsParticipant(
 ### Issue: Config not updating
 
 **Possible causes:**
+
 - Database permissions
 - Invalid config data
 - Update mutation failed
 
 **Solution:**
+
 - Check RLS policies in Supabase
 - Verify flag/logo URLs are valid
 - Check browser console for errors
@@ -433,6 +473,7 @@ rejoinAsParticipant(
 ## Support
 
 For issues or questions:
+
 1. Check browser console for errors
 2. Review Supabase logs
 3. Check network tab for failed requests
@@ -445,8 +486,9 @@ For issues or questions:
 If you have existing participants without passwords:
 
 1. **Run Migration:**
+
    ```sql
-   ALTER TABLE "public"."Participant" 
+   ALTER TABLE "public"."Participant"
    ADD COLUMN IF NOT EXISTS "password" TEXT DEFAULT NULL;
    ```
 
