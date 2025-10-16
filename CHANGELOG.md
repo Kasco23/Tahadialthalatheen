@@ -3,6 +3,7 @@
 ## Version 1.1.0 - 2025-10-13
 
 ### 🎯 Overview
+
 This release addresses the ready button functionality and implements a comprehensive participant rejoin system with password authentication.
 
 ### ✅ Ready Button Status
@@ -10,6 +11,7 @@ This release addresses the ready button functionality and implements a comprehen
 **Finding:** The ready button was already working correctly. No fixes needed.
 
 **Verified Functionality:**
+
 - ✅ `markPlayerReady()` mutation properly updates `isReady` column in Supabase
 - ✅ UI correctly toggles between "✓ Ready" and "⏳ Not Ready" states
 - ✅ Real-time updates via Supabase subscriptions working
@@ -18,6 +20,7 @@ This release addresses the ready button functionality and implements a comprehen
 - ✅ Optimistic UI updates for better user experience
 
 **Technical Details:**
+
 - Located in: `src/pages/Lobby.tsx` (lines 576-617)
 - Mutation: `src/lib/mutations.ts:markPlayerReady()`
 - Serverless function: `netlify/functions/mark-player-ready.ts`
@@ -111,17 +114,18 @@ A comprehensive system allowing participants to rejoin sessions with password au
 
 ### 📊 Bundle Size Impact
 
-| File | Before | After | Change |
-|------|--------|-------|--------|
-| Join.js | 32.58 KB | 39.24 KB | +6.66 KB (+20%) |
-| mutations.js | 16.48 KB | 17.90 KB | +1.42 KB (+9%) |
-| Total Impact | - | - | +8.08 KB |
+| File         | Before   | After    | Change          |
+| ------------ | -------- | -------- | --------------- |
+| Join.js      | 32.58 KB | 39.24 KB | +6.66 KB (+20%) |
+| mutations.js | 16.48 KB | 17.90 KB | +1.42 KB (+9%)  |
+| Total Impact | -        | -        | +8.08 KB        |
 
-*Note: Increase is reasonable for the significant functionality added*
+_Note: Increase is reasonable for the significant functionality added_
 
 ### 🔒 Security Considerations
 
 **Current Implementation:**
+
 - ✅ SHA-256 password hashing
 - ✅ Client-side hashing before transmission
 - ✅ No plain-text storage
@@ -129,6 +133,7 @@ A comprehensive system allowing participants to rejoin sessions with password au
 - ✅ Backward compatible (nullable field)
 
 **Recommended for Production:**
+
 - ⚠️ Upgrade to bcrypt or argon2 for better security
 - ⚠️ Implement server-side password hashing (Netlify function)
 - ⚠️ Add rate limiting for rejoin attempts
@@ -148,7 +153,7 @@ setParticipantPassword(participantId: string, passwordHash: string): Promise<voi
 
 // Verify password and get participant data
 verifyParticipantPassword(
-  participantId: string, 
+  participantId: string,
   passwordHash: string
 ): Promise<{ valid: boolean, participant?: ParticipantData }>
 
@@ -179,15 +184,18 @@ verifyPassword(password: string, hash: string): Promise<boolean>
 ### 🧪 Testing
 
 **Test Results:**
+
 - ✅ All 35 tests passing
 - ✅ No lint errors
 - ✅ Build successful (5.73s)
 - ✅ TypeScript compilation clean
 
 **Test Files Updated:**
+
 - `src/components/ParticipantTile.test.tsx` - Added password field to mocks
 
 **Manual Testing Required:**
+
 - Test rejoin flow with real Supabase database
 - Test password authentication success/failure
 - Test configuration update on rejoin
@@ -198,12 +206,15 @@ verifyPassword(password: string, hash: string): Promise<boolean>
 ### 📚 Documentation
 
 **New Documentation:**
+
 - `docs/REJOIN_SYSTEM.md` - Complete rejoin system guide
 
 **Updated Documentation:**
+
 - `docs/NETLIFY_BLOBS_INTEGRATION.md` - Added rejoin features
 
 **Documentation Includes:**
+
 - User flows for first join and rejoin
 - Technical implementation details
 - API reference with code examples
@@ -215,6 +226,7 @@ verifyPassword(password: string, hash: string): Promise<boolean>
 ### 🚀 User Flows
 
 #### First-Time Join (Players)
+
 1. Navigate to Join page or click "Quick Join"
 2. Enter session code
 3. Enter player name
@@ -224,6 +236,7 @@ verifyPassword(password: string, hash: string): Promise<boolean>
 7. Join lobby
 
 #### Rejoin Flow
+
 1. Navigate to Join page
 2. Enter session code
 3. System detects existing participants
@@ -235,6 +248,7 @@ verifyPassword(password: string, hash: string): Promise<boolean>
    - **Rejoin & Update**: Update config → Select flag/logo → Join lobby
 
 #### Quick Join from Homepage
+
 1. See "Active Games" on homepage
 2. Click **"Quick Join"** on a session
 3. Session code automatically filled
@@ -285,8 +299,9 @@ None at this time. All tests passing.
 **For Existing Deployments:**
 
 1. **Run Database Migration:**
+
    ```sql
-   ALTER TABLE "public"."Participant" 
+   ALTER TABLE "public"."Participant"
    ADD COLUMN IF NOT EXISTS "password" TEXT DEFAULT NULL;
    ```
 
@@ -309,6 +324,7 @@ None at this time. All tests passing.
 ### 📞 Support
 
 For issues or questions:
+
 1. Check browser console for errors
 2. Review `docs/REJOIN_SYSTEM.md`
 3. Check Supabase logs for database issues

@@ -19,13 +19,18 @@ export default function Login() {
       navigate("/");
     } catch (err) {
       console.error("Login error:", err);
-      setError(
-        err instanceof Error ? err.message : "Failed to sign in",
-      );
+      setError(err instanceof Error ? err.message : "Failed to sign in");
     } finally {
       setLoading(false);
     }
   };
 
-  return <AuthForm mode="login" onSubmit={handleSubmit} loading={loading} error={error} />;
+  return (
+    <AuthForm
+      mode="login"
+      onSubmit={handleSubmit}
+      loading={loading}
+      error={error}
+    />
+  );
 }

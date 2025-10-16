@@ -25,13 +25,18 @@ export default function Signup() {
       navigate("/");
     } catch (err) {
       console.error("Signup error:", err);
-      setError(
-        err instanceof Error ? err.message : "Failed to create account",
-      );
+      setError(err instanceof Error ? err.message : "Failed to create account");
     } finally {
       setLoading(false);
     }
   };
 
-  return <AuthForm mode="signup" onSubmit={handleSubmit} loading={loading} error={error} />;
+  return (
+    <AuthForm
+      mode="signup"
+      onSubmit={handleSubmit}
+      loading={loading}
+      error={error}
+    />
+  );
 }

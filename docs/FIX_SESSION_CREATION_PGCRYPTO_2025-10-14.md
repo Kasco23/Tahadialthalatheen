@@ -3,6 +3,7 @@
 ## Issue Summary
 
 Users encountered the following error when creating a session:
+
 ```
 Error creating session: Failed to create session: function gen_salt(unknown) does not exist
 ```
@@ -12,7 +13,7 @@ Error creating session: Failed to create session: function gen_salt(unknown) doe
 The issue occurred because **multiple database functions** were attempting to use `gen_salt()` and `crypt()` functions from the pgcrypto extension without proper schema qualification:
 
 1. **hash_host_password()** - Trigger function for hashing host passwords
-2. **verify_host_password()** - Function to verify host passwords  
+2. **verify_host_password()** - Function to verify host passwords
 3. **hash_participant_password()** - Function to hash participant passwords
 4. **verify_participant_password()** - Function to verify participant passwords
 
@@ -41,6 +42,7 @@ $_$;
 ```
 
 This same pattern was applied to:
+
 - `hash_host_password()` - Trigger function
 - `verify_host_password(session_code_input, password_input)` - Verification function
 - `hash_participant_password(password_input)` - Hashing function
@@ -49,6 +51,7 @@ This same pattern was applied to:
 ### Why This Fix Works
 
 Using explicit schema qualification (`extensions.crypt()` and `extensions.gen_salt()`) is more reliable and secure than relying on `search_path`:
+
 1. Eliminates ambiguity about which schema contains the functions
 2. Prevents potential security issues from search_path manipulation
 3. Makes the code more explicit and easier to understand
@@ -63,18 +66,19 @@ Along with the database fix, we've applied modern visual best practices to the s
 ### PasswordModal Component Improvements
 
 #### Visual Design
+
 - **Modern Card Design**: Upgraded from simple rounded corners to a more sophisticated design with rounded-2xl
 - **Backdrop Effect**: Added backdrop blur for better focus and modern appearance
 - **Gradient Icon Badge**: Created a circular gradient badge (green-400 to green-600) for the lock icon
 - **Better Typography Hierarchy**: Larger heading (3xl), clearer labels with icons, better spacing
 
 #### User Experience
-- **Visual Feedback**: 
+
+- **Visual Feedback**:
   - Added smooth animations (fadeIn for overlay, slideUp for modal)
   - Shake animation for error messages
   - Loading spinner instead of just text
   - Hover states with scale transforms
-  
 - **Input Improvements**:
   - Thicker borders (border-2) for better visibility
   - Emoji icons for labels (👤 for name, 🔑 for password)
@@ -94,6 +98,7 @@ Along with the database fix, we've applied modern visual best practices to the s
   - Clearer button hierarchy (Cancel vs Create)
 
 #### Accessibility
+
 - Added `aria-label` for password visibility toggle
 - Proper `htmlFor` associations between labels and inputs
 - `minLength` HTML5 validation attribute
@@ -101,6 +106,7 @@ Along with the database fix, we've applied modern visual best practices to the s
 ### Homepage Alert Positioning
 
 Changed alert positioning from top-right to **top-center** for:
+
 - Better visibility across all screen sizes
 - Centered attention on important messages
 - More mobile-friendly layout
@@ -109,13 +115,23 @@ Changed alert positioning from top-right to **top-center** for:
 
 ```css
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes shake {
@@ -128,12 +144,14 @@ Changed alert positioning from top-right to **top-center** for:
 ### Database Testing
 
 1. Apply the new migration:
+
    ```bash
    supabase db push
    # or through Supabase Dashboard → SQL Editor
    ```
 
 2. Test session creation:
+
    ```bash
    # Should now work without errors
    curl -X POST [your-api-endpoint]/create-session \
@@ -185,11 +203,13 @@ Changed alert positioning from top-right to **top-center** for:
 ## Files Changed
 
 ### Database
+
 - `supabase/migrations/20251014000001_fix_all_pgcrypto_functions.sql` (new)
 
 ### Frontend
+
 - `src/components/PasswordModal.tsx` - Complete UI/UX redesign
-- `src/pages/Homepage.tsx` - Alert positioning improvement  
+- `src/pages/Homepage.tsx` - Alert positioning improvement
 - `src/index.css` - Added animation keyframes
 
 ## References

@@ -203,7 +203,7 @@ const GameSetup: React.FC = () => {
     value: string,
   ) => {
     const numValue = parseInt(value) || 0;
-    
+
     // Validate range (1-50 questions per segment)
     if (numValue < 0 || numValue > 50) {
       setNotice({
@@ -253,7 +253,7 @@ const GameSetup: React.FC = () => {
 
     // Validate segment configuration
     const hasInvalidSegments = Object.entries(segments).some(
-      ([, count]) => count < 1 || count > 50
+      ([, count]) => count < 1 || count > 50,
     );
     if (hasInvalidSegments) {
       setNotice({

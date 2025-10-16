@@ -23,7 +23,11 @@ interface AuthContextType {
     team?: string,
     flag?: string,
   ) => Promise<void>;
-  signIn: (email: string, password: string, keepSignedIn: boolean) => Promise<void>;
+  signIn: (
+    email: string,
+    password: string,
+    keepSignedIn: boolean,
+  ) => Promise<void>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -107,7 +111,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const signIn = async (email: string, password: string, keepSignedIn: boolean) => {
+  const signIn = async (
+    email: string,
+    password: string,
+    keepSignedIn: boolean,
+  ) => {
     // Handle session persistence based on keepSignedIn
     if (!keepSignedIn) {
       // Use session storage instead of local storage
