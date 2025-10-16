@@ -7,32 +7,33 @@ Error creating session: Failed to create session: function gen_salt(unknown) doe
 ```
 
 ## Root Cause
-The `hash_host_password()` database trigger function was calling `gen_salt('bf')` and `crypt()` functions from the pgcrypto extension without proper schema qualification. 
+The `hash_host_password()` database trigger function was calling `gen_salt('bf')` and `crypt()` functions from the pgcrypto extension without explicit schema qualification. 
 
-The pgcrypto extension is installed in the `extensions` schema (as per line 33 in `20250908133643_remote_schema.sql`), but the function's search_path didn't include this schema, causing PostgreSQL to fail when looking for these functions.
+The pgcrypto extension is installed in the `extensions` schema (as per line 33 in `20250908133643_remote_schema.sql`), but the functions were being called without specifying the schema, causing PostgreSQL to fail when looking for these functions.
 
 ## Solution
 
 ### 1. Database Migration Fix
-**File**: `supabase/migrations/20251014000000_fix_hash_host_password_schema.sql`
+**Files**: 
+- `supabase/migrations/20251014000000_fix_hash_host_password_schema.sql`
+- `supabase/migrations/20251014000001_fix_all_pgcrypto_functions.sql`
 
-Added `SET search_path = 'public, extensions'` to the function definition:
+Added explicit schema qualification to all pgcrypto function calls:
 
 ```sql
 CREATE OR REPLACE FUNCTION "public"."hash_host_password"() RETURNS "trigger"
     LANGUAGE "plpgsql"
-    SET search_path = 'public, extensions'  -- Added this line
     AS $_$
 begin
   if new.host_password not like '$2a$%' then
-    new.host_password := crypt(new.host_password, gen_salt('bf'));
+    new.host_password := extensions.crypt(new.host_password, extensions.gen_salt('bf'));
   end if;
   return new;
 end;
 $_$;
 ```
 
-This matches the pattern already used in the `verify_host_password()` function, which was previously fixed in a similar manner.
+This approach uses explicit schema qualification (`extensions.crypt()` and `extensions.gen_salt()`) which is more secure and reliable than relying on `SET search_path`.
 
 ### 2. Enhanced Input Validation
 While fixing the database issue, we also improved the overall session creation flow:
@@ -79,12 +80,14 @@ Since this is a football quiz application for friends only (not a public platfor
 - Ensuring reliability during game setup
 
 ## Migration Instructions
-1. Apply the new migration: `20251014000000_fix_hash_host_password_schema.sql`
+1. Apply the migrations in order:
+   - `20251014000000_fix_hash_host_password_schema.sql`
+   - `20251014000001_fix_all_pgcrypto_functions.sql`
 2. Deploy updated frontend code
 3. Test session creation flow
 4. Verify password hashing works correctly
 
 ## References
-- Similar fix pattern: `verify_host_password()` function (already has search_path)
+- All password-related functions now use explicit schema qualification: `extensions.crypt()` and `extensions.gen_salt()`
 - PostgreSQL schema search path: https://www.postgresql.org/docs/current/ddl-schemas.html
 - pgcrypto extension: https://www.postgresql.org/docs/current/pgcrypto.html

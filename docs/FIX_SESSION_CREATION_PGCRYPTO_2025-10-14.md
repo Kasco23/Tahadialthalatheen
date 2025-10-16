@@ -16,7 +16,7 @@ The issue occurred because **multiple database functions** were attempting to us
 3. **hash_participant_password()** - Function to hash participant passwords
 4. **verify_participant_password()** - Function to verify participant passwords
 
-The pgcrypto extension is installed in the `extensions` schema (line 33 in `20250908133643_remote_schema.sql`), but these functions didn't have the proper `search_path` set, causing PostgreSQL to fail when looking for `gen_salt()` and `crypt()`.
+The pgcrypto extension is installed in the `extensions` schema (line 33 in `20250908133643_remote_schema.sql`), but these functions were calling `gen_salt()` and `crypt()` without proper schema qualification, causing PostgreSQL to fail when looking for these functions.
 
 ## Solution Implemented
 
@@ -24,17 +24,16 @@ The pgcrypto extension is installed in the `extensions` schema (line 33 in `2025
 
 **File**: `supabase/migrations/20251014000001_fix_all_pgcrypto_functions.sql`
 
-Added `SET search_path = 'public, extensions'` to ALL four functions that use pgcrypto:
+Updated ALL four functions to use explicit schema qualification (`extensions.crypt()` and `extensions.gen_salt()`):
 
 ```sql
 -- Example for hash_host_password
 CREATE OR REPLACE FUNCTION "public"."hash_host_password"() RETURNS "trigger"
     LANGUAGE "plpgsql"
-    SET search_path = 'public, extensions'  -- CRITICAL FIX
     AS $_$
 begin
   if new.host_password not like '$2a$%' then
-    new.host_password := crypt(new.host_password, gen_salt('bf'));
+    new.host_password := extensions.crypt(new.host_password, extensions.gen_salt('bf'));
   end if;
   return new;
 end;
@@ -49,11 +48,13 @@ This same pattern was applied to:
 
 ### Why This Fix Works
 
-Setting `search_path = 'public, extensions'` tells PostgreSQL to look in both schemas when resolving function names:
-1. First checks the `public` schema for standard functions
-2. Then checks the `extensions` schema for pgcrypto functions like `gen_salt()` and `crypt()`
+Using explicit schema qualification (`extensions.crypt()` and `extensions.gen_salt()`) is more reliable and secure than relying on `search_path`:
+1. Eliminates ambiguity about which schema contains the functions
+2. Prevents potential security issues from search_path manipulation
+3. Makes the code more explicit and easier to understand
+4. Follows PostgreSQL and Supabase best practices for security
 
-This matches the pattern recommended by Supabase and PostgreSQL security best practices.
+This approach is more robust than using `SET search_path` as it explicitly specifies the schema for each function call.
 
 ## UI/UX Enhancements
 
@@ -202,5 +203,7 @@ Changed alert positioning from top-right to **top-center** for:
 
 - This migration supersedes the previous `20251014000000_fix_hash_host_password_schema.sql` which only fixed one function
 - All four functions now have consistent security and schema configuration
+- The fix uses explicit schema qualification (`extensions.crypt()` and `extensions.gen_salt()`) which is more secure and reliable than `SET search_path`
 - The fix maintains backward compatibility - existing hashed passwords continue to work
 - UI changes are purely visual - no breaking changes to component API
+- All migrations have been updated to use the explicit schema qualification approach

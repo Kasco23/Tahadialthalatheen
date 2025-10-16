@@ -126,7 +126,7 @@ CREATE OR REPLACE FUNCTION "public"."hash_host_password"() RETURNS "trigger"
 begin
   -- Hash only if it's not already hashed (safety check)
   if new.host_password not like '$2a$%' then
-    new.host_password := crypt(new.host_password, gen_salt('bf'));
+    new.host_password := extensions.crypt(new.host_password, extensions.gen_salt('bf'));
   end if;
   return new;
 end;
@@ -153,7 +153,7 @@ BEGIN
   END IF;
   
   -- Verify the password using crypt function
-  RETURN crypt(password_input, stored_password) = stored_password;
+  RETURN extensions.crypt(password_input, stored_password) = stored_password;
 END;
 $$;
 

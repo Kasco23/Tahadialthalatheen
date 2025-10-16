@@ -6,7 +6,7 @@ LANGUAGE "plpgsql" SECURITY DEFINER
 AS $$
 BEGIN
   -- Use crypt with automatic salt generation (bf = blowfish algorithm)
-  RETURN crypt(password_input, gen_salt('bf'));
+  RETURN extensions.crypt(password_input, extensions.gen_salt('bf'));
 END;
 $$;
 
@@ -32,7 +32,7 @@ BEGIN
   END IF;
   
   -- Verify the password using crypt function
-  RETURN crypt(password_input, stored_password) = stored_password;
+  RETURN extensions.crypt(password_input, stored_password) = stored_password;
 END;
 $$;
 
