@@ -1,17 +1,15 @@
--- Fix all functions that use pgcrypto (gen_salt, crypt) to include proper search_path
+-- Fix all functions that use pgcrypto (gen_salt, crypt) with explicit schema qualification
 -- The pgcrypto extension is installed in the 'extensions' schema (see line 33 in 20250908133643_remote_schema.sql)
--- Without proper search_path, PostgreSQL cannot find these functions, resulting in:
--- "function gen_salt(unknown) does not exist" error
+-- Using explicit schema qualification (extensions.crypt, extensions.gen_salt) is more reliable than search_path
 
 -- 1. Fix hash_host_password trigger function
 CREATE OR REPLACE FUNCTION "public"."hash_host_password"() RETURNS "trigger"
     LANGUAGE "plpgsql"
-    SET search_path = 'public, extensions'
     AS $_$
 begin
   -- Hash only if it's not already hashed (safety check)
   if new.host_password not like '$2a$%' then
-    new.host_password := crypt(new.host_password, gen_salt('bf'));
+    new.host_password := extensions.crypt(new.host_password, extensions.gen_salt('bf'));
   end if;
   return new;
 end;
@@ -23,7 +21,6 @@ ALTER FUNCTION "public"."hash_host_password"() OWNER TO "postgres";
 CREATE OR REPLACE FUNCTION "public"."verify_host_password"("session_code_input" "text", "password_input" "text") 
 RETURNS boolean
     LANGUAGE "plpgsql" SECURITY DEFINER
-    SET search_path = 'public, extensions'
     AS $$
 DECLARE
   stored_password text;
@@ -39,7 +36,7 @@ BEGIN
   END IF;
   
   -- Verify the password using crypt function
-  RETURN crypt(password_input, stored_password) = stored_password;
+  RETURN extensions.crypt(password_input, stored_password) = stored_password;
 END;
 $$;
 
@@ -49,11 +46,10 @@ ALTER FUNCTION "public"."verify_host_password"("session_code_input" "text", "pas
 CREATE OR REPLACE FUNCTION "public"."hash_participant_password"("password_input" "text") 
 RETURNS "text"
     LANGUAGE "plpgsql" SECURITY DEFINER
-    SET search_path = 'public, extensions'
 AS $$
 BEGIN
   -- Use crypt with automatic salt generation (bf = blowfish algorithm)
-  RETURN crypt(password_input, gen_salt('bf'));
+  RETURN extensions.crypt(password_input, extensions.gen_salt('bf'));
 END;
 $$;
 
@@ -66,7 +62,6 @@ CREATE OR REPLACE FUNCTION "public"."verify_participant_password"(
 ) 
 RETURNS boolean
     LANGUAGE "plpgsql" SECURITY DEFINER
-    SET search_path = 'public, extensions'
 AS $$
 DECLARE
   stored_password text;
@@ -82,7 +77,7 @@ BEGIN
   END IF;
   
   -- Verify the password using crypt function
-  RETURN crypt(password_input, stored_password) = stored_password;
+  RETURN extensions.crypt(password_input, stored_password) = stored_password;
 END;
 $$;
 
