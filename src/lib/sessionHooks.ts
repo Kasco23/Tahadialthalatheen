@@ -82,7 +82,7 @@ export const useSession = (sessionId: string | null): UseSessionReturn => {
         setError(null);
 
         const { data, error: fetchError } = await supabase
-          .from("Session")
+          .from("Sessions")
           .select(
             "session_id, session_code, phase, game_state, created_at, ended_at",
           )

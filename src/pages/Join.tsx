@@ -24,6 +24,7 @@ import RejoinModal from "../components/RejoinModal";
 import { supabase } from "../lib/supabaseClient";
 import { getSeatsFromRole, setSeatInStorage } from "../lib/userSession";
 import type { ParticipantRole } from "../lib/types";
+import { useAuth } from "../contexts/AuthContext";
 
 // ReactBits Components
 import { AnimatedList, SpotlightCard, Dock } from "../components/ReactBits";
@@ -55,6 +56,7 @@ interface LogoResponse {
 const JoinRevolutionary: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<"host" | "player">("host");
   const [currentStep, setCurrentStep] = useState<
     "role" | "details" | "flag" | "team"
@@ -245,8 +247,14 @@ const JoinRevolutionary: React.FC = () => {
 
   // Separate join functions for preset flow
   const joinAsHostWithPreset = async () => {
-    if (!sessionCode.trim() || !hostPassword.trim()) {
-      setAlert({ type: "error", message: "Please fill in all fields" });
+    if (!sessionCode.trim()) {
+      setAlert({ type: "error", message: "Please enter a session code" });
+      return;
+    }
+
+    if (!user?.id) {
+      setAlert({ type: "error", message: "Please sign in to join as host" });
+      navigate("/login");
       return;
     }
 
@@ -255,13 +263,15 @@ const JoinRevolutionary: React.FC = () => {
     try {
       const { participantId, role } = await joinAsHost(
         sessionCode,
-        hostPassword,
+        user.id,
         hostSelectedFlag,
         hostTeamLogoUrl,
       );
 
       // Store password for rejoin (database handles hashing)
-      await setParticipantPassword(participantId, hostPassword);
+      if (hostPassword.trim()) {
+        await setParticipantPassword(participantId, hostPassword);
+      }
 
       // Store participant data in localStorage
       storeParticipantData(
@@ -378,7 +388,7 @@ const JoinRevolutionary: React.FC = () => {
 
       // Get session code
       const { data: sessionData } = await supabase
-        .from("Session")
+        .from("Sessions")
         .select("session_code")
         .eq("session_id", sessionId)
         .single();
@@ -444,7 +454,7 @@ const JoinRevolutionary: React.FC = () => {
       // Check for existing preset based on actual host name from session
       try {
         const { data: hostParticipant } = await supabase
-          .from("Participant")
+          .from("Participants")
           .select("name, Session!inner(session_code)")
           .eq("role", "Host")
           .eq("Session.session_code", sessionCode.toUpperCase())
@@ -489,8 +499,14 @@ const JoinRevolutionary: React.FC = () => {
   const handleHostSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!sessionCode.trim() || !hostPassword.trim()) {
-      setAlert({ type: "error", message: "Please fill in all fields" });
+    if (!sessionCode.trim()) {
+      setAlert({ type: "error", message: "Please enter a session code" });
+      return;
+    }
+
+    if (!user?.id) {
+      setAlert({ type: "error", message: "Please sign in to join as host" });
+      navigate("/login");
       return;
     }
 
@@ -499,7 +515,7 @@ const JoinRevolutionary: React.FC = () => {
     try {
       const { participantId, role } = await joinAsHost(
         sessionCode,
-        hostPassword,
+        user.id,
         hostSelectedFlag,
         hostTeamLogoUrl,
       );

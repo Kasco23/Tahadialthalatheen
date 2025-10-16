@@ -7,7 +7,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 // Lazy load all page components for better code splitting
 const Homepage = lazy(() => import("./pages/Homepage"));
 const GameSetup = lazy(() => import("./pages/GameSetup"));
-const Join = lazy(() => import("./pages/Join"));
+const Join = lazy(() => import("./pages/JoinSimplified"));
 const Lobby = lazy(() => import("./pages/Lobby"));
 const Quiz = lazy(() => import("./pages/Quiz"));
 const Results = lazy(() => import("./pages/Results"));

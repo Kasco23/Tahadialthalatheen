@@ -94,7 +94,7 @@ const Quiz: React.FC = () => {
   // 1. currentSegment === 'WDYK'
   // 2. Player has exactly 2 strikes
   // 3. powerup_pass_used === false
-  const canUsePass = (participant: Tables<"Participant">) => {
+  const canUsePass = (participant: Tables<"Participants">) => {
     const participantStrikes = strikes[participant.participant_id] || 0;
     return (
       currentSegment === "WDYK" &&
@@ -103,7 +103,7 @@ const Quiz: React.FC = () => {
     );
   };
 
-  const handlePassButtonClick = async (participant: Tables<"Participant">) => {
+  const handlePassButtonClick = async (participant: Tables<"Participants">) => {
     if (!canUsePass(participant)) return;
 
     setLoading(true);

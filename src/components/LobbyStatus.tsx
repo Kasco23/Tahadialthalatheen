@@ -49,7 +49,7 @@ const LobbyStatus: React.FC<LobbyStatusProps> = ({
         // Fetch participants
         const { data: participantsData, error: participantsError } =
           await supabase
-            .from("Participant")
+            .from("Participants")
             .select(
               "participant_id, name, role, lobby_presence, flag, team_logo_url",
             )
@@ -63,7 +63,7 @@ const LobbyStatus: React.FC<LobbyStatusProps> = ({
 
         // Fetch daily room info
         const { data: dailyRoomData, error: dailyRoomError } = await supabase
-          .from("DailyRoom")
+          .from("DailyRooms")
           .select("room_url, ready")
           .eq("room_id", sessionId)
           .single();

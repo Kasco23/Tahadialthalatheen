@@ -56,15 +56,11 @@ describe("Mutations", () => {
         update: mockUpdate,
       };
 
-      (supabase.rpc as Mock).mockResolvedValue({
-        data: true,
-        error: null,
-      });
       (supabase.from as Mock).mockReturnValue(mockFromMethods);
 
-      // Mock session lookup
+      // Mock session lookup with host_profile_id
       mockFromMethods.single.mockResolvedValueOnce({
-        data: { session_id: "session-123" },
+        data: { session_id: "session-123", host_profile_id: "user-profile-id" },
         error: null,
       });
 
@@ -74,7 +70,7 @@ describe("Mutations", () => {
         error: null,
       });
 
-      await joinAsHost("TEST123", "password123");
+      await joinAsHost("TEST123", "user-profile-id");
 
       // Verify update was called with timestamps
       expect(mockUpdate).toHaveBeenCalledWith(

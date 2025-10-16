@@ -25,6 +25,7 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
   refreshProfile: () => Promise<void>;
+  refreshSession: () => Promise<{ session: Session | null; user: User | null } | null>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -140,6 +141,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const refreshSession = async () => {
+    const { data, error } = await supabase.auth.refreshSession();
+    if (error) {
+      console.error("Error refreshing session:", error);
+      return null;
+    }
+    return data;
+  };
+
   const value: AuthContextType = {
     user,
     session,
@@ -150,6 +160,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signOut,
     updateProfile,
     refreshProfile,
+    refreshSession,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

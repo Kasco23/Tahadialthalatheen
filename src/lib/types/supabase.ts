@@ -14,7 +14,7 @@ export type Database = {
   };
   public: {
     Tables: {
-      DailyRoom: {
+      DailyRooms: {
         Row: {
           active_participants: Json | null;
           host_permissions: Json | null;
@@ -38,15 +38,15 @@ export type Database = {
         };
         Relationships: [
           {
-            foreignKeyName: "DailyRoom_room_id_fkey";
+            foreignKeyName: "DailyRooms_room_id_fkey";
             columns: ["room_id"];
             isOneToOne: true;
-            referencedRelation: "Session";
+            referencedRelation: "Sessions";
             referencedColumns: ["session_id"];
           },
         ];
       };
-      Participant: {
+      Participants: {
         Row: {
           disconnect_at: string | null;
           flag: string | null;
@@ -109,17 +109,17 @@ export type Database = {
         };
         Relationships: [
           {
-            foreignKeyName: "Participant_profile_id_fkey";
+            foreignKeyName: "Participants_profile_id_fkey";
             columns: ["profile_id"];
             isOneToOne: false;
             referencedRelation: "Profiles";
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "Participant_session_id_fkey";
+            foreignKeyName: "Participants_session_id_fkey";
             columns: ["session_id"];
             isOneToOne: false;
-            referencedRelation: "Session";
+            referencedRelation: "Sessions";
             referencedColumns: ["session_id"];
           },
         ];
@@ -162,7 +162,7 @@ export type Database = {
           },
         ];
       };
-      Score: {
+      Scores: {
         Row: {
           participant_id: string;
           points: number;
@@ -186,17 +186,17 @@ export type Database = {
         };
         Relationships: [
           {
-            foreignKeyName: "Score_participant_id_fkey";
+            foreignKeyName: "Scores_participant_id_fkey";
             columns: ["participant_id"];
             isOneToOne: false;
-            referencedRelation: "Participant";
+            referencedRelation: "Participants";
             referencedColumns: ["participant_id"];
           },
           {
-            foreignKeyName: "Score_session_id_fkey";
+            foreignKeyName: "Scores_session_id_fkey";
             columns: ["session_id"];
             isOneToOne: false;
-            referencedRelation: "Session";
+            referencedRelation: "Sessions";
             referencedColumns: ["session_id"];
           },
         ];
@@ -230,7 +230,7 @@ export type Database = {
           },
         ];
       };
-      Session: {
+      Sessions: {
         Row: {
           created_at: string | null;
           ended_at: string | null;
@@ -260,7 +260,7 @@ export type Database = {
         };
         Relationships: [
           {
-            foreignKeyName: "Session_host_profile_id_fkey";
+            foreignKeyName: "Sessions_host_profile_id_fkey";
             columns: ["host_profile_id"];
             isOneToOne: false;
             referencedRelation: "Profiles";
@@ -295,14 +295,14 @@ export type Database = {
             foreignKeyName: "Strikes_participant_id_fkey";
             columns: ["participant_id"];
             isOneToOne: false;
-            referencedRelation: "Participant";
+            referencedRelation: "Participants";
             referencedColumns: ["participant_id"];
           },
           {
             foreignKeyName: "Strikes_session_id_fkey";
             columns: ["session_id"];
             isOneToOne: false;
-            referencedRelation: "Session";
+            referencedRelation: "Sessions";
             referencedColumns: ["session_id"];
           },
         ];

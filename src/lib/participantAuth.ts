@@ -65,7 +65,7 @@ export async function setParticipantPassword(
 
   // Store the hashed password
   const { error } = await supabase
-    .from("Participant")
+    .from("Participants")
     .update({ password: hashedPassword })
     .eq("participant_id", participantId);
 
