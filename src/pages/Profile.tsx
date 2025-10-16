@@ -3,6 +3,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { supabase } from "../lib/supabaseClient";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import AvatarEditor from "../components/AvatarEditor";
 
 export default function Profile() {
   const { user, profile, updateProfile, signOut } = useAuth();
@@ -16,26 +17,41 @@ export default function Profile() {
   });
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [showAvatarEditor, setShowAvatarEditor] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-  const handleAvatarUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!event.target.files || event.target.files.length === 0) {
+      return;
+    }
+
+    const file = event.target.files[0];
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      setSelectedImage(reader.result as string);
+      setShowAvatarEditor(true);
+    };
+
+    reader.readAsDataURL(file);
+  };
+
+  const handleAvatarComplete = async (croppedImage: Blob) => {
     try {
       setUploading(true);
+      setShowAvatarEditor(false);
 
-      if (!event.target.files || event.target.files.length === 0) {
-        return;
-      }
-
-      const file = event.target.files[0];
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${user?.id}-${Math.random()}.${fileExt}`;
+      const fileExt = "jpg";
+      const fileName = `${user?.id}-${Date.now()}.${fileExt}`;
       const filePath = `${fileName}`;
 
-      // Upload file to Supabase Storage
+      // Upload cropped image to Supabase Storage
       const { error: uploadError } = await supabase.storage
         .from("avatars")
-        .upload(filePath, file, { upsert: true });
+        .upload(filePath, croppedImage, {
+          contentType: "image/jpeg",
+          upsert: true,
+        });
 
       if (uploadError) {
         throw uploadError;
@@ -56,6 +72,15 @@ export default function Profile() {
       );
     } finally {
       setUploading(false);
+      setSelectedImage(null);
+    }
+  };
+
+  const handleAvatarCancel = () => {
+    setShowAvatarEditor(false);
+    setSelectedImage(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
     }
   };
 
@@ -180,7 +205,7 @@ export default function Profile() {
               ref={fileInputRef}
               type="file"
               accept="image/*"
-              onChange={handleAvatarUpload}
+              onChange={handleFileSelect}
               className="hidden"
             />
           </div>
@@ -301,6 +326,15 @@ export default function Profile() {
           </button>
         </div>
       </div>
+
+      {/* Avatar Editor Modal */}
+      {showAvatarEditor && selectedImage && (
+        <AvatarEditor
+          imageSrc={selectedImage}
+          onComplete={handleAvatarComplete}
+          onCancel={handleAvatarCancel}
+        />
+      )}
     </div>
   );
 }
