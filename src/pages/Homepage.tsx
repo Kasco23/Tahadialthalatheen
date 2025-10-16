@@ -8,6 +8,7 @@ import { useAuth } from "../contexts/AuthContext";
 
 const Homepage: React.FC = () => {
   const [isCreatingSession, setIsCreatingSession] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [alert, setAlert] = useState<{
     type: "error" | "success" | "info";
     message: string;
@@ -115,38 +116,120 @@ const Homepage: React.FC = () => {
 
       {/* User menu in top right */}
       {user && (
-        <div className="absolute top-4 right-4 z-20">
-          <div className="bg-white rounded-xl shadow-lg p-3 flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center">
-                {profile?.avatar_url ? (
-                  <img
-                    src={profile.avatar_url}
-                    alt="Avatar"
-                    className="w-full h-full rounded-full object-cover"
+        <>
+          {/* Profile Button */}
+          <button
+            onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+            className="absolute top-4 right-4 z-30 w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center hover:shadow-xl transition-shadow"
+          >
+            {profile?.avatar_url ? (
+              <img
+                src={profile.avatar_url}
+                alt="Avatar"
+                className="w-full h-full rounded-full object-cover"
+              />
+            ) : (
+              <span className="text-2xl">👤</span>
+            )}
+          </button>
+
+          {/* Slide-out Profile Menu */}
+          <div
+            className={`fixed top-0 right-0 h-full w-80 bg-white shadow-2xl z-40 transform transition-transform duration-300 ease-in-out ${
+              isProfileMenuOpen ? "translate-x-0" : "translate-x-full"
+            }`}
+          >
+            <div className="flex flex-col h-full p-6">
+              {/* Close Button */}
+              <button
+                onClick={() => setIsProfileMenuOpen(false)}
+                className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
                   />
-                ) : (
-                  <span className="text-sm">👤</span>
-                )}
+                </svg>
+              </button>
+
+              {/* Profile Header */}
+              <div className="flex flex-col items-center mb-6 mt-4">
+                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center mb-3 shadow-lg">
+                  {profile?.avatar_url ? (
+                    <img
+                      src={profile.avatar_url}
+                      alt="Avatar"
+                      className="w-full h-full rounded-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-4xl">👤</span>
+                  )}
+                </div>
+                <h3 className="text-xl font-bold text-gray-800">
+                  {profile?.name || "User"}
+                </h3>
+                <p className="text-sm text-gray-600">{user.email}</p>
               </div>
-              <span className="font-semibold text-gray-800 text-sm">
-                {profile?.name || user.email}
-              </span>
+
+              {/* Menu Items */}
+              <nav className="flex-1 space-y-2">
+                <Link
+                  to="/profile"
+                  onClick={() => setIsProfileMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-green-50 transition-colors"
+                >
+                  <span className="text-xl">⚙️</span>
+                  <span className="font-medium text-gray-700">
+                    Profile Settings
+                  </span>
+                </Link>
+                <Link
+                  to="/select-flag"
+                  onClick={() => setIsProfileMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-green-50 transition-colors"
+                >
+                  <span className="text-xl">🏴</span>
+                  <span className="font-medium text-gray-700">Change Flag</span>
+                </Link>
+                <Link
+                  to="/select-team"
+                  onClick={() => setIsProfileMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-green-50 transition-colors"
+                >
+                  <span className="text-xl">⚽</span>
+                  <span className="font-medium text-gray-700">Change Team</span>
+                </Link>
+              </nav>
+
+              {/* Sign Out Button */}
+              <button
+                onClick={() => {
+                  handleSignOut();
+                  setIsProfileMenuOpen(false);
+                }}
+                className="w-full px-4 py-3 bg-red-500 hover:bg-red-600 text-white font-bold rounded-lg transition-colors shadow-lg"
+              >
+                Sign Out
+              </button>
             </div>
-            <Link
-              to="/profile"
-              className="px-3 py-1 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-medium transition-colors"
-            >
-              Profile
-            </Link>
-            <button
-              onClick={handleSignOut}
-              className="px-3 py-1 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg text-sm font-medium transition-colors"
-            >
-              Sign Out
-            </button>
           </div>
-        </div>
+
+          {/* Backdrop */}
+          {isProfileMenuOpen && (
+            <div
+              className="fixed inset-0 bg-black bg-opacity-50 z-30"
+              onClick={() => setIsProfileMenuOpen(false)}
+            />
+          )}
+        </>
       )}
 
       {/* Sign in/Sign up buttons when not authenticated */}
@@ -169,49 +252,42 @@ const Homepage: React.FC = () => {
 
       {/* Main content container */}
       <div className="relative z-10 flex-1 max-w-7xl mx-auto w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-8 h-full">
           {/* Left side - Main content */}
-          <div className="flex flex-col items-center justify-center text-center px-4">
+          <div className="flex flex-col items-center justify-center text-center px-4 py-8 lg:py-0">
             {/* Arabic Title */}
-            <h1 className="text-5xl md:text-7xl font-black text-white mb-6 drop-shadow-[0_4px_20px_rgba(0,0,0,0.8)] filter contrast-125 brightness-110">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-white mb-4 lg:mb-6 drop-shadow-[0_4px_20px_rgba(0,0,0,0.8)] filter contrast-125 brightness-110">
               تحدي الثلاثين ⚽
             </h1>
 
             {/* Tagline */}
-            <p className="text-xl md:text-2xl text-green-100 mb-12 font-medium drop-shadow-lg">
+            <p className="text-lg sm:text-xl md:text-2xl text-green-100 mb-8 lg:mb-12 font-medium drop-shadow-lg">
               The ultimate football quiz showdown
             </p>
 
             {/* CTA Buttons */}
-            <div className="space-y-6 w-full max-w-sm">
+            <div className="space-y-4 lg:space-y-6 w-full max-w-sm">
               <button
                 onClick={handleCreateSession}
                 disabled={isCreatingSession}
-                className="block w-full bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 hover:from-yellow-500 hover:via-yellow-600 hover:to-yellow-700 disabled:from-gray-300 disabled:to-gray-400 text-black font-bold text-xl md:text-2xl py-6 px-8 rounded-2xl shadow-2xl transform transition-all duration-300 hover:scale-105 hover:shadow-3xl border-4 border-yellow-300 disabled:cursor-not-allowed disabled:transform-none"
+                className="block w-full bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 hover:from-yellow-500 hover:via-yellow-600 hover:to-yellow-700 disabled:from-gray-300 disabled:to-gray-400 text-black font-bold text-lg sm:text-xl md:text-2xl py-4 sm:py-5 lg:py-6 px-6 lg:px-8 rounded-2xl shadow-2xl transform transition-all duration-300 hover:scale-105 hover:shadow-3xl border-4 border-yellow-300 disabled:cursor-not-allowed disabled:transform-none"
               >
                 {isCreatingSession ? "Creating..." : "🏆 Create Session"}
               </button>
 
-              <div className="grid grid-cols-1 gap-4">
+              <div className="grid grid-cols-1 gap-3 lg:gap-4">
                 <Link
-                  to="/join?role=host"
-                  className="block w-full bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 hover:from-purple-600 hover:via-purple-700 hover:to-purple-800 text-white font-bold text-lg md:text-xl py-4 px-6 rounded-xl shadow-2xl transform transition-all duration-300 hover:scale-105 hover:shadow-3xl border-4 border-purple-300"
+                  to="/join"
+                  className="block w-full bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:from-blue-600 hover:via-blue-700 hover:to-blue-800 text-white font-bold text-base sm:text-lg md:text-xl py-3 sm:py-4 px-4 lg:px-6 rounded-xl shadow-2xl transform transition-all duration-300 hover:scale-105 hover:shadow-3xl border-4 border-blue-300"
                 >
-                  👑 Join as Host
-                </Link>
-
-                <Link
-                  to="/join?role=player"
-                  className="block w-full bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:from-blue-600 hover:via-blue-700 hover:to-blue-800 text-white font-bold text-lg md:text-xl py-4 px-6 rounded-xl shadow-2xl transform transition-all duration-300 hover:scale-105 hover:shadow-3xl border-4 border-blue-300"
-                >
-                  🎮 Join as Player
+                  🎮 Join Session
                 </Link>
               </div>
             </div>
           </div>
 
           {/* Right side - Active Games */}
-          <div className="flex items-center justify-center lg:py-8">
+          <div className="flex items-center justify-center py-4 lg:py-8">
             <div className="w-full max-w-2xl">
               <ActiveGames />
             </div>
@@ -219,18 +295,18 @@ const Homepage: React.FC = () => {
         </div>
       </div>
 
-      {/* Football-themed decorations - positioned lower and more central */}
-      <div className="relative z-10 pb-8">
-        <div className="flex justify-center space-x-8 opacity-70">
-          <div className="text-5xl animate-bounce">⚽</div>
+      {/* Football-themed decorations - positioned lower and more central, responsive */}
+      <div className="relative z-10 pb-4 lg:pb-8">
+        <div className="flex justify-center space-x-4 lg:space-x-8 opacity-70">
+          <div className="text-3xl lg:text-5xl animate-bounce">⚽</div>
           <div
-            className="text-5xl animate-bounce"
+            className="text-3xl lg:text-5xl animate-bounce"
             style={{ animationDelay: "0.2s" }}
           >
             🏆
           </div>
           <div
-            className="text-5xl animate-bounce"
+            className="text-3xl lg:text-5xl animate-bounce"
             style={{ animationDelay: "0.4s" }}
           >
             🎯
