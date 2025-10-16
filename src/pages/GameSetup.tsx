@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useAtom } from "jotai";
 import {
   setSegmentConfig,
@@ -17,14 +17,12 @@ import { sessionAtom, sessionCodeAtom, dailyRoomUrlAtom } from "../atoms";
 import type { SegmentCode } from "../lib/types";
 import PresenceHelper from "../lib/presence";
 import { Logger } from "../lib/logger";
+import { useAuth } from "../contexts/AuthContext";
 
 const GameSetup: React.FC = () => {
   const navigate = useNavigate();
   const { sessionCode } = useParams<{ sessionCode: string }>();
-  const location = useLocation();
-  type LocationState = { hostPassword?: string } | undefined;
-  const hostPasswordFromState =
-    (location.state as LocationState)?.hostPassword || null;
+  const { user } = useAuth();
 
   // Use consolidated session data hook instead of separate fetches
   const { sessionId } = useSessionData(sessionCode || null);
@@ -67,13 +65,13 @@ const GameSetup: React.FC = () => {
     }
   }, [sessionId, sessionCode, setSessionId, setCurrentSessionCode]);
 
-  // Join as host when sessionId is available and host password is provided
+  // Join as host when sessionId is available
   useEffect(() => {
     const joinAsHostEffect = async () => {
       if (
         !sessionId ||
         !sessionCode ||
-        !hostPasswordFromState ||
+        !user?.id ||
         hostParticipantId
       ) {
         return; // Don't join if already joined or missing required data
@@ -81,7 +79,7 @@ const GameSetup: React.FC = () => {
 
       try {
         Logger.log("Joining as host...", { sessionCode, sessionId });
-        const hostResult = await joinAsHost(sessionCode, hostPasswordFromState);
+        const hostResult = await joinAsHost(sessionCode, user.id);
 
         const participantId = hostResult.participantId;
 
@@ -131,7 +129,7 @@ const GameSetup: React.FC = () => {
     };
 
     joinAsHostEffect();
-  }, [sessionId, sessionCode, hostPasswordFromState, hostParticipantId]);
+  }, [sessionId, sessionCode, user, hostParticipantId]);
 
   // Cleanup presence tracking on unmount
   useEffect(() => {
@@ -841,7 +839,6 @@ const GameSetup: React.FC = () => {
                 <LobbyStatus
                   sessionId={sessionId}
                   sessionCode={sessionCode || ""}
-                  hostPassword={hostPasswordFromState}
                   onEndSession={handleEndSession}
                   onLobbyUpdate={handleLobbyUpdate}
                 />

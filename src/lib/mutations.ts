@@ -27,27 +27,23 @@ export interface ActiveSession {
 
 // 1. Create Session (Host PC → GameSetup)
 export async function createSession(
-  hostPassword: string,
+  hostProfileId: string,
   hostName?: string,
 ): Promise<{ sessionId: string; sessionCode: string }> {
   // Input validation
-  if (!hostPassword || hostPassword.trim().length === 0) {
-    throw new Error("Host password is required");
-  }
-
-  if (hostPassword.length < 4) {
-    throw new Error("Host password must be at least 4 characters long");
+  if (!hostProfileId || hostProfileId.trim().length === 0) {
+    throw new Error("Host profile ID is required");
   }
 
   // Sanitize host name
   const sanitizedHostName = hostName?.trim() || "Host";
 
   try {
-    // Create the session; DB trigger will populate session_code and hash password
+    // Create the session with host_profile_id
     const { data: sessionData, error: sessionError } = await supabase
       .from("Session")
       .insert({
-        host_password: hostPassword,
+        host_profile_id: hostProfileId,
         phase: "Setup",
         game_state: "pre-quiz",
       })
@@ -496,31 +492,14 @@ export async function getDailyRoom(
 // 4. Join as Host - Unified helper function
 export async function joinAsHost(
   sessionCode: string,
-  hostPassword: string,
+  hostProfileId: string,
   flag?: string,
   logoUrl?: string,
 ): Promise<{ participantId: string; role: string }> {
-  // Verify host password using RPC with new parameter names
-  const { data: isValidPassword, error: rpcError } = await supabase.rpc(
-    "verify_host_password",
-    {
-      session_code_input: sessionCode.toUpperCase(),
-      password_input: hostPassword,
-    },
-  );
-
-  if (rpcError) {
-    throw new Error(`Failed to verify password: ${rpcError.message}`);
-  }
-
-  if (!isValidPassword) {
-    throw new Error("Invalid session code or password");
-  }
-
-  // Get the session ID
+  // Get the session and verify host_profile_id matches
   const { data: sessionRow, error: sessionError } = await supabase
     .from("Session")
-    .select("session_id")
+    .select("session_id, host_profile_id")
     .eq("session_code", sessionCode.toUpperCase())
     .single();
 
@@ -528,6 +507,11 @@ export async function joinAsHost(
     throw new Error(
       `Session not found: ${sessionError?.message || "No session with that code"}`,
     );
+  }
+
+  // Verify that the current user is the host
+  if (sessionRow.host_profile_id !== hostProfileId) {
+    throw new Error("You are not the host of this session");
   }
 
   const sessionId = sessionRow.session_id;

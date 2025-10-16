@@ -36,14 +36,14 @@ describe("createSession uses DB trigger to create session_code", () => {
       .mockReturnValueOnce({ insert: insertMockSession })
       .mockReturnValueOnce({ insert: insertMockParticipant });
 
-    const result = await createSession("plaintext-pass", "Host");
+    const result = await createSession("user-profile-id", "Host");
 
     expect(result.sessionCode).toBe("A1B2C3!");
     expect(result.sessionId).toBe("new-id");
 
-    // Ensure we inserted Session without providing session_code (DB trigger handles it)
+    // Ensure we inserted Session with host_profile_id
     expect(insertMockSession).toHaveBeenCalledWith({
-      host_password: "plaintext-pass",
+      host_profile_id: "user-profile-id",
       phase: "Setup",
       game_state: "pre-quiz",
     });

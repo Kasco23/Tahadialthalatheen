@@ -30,15 +30,16 @@ const Homepage: React.FC = () => {
     setIsPasswordModalOpen(true);
   };
 
-  const handlePasswordConfirm = async (password: string, hostName: string) => {
+  const handlePasswordConfirm = async (_password: string, hostName: string) => {
     setIsCreatingSession(true);
     try {
-      const { sessionCode } = await createSession(password, hostName);
+      if (!user?.id) {
+        throw new Error("User not authenticated");
+      }
+      const { sessionCode } = await createSession(user.id, hostName);
       setIsPasswordModalOpen(false);
-      // Navigate to game setup and pass the plaintext host password in location state
-      navigate(`/gamesetup/${sessionCode}`, {
-        state: { hostPassword: password },
-      });
+      // Navigate to game setup
+      navigate(`/gamesetup/${sessionCode}`);
     } catch (error) {
       Logger.error("Error creating session:", error);
       setAlert({
