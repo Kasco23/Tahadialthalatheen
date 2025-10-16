@@ -145,50 +145,6 @@ export default function AuthForm({
             </div>
           </div>
 
-          {isSignup && (
-            <>
-              <div>
-                <label
-                  htmlFor="team"
-                  className="block text-sm font-semibold text-gray-700 mb-2"
-                >
-                  Favorite Team (optional)
-                </label>
-                <input
-                  id="team"
-                  type="text"
-                  value={formData.team}
-                  onChange={(e) =>
-                    setFormData({ ...formData, team: e.target.value })
-                  }
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 outline-none"
-                  placeholder="e.g., Real Madrid"
-                  disabled={loading}
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="flag"
-                  className="block text-sm font-semibold text-gray-700 mb-2"
-                >
-                  Country Flag (optional)
-                </label>
-                <input
-                  id="flag"
-                  type="text"
-                  value={formData.flag}
-                  onChange={(e) =>
-                    setFormData({ ...formData, flag: e.target.value })
-                  }
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 outline-none"
-                  placeholder="e.g., sa, eg, ma"
-                  disabled={loading}
-                />
-              </div>
-            </>
-          )}
-
           <div className="flex items-center">
             <input
               id="keepSignedIn"

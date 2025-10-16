@@ -16,13 +16,7 @@ interface AuthContextType {
   session: Session | null;
   profile: Profile | null;
   loading: boolean;
-  signUp: (
-    email: string,
-    password: string,
-    name: string,
-    team?: string,
-    flag?: string,
-  ) => Promise<void>;
+  signUp: (email: string, password: string, name: string) => Promise<void>;
   signIn: (
     email: string,
     password: string,
@@ -86,21 +80,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (
-    email: string,
-    password: string,
-    name: string,
-    team?: string,
-    flag?: string,
-  ) => {
+  const signUp = async (email: string, password: string, name: string) => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: {
           name,
-          team,
-          flag,
         },
       },
     });
@@ -114,22 +100,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signIn = async (
     email: string,
     password: string,
-    keepSignedIn: boolean,
+    _keepSignedIn: boolean,
   ) => {
-    // Handle session persistence based on keepSignedIn
-    if (!keepSignedIn) {
-      // Use session storage instead of local storage
-      await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-    } else {
-      // Use local storage (default behavior with persistSession: true)
-      await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-    }
+    // Sign in with Supabase Auth
+    // Supabase Auth automatically handles session persistence with localStorage/sessionStorage
+    // based on the persistSession config in supabaseClient.ts
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) throw error;
+
+    // Note: Session persistence is already handled by Supabase's persistSession configuration
+    // Netlify Blobs is used for game session data, not auth sessions
   };
 
   const signOut = async () => {

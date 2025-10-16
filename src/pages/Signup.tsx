@@ -18,11 +18,9 @@ export default function Signup() {
         formData.email,
         formData.password,
         formData.name || "Player",
-        formData.team,
-        formData.flag,
       );
-      // Redirect to home page after successful signup
-      navigate("/");
+      // Redirect to flag selection page after successful signup
+      navigate("/select-flag");
     } catch (err) {
       console.error("Signup error:", err);
       setError(err instanceof Error ? err.message : "Failed to create account");
