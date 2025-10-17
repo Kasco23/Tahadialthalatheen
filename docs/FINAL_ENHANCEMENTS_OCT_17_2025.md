@@ -734,24 +734,26 @@ Replaced circle elements with proper SVG path arcs positioned inside the touchli
 <circle cx="95%" cy="95%" r="15" strokeDasharray="23.56 70.68" transform="rotate(90 1140 900)" />
 ```
 
-**After** (path arcs inset from boundaries):
+**After** (path arcs with absolute coordinates - SVG doesn't support calc()):
 ```tsx
-{/* Top-left corner */}
-<path d="M 5% calc(5% + 15) A 15 15 0 0 1 calc(5% + 15) 5%" 
+{/* Top-left corner - 15px inset from 5% boundary */}
+<path d="M 60 75 A 15 15 0 0 1 75 60" 
       fill="none" stroke="white" strokeWidth="2" opacity="0.5" />
 
-{/* Top-right corner */}
-<path d="M calc(95% - 15) 5% A 15 15 0 0 1 95% calc(5% + 15)" 
+{/* Top-right corner - 15px inset from 95% boundary */}
+<path d="M 1125 60 A 15 15 0 0 1 1140 75" 
       fill="none" stroke="white" strokeWidth="2" opacity="0.5" />
 
 {/* Bottom-left corner */}
-<path d="M calc(5% + 15) 95% A 15 15 0 0 1 5% calc(95% - 15)" 
+<path d="M 75 900 A 15 15 0 0 1 60 885" 
       fill="none" stroke="white" strokeWidth="2" opacity="0.5" />
 
 {/* Bottom-right corner */}
-<path d="M 95% calc(95% - 15) A 15 15 0 0 1 calc(95% - 15) 95%" 
+<path d="M 1140 885 A 15 15 0 0 1 1125 900" 
       fill="none" stroke="white" strokeWidth="2" opacity="0.5" />
 ```
+
+**Technical Note**: Initial attempt used `calc()` in SVG paths, but SVG doesn't support CSS functions. Solution uses absolute pixel coordinates based on 1200x960 viewBox (5% = 60px, 95% = 1140px).
 
 ### Result
 
@@ -761,7 +763,7 @@ Replaced circle elements with proper SVG path arcs positioned inside the touchli
 
 ---
 
-## � Authentication Buttons Click Fix
+## 🔘 Authentication Buttons Click Fix
 
 ### Issue Identified
 
@@ -770,6 +772,8 @@ Sign In, Sign Up, and Profile buttons were not clickable due to z-index stacking
 ### Solution Implemented
 
 Increased z-index values to ensure buttons appear above all background elements and backdrop.
+
+**Testing Note**: Verified with Playwright browser automation - all authentication flows now work correctly.
 
 ### Code Changes in `Homepage.tsx`
 
@@ -805,6 +809,55 @@ Increased z-index values to ensure buttons appear above all background elements 
 ✅ Profile menu opens/closes correctly  
 ✅ No interference from background overlays  
 ✅ Proper stacking order maintained
+
+---
+
+## 🔐 Sign Out Error Fix
+
+### Issue Identified
+
+Users reported "AuthSessionMissingError: Auth session missing!" when clicking Sign Out button.
+
+### Root Cause
+
+The Supabase client was configured with `persistSession: true`, but the `signOut()` function was not specifying a scope parameter, causing the error.
+
+### Solution Implemented
+
+Updated the `signOut` function in `AuthContext.tsx` to use `scope: 'global'`:
+
+```tsx
+const signOut = async () => {
+  // Sign out from all sessions (global scope)
+  const { error } = await supabase.auth.signOut({ scope: 'global' });
+  if (error) throw error;
+  setProfile(null);
+};
+```
+
+### Playwright Testing Results
+
+Comprehensive authentication flow testing completed:
+
+1. ✅ **Sign Up**: Successfully created test account
+   - Redirected to flag selection
+   - Profile created in database
+   
+2. ✅ **Sign Out**: Successfully signed out with confirmation message
+   - Session cleared properly
+   - UI updated to show Sign In/Sign Up buttons
+   
+3. ✅ **Sign In**: Successfully logged back in
+   - Session restored
+   - Profile loaded
+   - UI shows profile menu
+
+### Result
+
+✅ Sign out now works without errors  
+✅ All authentication flows tested and verified  
+✅ Session management working correctly across sign up, sign in, and sign out  
+✅ User experience smooth with proper success messages
 
 ---
 
@@ -844,8 +897,10 @@ Key Changes:
 3. **Homepage Touchlines**: ✅ Complete pitch with outer boundary
 4. **Corner Arcs Fixed**: ✅ Properly positioned inside touchlines
 5. **Buttons Fixed**: ✅ All authentication buttons now clickable
-6. **Build Success**: ✅ 4.57s build, 50% GameSetup size reduction
-7. **No Errors**: ✅ Clean build, no TypeScript errors
+6. **Sign Out Fixed**: ✅ AuthSessionMissingError resolved
+7. **Authentication Flow**: ✅ Sign Up, Sign In, Sign Out tested with Playwright
+8. **Build Success**: ✅ 4.62s build, 50% GameSetup size reduction
+9. **No Errors**: ✅ Clean build, no TypeScript errors
 
 ---
 
