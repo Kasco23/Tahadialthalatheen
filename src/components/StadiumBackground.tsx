@@ -1,235 +1,299 @@
 import React from "react";
 
-/**
- * StadiumBackground Component
- * 
- * A reusable background component that creates an immersive football stadium atmosphere
- * with animated gradients, lighting effects, and subtle animations.
- * 
- * Features:
- * - Animated gradient background simulating stadium lights
- * - Subtle pitch-like grid overlay
- * - Pulsing light effects
- * - Optimized for performance with CSS animations
- */
-
 interface StadiumBackgroundProps {
-  /** Color theme variant */
-  variant?: "default" | "dark" | "bright";
-  /** Whether to show animated effects */
+  children: React.ReactNode;
+  variant?: "default" | "night" | "sunset" | "dark" | "bright";
   animated?: boolean;
-  /** Children components to render on top */
-  children?: React.ReactNode;
-  /** Additional className for customization */
-  className?: string;
 }
 
+/**
+ * Professional 3D Stadium Background Component
+ * 
+ * Creates a modern, layered stadium atmosphere with:
+ * - 3D perspective and depth
+ * - Animated stadium lights
+ * - Crowd silhouettes
+ * - Pitch with realistic markings
+ * - Glassmorphism effects
+ * - Responsive design for mobile and desktop
+ */
 export const StadiumBackground: React.FC<StadiumBackgroundProps> = ({
-  variant = "default",
-  animated = true,
   children,
-  className = "",
+  variant = "default",
 }) => {
-  // Define color schemes for different variants
-  const variantStyles = {
+  // Color schemes for different variants
+  const variants = {
     default: {
-      background: `
-        radial-gradient(circle at 20% 30%, rgba(34, 197, 94, 0.15) 0%, transparent 50%),
-        radial-gradient(circle at 80% 70%, rgba(16, 185, 129, 0.12) 0%, transparent 50%),
-        radial-gradient(circle at 50% 50%, rgba(5, 150, 105, 0.08) 0%, transparent 60%),
-        linear-gradient(135deg, 
-          #0a1f0f 0%,
-          #0d2818 15%,
-          #1a3d2e 35%,
-          #0f2419 60%,
-          #0a1a12 80%,
-          #000000 100%
-        )
-      `,
-      accentColor: "rgba(34, 197, 94, 0.6)",
+      sky: "from-blue-900 via-blue-800 to-blue-700",
+      pitch: "from-green-600 via-green-700 to-green-800",
+      light: "yellow-200",
+      accent: "yellow-400",
+    },
+    night: {
+      sky: "from-slate-900 via-slate-800 to-slate-700",
+      pitch: "from-green-700 via-green-800 to-green-900",
+      light: "blue-200",
+      accent: "blue-400",
+    },
+    sunset: {
+      sky: "from-orange-900 via-purple-800 to-blue-900",
+      pitch: "from-green-600 via-green-700 to-emerald-800",
+      light: "orange-200",
+      accent: "orange-400",
     },
     dark: {
-      background: `
-        radial-gradient(circle at 20% 30%, rgba(5, 150, 105, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 80% 70%, rgba(4, 120, 87, 0.08) 0%, transparent 50%),
-        linear-gradient(135deg, 
-          #000000 0%,
-          #0a1a12 25%,
-          #0f2419 50%,
-          #0a1a12 75%,
-          #000000 100%
-        )
-      `,
-      accentColor: "rgba(5, 150, 105, 0.5)",
+      sky: "from-slate-900 via-slate-800 to-slate-700",
+      pitch: "from-green-700 via-green-800 to-green-900",
+      light: "blue-200",
+      accent: "blue-400",
     },
     bright: {
-      background: `
-        radial-gradient(circle at 20% 30%, rgba(52, 211, 153, 0.2) 0%, transparent 50%),
-        radial-gradient(circle at 80% 70%, rgba(34, 197, 94, 0.15) 0%, transparent 50%),
-        radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.1) 0%, transparent 60%),
-        linear-gradient(135deg, 
-          #0f2419 0%,
-          #1a3d2e 20%,
-          #15482e 40%,
-          #1a3d2e 60%,
-          #0f2419 80%,
-          #0a1f0f 100%
-        )
-      `,
-      accentColor: "rgba(52, 211, 153, 0.7)",
+      sky: "from-sky-900 via-sky-800 to-sky-700",
+      pitch: "from-green-500 via-green-600 to-green-700",
+      light: "yellow-300",
+      accent: "yellow-500",
     },
   };
 
-  const currentVariant = variantStyles[variant];
+  const colors = variants[variant];
 
   return (
-    <div
-      className={`min-h-screen relative overflow-hidden ${className}`}
-      style={{
-        background: currentVariant.background,
-      }}
-    >
-      {/* Stadium Floodlights Effect - Top Corners */}
-      <div className="absolute inset-0 pointer-events-none">
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
+      {/* Sky Background with Gradient */}
+      <div className={`absolute inset-0 bg-gradient-to-b ${colors.sky}`} />
+
+      {/* Stadium Stands - Top Layer with Perspective */}
+      <div className="absolute inset-x-0 top-0 h-48 overflow-hidden">
+        {/* Upper Stands */}
         <div
-          className={`absolute top-0 left-0 w-96 h-96 ${animated ? "animate-pulse" : ""}`}
+          className="absolute inset-0 bg-gradient-to-b from-gray-900 via-gray-800 to-transparent"
           style={{
-            background: `radial-gradient(circle, ${currentVariant.accentColor} 0%, transparent 70%)`,
-            opacity: 0.4,
-            animationDuration: "4s",
+            transform: "perspective(1000px) rotateX(15deg)",
+            transformOrigin: "top center",
           }}
-        />
-        <div
-          className={`absolute top-0 right-0 w-96 h-96 ${animated ? "animate-pulse" : ""}`}
-          style={{
-            background: `radial-gradient(circle, ${currentVariant.accentColor} 0%, transparent 70%)`,
-            opacity: 0.3,
-            animationDuration: "5s",
-            animationDelay: "1s",
-          }}
-        />
+        >
+          {/* Crowd Silhouettes */}
+          <div className="absolute inset-0 opacity-30">
+            <svg
+              className="w-full h-full"
+              viewBox="0 0 1200 200"
+              preserveAspectRatio="xMidYMid slice"
+            >
+              {[...Array(60)].map((_, i) => (
+                <g key={i} opacity={0.6 + Math.random() * 0.4}>
+                  <ellipse
+                    cx={i * 20 + 10}
+                    cy={180 + Math.random() * 10}
+                    rx={4 + Math.random() * 2}
+                    ry={15 + Math.random() * 5}
+                    fill="#1a1a1a"
+                  />
+                  <circle
+                    cx={i * 20 + 10}
+                    cy={165 + Math.random() * 5}
+                    r={4 + Math.random() * 2}
+                    fill="#1a1a1a"
+                  />
+                </g>
+              ))}
+            </svg>
+          </div>
+
+          {/* Stadium Lights - Professional Towers */}
+          <div className="absolute top-4 left-[10%] w-2 h-16 bg-gray-700">
+            <div
+              className={`absolute -top-4 left-1/2 -translate-x-1/2 w-8 h-8 bg-${colors.light} rounded-full blur-xl animate-pulse`}
+              style={{ animationDuration: "3s" }}
+            />
+            <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white rounded-full" />
+          </div>
+          <div className="absolute top-4 right-[10%] w-2 h-16 bg-gray-700">
+            <div
+              className={`absolute -top-4 left-1/2 -translate-x-1/2 w-8 h-8 bg-${colors.light} rounded-full blur-xl animate-pulse`}
+              style={{ animationDuration: "3s", animationDelay: "1s" }}
+            />
+            <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white rounded-full" />
+          </div>
+          <div className="absolute top-4 left-[30%] w-2 h-16 bg-gray-700">
+            <div
+              className={`absolute -top-4 left-1/2 -translate-x-1/2 w-8 h-8 bg-${colors.light} rounded-full blur-xl animate-pulse`}
+              style={{ animationDuration: "3s", animationDelay: "0.5s" }}
+            />
+            <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white rounded-full" />
+          </div>
+          <div className="absolute top-4 right-[30%] w-2 h-16 bg-gray-700">
+            <div
+              className={`absolute -top-4 left-1/2 -translate-x-1/2 w-8 h-8 bg-${colors.light} rounded-full blur-xl animate-pulse`}
+              style={{ animationDuration: "3s", animationDelay: "1.5s" }}
+            />
+            <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white rounded-full" />
+          </div>
+        </div>
       </div>
 
-      {/* Pitch Grid Overlay */}
-      <div
-        className="absolute inset-0 opacity-[0.03] pointer-events-none"
-        style={{
-          backgroundImage: `
-            repeating-linear-gradient(0deg, 
-              rgba(255, 255, 255, 0.5) 0px, 
-              rgba(255, 255, 255, 0.5) 1px, 
-              transparent 1px, 
-              transparent 60px
-            ),
-            repeating-linear-gradient(90deg, 
-              rgba(255, 255, 255, 0.5) 0px, 
-              rgba(255, 255, 255, 0.5) 1px, 
-              transparent 1px, 
-              transparent 60px
-            )
-          `,
-        }}
-      />
+      {/* Main Pitch Area */}
+      <div className="absolute inset-0 top-48">
+        {/* Pitch Background with Gradient */}
+        <div className={`absolute inset-0 bg-gradient-to-b ${colors.pitch}`} />
 
-      {/* Animated Gradient Overlay */}
-      {animated && (
-        <>
-          <div
-            className="absolute inset-0 opacity-20 pointer-events-none"
-            style={{
-              background: `
-                linear-gradient(45deg, 
-                  transparent 0%,
-                  rgba(34, 197, 94, 0.1) 50%,
-                  transparent 100%
-                )
-              `,
-              animation: "shimmer 8s ease-in-out infinite",
-            }}
+        {/* Horizontal Grass Stripes - Subtle */}
+        <div
+          className="absolute inset-0 opacity-20"
+          style={{
+            backgroundImage:
+              "repeating-linear-gradient(0deg, rgba(0,0,0,0.1) 0px, rgba(0,0,0,0.1) 40px, transparent 40px, transparent 80px)",
+          }}
+        />
+
+        {/* Pitch Markings - Clean and Minimal */}
+        <svg
+          className="absolute inset-0 w-full h-full"
+          preserveAspectRatio="xMidYMid slice"
+        >
+          {/* Center Line */}
+          <line
+            x1="50%"
+            y1="0%"
+            x2="50%"
+            y2="100%"
+            stroke="white"
+            strokeWidth="2"
+            opacity="0.5"
           />
-          <style>
-            {`
-              @keyframes shimmer {
-                0%, 100% {
-                  transform: translateX(-100%) translateY(-100%) rotate(45deg);
-                  opacity: 0;
-                }
-                50% {
-                  transform: translateX(100%) translateY(100%) rotate(45deg);
-                  opacity: 0.2;
-                }
-              }
-            `}
-          </style>
-        </>
-      )}
 
-      {/* Stadium Atmosphere - Bottom Glow */}
-      <div
-        className="absolute bottom-0 left-0 right-0 h-64 pointer-events-none"
-        style={{
-          background: `linear-gradient(to top, 
-            rgba(0, 0, 0, 0.7) 0%, 
-            rgba(5, 150, 105, 0.1) 20%,
-            transparent 100%
-          )`,
-        }}
-      />
+          {/* Center Circle */}
+          <circle
+            cx="50%"
+            cy="50%"
+            r="80"
+            fill="none"
+            stroke="white"
+            strokeWidth="2"
+            opacity="0.5"
+          />
 
-      {/* Top Ambient Light */}
-      <div
-        className="absolute top-0 left-0 right-0 h-48 pointer-events-none"
-        style={{
-          background: `linear-gradient(to bottom, 
-            rgba(0, 0, 0, 0.5) 0%, 
-            rgba(16, 185, 129, 0.05) 30%,
-            transparent 100%
-          )`,
-        }}
-      />
+          {/* Center Spot */}
+          <circle cx="50%" cy="50%" r="4" fill="white" opacity="0.5" />
 
-      {/* Spotlight Effects - Moving Beams */}
-      {animated && (
-        <>
+          {/* Left Penalty Area */}
+          <rect
+            x="5%"
+            y="calc(50% - 120px)"
+            width="120"
+            height="240"
+            fill="none"
+            stroke="white"
+            strokeWidth="2"
+            opacity="0.5"
+          />
+
+          {/* Left Goal Area */}
+          <rect
+            x="5%"
+            y="calc(50% - 60px)"
+            width="60"
+            height="120"
+            fill="none"
+            stroke="white"
+            strokeWidth="2"
+            opacity="0.5"
+          />
+
+          {/* Right Penalty Area */}
+          <rect
+            x="calc(95% - 120px)"
+            y="calc(50% - 120px)"
+            width="120"
+            height="240"
+            fill="none"
+            stroke="white"
+            strokeWidth="2"
+            opacity="0.5"
+          />
+
+          {/* Right Goal Area */}
+          <rect
+            x="calc(95% - 60px)"
+            y="calc(50% - 60px)"
+            width="60"
+            height="120"
+            fill="none"
+            stroke="white"
+            strokeWidth="2"
+            opacity="0.5"
+          />
+
+          {/* Corner Arcs */}
+          <circle
+            cx="5%"
+            cy="5%"
+            r="15"
+            fill="none"
+            stroke="white"
+            strokeWidth="2"
+            opacity="0.5"
+            strokeDasharray="23.56 70.68"
+            transform="rotate(-90 60 60)"
+          />
+          <circle
+            cx="95%"
+            cy="5%"
+            r="15"
+            fill="none"
+            stroke="white"
+            strokeWidth="2"
+            opacity="0.5"
+            strokeDasharray="23.56 70.68"
+            transform="rotate(0 1140 60)"
+          />
+          <circle
+            cx="5%"
+            cy="95%"
+            r="15"
+            fill="none"
+            stroke="white"
+            strokeWidth="2"
+            opacity="0.5"
+            strokeDasharray="23.56 70.68"
+            transform="rotate(180 60 900)"
+          />
+          <circle
+            cx="95%"
+            cy="95%"
+            r="15"
+            fill="none"
+            stroke="white"
+            strokeWidth="2"
+            opacity="0.5"
+            strokeDasharray="23.56 70.68"
+            transform="rotate(90 1140 900)"
+          />
+        </svg>
+
+        {/* Ambient Lighting Effects */}
+        <div className="absolute inset-0 pointer-events-none">
+          {/* Top lighting */}
           <div
-            className="absolute top-0 left-1/4 w-2 h-full opacity-10"
-            style={{
-              background: `linear-gradient(to bottom, 
-                ${currentVariant.accentColor} 0%, 
-                transparent 40%
-              )`,
-              animation: "beam1 10s ease-in-out infinite",
-            }}
+            className={`absolute top-0 left-1/4 w-64 h-64 bg-${colors.light} rounded-full opacity-10 blur-3xl`}
           />
           <div
-            className="absolute top-0 right-1/3 w-2 h-full opacity-10"
-            style={{
-              background: `linear-gradient(to bottom, 
-                ${currentVariant.accentColor} 0%, 
-                transparent 40%
-              )`,
-              animation: "beam2 12s ease-in-out infinite",
-            }}
+            className={`absolute top-0 right-1/4 w-64 h-64 bg-${colors.light} rounded-full opacity-10 blur-3xl`}
           />
-          <style>
-            {`
-              @keyframes beam1 {
-                0%, 100% { opacity: 0.05; transform: translateX(0); }
-                50% { opacity: 0.15; transform: translateX(20px); }
-              }
-              @keyframes beam2 {
-                0%, 100% { opacity: 0.08; transform: translateX(0); }
-                50% { opacity: 0.12; transform: translateX(-20px); }
-              }
-            `}
-          </style>
-        </>
-      )}
+          {/* Center spotlight */}
+          <div
+            className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-${colors.light} rounded-full opacity-5 blur-3xl animate-pulse`}
+            style={{ animationDuration: "4s" }}
+          />
+        </div>
+      </div>
 
-      {/* Content Container */}
-      <div className="relative z-10">
+      {/* Content Container with Glassmorphism */}
+      <div className="relative z-10 min-h-screen flex flex-col">
         {children}
       </div>
+
+      {/* Bottom Shadow for Depth */}
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black via-black/50 to-transparent pointer-events-none" />
     </div>
   );
 };

@@ -28,15 +28,11 @@ export interface ActiveSession {
 // 1. Create Session (Host PC → GameSetup)
 export async function createSession(
   hostProfileId: string,
-  hostName?: string,
 ): Promise<{ sessionId: string; sessionCode: string }> {
   // Input validation
   if (!hostProfileId || hostProfileId.trim().length === 0) {
     throw new Error("Host profile ID is required");
   }
-
-  // Sanitize host name
-  const sanitizedHostName = hostName?.trim() || "Host";
 
   try {
     // Create the session with host_profile_id
@@ -59,27 +55,17 @@ export async function createSession(
       throw new Error("Session created but missing required data");
     }
 
-    // Create both GameMaster (PC user) and Host (mobile user) participants
-    const participantsToCreate = [
-      {
+    // Create only GameMaster participant (PC user who created the session)
+    // Host participant will be created separately when they join via mobile
+    const { error: participantError } = await supabase
+      .from("Participants")
+      .insert({
         session_id: sessionData.session_id,
         name: "GameMaster", // PC user who created the session
         role: "GameMaster" as ParticipantRole,
         lobby_presence: "Joined" as LobbyPresence, // PC user is immediately joined
         profile_id: hostProfileId, // Link to creator's profile
-      },
-      {
-        session_id: sessionData.session_id,
-        name: sanitizedHostName, // Mobile user who will join later
-        role: "Host" as ParticipantRole,
-        lobby_presence: "NotJoined" as LobbyPresence, // Will join via mobile
-        profile_id: hostProfileId, // Link to creator's profile
-      },
-    ];
-
-    const { error: participantError } = await supabase
-      .from("Participants")
-      .insert(participantsToCreate);
+      });
 
     if (participantError) {
       Logger.error("Participant creation failed:", participantError);

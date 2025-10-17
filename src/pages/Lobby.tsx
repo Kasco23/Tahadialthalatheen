@@ -635,6 +635,74 @@ const Lobby: React.FC = () => {
     };
   }, [sessionId, resolvedSeat, players]);
 
+  // Presence tracking: Detect tab close, navigation, and visibility changes
+  useEffect(() => {
+    if (!sessionId || !resolvedSeat) return;
+
+    // Find current participant by role
+    const seatRole = SEAT_TO_ROLE[resolvedSeat];
+    let participantRole: string;
+    switch (seatRole) {
+      case "host":
+        participantRole = PARTICIPANT_ROLE.HOST;
+        break;
+      case "player1":
+        participantRole = PARTICIPANT_ROLE.PLAYER1;
+        break;
+      case "player2":
+        participantRole = PARTICIPANT_ROLE.PLAYER2;
+        break;
+      default:
+        return;
+    }
+
+    const currentParticipant = players.find((p) => p.role === participantRole);
+    if (!currentParticipant) return;
+
+    // Handle beforeunload: Mark as disconnected when user closes tab or navigates away
+    const handleBeforeUnload = () => {
+      // Use navigator.sendBeacon for reliable last-second requests
+      const disconnectUrl = `${window.location.origin}/.netlify/functions/mark-player-disconnected`;
+      const data = JSON.stringify({ 
+        participantId: currentParticipant.participant_id,
+        sessionId: sessionId
+      });
+      
+      try {
+        navigator.sendBeacon(disconnectUrl, data);
+      } catch (error) {
+        Logger.error("Failed to send disconnect beacon:", error);
+      }
+      
+      // Also mark in database (may not complete if page unloads fast)
+      markParticipantDisconnected(currentParticipant.participant_id).catch(
+        (err) => Logger.error("Failed to mark disconnected on unload:", err)
+      );
+    };
+
+    // Handle visibilitychange: Detect when user switches tabs
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        // User switched away - could mark as "Away" status
+        Logger.log("User switched away from lobby tab");
+      } else {
+        // User returned - send heartbeat immediately
+        Logger.log("User returned to lobby tab");
+        updateParticipantHeartbeat(currentParticipant.participant_id, sessionId);
+      }
+    };
+
+    // Attach event listeners
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [sessionId, resolvedSeat, players]);
+
   // Handle ready toggle for current player
   const handleToggleReady = async (
     participantId: string,

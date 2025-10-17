@@ -36,7 +36,7 @@ describe("createSession uses DB trigger to create session_code", () => {
       .mockReturnValueOnce({ insert: insertMockSession })
       .mockReturnValueOnce({ insert: insertMockParticipant });
 
-    const result = await createSession("user-profile-id", "Host");
+    const result = await createSession("user-profile-id");
 
     expect(result.sessionCode).toBe("A1B2C3!");
     expect(result.sessionId).toBe("new-id");

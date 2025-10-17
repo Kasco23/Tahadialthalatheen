@@ -32,6 +32,10 @@
   function = "set-session"
   path = "/.netlify/edge-functions/set-session"
 
+[[edge_functions]]
+  function = "session-state"
+  path = "/.netlify/edge-functions/session-state"
+
 # -------------------------------- Security Headers --------------------------------
 [[headers]]
   for = "/*"

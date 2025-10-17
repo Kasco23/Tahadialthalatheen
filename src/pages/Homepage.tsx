@@ -1,16 +1,18 @@
 import { Logger } from "../lib/logger";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import ActiveGames from "../components/ActiveGames";
+import ActiveGamesSidebar from "../components/ActiveGames";
 import { createSession } from "../lib/mutations";
 import { Alert } from "../components/Alert";
 import { useAuth } from "../contexts/AuthContext";
 import { JoinModal } from "../components/JoinModal";
+import { StadiumBackground } from "../components/StadiumBackground";
 
 const Homepage: React.FC = () => {
   const [isCreatingSession, setIsCreatingSession] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
+  const [isActiveGamesSidebarOpen, setIsActiveGamesSidebarOpen] = useState(false);
   const [alert, setAlert] = useState<{
     type: "error" | "success" | "info";
     message: string;
@@ -34,9 +36,7 @@ const Homepage: React.FC = () => {
       if (!user?.id) {
         throw new Error("User not authenticated");
       }
-      // Use profile name as host name, or default to "Host"
-      const hostName = profile?.name || "Host";
-      const { sessionCode } = await createSession(user.id, hostName);
+      const { sessionCode } = await createSession(user.id);
       // Navigate to game setup
       navigate(`/gamesetup/${sessionCode}`);
     } catch (error) {
@@ -63,58 +63,7 @@ const Homepage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-600 via-green-700 to-green-800 flex flex-col p-4 relative overflow-hidden">
-      {/* Football pitch grass pattern with horizontal stripes */}
-      <div className="absolute inset-0 bg-[repeating-linear-gradient(0deg,rgba(0,0,0,0.1)_0px,rgba(0,0,0,0.1)_30px,transparent_30px,transparent_60px)] opacity-60"></div>
-
-      {/* Football pitch markings */}
-      <div className="absolute inset-0">
-        {/* Center line */}
-        <div className="absolute top-0 bottom-0 left-1/2 w-0.5 bg-white transform -translate-x-1/2 opacity-80"></div>
-
-        {/* Center circle */}
-        <div className="absolute top-1/2 left-1/2 w-32 h-32 border-2 border-white rounded-full transform -translate-x-1/2 -translate-y-1/2 opacity-80"></div>
-
-        {/* Center spot */}
-        <div className="absolute top-1/2 left-1/2 w-2 h-2 bg-white rounded-full transform -translate-x-1/2 -translate-y-1/2 opacity-80"></div>
-
-        {/* Left penalty area (18-yard box) */}
-        <div className="absolute left-0 top-1/2 w-20 h-48 border-2 border-white border-l-0 transform -translate-y-1/2 opacity-80"></div>
-
-        {/* Left goal area (6-yard box) */}
-        <div className="absolute left-0 top-1/2 w-8 h-20 border-2 border-white border-l-0 transform -translate-y-1/2 opacity-80"></div>
-
-        {/* Left penalty spot */}
-        <div className="absolute left-14 top-1/2 w-2 h-2 bg-white rounded-full transform -translate-y-1/2 opacity-80"></div>
-
-        {/* Left goal posts */}
-        <div className="absolute left-0 top-1/2 w-1 h-16 bg-white transform -translate-y-1/2 opacity-90"></div>
-        <div className="absolute left-0 top-1/2 w-4 h-1 bg-white transform -translate-y-8 opacity-90"></div>
-        <div className="absolute left-0 top-1/2 w-4 h-1 bg-white transform translate-y-7 opacity-90"></div>
-
-        {/* Right penalty area (18-yard box) */}
-        <div className="absolute right-0 top-1/2 w-20 h-48 border-2 border-white border-r-0 transform -translate-y-1/2 opacity-80"></div>
-
-        {/* Right goal area (6-yard box) */}
-        <div className="absolute right-0 top-1/2 w-8 h-20 border-2 border-white border-r-0 transform -translate-y-1/2 opacity-80"></div>
-
-        {/* Right penalty spot */}
-        <div className="absolute right-14 top-1/2 w-2 h-2 bg-white rounded-full transform -translate-y-1/2 opacity-80"></div>
-
-        {/* Right goal posts */}
-        <div className="absolute right-0 top-1/2 w-1 h-16 bg-white transform -translate-y-1/2 opacity-90"></div>
-        <div className="absolute right-0 top-1/2 w-4 h-1 bg-white transform -translate-y-8 opacity-90"></div>
-        <div className="absolute right-0 top-1/2 w-4 h-1 bg-white transform translate-y-7 opacity-90"></div>
-
-        {/* Corner arcs */}
-        <div className="absolute top-0 left-0 w-8 h-8 border-2 border-white border-t-0 border-l-0 rounded-br-full opacity-80"></div>
-        <div className="absolute top-0 right-0 w-8 h-8 border-2 border-white border-t-0 border-r-0 rounded-bl-full opacity-80"></div>
-        <div className="absolute bottom-0 left-0 w-8 h-8 border-2 border-white border-b-0 border-l-0 rounded-tr-full opacity-80"></div>
-        <div className="absolute bottom-0 right-0 w-8 h-8 border-2 border-white border-b-0 border-r-0 rounded-tl-full opacity-80"></div>
-
-        {/* Pitch boundary */}
-        <div className="absolute inset-4 border-2 border-white opacity-60 rounded-sm"></div>
-      </div>
+    <StadiumBackground variant="default">
 
       {/* User menu in top right */}
       {user && (
@@ -252,74 +201,90 @@ const Homepage: React.FC = () => {
         </div>
       )}
 
-      {/* Main content container */}
-      <div className="relative z-10 flex-1 max-w-7xl mx-auto w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-8 h-full">
-          {/* Left side - Main content */}
-          <div className="flex flex-col items-center justify-center text-center px-4 py-8 lg:py-0">
-            {/* Arabic Title */}
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-white mb-4 lg:mb-6 drop-shadow-[0_4px_20px_rgba(0,0,0,0.8)] filter contrast-125 brightness-110">
-              تحدي الثلاثين ⚽
-            </h1>
+      {/* Header with Title */}
+      <div className="relative z-20 pt-20 pb-8 px-4">
+        <div className="text-center">
+          <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-white mb-4 drop-shadow-2xl">
+            تحدي الثلاثين
+          </h1>
+          <div className="flex items-center justify-center gap-3 mb-2">
+            <div className="w-12 h-1 bg-yellow-400"></div>
+            <span className="text-2xl">⚽</span>
+            <div className="w-12 h-1 bg-yellow-400"></div>
+          </div>
+          <p className="text-xl md:text-2xl text-white/90 font-medium">
+            The Ultimate Football Quiz Showdown
+          </p>
+        </div>
+      </div>
 
-            {/* Tagline */}
-            <p className="text-lg sm:text-xl md:text-2xl text-green-100 mb-8 lg:mb-12 font-medium drop-shadow-lg">
-              The ultimate football quiz showdown
-            </p>
-
-            {/* CTA Buttons */}
-            <div className="space-y-4 lg:space-y-6 w-full max-w-sm">
-              <button
-                onClick={handleCreateSession}
-                disabled={isCreatingSession}
-                className="block w-full bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 hover:from-yellow-500 hover:via-yellow-600 hover:to-yellow-700 disabled:from-gray-300 disabled:to-gray-400 text-black font-bold text-lg sm:text-xl md:text-2xl py-4 sm:py-5 lg:py-6 px-6 lg:px-8 rounded-2xl shadow-2xl transform transition-all duration-300 hover:scale-105 hover:shadow-3xl border-4 border-yellow-300 disabled:cursor-not-allowed disabled:transform-none"
-              >
-                {isCreatingSession ? "Creating..." : "🏆 Create Session"}
-              </button>
-
-              <div className="grid grid-cols-1 gap-3 lg:gap-4">
+      {/* Main Content Area */}
+      <div className="relative z-10 flex-1 flex items-center justify-center px-4 pb-20">
+        <div className="w-full max-w-5xl">
+          {/* Action Cards Container */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+            {/* Create Session Card */}
+            <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-8 shadow-2xl border border-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105">
+              <div className="text-center">
+                <div className="text-6xl mb-4">🏆</div>
+                <h2 className="text-2xl font-bold text-white mb-2">
+                  Create Session
+                </h2>
+                <p className="text-white/70 mb-6">
+                  Start a new quiz and invite friends
+                </p>
                 <button
-                  onClick={() => setIsJoinModalOpen(true)}
-                  className="block w-full bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:from-blue-600 hover:via-blue-700 hover:to-blue-800 text-white font-bold text-base sm:text-lg md:text-xl py-3 sm:py-4 px-4 lg:px-6 rounded-xl shadow-2xl transform transition-all duration-300 hover:scale-105 hover:shadow-3xl border-4 border-blue-300"
+                  onClick={handleCreateSession}
+                  disabled={isCreatingSession}
+                  className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 disabled:from-gray-400 disabled:to-gray-500 text-black font-bold text-lg py-4 px-6 rounded-xl shadow-lg transition-all duration-300 hover:shadow-2xl disabled:cursor-not-allowed"
                 >
-                  🎮 Join Session
+                  {isCreatingSession ? "Creating..." : "Create New Game"}
                 </button>
               </div>
             </div>
-          </div>
 
-          {/* Right side - Active Games */}
-          {user && (
-            <div className="flex items-center justify-center py-4 lg:py-8">
-              <div className="w-full max-w-2xl">
-                <ActiveGames />
+            {/* Join Session Card */}
+            <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-8 shadow-2xl border border-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105">
+              <div className="text-center">
+                <div className="text-6xl mb-4">🎮</div>
+                <h2 className="text-2xl font-bold text-white mb-2">
+                  Join Session
+                </h2>
+                <p className="text-white/70 mb-6">
+                  Enter a session code to play
+                </p>
+                <button
+                  onClick={() => setIsJoinModalOpen(true)}
+                  className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold text-lg py-4 px-6 rounded-xl shadow-lg transition-all duration-300 hover:shadow-2xl"
+                >
+                  Join Existing Game
+                </button>
               </div>
             </div>
-          )}
+
+            {/* Active Games Card - Only show if user is logged in */}
+            {user && (
+              <div className="md:col-span-2 bg-white/10 backdrop-blur-lg rounded-3xl p-8 shadow-2xl border border-white/20 hover:bg-white/15 transition-all duration-300">
+                <div className="text-center">
+                  <div className="text-6xl mb-4">📊</div>
+                  <h2 className="text-2xl font-bold text-white mb-2">
+                    Active Games
+                  </h2>
+                  <p className="text-white/70 mb-6">
+                    View and join ongoing sessions
+                  </p>
+                  <button
+                    onClick={() => setIsActiveGamesSidebarOpen(true)}
+                    className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-bold text-lg py-4 px-8 rounded-xl shadow-lg transition-all duration-300 hover:shadow-2xl"
+                  >
+                    View Active Sessions
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
-
-      {/* Football-themed decorations - positioned lower and more central, responsive */}
-      <div className="relative z-10 pb-4 lg:pb-8">
-        <div className="flex justify-center space-x-4 lg:space-x-8 opacity-70">
-          <div className="text-3xl lg:text-5xl animate-bounce">⚽</div>
-          <div
-            className="text-3xl lg:text-5xl animate-bounce"
-            style={{ animationDelay: "0.2s" }}
-          >
-            🏆
-          </div>
-          <div
-            className="text-3xl lg:text-5xl animate-bounce"
-            style={{ animationDelay: "0.4s" }}
-          >
-            🎯
-          </div>
-        </div>
-      </div>
-
-      {/* Stadium atmosphere effects */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black via-transparent to-transparent opacity-30"></div>
 
       {/* Alert Component */}
       {alert && (
@@ -337,7 +302,15 @@ const Homepage: React.FC = () => {
         isOpen={isJoinModalOpen}
         onClose={() => setIsJoinModalOpen(false)}
       />
-    </div>
+
+      {/* Active Games Sidebar */}
+      {user && (
+        <ActiveGamesSidebar
+          isOpen={isActiveGamesSidebarOpen}
+          onClose={() => setIsActiveGamesSidebarOpen(false)}
+        />
+      )}
+    </StadiumBackground>
   );
 };
 

@@ -19,6 +19,7 @@ import PresenceHelper from "../lib/presence";
 import { Logger } from "../lib/logger";
 import { useAuth } from "../contexts/AuthContext";
 import { updateSessionState } from "../lib/sessionState";
+import { LockerRoomBackground } from "../components/LockerRoomBackground";
 
 const GameSetup: React.FC = () => {
   const navigate = useNavigate();
@@ -356,22 +357,8 @@ const GameSetup: React.FC = () => {
   };
 
   return (
-    <div
-      className="min-h-screen relative overflow-hidden flex flex-col p-4"
-      style={{
-        background: `
-             radial-gradient(circle at 20% 30%, rgba(0, 100, 0, 0.3) 0%, transparent 40%),
-             radial-gradient(circle at 80% 70%, rgba(0, 80, 0, 0.2) 0%, transparent 40%),
-             linear-gradient(135deg, 
-               #0d2818 0%,
-               #1a3d2e 25%, 
-               #0f2419 50%,
-               #0a1a12 75%,
-               #000000 100%
-             )
-           `,
-      }}
-    >
+    <LockerRoomBackground variant="default" animated={true}>
+      <div className="min-h-screen flex flex-col p-4 md:p-8">
       {/* Chalkboard grid overlay */}
       <div
         className="absolute inset-0 opacity-15"
@@ -860,9 +847,10 @@ const GameSetup: React.FC = () => {
       </div>
 
       {/* Chalkboard atmosphere effects */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/60 via-green-900/20 to-transparent opacity-40"></div>
-      <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-black/40 via-green-900/10 to-transparent opacity-30"></div>
-    </div>
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/60 via-brown-900/20 to-transparent opacity-40"></div>
+      <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-black/40 via-brown-900/10 to-transparent opacity-30"></div>
+      </div>
+    </LockerRoomBackground>
   );
 };
 
