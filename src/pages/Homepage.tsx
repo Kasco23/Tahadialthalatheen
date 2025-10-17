@@ -71,7 +71,7 @@ const Homepage: React.FC = () => {
           {/* Profile Button */}
           <button
             onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-            className="absolute top-4 right-4 z-30 w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center hover:shadow-xl transition-shadow"
+            className="absolute top-4 right-4 z-50 w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center hover:shadow-xl transition-shadow"
           >
             {profile?.avatar_url ? (
               <img
@@ -176,7 +176,7 @@ const Homepage: React.FC = () => {
           {/* Backdrop */}
           {isProfileMenuOpen && (
             <div
-              className="fixed inset-0 bg-black bg-opacity-50 z-30"
+              className="fixed inset-0 bg-black bg-opacity-50 z-35"
               onClick={() => setIsProfileMenuOpen(false)}
             />
           )}
@@ -185,7 +185,7 @@ const Homepage: React.FC = () => {
 
       {/* Sign in/Sign up buttons when not authenticated */}
       {!user && (
-        <div className="absolute top-4 right-4 z-20 flex gap-2">
+        <div className="absolute top-4 right-4 z-50 flex gap-2">
           <Link
             to="/login"
             className="px-4 py-2 bg-white hover:bg-gray-100 text-gray-800 font-semibold rounded-lg shadow-lg transition-colors"
@@ -261,30 +261,37 @@ const Homepage: React.FC = () => {
                 </button>
               </div>
             </div>
-
-            {/* Active Games Card - Only show if user is logged in */}
-            {user && (
-              <div className="md:col-span-2 bg-white/10 backdrop-blur-lg rounded-3xl p-8 shadow-2xl border border-white/20 hover:bg-white/15 transition-all duration-300">
-                <div className="text-center">
-                  <div className="text-6xl mb-4">📊</div>
-                  <h2 className="text-2xl font-bold text-white mb-2">
-                    Active Games
-                  </h2>
-                  <p className="text-white/70 mb-6">
-                    View and join ongoing sessions
-                  </p>
-                  <button
-                    onClick={() => setIsActiveGamesSidebarOpen(true)}
-                    className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-bold text-lg py-4 px-8 rounded-xl shadow-lg transition-all duration-300 hover:shadow-2xl"
-                  >
-                    View Active Sessions
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>
+
+      {/* Expandable Arrow for Active Sessions - Only show if user is logged in */}
+      {user && (
+        <button
+          onClick={() => setIsActiveGamesSidebarOpen(!isActiveGamesSidebarOpen)}
+          className="fixed left-0 top-1/2 -translate-y-1/2 z-30 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-700 hover:to-purple-600 text-white p-4 rounded-r-2xl shadow-2xl transition-all duration-300 hover:pl-6 group"
+          aria-label="Toggle Active Sessions"
+        >
+          <div className="flex items-center gap-2">
+            <svg
+              className={`w-6 h-6 transition-transform duration-300 ${isActiveGamesSidebarOpen ? 'rotate-180' : ''}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5l7 7-7 7"
+              />
+            </svg>
+            <span className="text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+              Active Games
+            </span>
+          </div>
+        </button>
+      )}
 
       {/* Alert Component */}
       {alert && (

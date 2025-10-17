@@ -19,7 +19,7 @@ import PresenceHelper from "../lib/presence";
 import { Logger } from "../lib/logger";
 import { useAuth } from "../contexts/AuthContext";
 import { updateSessionState } from "../lib/sessionState";
-import { LockerRoomBackground } from "../components/LockerRoomBackground";
+import { StadiumBackground } from "../components/StadiumBackground";
 
 const GameSetup: React.FC = () => {
   const navigate = useNavigate();
@@ -357,285 +357,9 @@ const GameSetup: React.FC = () => {
   };
 
   return (
-    <LockerRoomBackground variant="default" animated={true}>
-      <div className="min-h-screen flex flex-col p-4 md:p-8">
-      {/* Chalkboard grid overlay */}
-      <div
-        className="absolute inset-0 opacity-15"
-        style={{
-          backgroundImage: `
-            repeating-linear-gradient(0deg, 
-              rgba(255, 255, 255, 0.1) 0px, 
-              rgba(255, 255, 255, 0.1) 1px, 
-              transparent 1px, 
-              transparent 40px
-            ),
-            repeating-linear-gradient(90deg, 
-              rgba(255, 255, 255, 0.1) 0px, 
-              rgba(255, 255, 255, 0.1) 1px, 
-              transparent 1px, 
-              transparent 40px
-            )
-          `,
-        }}
-      ></div>
-
-      {/* Enhanced tactical board background */}
-      <div className="absolute inset-0 opacity-25">
-        {/* SVG tactical patterns */}
-        <svg
-          className="absolute inset-0 w-full h-full"
-          viewBox="0 0 1200 800"
-          preserveAspectRatio="xMidYMid slice"
-        >
-          <defs>
-            {/* X pattern */}
-            <g id="tacticalX">
-              <path
-                d="M-5,-5 L5,5 M5,-5 L-5,5"
-                stroke="rgba(255,255,255,0.6)"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-            </g>
-
-            {/* O pattern */}
-            <g id="tacticalO">
-              <circle
-                cx="0"
-                cy="0"
-                r="4"
-                fill="none"
-                stroke="rgba(255,255,255,0.6)"
-                strokeWidth="2"
-              />
-            </g>
-
-            {/* 4-2-3-1 Formation pattern */}
-            <g id="formation">
-              {/* Goalkeeper */}
-              <circle
-                cx="600"
-                cy="750"
-                r="8"
-                fill="rgba(255,255,255,0.8)"
-                stroke="rgba(0,100,0,0.8)"
-                strokeWidth="2"
-              />
-
-              {/* Defense (4) */}
-              <circle
-                cx="450"
-                cy="600"
-                r="6"
-                fill="rgba(255,255,255,0.7)"
-                stroke="rgba(0,100,0,0.7)"
-                strokeWidth="2"
-              />
-              <circle
-                cx="520"
-                cy="580"
-                r="6"
-                fill="rgba(255,255,255,0.7)"
-                stroke="rgba(0,100,0,0.7)"
-                strokeWidth="2"
-              />
-              <circle
-                cx="680"
-                cy="580"
-                r="6"
-                fill="rgba(255,255,255,0.7)"
-                stroke="rgba(0,100,0,0.7)"
-                strokeWidth="2"
-              />
-              <circle
-                cx="750"
-                cy="600"
-                r="6"
-                fill="rgba(255,255,255,0.7)"
-                stroke="rgba(0,100,0,0.7)"
-                strokeWidth="2"
-              />
-
-              {/* Midfield (2) */}
-              <circle
-                cx="520"
-                cy="450"
-                r="6"
-                fill="rgba(255,255,255,0.7)"
-                stroke="rgba(0,100,0,0.7)"
-                strokeWidth="2"
-              />
-              <circle
-                cx="680"
-                cy="450"
-                r="6"
-                fill="rgba(255,255,255,0.7)"
-                stroke="rgba(0,100,0,0.7)"
-                strokeWidth="2"
-              />
-
-              {/* Attacking midfield (3) */}
-              <circle
-                cx="450"
-                cy="320"
-                r="6"
-                fill="rgba(255,255,255,0.7)"
-                stroke="rgba(0,100,0,0.7)"
-                strokeWidth="2"
-              />
-              <circle
-                cx="600"
-                cy="300"
-                r="6"
-                fill="rgba(255,255,255,0.7)"
-                stroke="rgba(0,100,0,0.7)"
-                strokeWidth="2"
-              />
-              <circle
-                cx="750"
-                cy="320"
-                r="6"
-                fill="rgba(255,255,255,0.7)"
-                stroke="rgba(0,100,0,0.7)"
-                strokeWidth="2"
-              />
-
-              {/* Striker (1) */}
-              <circle
-                cx="600"
-                cy="180"
-                r="8"
-                fill="rgba(255,255,255,0.8)"
-                stroke="rgba(0,100,0,0.8)"
-                strokeWidth="2"
-              />
-
-              {/* Attack arrows */}
-              <defs>
-                <marker
-                  id="arrowhead"
-                  markerWidth="10"
-                  markerHeight="7"
-                  refX="10"
-                  refY="3.5"
-                  orient="auto"
-                >
-                  <polygon
-                    points="0 0, 10 3.5, 0 7"
-                    fill="rgba(255,255,255,0.6)"
-                  />
-                </marker>
-              </defs>
-
-              {/* Forward passes */}
-              <path
-                d="M520,450 Q580,380 600,300"
-                fill="none"
-                stroke="rgba(255,255,255,0.5)"
-                strokeWidth="2"
-                markerEnd="url(#arrowhead)"
-                strokeDasharray="5,5"
-              />
-              <path
-                d="M680,450 Q620,380 600,300"
-                fill="none"
-                stroke="rgba(255,255,255,0.5)"
-                strokeWidth="2"
-                markerEnd="url(#arrowhead)"
-                strokeDasharray="5,5"
-              />
-
-              {/* Wing attacks */}
-              <path
-                d="M450,320 Q400,250 450,180"
-                fill="none"
-                stroke="rgba(255,255,255,0.5)"
-                strokeWidth="2"
-                markerEnd="url(#arrowhead)"
-                strokeDasharray="5,5"
-              />
-              <path
-                d="M750,320 Q800,250 750,180"
-                fill="none"
-                stroke="rgba(255,255,255,0.5)"
-                strokeWidth="2"
-                markerEnd="url(#arrowhead)"
-                strokeDasharray="5,5"
-              />
-
-              {/* Central attack */}
-              <path
-                d="M600,300 L600,180"
-                stroke="rgba(255,255,255,0.6)"
-                strokeWidth="3"
-                markerEnd="url(#arrowhead)"
-              />
-            </g>
-          </defs>
-
-          {/* Scattered tactical Xs */}
-          <use href="#tacticalX" x="150" y="200" transform="rotate(15)" />
-          <use href="#tacticalX" x="950" y="300" transform="rotate(-20)" />
-          <use href="#tacticalX" x="200" y="500" transform="rotate(45)" />
-          <use href="#tacticalX" x="1000" y="600" transform="rotate(-30)" />
-
-          {/* Scattered tactical Os */}
-          <use href="#tacticalO" x="100" y="350" />
-          <use href="#tacticalO" x="1050" y="450" />
-          <use href="#tacticalO" x="250" y="650" />
-          <use href="#tacticalO" x="950" y="150" />
-
-          {/* Center pitch circle */}
-          <circle
-            cx="600"
-            cy="400"
-            r="80"
-            fill="none"
-            stroke="rgba(255,255,255,0.3)"
-            strokeWidth="2"
-          />
-
-          {/* Formation diagram */}
-          <use href="#formation" />
-
-          {/* Penalty areas */}
-          <rect
-            x="500"
-            y="50"
-            width="200"
-            height="100"
-            fill="none"
-            stroke="rgba(255,255,255,0.2)"
-            strokeWidth="2"
-            rx="10"
-          />
-          <rect
-            x="500"
-            y="650"
-            width="200"
-            height="100"
-            fill="none"
-            stroke="rgba(255,255,255,0.2)"
-            strokeWidth="2"
-            rx="10"
-          />
-        </svg>
-      </div>
-
-      {/* Subtle chalk dust texture overlay */}
-      <div
-        className="absolute inset-0 opacity-10 pointer-events-none"
-        style={{
-          backgroundImage: `
-            radial-gradient(circle at 25% 25%, rgba(255,255,255,0.1) 0%, transparent 2%),
-            radial-gradient(circle at 75% 75%, rgba(255,255,255,0.1) 0%, transparent 2%),
-            radial-gradient(circle at 50% 50%, rgba(255,255,255,0.05) 0%, transparent 3%)
-          `,
-          backgroundSize: "200px 200px, 150px 150px, 300px 300px",
-        }}
-      ></div>
-
+    <StadiumBackground variant="default" animated={true}>
+      <div className="min-h-screen flex flex-col p-4 md:p-8 relative">
+        
       {/* Header */}
       <div className="relative z-10 text-center mb-6">
         <h1
@@ -665,29 +389,60 @@ const GameSetup: React.FC = () => {
                 ⚙️ Game Configuration
               </h2>
 
+              {/* Notice */}
               {notice && (
-                <Alert
-                  type={notice.type}
-                  message={notice.message}
-                  onClose={() => setNotice(null)}
-                />
+                <motion.div
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-6"
+                >
+                  <Alert
+                    type={notice.type}
+                    message={notice.message}
+                    onClose={() => {
+                      setNotice(null);
+                    }}
+                  />
+                </motion.div>
               )}
 
-              {/* Live lobby summary */}
-              <div className="mb-4 p-3 bg-gray-50 border rounded text-sm text-gray-700 flex items-center justify-between">
-                <span>Participants joined:</span>
-                <span className="font-semibold">{participantCount}/3</span>
-              </div>
+              {/* Create Daily Room Button */}
+              {!isDailyRoomCreated && (
+                <button
+                  onClick={handleCreateDailyRoom}
+                  disabled={isLoading}
+                  className="w-full mb-6 py-4 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-bold rounded-xl shadow-lg transition-all duration-300 hover:shadow-2xl hover:scale-105 disabled:cursor-not-allowed disabled:hover:scale-100"
+                >
+                  {isLoading ? "Creating Room..." : "🎬 Create Daily Room"}
+                </button>
+              )}
 
-              {/* session code moved to LobbyStatus */}
+              {/* Room Created Confirmation */}
+              {isDailyRoomCreated && roomInfo && (
+                <div className="mb-6 p-4 bg-green-50 border-2 border-green-400 rounded-lg">
+                  <p className="text-green-800 font-semibold mb-2 flex items-center">
+                    ✅ Daily Room Created!
+                  </p>
+                  <p className="text-sm text-green-700 break-all">
+                    Room URL: {roomInfo.room_url}
+                  </p>
+                </div>
+              )}
 
-              <form className="space-y-6">
-                {/* Segment Settings */}
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                    Question Counts
+              {/* Segment Configuration Form */}
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleStartQuiz();
+                }}
+                className="space-y-4"
+              >
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-700 flex items-center gap-2 border-b pb-2">
+                    <span>📋</span> Quiz Segments
                   </h3>
-                  <div className="space-y-4">
+
+                  <div className="space-y-3">
                     <div className="grid grid-cols-2 gap-4 items-center">
                       <label
                         htmlFor="wdyk"
@@ -701,9 +456,9 @@ const GameSetup: React.FC = () => {
                         min="1"
                         max="50"
                         value={segments.WDYK}
-                        onChange={(e) =>
-                          handleSegmentChange("WDYK", e.target.value)
-                        }
+                        onChange={(e) => {
+                          handleSegmentChange("WDYK", e.target.value);
+                        }}
                         className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
                       />
                     </div>
@@ -790,38 +545,12 @@ const GameSetup: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Action Buttons */}
-                <div className="space-y-4">
-                  {isDailyRoomCreated && roomInfo ? (
-                    <motion.div
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="p-4 bg-green-50 border border-green-200 rounded-lg"
-                    >
-                      <p className="text-green-800 text-sm">
-                        <strong>Daily Room Created!</strong>
-                      </p>
-                      <p className="text-green-600 text-xs mt-1">
-                        Room URL: {roomInfo.room_url}
-                      </p>
-                    </motion.div>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={handleCreateDailyRoom}
-                      disabled={isLoading}
-                      className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200 transform hover:scale-105 disabled:transform-none"
-                    >
-                      {isLoading ? "⏳ Creating..." : "📹 Create Daily Room"}
-                    </button>
-                  )}
-
+                {/* Start Quiz Button */}
+                <div className="pt-4">
                   <button
-                    type="button"
-                    onClick={handleStartQuiz}
-                    disabled={!sessionId || !isDailyRoomCreated}
-                    className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200 transform hover:scale-105 disabled:transform-none"
+                    type="submit"
+                    disabled={!isDailyRoomCreated || participantCount < 2}
+                    className="w-full py-4 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 disabled:from-gray-400 disabled:to-gray-500 text-black font-bold rounded-xl shadow-lg transition-all duration-300 hover:shadow-2xl hover:scale-105 disabled:cursor-not-allowed disabled:hover:scale-100 text-lg"
                   >
                     🚀 Start Quiz
                   </button>
@@ -845,12 +574,8 @@ const GameSetup: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {/* Chalkboard atmosphere effects */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/60 via-brown-900/20 to-transparent opacity-40"></div>
-      <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-black/40 via-brown-900/10 to-transparent opacity-30"></div>
       </div>
-    </LockerRoomBackground>
+    </StadiumBackground>
   );
 };
 

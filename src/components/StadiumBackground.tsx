@@ -150,12 +150,24 @@ export const StadiumBackground: React.FC<StadiumBackgroundProps> = ({
           className="absolute inset-0 w-full h-full"
           preserveAspectRatio="xMidYMid slice"
         >
+          {/* Touchlines - Outer Boundary Rectangle */}
+          <rect
+            x="5%"
+            y="5%"
+            width="90%"
+            height="90%"
+            fill="none"
+            stroke="white"
+            strokeWidth="3"
+            opacity="0.6"
+          />
+
           {/* Center Line */}
           <line
             x1="50%"
-            y1="0%"
+            y1="5%"
             x2="50%"
-            y2="100%"
+            y2="95%"
             stroke="white"
             strokeWidth="2"
             opacity="0.5"
@@ -223,50 +235,38 @@ export const StadiumBackground: React.FC<StadiumBackgroundProps> = ({
             opacity="0.5"
           />
 
-          {/* Corner Arcs */}
-          <circle
-            cx="5%"
-            cy="5%"
-            r="15"
+          {/* Corner Arcs - Inside touchlines */}
+          {/* Top-left corner */}
+          <path
+            d="M 5% calc(5% + 15) A 15 15 0 0 1 calc(5% + 15) 5%"
             fill="none"
             stroke="white"
             strokeWidth="2"
             opacity="0.5"
-            strokeDasharray="23.56 70.68"
-            transform="rotate(-90 60 60)"
           />
-          <circle
-            cx="95%"
-            cy="5%"
-            r="15"
+          {/* Top-right corner */}
+          <path
+            d="M calc(95% - 15) 5% A 15 15 0 0 1 95% calc(5% + 15)"
             fill="none"
             stroke="white"
             strokeWidth="2"
             opacity="0.5"
-            strokeDasharray="23.56 70.68"
-            transform="rotate(0 1140 60)"
           />
-          <circle
-            cx="5%"
-            cy="95%"
-            r="15"
+          {/* Bottom-left corner */}
+          <path
+            d="M calc(5% + 15) 95% A 15 15 0 0 1 5% calc(95% - 15)"
             fill="none"
             stroke="white"
             strokeWidth="2"
             opacity="0.5"
-            strokeDasharray="23.56 70.68"
-            transform="rotate(180 60 900)"
           />
-          <circle
-            cx="95%"
-            cy="95%"
-            r="15"
+          {/* Bottom-right corner */}
+          <path
+            d="M 95% calc(95% - 15) A 15 15 0 0 1 calc(95% - 15) 95%"
             fill="none"
             stroke="white"
             strokeWidth="2"
             opacity="0.5"
-            strokeDasharray="23.56 70.68"
-            transform="rotate(90 1140 900)"
           />
         </svg>
 
