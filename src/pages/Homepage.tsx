@@ -5,10 +5,12 @@ import ActiveGames from "../components/ActiveGames";
 import { createSession } from "../lib/mutations";
 import { Alert } from "../components/Alert";
 import { useAuth } from "../contexts/AuthContext";
+import { JoinModal } from "../components/JoinModal";
 
 const Homepage: React.FC = () => {
   const [isCreatingSession, setIsCreatingSession] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
   const [alert, setAlert] = useState<{
     type: "error" | "success" | "info";
     message: string;
@@ -276,12 +278,12 @@ const Homepage: React.FC = () => {
               </button>
 
               <div className="grid grid-cols-1 gap-3 lg:gap-4">
-                <Link
-                  to="/join"
+                <button
+                  onClick={() => setIsJoinModalOpen(true)}
                   className="block w-full bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:from-blue-600 hover:via-blue-700 hover:to-blue-800 text-white font-bold text-base sm:text-lg md:text-xl py-3 sm:py-4 px-4 lg:px-6 rounded-xl shadow-2xl transform transition-all duration-300 hover:scale-105 hover:shadow-3xl border-4 border-blue-300"
                 >
                   🎮 Join Session
-                </Link>
+                </button>
               </div>
             </div>
           </div>
@@ -329,6 +331,12 @@ const Homepage: React.FC = () => {
           />
         </div>
       )}
+
+      {/* Join Modal */}
+      <JoinModal
+        isOpen={isJoinModalOpen}
+        onClose={() => setIsJoinModalOpen(false)}
+      />
     </div>
   );
 };
