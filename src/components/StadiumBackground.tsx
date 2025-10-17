@@ -238,7 +238,7 @@ export const StadiumBackground: React.FC<StadiumBackgroundProps> = ({
           {/* Corner Arcs - Inside touchlines */}
           {/* Top-left corner */}
           <path
-            d="M 5% calc(5% + 15) A 15 15 0 0 1 calc(5% + 15) 5%"
+            d="M 60 75 A 15 15 0 0 1 75 60"
             fill="none"
             stroke="white"
             strokeWidth="2"
@@ -246,7 +246,7 @@ export const StadiumBackground: React.FC<StadiumBackgroundProps> = ({
           />
           {/* Top-right corner */}
           <path
-            d="M calc(95% - 15) 5% A 15 15 0 0 1 95% calc(5% + 15)"
+            d="M 1125 60 A 15 15 0 0 1 1140 75"
             fill="none"
             stroke="white"
             strokeWidth="2"
@@ -254,7 +254,7 @@ export const StadiumBackground: React.FC<StadiumBackgroundProps> = ({
           />
           {/* Bottom-left corner */}
           <path
-            d="M calc(5% + 15) 95% A 15 15 0 0 1 5% calc(95% - 15)"
+            d="M 75 900 A 15 15 0 0 1 60 885"
             fill="none"
             stroke="white"
             strokeWidth="2"
@@ -262,7 +262,7 @@ export const StadiumBackground: React.FC<StadiumBackgroundProps> = ({
           />
           {/* Bottom-right corner */}
           <path
-            d="M 95% calc(95% - 15) A 15 15 0 0 1 calc(95% - 15) 95%"
+            d="M 1140 885 A 15 15 0 0 1 1125 900"
             fill="none"
             stroke="white"
             strokeWidth="2"

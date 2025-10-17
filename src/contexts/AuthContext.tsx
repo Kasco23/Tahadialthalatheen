@@ -118,7 +118,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
+    // Sign out from all sessions (global scope)
+    const { error } = await supabase.auth.signOut({ scope: 'global' });
     if (error) throw error;
     setProfile(null);
   };
