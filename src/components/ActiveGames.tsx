@@ -1,8 +1,14 @@
 import { Logger } from "../lib/logger";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getActiveSessions, getAvailableSeats, type ActiveSession } from "../lib/mutations";
+import { 
+  getActiveSessions, 
+  getAvailableSeats, 
+  joinAsPlayerWithCode,
+  type ActiveSession 
+} from "../lib/mutations";
 import { useAuth } from "../contexts/AuthContext";
+import { supabase } from "../lib/supabaseClient";
 
 const REFRESH_INTERVAL_MS = 30000; // 30 seconds
 
@@ -49,18 +55,106 @@ const ActiveGames: React.FC = () => {
         return;
       }
 
-      // Check available seats
+      // Fetch session to check if user is the host
+      const { data: sessionData, error: sessionError } = await supabase
+        .from("Sessions")
+        .select("session_id, host_profile_id")
+        .eq("session_code", sessionCode.toUpperCase())
+        .single();
+
+      if (sessionError || !sessionData) {
+        Logger.error("Failed to fetch session:", sessionError);
+        navigate(`/join?sessionCode=${sessionCode}&role=player`);
+        return;
+      }
+
+      const isHost = sessionData.host_profile_id === user.id;
+
+      // Fetch user profile
+      const { data: profileData, error: profileError } = await supabase
+        .from("Profiles")
+        .select("name, flag, team")
+        .eq("id", user.id)
+        .single();
+
+      if (profileError || !profileData) {
+        Logger.error("Failed to fetch profile for quick join:", profileError);
+        navigate(`/join?sessionCode=${sessionCode}&role=player`);
+        return;
+      }
+
+      if (isHost) {
+        // User is the host - join as Host
+        const { data: existingHost } = await supabase
+          .from("Participants")
+          .select("participant_id, role")
+          .eq("session_id", sessionData.session_id)
+          .eq("role", "Host")
+          .maybeSingle();
+
+        if (existingHost) {
+          // Host already exists, just update presence and navigate
+          await supabase
+            .from("Participants")
+            .update({
+              lobby_presence: "Joined",
+              join_at: new Date().toISOString(),
+              disconnect_at: null,
+            })
+            .eq("participant_id", existingHost.participant_id);
+
+          Logger.info("Host rejoined");
+          navigate(`/lobby/${sessionCode}/host`);
+          return;
+        } else {
+          // Create host participant
+          const { data: newHost } = await supabase
+            .from("Participants")
+            .insert({
+              session_id: sessionData.session_id,
+              name: profileData.name || "Host",
+              flag: profileData.flag || "",
+              team_logo_url: profileData.team || "",
+              role: "Host",
+              lobby_presence: "Joined",
+              join_at: new Date().toISOString(),
+              disconnect_at: null,
+              profile_id: user.id,
+            })
+            .select("participant_id")
+            .single();
+
+          if (newHost) {
+            Logger.info("Host participant created");
+            navigate(`/lobby/${sessionCode}/host`);
+            return;
+          }
+        }
+      }
+
+      // Not host - check available player seats
       const { availableSeats } = await getAvailableSeats(sessionCode);
 
       if (availableSeats.length === 0) {
-        // No seats available - show error or navigate to join page to let them know
+        // No seats available
         navigate(`/join?sessionCode=${sessionCode}&error=full`);
         return;
       }
 
-      // Has available seats - navigate directly to join page as player
-      // The join page will handle the actual joining process
-      navigate(`/join?sessionCode=${sessionCode}&role=player&autoJoin=true`);
+      // Join as player
+      const { participantId, role } = await joinAsPlayerWithCode(
+        sessionCode,
+        profileData.name || "Player",
+        profileData.flag || "",
+        profileData.team || "",
+        user.id,
+      );
+
+      Logger.info(`Quick join successful - Participant ${participantId} joined as ${role}`);
+
+      // Navigate directly to lobby
+      const seat = role === "Player1" ? "1" : "2";
+      navigate(`/lobby/${sessionCode}/${seat}`);
     } catch (err) {
       Logger.error("Quick join error:", err);
       // Fallback to normal join flow

@@ -1,5 +1,5 @@
 import { Logger } from "../lib/logger";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAtom } from "jotai";
 
@@ -24,6 +24,7 @@ import {
 import { VideoRoom } from "../components/VideoRoom";
 import { Flag } from "../components/Flag";
 import { LobbyLogo } from "../components/LobbyLogo";
+import { StadiumBackground } from "../components/StadiumBackground";
 import {
   LOBBY_PRESENCE,
   PARTICIPANT_ROLE,
@@ -33,8 +34,18 @@ import {
 import { resolveSeatFromUrl, setSeatInStorage } from "../lib/userSession";
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 import type { Database } from "../lib/types/supabase";
+import { getTeamLogoUrl } from "../lib/teamLogoHelper";
+import {
+  subscribeToSessionState,
+  type SessionState,
+} from "../lib/sessionState";
 
-type ParticipantRow = Database["public"]["Tables"]["Participants"]["Row"];
+type ParticipantRow = Database["public"]["Tables"]["Participants"]["Row"] & {
+  Profiles?: {
+    flag?: string | null;
+    team?: string | null;
+  } | null;
+};
 
 interface ParticipantCardProps {
   player: ParticipantRow;
@@ -59,6 +70,20 @@ const ParticipantCard: React.FC<ParticipantCardProps> = ({
 }) => {
   const isPlayer = player.role === "Player1" || player.role === "Player2";
 
+  // Generate team logo URL if needed
+  const teamLogoUrl = useMemo(() => {
+    const profileTeam = player.Profiles?.team;
+    const participantLogo = player.team_logo_url;
+    
+    // If profile team exists and doesn't look like a URL, try to generate one
+    if (profileTeam && !profileTeam.startsWith("http")) {
+      return getTeamLogoUrl(profileTeam) ?? participantLogo ?? "";
+    }
+    
+    // Otherwise use as-is
+    return profileTeam ?? participantLogo ?? "";
+  }, [player.Profiles?.team, player.team_logo_url]);
+
   return (
     <div
       className={`bg-white/5 backdrop-blur-sm rounded-lg p-4 border-2 transition-all duration-300 ${
@@ -70,9 +95,15 @@ const ParticipantCard: React.FC<ParticipantCardProps> = ({
       {/* Player Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center space-x-2">
-          <Flag code={player.flag || "sa"} className="text-lg" />
-          {player.team_logo_url && (
-            <LobbyLogo logoUrl={player.team_logo_url} teamName={player.name} />
+          <Flag 
+            code={(player.Profiles?.flag || player.flag) ?? "sa"} 
+            className="text-lg" 
+          />
+          {teamLogoUrl && (
+            <LobbyLogo 
+              logoUrl={teamLogoUrl} 
+              teamName={player.name} 
+            />
           )}
           <div>
             <div className="text-sm font-bold text-white">{player.name}</div>
@@ -247,6 +278,9 @@ const Lobby: React.FC = () => {
   const [togglingReadyParticipant, setTogglingReadyParticipant] = useState<
     string | null
   >(null);
+  
+  // Session state from Netlify Blobs (room creation, etc.)
+  const [sessionState, setSessionState] = useState<SessionState | null>(null);
 
   // Get participant name from localStorage
   const participantName =
@@ -310,6 +344,29 @@ const Lobby: React.FC = () => {
       setError(null);
     }
   }, [sessionError, sessionId]);
+
+  // Subscribe to session state changes from Netlify Blobs
+  useEffect(() => {
+    if (!sessionId) return;
+
+    Logger.log("Subscribing to session state for:", sessionId);
+
+    const unsubscribe = subscribeToSessionState(sessionId, (state) => {
+      Logger.log("Session state updated:", state);
+      setSessionState(state);
+
+      // Update dailyRoomUrl atom if room was just created
+      if (state?.dailyRoomCreated && state.dailyRoomUrl && !dailyRoom) {
+        Logger.log("Room created detected, updating atom:", state.dailyRoomUrl);
+        setDailyRoomUrl(state.dailyRoomUrl);
+      }
+    });
+
+    return () => {
+      Logger.log("Unsubscribing from session state");
+      unsubscribe();
+    };
+  }, [sessionId, dailyRoom, setDailyRoomUrl]);
 
   useEffect(() => {
     if (!sessionId) {
@@ -394,7 +451,13 @@ const Lobby: React.FC = () => {
 
         const { data, error: fetchError } = await supabase
           .from("Participants")
-          .select("*")
+          .select(`
+            *,
+            Profiles!profile_id (
+              flag,
+              team
+            )
+          `)
           .eq("session_id", sessionId)
           .order("name", { ascending: true });
 
@@ -680,64 +743,70 @@ const Lobby: React.FC = () => {
 
   if (sessionLoading || loading) {
     return (
-      <div className="dugout-background">
-        <div className="dugout-seating"></div>
-        <div className="dugout-canopy"></div>
-        <div className="dugout-pitch"></div>
-
-        <div className="dugout-content flex items-center justify-center">
-          <div className="text-white text-xl">Loading Lobby...</div>
+      <StadiumBackground variant="dark" animated={true}>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="bg-black/40 backdrop-blur-md rounded-2xl p-8 border border-green-500/30 shadow-2xl">
+            <div className="flex items-center space-x-3">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-400"></div>
+              <div className="text-white text-xl font-semibold">Loading Lobby...</div>
+            </div>
+          </div>
         </div>
-      </div>
+      </StadiumBackground>
     );
   }
 
   if (sessionError || error) {
     return (
-      <div className="dugout-background">
-        <div className="dugout-seating"></div>
-        <div className="dugout-canopy"></div>
-        <div className="dugout-pitch"></div>
-
-        <div className="dugout-content flex items-center justify-center">
-          <div className="text-white text-xl">{sessionError || error}</div>
+      <StadiumBackground variant="dark">
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="bg-red-900/20 backdrop-blur-md rounded-2xl p-8 border border-red-500/50 shadow-2xl max-w-md text-center">
+            <div className="text-6xl mb-4">⚠️</div>
+            <div className="text-white text-xl font-semibold mb-2">Error</div>
+            <div className="text-red-200">{sessionError || error}</div>
+          </div>
         </div>
-      </div>
+      </StadiumBackground>
     );
   }
 
   if (!session) {
     return (
-      <div className="dugout-background">
-        <div className="dugout-seating"></div>
-        <div className="dugout-canopy"></div>
-        <div className="dugout-pitch"></div>
-
-        <div className="dugout-content flex items-center justify-center">
-          <div className="text-white text-xl">Session not found</div>
+      <StadiumBackground variant="dark">
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="bg-orange-900/20 backdrop-blur-md rounded-2xl p-8 border border-orange-500/50 shadow-2xl max-w-md text-center">
+            <div className="text-6xl mb-4">🔍</div>
+            <div className="text-white text-xl font-semibold mb-2">Session Not Found</div>
+            <div className="text-orange-200">The requested session could not be found</div>
+          </div>
         </div>
-      </div>
+      </StadiumBackground>
     );
   }
 
   return (
-    <div className="dugout-background">
-      {/* Stadium lighting effect */}
-      <div className="dugout-seating"></div>
-      <div className="dugout-canopy"></div>
-      <div className="dugout-pitch"></div>
-
-      <div className="dugout-content p-4">
+    <StadiumBackground variant="default" animated={true}>
+      <div className="p-4 min-h-screen">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">🎮 Game Lobby</h1>
-          <div className="text-xl text-blue-100">
-            Session:{" "}
-            <span className="font-bold text-yellow-300">{sessionCode}</span>
+        <div className="text-center mb-8 pt-8">
+          <h1 className="text-5xl font-black text-white mb-4 drop-shadow-[0_0_20px_rgba(34,197,94,0.5)]">
+            🎮 Game Lobby
+          </h1>
+          <div className="text-2xl text-green-100 font-semibold mb-2">
+            Session: <span className="font-black text-green-300 px-4 py-2 bg-green-900/30 rounded-lg border border-green-500/30">{sessionCode}</span>
           </div>
-          <div className="text-sm text-blue-200 mt-2">
-            Phase: <span className="font-bold">{session.phase}</span> | Game
-            State: <span className="font-bold">{session.game_state}</span>
+          <div className="flex items-center justify-center space-x-6 text-sm text-green-200 mt-4">
+            <div className="bg-black/30 px-4 py-2 rounded-lg border border-green-500/20">
+              Phase: <span className="font-bold text-green-300">{session.phase}</span>
+            </div>
+            <div className="bg-black/30 px-4 py-2 rounded-lg border border-green-500/20">
+              State: <span className="font-bold text-green-300">{session.game_state}</span>
+            </div>
+            {sessionState?.dailyRoomCreated && (
+              <div className="bg-green-600/20 px-4 py-2 rounded-lg border border-green-400/40 animate-pulse">
+                📹 <span className="font-bold text-green-300">Video Room Ready</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -930,7 +999,7 @@ const Lobby: React.FC = () => {
           </div>
         </div>
       )}
-    </div>
+    </StadiumBackground>
   );
 };
 

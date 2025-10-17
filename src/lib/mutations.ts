@@ -66,12 +66,14 @@ export async function createSession(
         name: "GameMaster", // PC user who created the session
         role: "GameMaster" as ParticipantRole,
         lobby_presence: "Joined" as LobbyPresence, // PC user is immediately joined
+        profile_id: hostProfileId, // Link to creator's profile
       },
       {
         session_id: sessionData.session_id,
         name: sanitizedHostName, // Mobile user who will join later
         role: "Host" as ParticipantRole,
         lobby_presence: "NotJoined" as LobbyPresence, // Will join via mobile
+        profile_id: hostProfileId, // Link to creator's profile
       },
     ];
 
@@ -227,6 +229,7 @@ export async function joinAsPlayerWithCode(
   name: string,
   flag: string,
   logoUrl: string,
+  profileId?: string,
 ): Promise<{ participantId: string; role: string }> {
   const sessionId = await getSessionIdByCode(sessionCode);
 
@@ -295,6 +298,7 @@ export async function joinAsPlayerWithCode(
       lobby_presence: "Joined",
       join_at: new Date().toISOString(),
       disconnect_at: null,
+      ...(profileId && { profile_id: profileId }),
     })
     .select("participant_id");
 

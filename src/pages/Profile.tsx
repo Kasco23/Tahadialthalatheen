@@ -1,10 +1,12 @@
 import { useState, useRef, FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { supabase } from "../lib/supabaseClient";
-import { useNavigate } from "react-router-dom";
-import toast from "react-hot-toast";
 import AvatarEditor from "../components/AvatarEditor";
+import toast from "react-hot-toast";
 import { Flag } from "../components/Flag";
+import { getFlagName } from "../lib/flagHelper";
+import { StadiumBackground } from "../components/StadiumBackground";
 
 export default function Profile() {
   const { user, profile, updateProfile, signOut } = useAuth();
@@ -13,8 +15,6 @@ export default function Profile() {
 
   const [formData, setFormData] = useState({
     name: profile?.name || "",
-    team: profile?.team || "",
-    flag: profile?.flag || "",
   });
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -101,8 +101,6 @@ export default function Profile() {
     try {
       await updateProfile({
         name: formData.name || null,
-        team: formData.team || null,
-        flag: formData.flag || null,
       });
       toast.success("Profile updated successfully!");
     } catch (error) {
@@ -178,28 +176,32 @@ export default function Profile() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-600 via-green-700 to-green-800 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">
-            Not Authenticated
-          </h2>
-          <p className="text-gray-600 mb-6">
-            Please sign in to view your profile.
-          </p>
-          <button
-            onClick={() => navigate("/login")}
-            className="px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold rounded-xl hover:from-green-600 hover:to-green-700 transition-all"
-          >
-            Go to Login
-          </button>
+      <StadiumBackground variant="bright" animated={true}>
+        <div className="min-h-screen flex items-center justify-center p-4">
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
+            <div className="text-6xl mb-4">🔒</div>
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">
+              Not Authenticated
+            </h2>
+            <p className="text-gray-600 mb-6">
+              Please sign in to view your profile.
+            </p>
+            <button
+              onClick={() => navigate("/login")}
+              className="px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold rounded-xl hover:from-green-600 hover:to-green-700 transition-all shadow-lg hover:shadow-xl"
+            >
+              Go to Login
+            </button>
+          </div>
         </div>
-      </div>
+      </StadiumBackground>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-600 via-green-700 to-green-800 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full">
+    <StadiumBackground variant="bright" animated={true}>
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl p-8 max-w-2xl w-full">
         <div className="flex flex-col items-center mb-6">
           <div className="relative mb-4">
             <div className="w-24 h-24 rounded-full overflow-hidden bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center shadow-lg">
@@ -323,25 +325,39 @@ export default function Profile() {
             >
               Favorite Team
             </label>
-            <div className="flex items-center gap-3">
-              {profile?.team && (
-                <div className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-lg">
+            <div className="px-4 py-3 border-2 border-gray-200 rounded-xl bg-gray-50">
+              {profile?.team ? (
+                <div className="flex items-center gap-3">
+                  {/* Show team logo if it's a URL */}
+                  {profile.team.startsWith("http") && (
+                    <img
+                      src={profile.team}
+                      alt="Team logo"
+                      className="w-8 h-8 object-contain"
+                      style={{
+                        imageRendering: '-webkit-optimize-contrast',
+                        shapeRendering: 'geometricPrecision',
+                      }}
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                      }}
+                    />
+                  )}
                   <span className="text-sm font-medium text-gray-700">
-                    {profile.team}
+                    {/* Extract team name from URL or show as-is */}
+                    {profile.team.startsWith("http")
+                      ? decodeURIComponent(
+                          profile.team.split("/").pop()?.replace(".svg", "").replace(/-/g, " ") || profile.team
+                        )
+                          .split(" ")
+                          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                          .join(" ")
+                      : profile.team}
                   </span>
                 </div>
+              ) : (
+                <span className="text-sm text-gray-500">No team selected</span>
               )}
-              <input
-                id="team"
-                type="text"
-                value={formData.team}
-                onChange={(e) =>
-                  setFormData({ ...formData, team: e.target.value })
-                }
-                className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 outline-none"
-                placeholder="e.g., Real Madrid"
-                disabled={saving}
-              />
             </div>
           </div>
 
@@ -350,28 +366,19 @@ export default function Profile() {
               htmlFor="flag"
               className="block text-sm font-semibold text-gray-700 mb-2"
             >
-              Country Flag
+              Country
             </label>
-            <div className="flex items-center gap-3">
-              {profile?.flag && (
-                <div className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-lg">
+            <div className="px-4 py-3 border-2 border-gray-200 rounded-xl bg-gray-50">
+              {profile?.flag ? (
+                <div className="flex items-center gap-3">
                   <Flag code={profile.flag} className="text-2xl" />
-                  <span className="text-sm font-medium text-gray-700 uppercase">
-                    {profile.flag}
+                  <span className="text-sm font-medium text-gray-700">
+                    {getFlagName(profile.flag)}
                   </span>
                 </div>
+              ) : (
+                <span className="text-sm text-gray-500">No country selected</span>
               )}
-              <input
-                id="flag"
-                type="text"
-                value={formData.flag}
-                onChange={(e) =>
-                  setFormData({ ...formData, flag: e.target.value })
-                }
-                className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 outline-none"
-                placeholder="e.g., sa, eg, ma"
-                disabled={saving}
-              />
             </div>
           </div>
 
@@ -504,16 +511,17 @@ export default function Profile() {
             Back to Home
           </button>
         </div>
-      </div>
+        </div>
 
-      {/* Avatar Editor Modal */}
-      {showAvatarEditor && selectedImage && (
-        <AvatarEditor
-          imageSrc={selectedImage}
-          onComplete={handleAvatarComplete}
-          onCancel={handleAvatarCancel}
-        />
-      )}
-    </div>
+        {/* Avatar Editor Modal */}
+        {showAvatarEditor && selectedImage && (
+          <AvatarEditor
+            imageSrc={selectedImage}
+            onComplete={handleAvatarComplete}
+            onCancel={handleAvatarCancel}
+          />
+        )}
+      </div>
+    </StadiumBackground>
   );
 }

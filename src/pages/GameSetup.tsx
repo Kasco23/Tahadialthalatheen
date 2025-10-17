@@ -18,6 +18,7 @@ import type { SegmentCode } from "../lib/types";
 import PresenceHelper from "../lib/presence";
 import { Logger } from "../lib/logger";
 import { useAuth } from "../contexts/AuthContext";
+import { updateSessionState } from "../lib/sessionState";
 
 const GameSetup: React.FC = () => {
   const navigate = useNavigate();
@@ -274,6 +275,16 @@ const GameSetup: React.FC = () => {
       setIsDailyRoomCreated(true);
       setRoomInfo({ room_url: created.room_url });
       setDailyRoomUrl(created.room_url); // Store in global atom
+      
+      // Update session state in Netlify Blobs so Lobby can detect room creation
+      Logger.log("Saving room creation status to Netlify Blobs...");
+      await updateSessionState(sessionId, {
+        dailyRoomCreated: true,
+        dailyRoomUrl: created.room_url,
+        segmentsConfigured: true,
+      });
+      Logger.log("Room creation status saved successfully");
+      
       setNotice({
         type: "success",
         message: "Daily room created successfully.",

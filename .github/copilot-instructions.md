@@ -2,7 +2,7 @@
 
 **ALWAYS follow these instructions first. Only search or explore further if the information here is incomplete or found to be in error.**
 
-Tahadialthalatheen is a React TypeScript application built with Vite that creates live head-to-head football quizzes. It uses Supabase for data, Daily.co for video calls, and is deployed on Netlify with serverless functions.
+Tahadialthalatheen is a React TypeScript application built with Vite that creates live head-to-head football quizzes. It uses Supabase for data, Daily.co for video calls, and is deployed on Netlify with serverless functions to be played between me and my friends and not serve a market or wide audience.
 
 ## Core Development Workflow
 
