@@ -72,7 +72,7 @@ export default async (req: Request, _context: Context) => {
 
     // Update ready status
     const { error } = await supabase
-      .from("Participant")
+      .from("Participants")
       .update({ isReady: isReady })
       .eq("participant_id", participantId);
 

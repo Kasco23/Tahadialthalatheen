@@ -1,7 +1,8 @@
 import { Logger } from "../lib/logger";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getActiveSessions, type ActiveSession } from "../lib/mutations";
+import { getActiveSessions, getAvailableSeats, type ActiveSession } from "../lib/mutations";
+import { useAuth } from "../contexts/AuthContext";
 
 const REFRESH_INTERVAL_MS = 30000; // 30 seconds
 
@@ -10,6 +11,7 @@ const ActiveGames: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   useEffect(() => {
     const fetchActiveSessions = async () => {
@@ -33,12 +35,37 @@ const ActiveGames: React.FC = () => {
     // Refresh every 30 seconds
     const interval = setInterval(fetchActiveSessions, REFRESH_INTERVAL_MS);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+    };
   }, []);
 
-  const handleQuickJoin = (sessionCode: string) => {
-    // Navigate to join page and auto-fill the session code
-    navigate(`/join?sessionCode=${sessionCode}`);
+  const handleQuickJoin = async (sessionCode: string) => {
+    try {
+      // Check if user is authenticated
+      if (!user) {
+        // Not authenticated - navigate to join page with session code pre-filled
+        navigate(`/join?sessionCode=${sessionCode}&role=player`);
+        return;
+      }
+
+      // Check available seats
+      const { availableSeats } = await getAvailableSeats(sessionCode);
+
+      if (availableSeats.length === 0) {
+        // No seats available - show error or navigate to join page to let them know
+        navigate(`/join?sessionCode=${sessionCode}&error=full`);
+        return;
+      }
+
+      // Has available seats - navigate directly to join page as player
+      // The join page will handle the actual joining process
+      navigate(`/join?sessionCode=${sessionCode}&role=player&autoJoin=true`);
+    } catch (err) {
+      Logger.error("Quick join error:", err);
+      // Fallback to normal join flow
+      navigate(`/join?sessionCode=${sessionCode}`);
+    }
   };
 
   const formatDateTime = (dateString: string) => {

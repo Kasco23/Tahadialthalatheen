@@ -1,4 +1,4 @@
-import type { Context, Handler } from "@netlify/functions";
+import type { Handler } from "@netlify/functions";
 import { createClient } from "@supabase/supabase-js";
 
 /**
@@ -19,7 +19,7 @@ import { createClient } from "@supabase/supabase-js";
  * name = "cleanupStatus"
  * schedule = "0 * * * *"  # Runs hourly at the top of the hour
  */
-export const handler: Handler = async (_event, _context: Context) => {
+export const handler: Handler = async (_event, _context) => {
   try {
     // Initialize Supabase client with service role key
     const supabaseUrl = process.env.SUPABASE_DATABASE_URL;
@@ -50,7 +50,7 @@ export const handler: Handler = async (_event, _context: Context) => {
 
     // Find stale participants who appear connected but haven't sent heartbeat
     const { data: staleUsers, error: selectError } = await supabase
-      .from("Participant")
+      .from("Participants")
       .select("participant_id, name, role, lastHeartbeat")
       .lte("lastHeartbeat", tenMinutesAgo)
       .eq("lobby_presence", "Joined");
@@ -81,7 +81,7 @@ export const handler: Handler = async (_event, _context: Context) => {
 
       // Update stale participants to disconnected state
       const { error: updateError } = await supabase
-        .from("Participant")
+        .from("Participants")
         .update({
           lobby_presence: "Disconnected",
           isReady: false,

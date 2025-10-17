@@ -1450,3 +1450,27 @@ export async function rejoinAsParticipant(
     sessionId: verification.participant.session_id,
   };
 }
+
+// Helper function to get available player seats for a session
+export async function getAvailableSeats(
+  sessionCode: string,
+): Promise<{ availableSeats: ParticipantRole[]; occupiedSeats: ParticipantRole[] }> {
+  const sessionId = await getSessionIdByCode(sessionCode);
+  
+  const { data: participants, error } = await supabase
+    .from("Participants")
+    .select("role")
+    .eq("session_id", sessionId)
+    .in("role", ["Player1", "Player2"]);
+
+  if (error) {
+    Logger.error("Error checking available seats:", error);
+    throw new Error(`Failed to check available seats: ${error.message}`);
+  }
+
+  const occupiedSeats = (participants || []).map((p) => p.role as ParticipantRole);
+  const allSeats: ParticipantRole[] = ["Player1", "Player2"];
+  const availableSeats = allSeats.filter((seat) => !occupiedSeats.includes(seat));
+
+  return { availableSeats, occupiedSeats };
+}

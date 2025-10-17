@@ -64,7 +64,7 @@ export default async (req: Request, _context: Context) => {
 
     // Get the session_id for the provided session_code
     const { data: sessionRow, error: sessionErr } = await supabase
-      .from("Session")
+      .from("Sessions")
       .select("session_id")
       .eq("session_code", session_code.toUpperCase())
       .single();

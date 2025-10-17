@@ -72,7 +72,7 @@ export default async (req: Request, _context: Context) => {
 
     // Query ready status
     const { data, error } = await supabase
-      .from("Participant")
+      .from("Participants")
       .select("participant_id, name, role, isReady")
       .eq("session_id", sessionId)
       .in("role", ["Player1", "Player2"])
