@@ -2,7 +2,7 @@
 -- Replace standard random() with pgcrypto extension functions for secure randomness
 
 -- Drop the existing trigger first, then function
-DROP TRIGGER IF EXISTS set_session_code ON public."Session";
+DROP TRIGGER IF EXISTS set_session_code ON public."Sessions";
 DROP FUNCTION IF EXISTS "public"."generate_session_code"() CASCADE;
 
 -- Recreate with cryptographically secure random generation
@@ -68,7 +68,7 @@ BEGIN
     temp_code := array_to_string(chars_array, '');
 
     -- Ensure uniqueness
-    IF NOT EXISTS (SELECT 1 FROM public."Session" WHERE session_code = temp_code) THEN
+    IF NOT EXISTS (SELECT 1 FROM public."Sessions" WHERE session_code = temp_code) THEN
       NEW.session_code := temp_code;
       RETURN NEW;
     END IF;
@@ -81,7 +81,7 @@ ALTER FUNCTION "public"."generate_session_code"() OWNER TO "postgres";
 
 -- Recreate the trigger with the correct name
 CREATE TRIGGER set_session_code
-    BEFORE INSERT ON public."Session"
+    BEFORE INSERT ON public."Sessions"
     FOR EACH ROW
     WHEN (NEW.session_code IS NULL OR NEW.session_code = '')
     EXECUTE FUNCTION public.generate_session_code();

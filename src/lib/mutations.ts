@@ -121,8 +121,8 @@ export async function getActiveSessions(): Promise<ActiveSession[]> {
       game_state,
       created_at,
       ended_at,
-      Participant(name, role, lobby_presence),
-      DailyRoom(room_url)
+      Participants(name, role, lobby_presence),
+      DailyRooms(room_url)
     `,
     )
     // Show any session that hasn't ended yet
@@ -145,19 +145,19 @@ export async function getActiveSessions(): Promise<ActiveSession[]> {
     game_state: GameState;
     created_at: string;
     ended_at?: string | null;
-    Participant?: Array<{
+    Participants?: Array<{
       name: string;
       role: string;
       lobby_presence: string;
     }> | null;
-    DailyRoom?: Array<{ room_url?: string }> | null;
+    DailyRooms?: Array<{ room_url?: string }> | null;
   };
 
   const rows = (data as SessionRow[]) || [];
 
   const activeSessions: ActiveSession[] = rows.map((session) => {
-    const participants = Array.isArray(session.Participant)
-      ? session.Participant
+    const participants = Array.isArray(session.Participants)
+      ? session.Participants
       : [];
     const hostParticipant = participants.find((p) => p.role === "Host");
     // Only count Player1 and Player2 roles that have lobby_presence "Joined"
@@ -166,7 +166,7 @@ export async function getActiveSessions(): Promise<ActiveSession[]> {
         (p.role === "Player1" || p.role === "Player2") &&
         p.lobby_presence === "Joined",
     ).length;
-    const hasDailyRoom = !!(session.DailyRoom && session.DailyRoom.length > 0);
+    const hasDailyRoom = !!(session.DailyRooms && session.DailyRooms.length > 0);
 
     return {
       session_id: session.session_id,

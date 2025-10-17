@@ -287,11 +287,13 @@ const Homepage: React.FC = () => {
           </div>
 
           {/* Right side - Active Games */}
-          <div className="flex items-center justify-center py-4 lg:py-8">
-            <div className="w-full max-w-2xl">
-              <ActiveGames />
+          {user && (
+            <div className="flex items-center justify-center py-4 lg:py-8">
+              <div className="w-full max-w-2xl">
+                <ActiveGames />
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
 
