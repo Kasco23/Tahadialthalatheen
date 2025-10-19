@@ -128,6 +128,7 @@ export type Database = {
         Row: {
           id: string;
           name: string | null;
+          username: string | null;
           team: string | null;
           flag: string | null;
           avatar_url: string | null;
@@ -137,6 +138,7 @@ export type Database = {
         Insert: {
           id: string;
           name?: string | null;
+          username?: string | null;
           team?: string | null;
           flag?: string | null;
           avatar_url?: string | null;
@@ -146,6 +148,7 @@ export type Database = {
         Update: {
           id?: string;
           name?: string | null;
+          username?: string | null;
           team?: string | null;
           flag?: string | null;
           avatar_url?: string | null;
@@ -158,6 +161,221 @@ export type Database = {
             columns: ["id"];
             isOneToOne: true;
             referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      Friends: {
+        Row: {
+          id: string;
+          requester_id: string;
+          addressee_id: string;
+          status: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          requester_id: string;
+          addressee_id: string;
+          status?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          requester_id?: string;
+          addressee_id?: string;
+          status?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "Friends_requester_id_fkey";
+            columns: ["requester_id"];
+            isOneToOne: false;
+            referencedRelation: "Profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "Friends_addressee_id_fkey";
+            columns: ["addressee_id"];
+            isOneToOne: false;
+            referencedRelation: "Profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      Notifications: {
+        Row: {
+          id: string;
+          recipient_id: string;
+          sender_id: string | null;
+          type: string;
+          title: string;
+          message: string;
+          link: string | null;
+          is_read: boolean;
+          metadata: Json;
+          created_at: string;
+          read_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          recipient_id: string;
+          sender_id?: string | null;
+          type: string;
+          title: string;
+          message: string;
+          link?: string | null;
+          is_read?: boolean;
+          metadata?: Json;
+          created_at?: string;
+          read_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          recipient_id?: string;
+          sender_id?: string | null;
+          type?: string;
+          title?: string;
+          message?: string;
+          link?: string | null;
+          is_read?: boolean;
+          metadata?: Json;
+          created_at?: string;
+          read_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "Notifications_recipient_id_fkey";
+            columns: ["recipient_id"];
+            isOneToOne: false;
+            referencedRelation: "Profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "Notifications_sender_id_fkey";
+            columns: ["sender_id"];
+            isOneToOne: false;
+            referencedRelation: "Profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      Matches: {
+        Row: {
+          id: string;
+          session_id: string;
+          home_player_id: string;
+          away_player_id: string;
+          winner_id: string | null;
+          home_total_points: number;
+          away_total_points: number;
+          total_points: number;
+          segments_played: Json;
+          played_at: string;
+        };
+        Insert: {
+          id?: string;
+          session_id: string;
+          home_player_id: string;
+          away_player_id: string;
+          winner_id?: string | null;
+          home_total_points?: number;
+          away_total_points?: number;
+          segments_played?: Json;
+          played_at?: string;
+        };
+        Update: {
+          id?: string;
+          session_id?: string;
+          home_player_id?: string;
+          away_player_id?: string;
+          winner_id?: string | null;
+          home_total_points?: number;
+          away_total_points?: number;
+          segments_played?: Json;
+          played_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "Matches_session_id_fkey";
+            columns: ["session_id"];
+            isOneToOne: false;
+            referencedRelation: "Sessions";
+            referencedColumns: ["session_id"];
+          },
+          {
+            foreignKeyName: "Matches_home_player_id_fkey";
+            columns: ["home_player_id"];
+            isOneToOne: false;
+            referencedRelation: "Profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "Matches_away_player_id_fkey";
+            columns: ["away_player_id"];
+            isOneToOne: false;
+            referencedRelation: "Profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "Matches_winner_id_fkey";
+            columns: ["winner_id"];
+            isOneToOne: false;
+            referencedRelation: "Profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      PlayerSegmentStats: {
+        Row: {
+          id: string;
+          profile_id: string;
+          segment_code: string;
+          games_played: number;
+          total_questions: number;
+          correct_answers: number;
+          strikes: number;
+          points: number;
+          wins: number;
+          losses: number;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          profile_id: string;
+          segment_code: string;
+          games_played?: number;
+          total_questions?: number;
+          correct_answers?: number;
+          strikes?: number;
+          points?: number;
+          wins?: number;
+          losses?: number;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          profile_id?: string;
+          segment_code?: string;
+          games_played?: number;
+          total_questions?: number;
+          correct_answers?: number;
+          strikes?: number;
+          points?: number;
+          wins?: number;
+          losses?: number;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "PlayerSegmentStats_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "Profiles";
             referencedColumns: ["id"];
           },
         ];
@@ -309,12 +527,84 @@ export type Database = {
       };
     };
     Views: {
-      [_ in never]: never;
+      UserInbox: {
+        Row: {
+          id: string;
+          recipient_id: string;
+          sender_id: string | null;
+          type: string;
+          title: string;
+          message: string;
+          link: string | null;
+          is_read: boolean;
+          metadata: Json;
+          created_at: string;
+          read_at: string | null;
+          sender_username: string | null;
+          sender_name: string | null;
+          sender_avatar: string | null;
+        };
+      };
+      leaderboard_players: {
+        Row: {
+          id: string;
+          username: string | null;
+          name: string | null;
+          avatar_url: string | null;
+          flag: string | null;
+          total_games: number;
+          wins: number;
+          losses: number;
+          ties: number;
+          total_points: number;
+          win_rate: number | null;
+          rank: number | null;
+        };
+      };
+      leaderboard_matches: {
+        Row: {
+          id: string;
+          session_id: string;
+          played_at: string;
+          total_points: number;
+          home_total_points: number;
+          away_total_points: number;
+          segments_played: Json;
+          home_player_id: string;
+          home_username: string | null;
+          home_name: string | null;
+          home_avatar: string | null;
+          home_flag: string | null;
+          away_player_id: string;
+          away_username: string | null;
+          away_name: string | null;
+          away_avatar: string | null;
+          away_flag: string | null;
+          winner_id: string | null;
+          winner_username: string | null;
+          winner_name: string | null;
+          rank: number | null;
+        };
+      };
     };
     Functions: {
       verify_host_password: {
         Args: { password_input: string; session_code_input: string };
         Returns: boolean;
+      };
+      upsert_player_segment_stats: {
+        Args: {
+          p_profile_id: string;
+          p_segment_code: string;
+          p_games_played?: number;
+          p_total_questions?: number;
+          p_correct_answers?: number;
+          p_strikes?: number;
+          p_points?: number;
+          p_wins?: number;
+          p_losses?: number;
+        };
+        Returns: void;
       };
     };
     Enums: {
