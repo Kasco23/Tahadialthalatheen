@@ -16,6 +16,8 @@ const Login = lazy(() => import("./pages/Login"));
 const Profile = lazy(() => import("./pages/Profile"));
 const FlagSelection = lazy(() => import("./pages/FlagSelection"));
 const TeamSelection = lazy(() => import("./pages/TeamSelection"));
+const Inbox = lazy(() => import("./pages/Inbox"));
+const Leaderboard = lazy(() => import("./pages/Leaderboard"));
 
 function App() {
   return (
@@ -28,6 +30,8 @@ function App() {
               <Route path="/signup" element={<Signup />} />
               <Route path="/login" element={<Login />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/inbox" element={<Inbox />} />
+              <Route path="/leaderboard" element={<Leaderboard />} />
               <Route path="/select-flag" element={<FlagSelection />} />
               <Route path="/select-team" element={<TeamSelection />} />
               <Route path="/gamesetup/:sessionCode" element={<GameSetup />} />
