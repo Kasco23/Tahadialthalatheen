@@ -28,6 +28,7 @@ import { StadiumBackground } from "../components/StadiumBackground";
 import {
   LOBBY_PRESENCE,
   PARTICIPANT_ROLE,
+  ROLE_DISPLAY_LABELS,
   SEAT_TO_ROLE,
   type ParticipantRole,
 } from "../lib/types";
@@ -894,7 +895,7 @@ const Lobby: React.FC = () => {
                   )
                 </h2>
 
-                {/* Show 3 slots: Host, Player 1, Player 2 */}
+                {/* Show 3 slots: Host, Home, Away */}
                 <div className="space-y-3 max-h-96 overflow-y-auto">
                   {[
                     PARTICIPANT_ROLE.HOST,
@@ -935,12 +936,6 @@ const Lobby: React.FC = () => {
                       );
                     } else {
                       // Show placeholder for empty slot
-                      const roleDisplayNames = {
-                        [PARTICIPANT_ROLE.HOST]: "Host",
-                        [PARTICIPANT_ROLE.PLAYER1]: "Player 1",
-                        [PARTICIPANT_ROLE.PLAYER2]: "Player 2",
-                      };
-
                       return (
                         <div
                           key={requiredRole}
@@ -951,11 +946,11 @@ const Lobby: React.FC = () => {
                               <div className="text-lg">👤</div>
                               <div>
                                 <div className="text-sm font-bold text-gray-400">
-                                  Waiting for {roleDisplayNames[requiredRole]}
+                                  Waiting for {ROLE_DISPLAY_LABELS[requiredRole]}
                                   ...
                                 </div>
                                 <div className="text-xs text-gray-500">
-                                  {roleDisplayNames[requiredRole]}
+                                  {ROLE_DISPLAY_LABELS[requiredRole]}
                                 </div>
                               </div>
                             </div>

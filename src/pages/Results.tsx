@@ -309,7 +309,7 @@ const Results: React.FC = () => {
                 />
               )}
               <div className="text-2xl font-bold text-white">
-                {player1?.name || "Player 1"}
+                {player1?.name || "Home"}
               </div>
             </div>
             <div className="text-4xl font-bold text-yellow-300">{total1}</div>
@@ -330,7 +330,7 @@ const Results: React.FC = () => {
                 />
               )}
               <div className="text-2xl font-bold text-white">
-                {player2?.name || "Player 2"}
+                {player2?.name || "Away"}
               </div>
             </div>
             <div className="text-4xl font-bold text-yellow-300">{total2}</div>
