@@ -4,6 +4,9 @@ import { useParams } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 import { useSession } from "../lib/sessionHooks";
 import { getSessionIdByCode } from "../lib/mutations";
+import { recordMatch } from "../lib/matches";
+import { SegmentCode } from "../lib/types";
+import toast from "react-hot-toast";
 
 interface PlayerData {
   participant_id: string;
@@ -15,6 +18,7 @@ interface PlayerData {
   score: number;
   is_connected: boolean;
   is_host: boolean;
+  profile_id?: string | null;
 }
 
 interface SegmentScore {
@@ -31,6 +35,7 @@ const Results: React.FC = () => {
   const [segmentScores, setSegmentScores] = useState<SegmentScore[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [matchRecorded, setMatchRecorded] = useState(false);
 
   // Convert sessionCode to sessionId when component mounts
   useEffect(() => {
@@ -99,7 +104,7 @@ const Results: React.FC = () => {
         const { data: playersData, error: playersError } = await supabase
           .from("Participants")
           .select(
-            "participant_id, session_id, name, role, flag, team_logo_url, score, is_connected, is_host",
+            "participant_id, session_id, name, role, flag, team_logo_url, score, is_connected, is_host, profile_id",
           )
           .eq("session_id", sessionId);
 
@@ -167,6 +172,66 @@ const Results: React.FC = () => {
       return { winner: player1, message: `${player1?.name} Wins!` };
     return { winner: player2, message: `${player2?.name} Wins!` };
   };
+
+  // Record match in database
+  useEffect(() => {
+    const recordMatchResult = async () => {
+      // Only record once and only if we have valid data
+      if (matchRecorded || !sessionId || !session || players.length < 2) {
+        return;
+      }
+
+      const { player1, player2, total1, total2 } = getPlayerScores();
+      
+      // Check if both players have profile_id
+      if (!player1?.profile_id || !player2?.profile_id) {
+        Logger.log("Cannot record match: players don't have profile_id");
+        return;
+      }
+
+      // Get segments played from SegmentConfig
+      try {
+        const { data: segmentConfigs } = await supabase
+          .from("SegmentConfig")
+          .select("segment_code")
+          .eq("session_id", sessionId);
+
+        const segmentsPlayed = (segmentConfigs || []).map(
+          (sc) => sc.segment_code as SegmentCode
+        );
+
+        // Determine winner
+        const winnerId = 
+          total1 > total2 ? player1.profile_id :
+          total2 > total1 ? player2.profile_id :
+          null; // tie
+
+        // Record the match
+        await recordMatch(
+          sessionId,
+          player1.profile_id,
+          player2.profile_id,
+          total1,
+          total2,
+          winnerId,
+          segmentsPlayed
+        );
+
+        setMatchRecorded(true);
+        toast.success("Match recorded! Check the leaderboard.");
+        Logger.log("Match recorded successfully");
+      } catch (error) {
+        Logger.error("Error recording match:", error);
+        // Don't show error to user - match recording is optional
+      }
+    };
+
+    // Wait a bit for all data to load before recording
+    if (!loading && !sessionLoading && session && players.length >= 2) {
+      setTimeout(recordMatchResult, 1000);
+    }
+  }, [loading, sessionLoading, session, players, sessionId, matchRecorded]);
+
 
   if (loading || sessionLoading) {
     return (
