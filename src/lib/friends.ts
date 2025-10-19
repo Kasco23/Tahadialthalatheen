@@ -6,6 +6,7 @@
 import { supabase } from "./supabaseClient";
 import type { Tables } from "./types";
 import { Logger } from "./logger";
+import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 
 export type Friend = Tables<"Friends">;
 export type Profile = Tables<"Profiles">;
@@ -350,7 +351,7 @@ export async function searchUsersByUsername(
  */
 export function subscribeFriendsUpdates(
   userId: string,
-  callback: (payload: any) => void,
+  callback: (payload: RealtimePostgresChangesPayload<Friend>) => void,
 ): () => void {
   const channel = supabase
     .channel(`friends:${userId}`)

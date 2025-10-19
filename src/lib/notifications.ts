@@ -6,6 +6,7 @@
 import { supabase } from "./supabaseClient";
 import type { Tables, Views, NotificationType } from "./types";
 import { Logger } from "./logger";
+import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 
 export type Notification = Tables<"Notifications">;
 export type UserInboxItem = Views<"UserInbox">;
@@ -233,7 +234,7 @@ export async function createNotification(
   title: string,
   message: string,
   link: string | null = null,
-  metadata: Record<string, any> = {},
+  metadata: Record<string, unknown> = {},
 ): Promise<Notification> {
   try {
     const { data, error } = await supabase
@@ -271,7 +272,7 @@ export async function createNotification(
  */
 export function subscribeNotificationsUpdates(
   userId: string,
-  callback: (payload: any) => void,
+  callback: (payload: RealtimePostgresChangesPayload<Notification>) => void,
 ): () => void {
   const channel = supabase
     .channel(`notifications:${userId}`)

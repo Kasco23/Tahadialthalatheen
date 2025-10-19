@@ -14,6 +14,7 @@ import type {
 import { Logger } from "./logger";
 
 export type Match = Tables<"Matches">;
+export type Profile = Tables<"Profiles">;
 export type PlayerSegmentStats = Tables<"PlayerSegmentStats">;
 export type LeaderboardPlayer = Views<"leaderboard_players">;
 export type LeaderboardMatch = Views<"leaderboard_matches">;
@@ -319,10 +320,10 @@ export async function getNemesis(
     // Count losses by opponent
     const lossCountByOpponent: Record<
       string,
-      { count: number; profile: any }
+      { count: number; profile: Profile | null }
     > = {};
 
-    matches.forEach((match: any) => {
+    matches.forEach((match: Match & { home_player: Profile; away_player: Profile }) => {
       const opponentId =
         match.home_player_id === userId
           ? match.away_player_id
@@ -344,7 +345,7 @@ export async function getNemesis(
     // Find opponent with most losses
     let maxLosses = 0;
     let nemesisId = "";
-    let nemesisProfile: any = null;
+    let nemesisProfile: Profile | null = null;
 
     Object.entries(lossCountByOpponent).forEach(([opponentId, data]) => {
       if (data.count > maxLosses) {
