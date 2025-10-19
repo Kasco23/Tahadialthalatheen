@@ -7,6 +7,9 @@ import toast from "react-hot-toast";
 import { Flag } from "../components/Flag";
 import { getFlagName } from "../lib/flagHelper";
 import { StadiumBackground } from "../components/StadiumBackground";
+import StatisticsTab from "../components/profile/StatisticsTab";
+import FriendsTab from "../components/profile/FriendsTab";
+import { UserIcon, ChartBarIcon, UserGroupIcon } from "@heroicons/react/24/outline";
 
 export default function Profile() {
   const { user, profile, updateProfile, signOut } = useAuth();
@@ -20,6 +23,9 @@ export default function Profile() {
   const [saving, setSaving] = useState(false);
   const [showAvatarEditor, setShowAvatarEditor] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  
+  // Tab state
+  const [activeTab, setActiveTab] = useState<"profile" | "statistics" | "friends">("profile");
   
   // Password change state
   const [showPasswordChange, setShowPasswordChange] = useState(false);
@@ -201,7 +207,7 @@ export default function Profile() {
   return (
     <StadiumBackground variant="bright" animated={true}>
       <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl p-8 max-w-2xl w-full">
+        <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl p-8 max-w-4xl w-full">
         <div className="flex flex-col items-center mb-6">
           <div className="relative mb-4">
             <div className="w-24 h-24 rounded-full overflow-hidden bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center shadow-lg">
@@ -272,11 +278,52 @@ export default function Profile() {
             />
           </div>
           <h2 className="text-3xl font-bold text-center text-gray-800">
-            Profile Settings
+            {profile?.name || "Player"}
           </h2>
-          <p className="text-gray-600 text-center mt-2">{user.email}</p>
+          <p className="text-gray-600 text-center mt-1">@{profile?.username || user.email}</p>
+          <p className="text-gray-500 text-center text-sm">{user.email}</p>
         </div>
 
+        {/* Tab Navigation */}
+        <div className="flex border-b-2 border-gray-200 mb-6">
+          <button
+            onClick={() => setActiveTab("profile")}
+            className={`flex-1 py-3 px-4 font-semibold transition-all flex items-center justify-center gap-2 ${
+              activeTab === "profile"
+                ? "border-b-4 border-green-600 text-green-600 -mb-0.5"
+                : "text-gray-600 hover:text-gray-800"
+            }`}
+          >
+            <UserIcon className="h-5 w-5" />
+            Profile
+          </button>
+          <button
+            onClick={() => setActiveTab("statistics")}
+            className={`flex-1 py-3 px-4 font-semibold transition-all flex items-center justify-center gap-2 ${
+              activeTab === "statistics"
+                ? "border-b-4 border-green-600 text-green-600 -mb-0.5"
+                : "text-gray-600 hover:text-gray-800"
+            }`}
+          >
+            <ChartBarIcon className="h-5 w-5" />
+            Statistics
+          </button>
+          <button
+            onClick={() => setActiveTab("friends")}
+            className={`flex-1 py-3 px-4 font-semibold transition-all flex items-center justify-center gap-2 ${
+              activeTab === "friends"
+                ? "border-b-4 border-green-600 text-green-600 -mb-0.5"
+                : "text-gray-600 hover:text-gray-800"
+            }`}
+          >
+            <UserGroupIcon className="h-5 w-5" />
+            Friends
+          </button>
+        </div>
+
+        {/* Tab Content */}
+        {activeTab === "profile" && (
+        <div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label
@@ -511,6 +558,23 @@ export default function Profile() {
             Back to Home
           </button>
         </div>
+        </div>
+        )}
+
+        {/* Statistics Tab */}
+        {activeTab === "statistics" && (
+          <div className="mt-4">
+            <StatisticsTab />
+          </div>
+        )}
+
+        {/* Friends Tab */}
+        {activeTab === "friends" && (
+          <div className="mt-4">
+            <FriendsTab />
+          </div>
+        )}
+
         </div>
 
         {/* Avatar Editor Modal */}
