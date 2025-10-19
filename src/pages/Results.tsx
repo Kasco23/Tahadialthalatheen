@@ -1,5 +1,5 @@
 import { Logger } from "../lib/logger";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 import { useSession } from "../lib/sessionHooks";
@@ -148,7 +148,7 @@ const Results: React.FC = () => {
     };
   }, [sessionId]);
 
-  const getPlayerScores = () => {
+  const getPlayerScores = useCallback(() => {
     const player1 = players.find(
       (p) => p.role === "Player1" || p.role === "playerA",
     );
@@ -162,7 +162,7 @@ const Results: React.FC = () => {
       total1: player1?.score || 0,
       total2: player2?.score || 0,
     };
-  };
+  }, [players]);
 
   const getWinner = () => {
     const { total1, total2, player1, player2 } = getPlayerScores();
@@ -230,7 +230,7 @@ const Results: React.FC = () => {
     if (!loading && !sessionLoading && session && players.length >= 2) {
       setTimeout(recordMatchResult, 1000);
     }
-  }, [loading, sessionLoading, session, players, sessionId, matchRecorded]);
+  }, [loading, sessionLoading, session, players, sessionId, matchRecorded, getPlayerScores]);
 
 
   if (loading || sessionLoading) {

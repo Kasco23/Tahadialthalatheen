@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import {
@@ -26,6 +26,19 @@ export default function Inbox() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "unread">("all");
 
+  const loadNotifications = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await getNotifications(filter === "unread");
+      setNotifications(data);
+    } catch (error) {
+      console.error("Error loading notifications:", error);
+      toast.error("Failed to load notifications");
+    } finally {
+      setLoading(false);
+    }
+  }, [filter]);
+
   useEffect(() => {
     if (!user) {
       navigate("/login");
@@ -42,20 +55,7 @@ export default function Inbox() {
     return () => {
       unsubscribe();
     };
-  }, [user, navigate, filter]);
-
-  const loadNotifications = async () => {
-    try {
-      setLoading(true);
-      const data = await getNotifications(filter === "unread");
-      setNotifications(data);
-    } catch (error) {
-      console.error("Error loading notifications:", error);
-      toast.error("Failed to load notifications");
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [user, navigate, loadNotifications]);
 
   const handleMarkAsRead = async (notificationId: string) => {
     try {
