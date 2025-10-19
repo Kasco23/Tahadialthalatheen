@@ -14,10 +14,15 @@ export default function Signup() {
     setError(null);
 
     try {
+      if (!formData.username || formData.username.length < 3) {
+        throw new Error("Username must be at least 3 characters long");
+      }
+
       await signUp(
         formData.email,
         formData.password,
         formData.name || "Player",
+        formData.username,
       );
       // Redirect to flag selection page after successful signup
       navigate("/select-flag");

@@ -7,6 +7,7 @@ import { Alert } from "../components/Alert";
 import { useAuth } from "../contexts/AuthContext";
 import { JoinModal } from "../components/JoinModal";
 import { StadiumBackground } from "../components/StadiumBackground";
+import NotificationBell from "../components/NotificationBell";
 
 const Homepage: React.FC = () => {
   const [isCreatingSession, setIsCreatingSession] = useState(false);
@@ -68,21 +69,27 @@ const Homepage: React.FC = () => {
       {/* User menu in top right */}
       {user && (
         <>
-          {/* Profile Button */}
-          <button
-            onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-            className="absolute top-4 right-4 z-50 w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center hover:shadow-xl transition-shadow"
-          >
-            {profile?.avatar_url ? (
-              <img
-                src={profile.avatar_url}
-                alt="Avatar"
-                className="w-full h-full rounded-full object-cover"
-              />
-            ) : (
-              <span className="text-2xl">👤</span>
-            )}
-          </button>
+          {/* Top Right Actions */}
+          <div className="absolute top-4 right-4 z-50 flex gap-3 items-center">
+            {/* Notification Bell */}
+            <NotificationBell />
+            
+            {/* Profile Button */}
+            <button
+              onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+              className="w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center hover:shadow-xl transition-shadow"
+            >
+              {profile?.avatar_url ? (
+                <img
+                  src={profile.avatar_url}
+                  alt="Avatar"
+                  className="w-full h-full rounded-full object-cover"
+                />
+              ) : (
+                <span className="text-2xl">👤</span>
+              )}
+            </button>
+          </div>
 
           {/* Slide-out Profile Menu */}
           <div
@@ -142,6 +149,23 @@ const Homepage: React.FC = () => {
                     Profile Settings
                   </span>
                 </Link>
+                <Link
+                  to="/inbox"
+                  onClick={() => setIsProfileMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-green-50 transition-colors"
+                >
+                  <span className="text-xl">📬</span>
+                  <span className="font-medium text-gray-700">Inbox</span>
+                </Link>
+                <Link
+                  to="/leaderboard"
+                  onClick={() => setIsProfileMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-green-50 transition-colors"
+                >
+                  <span className="text-xl">🏆</span>
+                  <span className="font-medium text-gray-700">Leaderboard</span>
+                </Link>
+                <div className="border-t border-gray-200 my-2"></div>
                 <Link
                   to="/select-flag"
                   onClick={() => setIsProfileMenuOpen(false)}

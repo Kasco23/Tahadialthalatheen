@@ -13,6 +13,7 @@ export interface AuthFormData {
   email: string;
   password: string;
   name?: string;
+  username?: string;
   team?: string;
   flag?: string;
   keepSignedIn: boolean;
@@ -28,6 +29,7 @@ export default function AuthForm({
     email: "",
     password: "",
     name: "",
+    username: "",
     team: "",
     flag: "",
     keepSignedIn: true,
@@ -66,26 +68,52 @@ export default function AuthForm({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {isSignup && (
-            <div>
-              <label
-                htmlFor="name"
-                className="block text-sm font-semibold text-gray-700 mb-2"
-              >
-                Name
-              </label>
-              <input
-                id="name"
-                type="text"
-                required
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 outline-none"
-                placeholder="Enter your name"
-                disabled={loading}
-              />
-            </div>
+            <>
+              <div>
+                <label
+                  htmlFor="name"
+                  className="block text-sm font-semibold text-gray-700 mb-2"
+                >
+                  Name
+                </label>
+                <input
+                  id="name"
+                  type="text"
+                  required
+                  value={formData.name}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 outline-none"
+                  placeholder="Enter your name"
+                  disabled={loading}
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="username"
+                  className="block text-sm font-semibold text-gray-700 mb-2"
+                >
+                  Username
+                </label>
+                <input
+                  id="username"
+                  type="text"
+                  required
+                  minLength={3}
+                  value={formData.username}
+                  onChange={(e) =>
+                    setFormData({ ...formData, username: e.target.value.toLowerCase().trim() })
+                  }
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 outline-none"
+                  placeholder="Choose a unique username (min 3 chars)"
+                  disabled={loading}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Used to add friends and identify you in matches
+                </p>
+              </div>
+            </>
           )}
 
           <div>

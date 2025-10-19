@@ -16,7 +16,7 @@ interface AuthContextType {
   session: Session | null;
   profile: Profile | null;
   loading: boolean;
-  signUp: (email: string, password: string, name: string) => Promise<void>;
+  signUp: (email: string, password: string, name: string, username: string) => Promise<void>;
   signIn: (
     email: string,
     password: string,
@@ -81,19 +81,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, name: string) => {
+  const signUp = async (email: string, password: string, name: string, username: string) => {
+    // First check if username is already taken
+    const { data: existingUser, error: checkError } = await supabase
+      .from("Profiles")
+      .select("username")
+      .eq("username", username)
+      .maybeSingle();
+
+    if (checkError && checkError.code !== "PGRST116") {
+      throw new Error(`Failed to check username availability: ${checkError.message}`);
+    }
+
+    if (existingUser) {
+      throw new Error("Username is already taken. Please choose another one.");
+    }
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: {
           name,
+          username,
         },
       },
     });
 
     if (error) throw error;
     if (data.user) {
+      // Update profile with username
+      await supabase
+        .from("Profiles")
+        .update({ username, name })
+        .eq("id", data.user.id);
+      
       await fetchProfile(data.user.id);
     }
   };
