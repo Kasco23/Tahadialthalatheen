@@ -252,9 +252,9 @@ export const getSeatsFromRole = (role: ParticipantRole): string | null => {
   switch (role) {
     case "Host":
       return "1";
-    case "Player1":
+    case "Home":
       return "2";
-    case "Player2":
+    case "Away":
       return "3";
     case "GameMaster":
       return "1"; // GameMaster shares seat with Host
