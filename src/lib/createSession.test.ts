@@ -55,6 +55,7 @@ describe("createSession uses DB trigger to create session_code", () => {
         name: "GameMaster",
         role: "GameMaster",
         lobby_presence: "Joined",
+        profile_id: "user-profile-id",
       },
       {
         session_id: "new-id",
