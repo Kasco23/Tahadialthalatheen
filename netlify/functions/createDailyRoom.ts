@@ -80,25 +80,68 @@ export default async (req: Request, _context: Context) => {
     const session_id = sessionRow.session_id;
     console.log("Creating Daily.co room with session_code:", session_code);
 
+    // Helper function to fetch with timeout
+    const fetchWithTimeout = async (
+      url: string,
+      options: RequestInit,
+      timeoutMs = 8000,
+    ) => {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+      try {
+        const response = await fetch(url, {
+          ...options,
+          signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+        return response;
+      } catch (error) {
+        clearTimeout(timeoutId);
+        throw error;
+      }
+    };
+
     // Create room using Daily.co API with session_code as room name
-    const roomResponse = await fetch("https://api.daily.co/v1/rooms", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.DAILY_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        name: session_code, // Use session_code as room name
-        privacy: "public",
-        properties: {
-          max_participants: 10,
-          enable_recording: false,
-          enable_chat: true,
-          start_video_off: false,
-          start_audio_off: false,
+    let roomResponse: Response;
+    try {
+      roomResponse = await fetchWithTimeout(
+        "https://api.daily.co/v1/rooms",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${process.env.DAILY_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: session_code, // Use session_code as room name
+            privacy: "public",
+            properties: {
+              max_participants: 10,
+              enable_recording: false,
+              enable_chat: true,
+              start_video_off: false,
+              start_audio_off: false,
+            },
+          }),
         },
-      }),
-    });
+        8000,
+      );
+    } catch (error) {
+      console.error("Daily.co API timeout or network error:", error);
+      return new Response(
+        JSON.stringify({
+          error: "Daily.co API timeout",
+          details:
+            error instanceof Error ? error.message : "Network request failed",
+          suggestion: "Please try again in a moment",
+        }),
+        {
+          status: 504,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+    }
 
     console.log("Daily.co API response status:", roomResponse.status);
 
@@ -109,30 +152,48 @@ export default async (req: Request, _context: Context) => {
       console.error("Daily.co API error:", errorText);
       // If room already exists (conflict), try to fetch it (idempotent behavior)
       if (roomResponse.status === 409) {
-        const getResp = await fetch(
-          `https://api.daily.co/v1/rooms/${encodeURIComponent(session_code)}`,
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${process.env.DAILY_API_KEY}`,
+        try {
+          const getResp = await fetchWithTimeout(
+            `https://api.daily.co/v1/rooms/${encodeURIComponent(session_code)}`,
+            {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${process.env.DAILY_API_KEY}`,
+              },
             },
-          },
-        );
-        if (!getResp.ok) {
-          const getText = await getResp.text();
-          console.error("Daily.co GET room error:", getText);
+            8000,
+          );
+          if (!getResp.ok) {
+            const getText = await getResp.text();
+            console.error("Daily.co GET room error:", getText);
+            return new Response(
+              JSON.stringify({
+                error: "Failed to get existing room",
+                details: getText,
+              }),
+              {
+                status: getResp.status,
+                headers: { "Content-Type": "application/json" },
+              },
+            );
+          }
+          roomData = await getResp.json();
+        } catch (error) {
+          console.error("Timeout getting existing room:", error);
           return new Response(
             JSON.stringify({
-              error: "Failed to get existing room",
-              details: getText,
+              error: "Timeout retrieving existing room",
+              details:
+                error instanceof Error
+                  ? error.message
+                  : "Network request failed",
             }),
             {
-              status: getResp.status,
+              status: 504,
               headers: { "Content-Type": "application/json" },
             },
           );
         }
-        roomData = await getResp.json();
       } else {
         return new Response(
           JSON.stringify({

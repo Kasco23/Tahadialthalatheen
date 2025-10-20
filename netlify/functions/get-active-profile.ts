@@ -47,37 +47,60 @@ export default async (req: Request, _context: Context) => {
       );
     }
 
-    // Get blob store
+    // Get blob store with timeout protection
     const storeName = "active-profiles";
-    const store = getStore(storeName);
+    
+    try {
+      const store = getStore(storeName);
 
-    // Retrieve profile data
-    const profileKey = `user:${userId}:profile`;
-    const profile = await store.get(profileKey, { type: "json" });
+      // Retrieve profile data with timeout
+      const profileKey = `user:${userId}:profile`;
+      const profile = await Promise.race([
+        store.get(profileKey, { type: "json" }),
+        new Promise<null>((_, reject) =>
+          setTimeout(() => reject(new Error("Blobs get timeout")), 5000),
+        ),
+      ]);
 
-    if (!profile) {
+      if (!profile) {
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: "Profile not found",
+          }),
+          {
+            status: 404,
+            headers: { "Content-Type": "application/json" },
+          },
+        );
+      }
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          profile,
+        }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+    } catch (blobError) {
+      console.error("Blobs operation failed:", blobError);
+      // Return not found instead of error - graceful degradation
       return new Response(
         JSON.stringify({
           success: false,
-          error: "Profile not found",
+          error: "Profile temporarily unavailable",
+          details:
+            blobError instanceof Error ? blobError.message : "Storage unavailable",
         }),
         {
-          status: 404,
+          status: 503,
           headers: { "Content-Type": "application/json" },
         },
       );
     }
-
-    return new Response(
-      JSON.stringify({
-        success: true,
-        profile,
-      }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      },
-    );
   } catch (error) {
     console.error("Error retrieving active profile:", error);
     return new Response(
