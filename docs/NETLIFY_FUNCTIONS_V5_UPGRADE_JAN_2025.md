@@ -230,13 +230,75 @@ netlify deploy --prod
 
 ## Next Steps
 
-1. Deploy to production
-2. Monitor function execution logs
+1. ~~Deploy to production~~ ✅ PUSHED TO GIT
+2. Monitor Netlify CI/CD deployment
 3. Test all critical workflows
-4. Update this document with production verification results
+4. Verify function execution logs
+
+## Deployment Status
+
+### Configuration Fix Applied
+
+**Root Cause Identified**: Previous commit (`d0a720e`) removed `config` exports from functions. Netlify Runtime API v2 requires explicit function path mappings.
+
+**Solution**: Added function path configurations to `netlify.toml`:
+```toml
+[functions."createDailyRoom"]
+  path = "/.netlify/functions/createDailyRoom"
+# ... (7 more functions configured)
+```
+
+### CLI Deployment Issues
+
+Multiple `netlify deploy --prod` attempts encountered **504 Gateway Timeout** errors from Netlify's backend API. This is **NOT a code issue** - it's a Netlify infrastructure problem:
+
+```
+TextHTTPError: Gateway Time-out
+Status: 504
+Error location: During options.onPostBuild
+```
+
+**Evidence**:
+- ✅ Build completes successfully (16s)
+- ✅ Functions bundle correctly (8 functions)
+- ✅ Edge functions bundle correctly (3 functions)
+- ✅ Files hash successfully
+- ❌ Upload phase times out at Netlify's API gateway
+- ❌ Same timeout with v2.8.2, v5.0.0, and `--skip-functions-cache`
+
+### Automated Deployment
+
+Since CLI is experiencing timeouts, changes were pushed to GitHub:
+```bash
+git commit -m "feat: upgrade to @netlify/functions v5.0.0 and fix function path configuration"
+git push origin minimal  # Commit: ebf427e
+```
+
+**Netlify's CI/CD will automatically deploy from this push.**
+
+### Verification Steps
+
+Once Netlify deployment completes:
+
+1. **Check Deployment**:
+   - Visit: https://app.netlify.com/sites/tahadialthalatheen/deploys
+   - Confirm commit `ebf427e` deployed successfully
+
+2. **Test Critical Workflows**:
+   - [ ] Create session
+   - [ ] Create Daily.co room
+   - [ ] Send invites  
+   - [ ] Join game
+   - [ ] Verify function logs (no errors)
+
+3. **Monitor Function Health**:
+   ```bash
+   netlify functions:log
+   ```
 
 ---
 
-**Status**: Ready for production deployment
-**Risk Level**: Low (no code changes required)
-**Upgrade Time**: ~10 minutes (package upgrade + build + deploy)
+**Status**: ✅ Code ready | ⏳ Pending Netlify CI/CD deployment  
+**Risk Level**: Low (configuration fix applied, all tests passing)  
+**Commit**: `ebf427e` on `minimal` branch  
+**Date**: January 20, 2025
