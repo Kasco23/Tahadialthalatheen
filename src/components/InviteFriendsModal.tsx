@@ -140,10 +140,10 @@ export function InviteFriendsModal({
                         <img
                           src={friendProfile.avatar_url}
                           alt={friendProfile.name || "Friend"}
-                          className="w-10 h-10 rounded-full object-cover"
+                          className="w-10 h-10 rounded-lg object-cover"
                         />
                       ) : (
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white font-bold">
+                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white font-bold">
                           {(friendProfile.name || friendProfile.username || "?")[0].toUpperCase()}
                         </div>
                       )}

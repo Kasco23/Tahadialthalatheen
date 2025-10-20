@@ -998,39 +998,15 @@ export interface ExistingPreset {
 }
 
 export async function checkExistingPreset(
-  name: string,
-  sessionCode?: string,
-  role?: string,
+  _name: string,
+  _sessionCode?: string,
+  _role?: string,
 ): Promise<ExistingPreset | null> {
-  // Search for existing participants with the same name (case insensitive)
-  // Optionally filter by session code and role
-  let query = supabase
-    .from("Participants")
-    .select(
-      "name, flag, team_logo_url, role, session_id, Session!inner(session_code)",
-    )
-    .ilike("name", name) // Case insensitive match
-    .not("flag", "is", null) // Only return participants with existing presets
-    .not("team_logo_url", "is", null)
-    .order("join_at", { ascending: false }); // Get the most recent one
-
-  if (sessionCode) {
-    // If session code is provided, filter by it
-    query = query.eq("Session.session_code", sessionCode.toUpperCase());
-  }
-
-  if (role) {
-    query = query.eq("role", role);
-  }
-
-  const { data, error } = await query.limit(1).maybeSingle();
-
-  if (error) {
-    Logger.error("Error checking existing preset:", error);
-    return null;
-  }
-
-  return data;
+  // Note: flag and team_logo_url are now stored in Profiles table
+  // This function now returns null as presets are handled via profile_id
+  // TODO: Refactor to use Profiles table via profile_id
+  Logger.warn("checkExistingPreset is deprecated - use Profiles table instead");
+  return null;
 }
 
 // Helper function to extract message from unknown errors to avoid any casts.
@@ -1273,14 +1249,13 @@ export async function getSessionParticipants(sessionId: string): Promise<
     participant_id: string;
     name: string;
     role: string;
-    flag: string | null;
-    team_logo_url: string | null;
     lobby_presence: string;
+    profile_id: string | null;
   }>
 > {
   const { data, error } = await supabase
     .from("Participants")
-    .select("participant_id, name, role, flag, team_logo_url, lobby_presence")
+    .select("participant_id, name, role, lobby_presence, profile_id")
     .eq("session_id", sessionId)
     .order("join_at", { ascending: true });
 
@@ -1323,9 +1298,8 @@ export async function verifyParticipantPassword(
     participant_id: string;
     name: string;
     role: string;
-    flag: string | null;
-    team_logo_url: string | null;
     session_id: string;
+    profile_id: string | null;
   };
 }> {
   // Use the new participantAuth module
@@ -1341,7 +1315,7 @@ export async function verifyParticipantPassword(
   // Fetch participant data if password is valid
   const { data, error } = await supabase
     .from("Participants")
-    .select("participant_id, name, role, flag, team_logo_url, session_id")
+    .select("participant_id, name, role, session_id, profile_id")
     .eq("participant_id", participantId)
     .single();
 
@@ -1355,9 +1329,8 @@ export async function verifyParticipantPassword(
       participant_id: data.participant_id,
       name: data.name,
       role: data.role,
-      flag: data.flag,
-      team_logo_url: data.team_logo_url,
       session_id: data.session_id,
+      profile_id: data.profile_id,
     },
   };
 }

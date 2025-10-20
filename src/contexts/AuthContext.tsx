@@ -7,7 +7,8 @@ import {
 } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabaseClient";
-import { Tables } from "../lib/types/supabase";
+import { storeActiveProfile } from "../lib/activeProfile";
+import type { Tables } from "../lib/types/supabase";
 
 type Profile = Tables<"Profiles">;
 
@@ -47,6 +48,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (error) throw error;
       setProfile(data);
+      
+      // Store profile in Netlify Blobs for quick access
+      if (data) {
+        try {
+          await storeActiveProfile(userId, data);
+        } catch (blobError) {
+          // Log error but don't block profile loading
+          console.error("Failed to store profile in Netlify Blobs:", blobError);
+        }
+      }
     } catch (error) {
       console.error("Error fetching profile:", error);
       setProfile(null);

@@ -18,6 +18,7 @@ export default function Profile() {
 
   const [formData, setFormData] = useState({
     name: profile?.name || "",
+    username: profile?.username || "",
   });
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -102,18 +103,36 @@ export default function Profile() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    
+    // Validate username
+    if (!formData.username || formData.username.length < 3) {
+      toast.error("Username must be at least 3 characters");
+      return;
+    }
+    
+    if (!/^[a-z0-9_]{3,20}$/.test(formData.username)) {
+      toast.error("Username can only contain lowercase letters, numbers, and underscores");
+      return;
+    }
+    
     setSaving(true);
 
     try {
       await updateProfile({
         name: formData.name || null,
+        username: formData.username,
       });
       toast.success("Profile updated successfully!");
     } catch (error) {
       console.error("Error updating profile:", error);
-      toast.error(
-        error instanceof Error ? error.message : "Failed to update profile",
-      );
+      const errorMessage = error instanceof Error ? error.message : "Failed to update profile";
+      
+      // Check for unique constraint violation
+      if (errorMessage.includes("duplicate") || errorMessage.includes("unique")) {
+        toast.error("This username is already taken. Please choose another one.");
+      } else {
+        toast.error(errorMessage);
+      }
     } finally {
       setSaving(false);
     }
@@ -210,7 +229,7 @@ export default function Profile() {
         <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl p-8 max-w-4xl w-full">
         <div className="flex flex-col items-center mb-6">
           <div className="relative mb-4">
-            <div className="w-24 h-24 rounded-full overflow-hidden bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center shadow-lg">
+            <div className="w-24 h-24 rounded-lg overflow-hidden bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center shadow-lg">
               {profile?.avatar_url ? (
                 <img
                   src={profile.avatar_url}
@@ -363,6 +382,40 @@ export default function Profile() {
               placeholder="Enter your name"
               disabled={saving}
             />
+          </div>
+
+          <div>
+            <label
+              htmlFor="username"
+              className="block text-sm font-semibold text-gray-700 mb-2"
+            >
+              Username
+            </label>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">
+                @
+              </span>
+              <input
+                id="username"
+                type="text"
+                value={formData.username}
+                onChange={(e) => {
+                  // Only allow lowercase letters, numbers, and underscores
+                  const value = e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '');
+                  setFormData({ ...formData, username: value });
+                }}
+                className="w-full pl-8 pr-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 outline-none"
+                placeholder="username"
+                minLength={3}
+                maxLength={20}
+                pattern="[a-z0-9_]{3,20}"
+                disabled={saving}
+                required
+              />
+            </div>
+            <p className="text-xs text-gray-500 mt-1">
+              3-20 characters: lowercase letters, numbers, and underscores only. Used for friend requests.
+            </p>
           </div>
 
           <div>

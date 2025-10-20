@@ -145,10 +145,10 @@ export default function Leaderboard() {
                               <img
                                 src={player.avatar_url}
                                 alt={player.name || "Player"}
-                                className="w-12 h-12 rounded-full object-cover"
+                                className="w-12 h-12 rounded-lg object-cover"
                               />
                             ) : (
-                              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white font-bold text-lg">
+                              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white font-bold text-lg">
                                 {(player.name || player.username || "?").charAt(0).toUpperCase()}
                               </div>
                             )}

@@ -73,19 +73,18 @@ const ParticipantCard: React.FC<ParticipantCardProps> = ({
 }) => {
   const isPlayer = player.role === "Player1" || player.role === "Player2";
 
-  // Generate team logo URL if needed
+  // Generate team logo URL from Profile data only
   const teamLogoUrl = useMemo(() => {
     const profileTeam = player.Profiles?.team;
-    const participantLogo = player.team_logo_url;
     
     // If profile team exists and doesn't look like a URL, try to generate one
     if (profileTeam && !profileTeam.startsWith("http")) {
-      return getTeamLogoUrl(profileTeam) ?? participantLogo ?? "";
+      return getTeamLogoUrl(profileTeam) ?? "";
     }
     
     // Otherwise use as-is
-    return profileTeam ?? participantLogo ?? "";
-  }, [player.Profiles?.team, player.team_logo_url]);
+    return profileTeam ?? "";
+  }, [player.Profiles?.team]);
 
   return (
     <div
@@ -99,7 +98,7 @@ const ParticipantCard: React.FC<ParticipantCardProps> = ({
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center space-x-2">
           <Flag 
-            code={(player.Profiles?.flag || player.flag) ?? "sa"} 
+            code={player.Profiles?.flag ?? "sa"} 
             className="text-lg" 
           />
           {teamLogoUrl && (

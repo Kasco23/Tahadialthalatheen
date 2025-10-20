@@ -50,7 +50,7 @@ export default function NotificationBell() {
   return (
     <button
       onClick={handleClick}
-      className="relative w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center hover:shadow-xl transition-shadow"
+      className="relative w-10 h-10 rounded-lg bg-white shadow-lg flex items-center justify-center hover:shadow-xl transition-shadow"
       title="Notifications"
     >
       <BellIcon className="h-6 w-6 text-gray-700" />

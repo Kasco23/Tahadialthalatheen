@@ -95,19 +95,28 @@ const Homepage: React.FC = () => {
         <>
           {/* Top Right Actions */}
           <div className="absolute top-4 right-4 z-50 flex gap-3 items-center">
+            {/* Active Games Button */}
+            <button
+              onClick={() => setIsActiveGamesSidebarOpen(true)}
+              className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg flex items-center justify-center hover:shadow-xl transition-all hover:scale-105"
+              title="Active Games"
+            >
+              <span className="text-2xl">🎮</span>
+            </button>
+
             {/* Notification Bell */}
             <NotificationBell />
             
             {/* Profile Button */}
             <button
               onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-              className="w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center hover:shadow-xl transition-shadow"
+              className="w-12 h-12 rounded-lg bg-white shadow-lg flex items-center justify-center hover:shadow-xl transition-shadow"
             >
               {profile?.avatar_url ? (
                 <img
                   src={profile.avatar_url}
                   alt="Avatar"
-                  className="w-full h-full rounded-full object-cover"
+                  className="w-full h-full rounded-lg object-cover"
                 />
               ) : (
                 <span className="text-2xl">👤</span>
@@ -144,12 +153,12 @@ const Homepage: React.FC = () => {
 
               {/* Profile Header */}
               <div className="flex flex-col items-center mb-6 mt-4">
-                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center mb-3 shadow-lg">
+                <div className="w-20 h-20 rounded-lg bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center mb-3 shadow-lg">
                   {profile?.avatar_url ? (
                     <img
                       src={profile.avatar_url}
                       alt="Avatar"
-                      className="w-full h-full rounded-full object-cover"
+                      className="w-full h-full rounded-lg object-cover"
                     />
                   ) : (
                     <span className="text-4xl">👤</span>
