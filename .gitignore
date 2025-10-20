@@ -15,6 +15,8 @@ bundlemeta.json
 .env.production
 .env.development
 *.env.local
+supabase/.env
+supabase/.env.backup
 
 # IDE
 .vscode/
