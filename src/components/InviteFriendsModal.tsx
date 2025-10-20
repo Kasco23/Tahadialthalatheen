@@ -59,7 +59,7 @@ export function InviteFriendsModal({
       );
 
       toast.success("Invite sent!");
-      
+
       // Keep the modal open so they can invite more friends
       setInviting((prev) => {
         const next = new Set(prev);
@@ -144,7 +144,9 @@ export function InviteFriendsModal({
                         />
                       ) : (
                         <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white font-bold">
-                          {(friendProfile.name || friendProfile.username || "?")[0].toUpperCase()}
+                          {(friendProfile.name ||
+                            friendProfile.username ||
+                            "?")[0].toUpperCase()}
                         </div>
                       )}
                       <div>
@@ -153,7 +155,10 @@ export function InviteFriendsModal({
                             {friendProfile.name || friendProfile.username}
                           </p>
                           {friendProfile.flag && (
-                            <Flag code={friendProfile.flag} className="w-5 h-4" />
+                            <Flag
+                              code={friendProfile.flag}
+                              className="w-5 h-4"
+                            />
                           )}
                         </div>
                         {friendProfile.username && (

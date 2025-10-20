@@ -45,6 +45,7 @@ import { UsernameSetupBanner } from "../components/UsernameSetupBanner";
 
 type ParticipantRow = Database["public"]["Tables"]["Participants"]["Row"] & {
   Profiles?: {
+    name?: string | null;
     flag?: string | null;
     team?: string | null;
   } | null;
@@ -76,12 +77,12 @@ const ParticipantCard: React.FC<ParticipantCardProps> = ({
   // Generate team logo URL from Profile data only
   const teamLogoUrl = useMemo(() => {
     const profileTeam = player.Profiles?.team;
-    
+
     // If profile team exists and doesn't look like a URL, try to generate one
     if (profileTeam && !profileTeam.startsWith("http")) {
       return getTeamLogoUrl(profileTeam) ?? "";
     }
-    
+
     // Otherwise use as-is
     return profileTeam ?? "";
   }, [player.Profiles?.team]);
@@ -97,18 +98,17 @@ const ParticipantCard: React.FC<ParticipantCardProps> = ({
       {/* Player Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center space-x-2">
-          <Flag 
-            code={player.Profiles?.flag ?? "sa"} 
-            className="text-lg" 
-          />
+          <Flag code={player.Profiles?.flag ?? "sa"} className="text-lg" />
           {teamLogoUrl && (
-            <LobbyLogo 
-              logoUrl={teamLogoUrl} 
-              teamName={player.name} 
+            <LobbyLogo
+              logoUrl={teamLogoUrl}
+              teamName={player.Profiles?.name ?? "Unknown"}
             />
           )}
           <div>
-            <div className="text-sm font-bold text-white">{player.name}</div>
+            <div className="text-sm font-bold text-white">
+              {player.Profiles?.name ?? "Unknown"}
+            </div>
             <div className="text-xs text-blue-200">
               {getRoleDisplay(player)}
             </div>
@@ -274,16 +274,15 @@ const Lobby: React.FC = () => {
   const [players, setPlayers] = useState<ParticipantRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showSeatValidationModal, setShowSeatValidationModal] = useState(false);
   const [readyStates, setReadyStates] = useState<Record<string, boolean>>({});
   const [allPlayersReady, setAllPlayersReady] = useState(false);
   const [togglingReadyParticipant, setTogglingReadyParticipant] = useState<
     string | null
   >(null);
-  
+
   // Session state from Netlify Blobs (room creation, etc.)
   const [sessionState, setSessionState] = useState<SessionState | null>(null);
-  
+
   // Invite modal state
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
 
@@ -456,15 +455,18 @@ const Lobby: React.FC = () => {
 
         const { data, error: fetchError } = await supabase
           .from("Participants")
-          .select(`
+          .select(
+            `
             *,
             Profiles!profile_id (
+              name,
               flag,
               team
             )
-          `)
+          `,
+          )
           .eq("session_id", sessionId)
-          .order("name", { ascending: true });
+          .order("join_at", { ascending: true });
 
         if (fetchError) {
           Logger.error("Error loading players:", fetchError);
@@ -474,40 +476,6 @@ const Lobby: React.FC = () => {
             const playersData = (data as ParticipantRow[]) || [];
             setPlayers(playersData);
             setError(null);
-
-            // Validate seat access after players are loaded
-            if (resolvedSeat && playersData.length > 0) {
-              const seatRole = SEAT_TO_ROLE[resolvedSeat];
-
-              // Convert seat role to participant role
-              let participantRole: string;
-              switch (seatRole) {
-                case "host":
-                  participantRole = PARTICIPANT_ROLE.HOST;
-                  break;
-                case "player1":
-                  participantRole = PARTICIPANT_ROLE.PLAYER1;
-                  break;
-                case "player2":
-                  participantRole = PARTICIPANT_ROLE.PLAYER2;
-                  break;
-                default:
-                  return; // Invalid seat role
-              }
-
-              // Find participant with this role
-              const participant = playersData.find(
-                (p) => p.role === participantRole,
-              );
-
-              // If participant doesn't exist or hasn't joined, show validation modal
-              if (
-                !participant ||
-                participant.lobby_presence !== LOBBY_PRESENCE.JOINED
-              ) {
-                setShowSeatValidationModal(true);
-              }
-            }
           }
         }
       } catch (err) {
@@ -668,20 +636,20 @@ const Lobby: React.FC = () => {
     const handleBeforeUnload = () => {
       // Use navigator.sendBeacon for reliable last-second requests
       const disconnectUrl = `${window.location.origin}/.netlify/functions/mark-player-disconnected`;
-      const data = JSON.stringify({ 
+      const data = JSON.stringify({
         participantId: currentParticipant.participant_id,
-        sessionId: sessionId
+        sessionId: sessionId,
       });
-      
+
       try {
         navigator.sendBeacon(disconnectUrl, data);
       } catch (error) {
         Logger.error("Failed to send disconnect beacon:", error);
       }
-      
+
       // Also mark in database (may not complete if page unloads fast)
       markParticipantDisconnected(currentParticipant.participant_id).catch(
-        (err) => Logger.error("Failed to mark disconnected on unload:", err)
+        (err) => Logger.error("Failed to mark disconnected on unload:", err),
       );
     };
 
@@ -693,7 +661,10 @@ const Lobby: React.FC = () => {
       } else {
         // User returned - send heartbeat immediately
         Logger.log("User returned to lobby tab");
-        updateParticipantHeartbeat(currentParticipant.participant_id, sessionId);
+        updateParticipantHeartbeat(
+          currentParticipant.participant_id,
+          sessionId,
+        );
       }
     };
 
@@ -809,11 +780,6 @@ const Lobby: React.FC = () => {
     }
   };
 
-  const handleSeatValidationRedirect = () => {
-    setShowSeatValidationModal(false);
-    navigate(`/join?sessionCode=${sessionCode}`);
-  };
-
   if (sessionLoading || loading) {
     return (
       <StadiumBackground variant="dark" animated={true}>
@@ -821,7 +787,9 @@ const Lobby: React.FC = () => {
           <div className="bg-black/40 backdrop-blur-md rounded-2xl p-8 border border-green-500/30 shadow-2xl">
             <div className="flex items-center space-x-3">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-400"></div>
-              <div className="text-white text-xl font-semibold">Loading Lobby...</div>
+              <div className="text-white text-xl font-semibold">
+                Loading Lobby...
+              </div>
             </div>
           </div>
         </div>
@@ -849,8 +817,12 @@ const Lobby: React.FC = () => {
         <div className="flex items-center justify-center min-h-screen">
           <div className="bg-orange-900/20 backdrop-blur-md rounded-2xl p-8 border border-orange-500/50 shadow-2xl max-w-md text-center">
             <div className="text-6xl mb-4">🔍</div>
-            <div className="text-white text-xl font-semibold mb-2">Session Not Found</div>
-            <div className="text-orange-200">The requested session could not be found</div>
+            <div className="text-white text-xl font-semibold mb-2">
+              Session Not Found
+            </div>
+            <div className="text-orange-200">
+              The requested session could not be found
+            </div>
           </div>
         </div>
       </StadiumBackground>
@@ -861,7 +833,7 @@ const Lobby: React.FC = () => {
     <StadiumBackground variant="default" animated={true}>
       {/* Username Setup Banner */}
       <UsernameSetupBanner />
-      
+
       <div className="p-4 min-h-screen">
         {/* Header */}
         <div className="text-center mb-8 pt-8">
@@ -869,18 +841,28 @@ const Lobby: React.FC = () => {
             🎮 Game Lobby
           </h1>
           <div className="text-2xl text-green-100 font-semibold mb-2">
-            Session: <span className="font-black text-green-300 px-4 py-2 bg-green-900/30 rounded-lg border border-green-500/30">{sessionCode}</span>
+            Session:{" "}
+            <span className="font-black text-green-300 px-4 py-2 bg-green-900/30 rounded-lg border border-green-500/30">
+              {sessionCode}
+            </span>
           </div>
           <div className="flex items-center justify-center space-x-6 text-sm text-green-200 mt-4">
             <div className="bg-black/30 px-4 py-2 rounded-lg border border-green-500/20">
-              Phase: <span className="font-bold text-green-300">{session.phase}</span>
+              Phase:{" "}
+              <span className="font-bold text-green-300">{session.phase}</span>
             </div>
             <div className="bg-black/30 px-4 py-2 rounded-lg border border-green-500/20">
-              State: <span className="font-bold text-green-300">{session.game_state}</span>
+              State:{" "}
+              <span className="font-bold text-green-300">
+                {session.game_state}
+              </span>
             </div>
             {sessionState?.dailyRoomCreated && (
               <div className="bg-green-600/20 px-4 py-2 rounded-lg border border-green-400/40 animate-pulse">
-                📹 <span className="font-bold text-green-300">Video Room Ready</span>
+                📹{" "}
+                <span className="font-bold text-green-300">
+                  Video Room Ready
+                </span>
               </div>
             )}
           </div>
@@ -953,7 +935,8 @@ const Lobby: React.FC = () => {
                               <div className="text-lg">👤</div>
                               <div>
                                 <div className="text-sm font-bold text-gray-400">
-                                  Waiting for {ROLE_DISPLAY_LABELS[requiredRole]}
+                                  Waiting for{" "}
+                                  {ROLE_DISPLAY_LABELS[requiredRole]}
                                   ...
                                 </div>
                                 <div className="text-xs text-gray-500">
@@ -1045,30 +1028,6 @@ const Lobby: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {/* Seat Validation Modal */}
-      {showSeatValidationModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 shadow-xl p-8 max-w-md w-full mx-4">
-            <div className="text-center">
-              <div className="text-4xl mb-4">🚫</div>
-              <h2 className="text-2xl font-bold text-white mb-4">
-                Player Not Joined
-              </h2>
-              <p className="text-blue-200 mb-6">
-                This player has not joined the game yet. You will be redirected
-                to the joining page for this session.
-              </p>
-              <button
-                onClick={handleSeatValidationRedirect}
-                className="w-full px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold rounded-lg transition-all transform hover:scale-105"
-              >
-                Okay
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Invite Friends Button - Fixed Position */}
       {sessionId && sessionCode && (

@@ -5,11 +5,13 @@ This document shows the visual changes made to the application UI for the new fe
 ## 1. Invite Friends Button
 
 ### Location
+
 - **Pages:** GameSetup.tsx and Lobby.tsx
 - **Position:** Fixed position at bottom-right corner of the screen
 - **Z-index:** 40 (above content but below modals)
 
 ### Appearance
+
 ```
 Styling:
 - Background: Gradient from blue-500 to blue-600
@@ -23,6 +25,7 @@ Styling:
 ```
 
 ### Visual Mockup
+
 ```
 ┌──────────────────────────────────────────┐
 │                                          │
@@ -44,9 +47,11 @@ Styling:
 ## 2. Invite Friends Modal
 
 ### Trigger
+
 Clicking the "Invite Friends" button opens this modal.
 
 ### Structure
+
 ```
 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 ┃  👥 Invite Friends                   ✕  ┃ <- Green gradient header
@@ -79,12 +84,14 @@ Clicking the "Invite Friends" button opens this modal.
 ### Elements Breakdown
 
 **Header:**
+
 - Background: Green gradient (from-green-500 to-green-600)
 - Title: "Invite Friends" with UserPlusIcon
 - Session code display
 - Close button (X) in top-right
 
 **Friend List:**
+
 - Scrollable area (max-height: 60vh)
 - Each friend card shows:
   - Avatar: Circular image or colored circle with initial
@@ -94,6 +101,7 @@ Clicking the "Invite Friends" button opens this modal.
   - Invite button: Green with hover effect
 
 **States:**
+
 - Loading: Spinning loader
 - Empty: "No friends yet" message
 - Inviting: Button shows "Inviting..." and is disabled
@@ -102,11 +110,13 @@ Clicking the "Invite Friends" button opens this modal.
 ## 3. Username Setup Banner
 
 ### Location
+
 - **Pages:** Homepage.tsx, GameSetup.tsx, Lobby.tsx
 - **Position:** Fixed at top of viewport
 - **Z-index:** 50 (highest priority)
 
 ### Appearance
+
 ```
 Styling:
 - Background: Gradient from amber-500 to orange-600
@@ -118,6 +128,7 @@ Styling:
 ```
 
 ### Visual Mockup
+
 ```
 ╔═══════════════════════════════════════════════════════════════╗
 ║ ⚠️  Please set up your username to continue using all features║
@@ -138,16 +149,19 @@ Spans full width at top of page
 ### Banner States
 
 **Visible When:**
+
 - User is logged in
 - Profile is loaded
 - Username field is null or empty
 
 **Hidden When:**
+
 - User is not logged in
 - Profile has username set
 - User clicks dismiss (X) button
 
 **Actions:**
+
 - "Set Username" button → Navigate to `/profile`
 - X button → Hide banner (temporary)
 
@@ -166,6 +180,7 @@ When a friend receives an invite, they see this in their inbox:
 ```
 
 **Elements:**
+
 - Icon: Trophy (match_invite type)
 - Title: "Game Invite"
 - Message: Sender's name + invitation text
@@ -176,6 +191,7 @@ When a friend receives an invite, they see this in their inbox:
 ## 5. Flow Diagrams
 
 ### Invite Flow
+
 ```
 Host                                Friend
   │                                   │
@@ -206,6 +222,7 @@ Host                                Friend
 ```
 
 ### Auto-Room Creation Flow
+
 ```
 User
   │
@@ -229,6 +246,7 @@ User
 ```
 
 ### Username Banner Flow
+
 ```
 User logs in
      │
@@ -257,6 +275,7 @@ User logs in
 ### Mobile View (< 768px)
 
 **Invite Button:**
+
 ```
 ┌──────────────┐
 │              │
@@ -270,11 +289,13 @@ User logs in
 ```
 
 **Modal:**
+
 - Full width with margin
 - Scrollable friend list
 - Stacked buttons
 
 **Banner:**
+
 - Full width
 - Stacked text and buttons
 - Smaller font size
@@ -282,16 +303,19 @@ User logs in
 ### Desktop View (≥ 768px)
 
 **Invite Button:**
+
 - Larger size (py-4 px-6)
 - Full text visible
 - Prominent in corner
 
 **Modal:**
+
 - max-w-md width
 - Centered on screen
 - Side-by-side buttons
 
 **Banner:**
+
 - Horizontal layout
 - Text and buttons on same line
 - Full width with padding
@@ -299,18 +323,21 @@ User logs in
 ## 7. Color Scheme
 
 ### Invite Friends
+
 - **Primary:** Blue (#3B82F6 to #2563EB)
 - **Hover:** Darker blue (#2563EB to #1D4ED8)
 - **Shadow:** Blue glow on hover
 - **Modal Header:** Green (#10B981 to #059669)
 
 ### Username Banner
+
 - **Background:** Amber to Orange (#F59E0B to #EA580C)
 - **Text:** White (#FFFFFF)
 - **Button:** White background with orange text
 - **Icon:** White warning icon
 
 ### Notification
+
 - **Match Invite:** Trophy icon in yellow (#EAB308)
 - **Background:** White with subtle shadow
 - **Read:** Reduced opacity
@@ -319,21 +346,25 @@ User logs in
 ## 8. Animations & Interactions
 
 ### Invite Button
+
 - **Hover:** Scale to 110%, shadow increases
 - **Click:** Brief scale down, then opens modal
 - **Duration:** 300ms with ease-in-out
 
 ### Modal
+
 - **Open:** Fade in with scale from 95% to 100%
 - **Close:** Fade out
 - **Duration:** 200ms
 
 ### Banner
+
 - **Appear:** Slide down from top
 - **Dismiss:** Slide up and fade out
 - **Duration:** 300ms
 
 ### Friend Card
+
 - **Hover:** Background color lightens (gray-100)
 - **Invite Click:** Button text changes, disabled state
 - **Success:** Toast notification slides in from top
@@ -341,16 +372,19 @@ User logs in
 ## 9. Accessibility Features
 
 ### Keyboard Navigation
+
 - Tab through buttons and interactive elements
 - Enter/Space to activate buttons
 - Escape to close modal
 
 ### Screen Readers
+
 - Descriptive aria-labels on all buttons
 - Role attributes on modal elements
 - Alt text on images
 
 ### Visual Indicators
+
 - Focus rings on keyboard navigation
 - Disabled states clearly visible
 - Loading states with spinners
@@ -359,6 +393,7 @@ User logs in
 ## 10. Browser Compatibility
 
 All features use standard React and Tailwind CSS:
+
 - ✅ Chrome/Edge (latest)
 - ✅ Firefox (latest)
 - ✅ Safari (latest)

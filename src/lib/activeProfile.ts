@@ -15,7 +15,7 @@ type Profile = Tables<"Profiles">;
  */
 export async function storeActiveProfile(
   userId: string,
-  profileData: Profile
+  profileData: Profile,
 ): Promise<void> {
   try {
     const response = await fetch("/.netlify/functions/store-active-profile", {
@@ -28,6 +28,13 @@ export async function storeActiveProfile(
         profileData,
       }),
     });
+
+    // Check if response is JSON before parsing
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      const text = await response.text();
+      throw new Error(`Non-JSON response from server: ${text.slice(0, 100)}`);
+    }
 
     const result = await response.json();
 
@@ -48,12 +55,23 @@ export async function storeActiveProfile(
  * @returns Promise that resolves with the profile data or null if not found
  */
 export async function getActiveProfile(
-  userId: string
+  userId: string,
 ): Promise<Profile | null> {
   try {
     const response = await fetch(
-      `/.netlify/functions/get-active-profile?userId=${encodeURIComponent(userId)}`
+      `/.netlify/functions/get-active-profile?userId=${encodeURIComponent(userId)}`,
     );
+
+    // Check if response is JSON before parsing
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      const text = await response.text();
+      Logger.warn(
+        "Non-JSON response from get-active-profile:",
+        text.slice(0, 100),
+      );
+      return null;
+    }
 
     const result = await response.json();
 

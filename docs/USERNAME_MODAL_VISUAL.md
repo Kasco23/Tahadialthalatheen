@@ -88,6 +88,7 @@ backdrop-blur: sm
 ## Interactive States
 
 ### Default State
+
 ```
 ┌─────────────────────┐
 │ @ [cursor here]     │  ← Empty input, button disabled
@@ -95,6 +96,7 @@ backdrop-blur: sm
 ```
 
 ### Typing State
+
 ```
 ┌─────────────────────┐
 │ @ user[cursor]      │  ← Real-time sanitization
@@ -102,6 +104,7 @@ backdrop-blur: sm
 ```
 
 ### Valid State
+
 ```
 ┌─────────────────────┐
 │ @ username123       │  ← 3+ chars, button enabled
@@ -109,6 +112,7 @@ backdrop-blur: sm
 ```
 
 ### Loading State
+
 ```
 ┌─────────────────────────────┐
 │  [spinner] Creating...      │  ← Saving to database
@@ -116,6 +120,7 @@ backdrop-blur: sm
 ```
 
 ### Error State (Toast)
+
 ```
 ╭─────────────────────────────────╮
 │ ❌ Username already taken       │
@@ -123,6 +128,7 @@ backdrop-blur: sm
 ```
 
 ### Success State (Toast)
+
 ```
 ╭─────────────────────────────────╮
 │ ✅ Username created!            │
@@ -132,12 +138,14 @@ backdrop-blur: sm
 ## Responsive Behavior
 
 ### Desktop (≥768px)
+
 - Modal: 28rem (448px) width
 - Centered on screen
 - Full padding and spacing
 - Large touch targets
 
 ### Mobile (<768px)
+
 - Modal: 90% viewport width
 - Centered with margins
 - Slightly reduced padding
@@ -208,6 +216,7 @@ Valid Pattern: /^[a-z0-9_]{3,20}$/
 ## Button States
 
 ### Create Username Button
+
 ```css
 Default:
   bg: gradient (green-500 → green-600)
@@ -220,22 +229,24 @@ Conditions:
 ```
 
 ### Go to Profile Button
+
 ```css
 Default:
   bg: green-700/50
   hover: green-700
-  
+
 Action:
   navigate('/profile')
   onClose()
 ```
 
 ### Skip Button
+
 ```css
 Default:
   color: green-300
   hover: white
-  
+
 Action:
   onClose()
 ```

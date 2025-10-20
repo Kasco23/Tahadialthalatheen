@@ -182,7 +182,7 @@ const Results: React.FC = () => {
       }
 
       const { player1, player2, total1, total2 } = getPlayerScores();
-      
+
       // Check if both players have profile_id
       if (!player1?.profile_id || !player2?.profile_id) {
         Logger.log("Cannot record match: players don't have profile_id");
@@ -197,14 +197,16 @@ const Results: React.FC = () => {
           .eq("session_id", sessionId);
 
         const segmentsPlayed = (segmentConfigs || []).map(
-          (sc) => sc.segment_code as SegmentCode
+          (sc) => sc.segment_code as SegmentCode,
         );
 
         // Determine winner
-        const winnerId = 
-          total1 > total2 ? player1.profile_id :
-          total2 > total1 ? player2.profile_id :
-          null; // tie
+        const winnerId =
+          total1 > total2
+            ? player1.profile_id
+            : total2 > total1
+              ? player2.profile_id
+              : null; // tie
 
         // Record the match
         await recordMatch(
@@ -214,7 +216,7 @@ const Results: React.FC = () => {
           total1,
           total2,
           winnerId,
-          segmentsPlayed
+          segmentsPlayed,
         );
 
         setMatchRecorded(true);
@@ -230,8 +232,15 @@ const Results: React.FC = () => {
     if (!loading && !sessionLoading && session && players.length >= 2) {
       setTimeout(recordMatchResult, 1000);
     }
-  }, [loading, sessionLoading, session, players, sessionId, matchRecorded, getPlayerScores]);
-
+  }, [
+    loading,
+    sessionLoading,
+    session,
+    players,
+    sessionId,
+    matchRecorded,
+    getPlayerScores,
+  ]);
 
   if (loading || sessionLoading) {
     return (

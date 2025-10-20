@@ -103,7 +103,10 @@ export default function AuthForm({
                   minLength={3}
                   value={formData.username}
                   onChange={(e) =>
-                    setFormData({ ...formData, username: e.target.value.toLowerCase().trim() })
+                    setFormData({
+                      ...formData,
+                      username: e.target.value.toLowerCase().trim(),
+                    })
                   }
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 outline-none"
                   placeholder="Choose a unique username (min 3 chars)"

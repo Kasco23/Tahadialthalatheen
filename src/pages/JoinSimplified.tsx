@@ -48,7 +48,9 @@ const JoinSimplified: React.FC = () => {
         .single();
 
       if (sessionError || !sessionData) {
-        throw new Error("Session not found. Please check the code and try again.");
+        throw new Error(
+          "Session not found. Please check the code and try again.",
+        );
       }
 
       const sessionId = sessionData.session_id;
@@ -178,7 +180,8 @@ const JoinSimplified: React.FC = () => {
       Logger.error("Error joining session:", error);
       setAlert({
         type: "error",
-        message: error instanceof Error ? error.message : "Failed to join session",
+        message:
+          error instanceof Error ? error.message : "Failed to join session",
       });
     } finally {
       setLoading(false);
@@ -203,7 +206,8 @@ const JoinSimplified: React.FC = () => {
         {user ? (
           <div className="mb-6 p-4 bg-green-50 rounded-lg">
             <p className="text-sm text-gray-700">
-              Joining as: <span className="font-bold">{profile?.name || user.email}</span>
+              Joining as:{" "}
+              <span className="font-bold">{profile?.name || user.email}</span>
             </p>
           </div>
         ) : (

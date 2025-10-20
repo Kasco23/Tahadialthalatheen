@@ -164,7 +164,9 @@ export function useSegmentConfig(sessionId: string | null) {
 
 // Hook to subscribe to participant data with powerups
 export function useParticipants(sessionId: string | null) {
-  const [participants, setParticipants] = useState<Tables<"Participants">[]>([]);
+  const [participants, setParticipants] = useState<Tables<"Participants">[]>(
+    [],
+  );
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

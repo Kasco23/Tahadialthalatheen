@@ -32,7 +32,7 @@ This document details the final enhancements made to Tahadialthalatheen followin
     {/* SVG arrow with rotation animation */}
     <svg
       className={`w-6 h-6 transition-transform duration-300 
-                 ${isActiveGamesSidebarOpen ? 'rotate-180' : ''}`}
+                 ${isActiveGamesSidebarOpen ? "rotate-180" : ""}`}
       fill="none"
       stroke="currentColor"
       viewBox="0 0 24 24"
@@ -44,13 +44,15 @@ This document details the final enhancements made to Tahadialthalatheen followin
         d="M9 5l7 7-7 7"
       />
     </svg>
-    
+
     {/* "Active Games" text on hover */}
-    <span className="absolute left-full ml-2 top-1/2 -translate-y-1/2 
+    <span
+      className="absolute left-full ml-2 top-1/2 -translate-y-1/2 
                      bg-purple-600 text-white px-3 py-1 rounded-md 
                      whitespace-nowrap opacity-0 group-hover:opacity-100 
                      transition-opacity duration-300 pointer-events-none 
-                     text-sm font-medium">
+                     text-sm font-medium"
+    >
       Active Games
     </span>
   </div>
@@ -94,31 +96,34 @@ This document details the final enhancements made to Tahadialthalatheen followin
 ```tsx
 <div className="absolute inset-0 pointer-events-none z-0">
   {/* Depth of field vignette */}
-  <div 
+  <div
     className="absolute inset-0"
     style={{
-      background: 'radial-gradient(ellipse at center, transparent 0%, rgba(0,0,0,0.4) 100%)'
+      background:
+        "radial-gradient(ellipse at center, transparent 0%, rgba(0,0,0,0.4) 100%)",
     }}
   />
-  
+
   {/* Realistic overhead lighting cones */}
   <div className="absolute inset-0 flex justify-around items-start">
     <div
       className="w-96 h-96 opacity-20"
       style={{
-        background: 'radial-gradient(ellipse at top, rgba(255,220,100,0.4) 0%, transparent 70%)',
-        transform: 'perspective(500px) rotateX(45deg)',
+        background:
+          "radial-gradient(ellipse at top, rgba(255,220,100,0.4) 0%, transparent 70%)",
+        transform: "perspective(500px) rotateX(45deg)",
       }}
     />
     <div
       className="w-96 h-96 opacity-20"
       style={{
-        background: 'radial-gradient(ellipse at top, rgba(255,220,100,0.4) 0%, transparent 70%)',
-        transform: 'perspective(500px) rotateX(45deg)',
+        background:
+          "radial-gradient(ellipse at top, rgba(255,220,100,0.4) 0%, transparent 70%)",
+        transform: "perspective(500px) rotateX(45deg)",
       }}
     />
   </div>
-  
+
   {/* God rays / light shafts */}
   <svg className="absolute inset-0 w-full h-full opacity-10">
     <defs>
@@ -127,11 +132,32 @@ This document details the final enhancements made to Tahadialthalatheen followin
         <stop offset="100%" stopColor="#fff" stopOpacity="0" />
       </linearGradient>
     </defs>
-    <rect x="20%" y="0" width="3%" height="60%" fill="url(#lightRay)" transform="skewX(-5)" />
-    <rect x="45%" y="0" width="4%" height="70%" fill="url(#lightRay)" transform="skewX(3)" />
-    <rect x="75%" y="0" width="3%" height="55%" fill="url(#lightRay)" transform="skewX(-4)" />
+    <rect
+      x="20%"
+      y="0"
+      width="3%"
+      height="60%"
+      fill="url(#lightRay)"
+      transform="skewX(-5)"
+    />
+    <rect
+      x="45%"
+      y="0"
+      width="4%"
+      height="70%"
+      fill="url(#lightRay)"
+      transform="skewX(3)"
+    />
+    <rect
+      x="75%"
+      y="0"
+      width="3%"
+      height="55%"
+      fill="url(#lightRay)"
+      transform="skewX(-4)"
+    />
   </svg>
-  
+
   {/* Floating dust particles (30 particles) */}
   <div className="absolute inset-0">
     {[...Array(30)].map((_, i) => (
@@ -147,14 +173,17 @@ This document details the final enhancements made to Tahadialthalatheen followin
       />
     ))}
   </div>
-  
+
   {/* Ambient steam/mist */}
-  <div className="absolute bottom-0 left-0 right-0 h-64 
-                  bg-gradient-to-t from-white/5 via-white/2 to-transparent" />
+  <div
+    className="absolute bottom-0 left-0 right-0 h-64 
+                  bg-gradient-to-t from-white/5 via-white/2 to-transparent"
+  />
 </div>
 ```
 
 **Features**:
+
 - Vignette creates depth of field effect
 - Two overhead lighting cones with 3D perspective transforms
 - SVG god rays (light shafts) for atmospheric lighting
@@ -170,7 +199,7 @@ This document details the final enhancements made to Tahadialthalatheen followin
 **Implementation**:
 
 ```tsx
-<div 
+<div
   className="absolute inset-0 opacity-5 pointer-events-none z-1"
   style={{
     backgroundImage: `
@@ -187,13 +216,14 @@ This document details the final enhancements made to Tahadialthalatheen followin
         transparent 60px
       )
     `,
-    transform: 'perspective(1200px) rotateX(60deg) translateZ(-200px)',
-    transformOrigin: 'center bottom',
+    transform: "perspective(1200px) rotateX(60deg) translateZ(-200px)",
+    transformOrigin: "center bottom",
   }}
 />
 ```
 
 **Features**:
+
 - Repeating linear gradients create grid lines
 - `perspective(1200px) rotateX(60deg)` creates floor-like 3D perspective
 - `translateZ(-200px)` pushes grid back in 3D space
@@ -234,7 +264,7 @@ This document details the final enhancements made to Tahadialthalatheen followin
     stroke="rgba(0,100,0,0.9)"
     strokeWidth="2.5"
   />
-  
+
   {/* Animated forward pass */}
   <path
     d="M520,450 Q580,380 600,300"
@@ -244,18 +274,19 @@ This document details the final enhancements made to Tahadialthalatheen followin
     markerEnd="url(#arrowhead)"
     strokeDasharray="8,4"
   >
-    <animate 
-      attributeName="stroke-dashoffset" 
-      from="0" 
-      to="-24" 
-      dur="2s" 
-      repeatCount="indefinite" 
+    <animate
+      attributeName="stroke-dashoffset"
+      from="0"
+      to="-24"
+      dur="2s"
+      repeatCount="indefinite"
     />
   </path>
 </g>
 ```
 
 **Features**:
+
 - 4-2-3-1 formation with 11 player positions
 - Each player has shadow ellipse for 3D depth
 - Animated attack arrows showing movement patterns
@@ -276,8 +307,8 @@ This document details the final enhancements made to Tahadialthalatheen followin
   <h1
     className="absolute text-4xl md:text-5xl font-black tracking-tight blur-sm opacity-20"
     style={{
-      transform: 'translateZ(-20px) translateY(4px)',
-      color: 'rgba(139, 92, 246, 0.6)'
+      transform: "translateZ(-20px) translateY(4px)",
+      color: "rgba(139, 92, 246, 0.6)",
     }}
   >
     🎮 Game Setup
@@ -285,38 +316,45 @@ This document details the final enhancements made to Tahadialthalatheen followin
   <h1
     className="absolute text-4xl md:text-5xl font-black tracking-tight blur-[2px] opacity-30"
     style={{
-      transform: 'translateZ(-10px) translateY(2px)',
-      color: 'rgba(167, 139, 250, 0.7)'
+      transform: "translateZ(-10px) translateY(2px)",
+      color: "rgba(167, 139, 250, 0.7)",
     }}
   >
     🎮 Game Setup
   </h1>
-  
+
   {/* Main title with gradient and glow */}
   <h1
     className="relative text-4xl md:text-5xl font-black tracking-tight drop-shadow-2xl"
     style={{
-      background: 'linear-gradient(to bottom, #ffffff 0%, #e0e7ff 50%, #c7d2fe 100%)',
-      WebkitBackgroundClip: 'text',
-      WebkitTextFillColor: 'transparent',
-      textShadow: '0 0 40px rgba(167, 139, 250, 0.8), 0 0 80px rgba(139, 92, 246, 0.4)',
-      transform: 'translateZ(0)'
+      background:
+        "linear-gradient(to bottom, #ffffff 0%, #e0e7ff 50%, #c7d2fe 100%)",
+      WebkitBackgroundClip: "text",
+      WebkitTextFillColor: "transparent",
+      textShadow:
+        "0 0 40px rgba(167, 139, 250, 0.8), 0 0 80px rgba(139, 92, 246, 0.4)",
+      transform: "translateZ(0)",
     }}
   >
     🎮 Game Setup
   </h1>
 
   {/* Glowing accent lines */}
-  <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-32 h-1 
+  <div
+    className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-32 h-1 
                   bg-gradient-to-r from-transparent via-purple-400 to-transparent 
-                  rounded-full blur-sm" />
-  <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-24 h-0.5 
+                  rounded-full blur-sm"
+  />
+  <div
+    className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-24 h-0.5 
                   bg-gradient-to-r from-transparent via-white to-transparent 
-                  rounded-full" />
+                  rounded-full"
+  />
 </div>
 ```
 
 **Features**:
+
 - Three title layers: deep shadow, mid shadow, main title
 - Each layer at different Z-depth (`translateZ(-20px)`, `-10px`, `0`)
 - Gradient text fill with WebKit clip
@@ -333,37 +371,44 @@ This document details the final enhancements made to Tahadialthalatheen followin
 **Game Configuration Card**:
 
 ```tsx
-<div 
+<div
   className="w-full max-w-lg backdrop-blur-md rounded-2xl shadow-2xl 
              border p-6 relative overflow-hidden transition-all duration-300 
              hover:shadow-purple-500/20 hover:scale-[1.02]"
   style={{
-    background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%)',
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-    boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.37), inset 0 1px 1px rgba(255, 255, 255, 0.1)'
+    background:
+      "linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%)",
+    borderColor: "rgba(255, 255, 255, 0.2)",
+    boxShadow:
+      "0 8px 32px 0 rgba(31, 38, 135, 0.37), inset 0 1px 1px rgba(255, 255, 255, 0.1)",
   }}
 >
   {/* Holographic overlay with shimmer animation */}
-  <div 
+  <div
     className="absolute inset-0 opacity-30 pointer-events-none"
     style={{
-      background: 'linear-gradient(45deg, transparent 0%, rgba(167, 139, 250, 0.1) 50%, transparent 100%)',
-      backgroundSize: '200% 200%',
-      animation: 'shimmer 3s linear infinite'
+      background:
+        "linear-gradient(45deg, transparent 0%, rgba(167, 139, 250, 0.1) 50%, transparent 100%)",
+      backgroundSize: "200% 200%",
+      animation: "shimmer 3s linear infinite",
     }}
   />
-  
+
   {/* Top edge glow */}
-  <div className="absolute top-0 left-0 right-0 h-px 
-                  bg-gradient-to-r from-transparent via-purple-400 to-transparent" />
-  
+  <div
+    className="absolute top-0 left-0 right-0 h-px 
+                  bg-gradient-to-r from-transparent via-purple-400 to-transparent"
+  />
+
   {/* Content with gradient text */}
-  <h2 style={{
-    background: 'linear-gradient(to right, #ffffff 0%, #e0e7ff 100%)',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    textShadow: '0 2px 10px rgba(167, 139, 250, 0.5)'
-  }}>
+  <h2
+    style={{
+      background: "linear-gradient(to right, #ffffff 0%, #e0e7ff 100%)",
+      WebkitBackgroundClip: "text",
+      WebkitTextFillColor: "transparent",
+      textShadow: "0 2px 10px rgba(167, 139, 250, 0.5)",
+    }}
+  >
     ⚙️ Game Configuration
   </h2>
 </div>
@@ -372,29 +417,33 @@ This document details the final enhancements made to Tahadialthalatheen followin
 **Lobby Status Card** (similar structure with indigo theme):
 
 ```tsx
-<div 
+<div
   className="w-full max-w-2xl backdrop-blur-md rounded-2xl shadow-2xl 
              border p-1 relative overflow-hidden transition-all duration-300 
              hover:shadow-indigo-500/20"
   style={{
-    background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%)',
-    borderColor: 'rgba(255, 255, 255, 0.15)',
-    boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.37), inset 0 1px 1px rgba(255, 255, 255, 0.05)'
+    background:
+      "linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%)",
+    borderColor: "rgba(255, 255, 255, 0.15)",
+    boxShadow:
+      "0 8px 32px 0 rgba(31, 38, 135, 0.37), inset 0 1px 1px rgba(255, 255, 255, 0.05)",
   }}
 >
   {/* Shimmer effect (reverse animation) */}
-  <div 
+  <div
     className="absolute inset-0 opacity-20 pointer-events-none"
     style={{
-      background: 'linear-gradient(45deg, transparent 0%, rgba(139, 92, 246, 0.15) 50%, transparent 100%)',
-      backgroundSize: '200% 200%',
-      animation: 'shimmer 4s linear infinite reverse'
+      background:
+        "linear-gradient(45deg, transparent 0%, rgba(139, 92, 246, 0.15) 50%, transparent 100%)",
+      backgroundSize: "200% 200%",
+      animation: "shimmer 4s linear infinite reverse",
     }}
   />
 </div>
 ```
 
 **Features**:
+
 - **Backdrop Blur**: `backdrop-blur-md` for glass effect
 - **Gradient Backgrounds**: Subtle white gradients for depth
 - **Inset Shadows**: Inner highlights for 3D appearance
@@ -431,7 +480,8 @@ This document details the final enhancements made to Tahadialthalatheen followin
 
 ```css
 @keyframes float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0) translateX(0);
   }
   25% {
@@ -636,6 +686,7 @@ Key Chunks:
 **Before**: "this amazing" (on previous fixes)
 
 **Latest Requests**:
+
 1. ✅ "Active Sessions I would like to expand it without a button...rather an arrow from the left that expands and collapses"
 2. ✅ "upgrade the GameSetup.tsx make it more 3D and profesional...I want when someone opens this page...think 'Oh wow it is like I am in an actual locker room'"
 
@@ -652,6 +703,7 @@ Key Chunks:
 **User Feedback**: "I don't like the GameSetup new background. Just make it similar to Lobby"
 
 **Changes Made**:
+
 1. Replaced `LockerRoomBackground` with `StadiumBackground` (matching Lobby)
 2. Removed all atmospheric effects:
    - Depth of field vignette
@@ -667,6 +719,7 @@ Key Chunks:
 5. Reverted to clean, simple design matching Lobby aesthetic
 
 **Result**:
+
 - GameSetup now uses same StadiumBackground as Lobby
 - Clean white cards with simple styling
 - GameSetup bundle size reduced from **35.96 kB** (8.89 kB gzip) to **17.62 kB** (5.31 kB gzip)
@@ -680,7 +733,9 @@ Key Chunks:
 Added outer boundary rectangle to `StadiumBackground.tsx`:
 
 ```tsx
-{/* Touchlines - Outer Boundary Rectangle */}
+{
+  /* Touchlines - Outer Boundary Rectangle */
+}
 <rect
   x="5%"
   y="5%"
@@ -690,10 +745,11 @@ Added outer boundary rectangle to `StadiumBackground.tsx`:
   stroke="white"
   strokeWidth="3"
   opacity="0.6"
-/>
+/>;
 ```
 
 Also adjusted center line to respect touchlines:
+
 ```tsx
 {/* Center Line */}
 <line
@@ -708,6 +764,7 @@ Also adjusted center line to respect touchlines:
 ```
 
 **Result**:
+
 - Complete football pitch with proper touchlines
 - Center line now stays within pitch bounds
 - StadiumBackground size: **5.90 kB** (1.34 kB gzip, 1.15 kB brotli)
@@ -727,6 +784,7 @@ Replaced circle elements with proper SVG path arcs positioned inside the touchli
 ### Code Changes in `StadiumBackground.tsx`
 
 **Before** (circles at exact boundaries):
+
 ```tsx
 <circle cx="5%" cy="5%" r="15" strokeDasharray="23.56 70.68" transform="rotate(-90 60 60)" />
 <circle cx="95%" cy="5%" r="15" strokeDasharray="23.56 70.68" transform="rotate(0 1140 60)" />
@@ -735,22 +793,51 @@ Replaced circle elements with proper SVG path arcs positioned inside the touchli
 ```
 
 **After** (path arcs with absolute coordinates - SVG doesn't support calc()):
+
 ```tsx
-{/* Top-left corner - 15px inset from 5% boundary */}
-<path d="M 60 75 A 15 15 0 0 1 75 60" 
-      fill="none" stroke="white" strokeWidth="2" opacity="0.5" />
+{
+  /* Top-left corner - 15px inset from 5% boundary */
+}
+<path
+  d="M 60 75 A 15 15 0 0 1 75 60"
+  fill="none"
+  stroke="white"
+  strokeWidth="2"
+  opacity="0.5"
+/>;
 
-{/* Top-right corner - 15px inset from 95% boundary */}
-<path d="M 1125 60 A 15 15 0 0 1 1140 75" 
-      fill="none" stroke="white" strokeWidth="2" opacity="0.5" />
+{
+  /* Top-right corner - 15px inset from 95% boundary */
+}
+<path
+  d="M 1125 60 A 15 15 0 0 1 1140 75"
+  fill="none"
+  stroke="white"
+  strokeWidth="2"
+  opacity="0.5"
+/>;
 
-{/* Bottom-left corner */}
-<path d="M 75 900 A 15 15 0 0 1 60 885" 
-      fill="none" stroke="white" strokeWidth="2" opacity="0.5" />
+{
+  /* Bottom-left corner */
+}
+<path
+  d="M 75 900 A 15 15 0 0 1 60 885"
+  fill="none"
+  stroke="white"
+  strokeWidth="2"
+  opacity="0.5"
+/>;
 
-{/* Bottom-right corner */}
-<path d="M 1140 885 A 15 15 0 0 1 1125 900" 
-      fill="none" stroke="white" strokeWidth="2" opacity="0.5" />
+{
+  /* Bottom-right corner */
+}
+<path
+  d="M 1140 885 A 15 15 0 0 1 1125 900"
+  fill="none"
+  stroke="white"
+  strokeWidth="2"
+  opacity="0.5"
+/>;
 ```
 
 **Technical Note**: Initial attempt used `calc()` in SVG paths, but SVG doesn't support CSS functions. Solution uses absolute pixel coordinates based on 1200x960 viewBox (5% = 60px, 95% = 1140px).
@@ -795,13 +882,13 @@ Increased z-index values to ensure buttons appear above all background elements 
 
 ### Z-Index Hierarchy (Final)
 
-| Element | Z-Index | Purpose |
-|---------|---------|---------|
-| StadiumBackground overlays | z-10 | Background with `pointer-events-none` |
-| Active Sessions arrow | z-30 | Expandable sidebar button |
-| Profile backdrop | z-35 | Semi-transparent overlay |
-| Profile menu | z-40 | Slide-out panel |
-| Auth buttons & Profile button | z-50 | Top-level interactive elements |
+| Element                       | Z-Index | Purpose                               |
+| ----------------------------- | ------- | ------------------------------------- |
+| StadiumBackground overlays    | z-10    | Background with `pointer-events-none` |
+| Active Sessions arrow         | z-30    | Expandable sidebar button             |
+| Profile backdrop              | z-35    | Semi-transparent overlay              |
+| Profile menu                  | z-40    | Slide-out panel                       |
+| Auth buttons & Profile button | z-50    | Top-level interactive elements        |
 
 ### Result
 
@@ -829,7 +916,7 @@ Updated the `signOut` function in `AuthContext.tsx` to use `scope: 'global'`:
 ```tsx
 const signOut = async () => {
   // Sign out from all sessions (global scope)
-  const { error } = await supabase.auth.signOut({ scope: 'global' });
+  const { error } = await supabase.auth.signOut({ scope: "global" });
   if (error) throw error;
   setProfile(null);
 };
@@ -842,11 +929,9 @@ Comprehensive authentication flow testing completed:
 1. ✅ **Sign Up**: Successfully created test account
    - Redirected to flag selection
    - Profile created in database
-   
 2. ✅ **Sign Out**: Successfully signed out with confirmation message
    - Session cleared properly
    - UI updated to show Sign In/Sign Up buttons
-   
 3. ✅ **Sign In**: Successfully logged back in
    - Session restored
    - Profile loaded

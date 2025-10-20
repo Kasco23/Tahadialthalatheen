@@ -13,12 +13,19 @@ import {
 } from "../../lib/friends";
 import type { FriendWithProfile, Profile } from "../../lib/friends";
 import toast from "react-hot-toast";
-import { UserPlusIcon, CheckIcon, XMarkIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import {
+  UserPlusIcon,
+  CheckIcon,
+  XMarkIcon,
+  MagnifyingGlassIcon,
+} from "@heroicons/react/24/outline";
 
 export default function FriendsTab() {
   const { user } = useAuth();
   const [friends, setFriends] = useState<FriendWithProfile[]>([]);
-  const [pendingRequests, setPendingRequests] = useState<FriendWithProfile[]>([]);
+  const [pendingRequests, setPendingRequests] = useState<FriendWithProfile[]>(
+    [],
+  );
   const [sentRequests, setSentRequests] = useState<FriendWithProfile[]>([]);
   const [searchResults, setSearchResults] = useState<Profile[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -70,10 +77,10 @@ export default function FriendsTab() {
         (r) =>
           r.id !== user?.id &&
           !friends.some(
-            (f) => f.requester_id === r.id || f.addressee_id === r.id
+            (f) => f.requester_id === r.id || f.addressee_id === r.id,
           ) &&
           !pendingRequests.some((p) => p.requester_id === r.id) &&
-          !sentRequests.some((s) => s.addressee_id === r.id)
+          !sentRequests.some((s) => s.addressee_id === r.id),
       );
       setSearchResults(filtered);
     } catch (error) {
@@ -93,7 +100,9 @@ export default function FriendsTab() {
       loadFriends();
     } catch (error) {
       console.error("Error sending friend request:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to send request");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to send request",
+      );
     }
   };
 
@@ -122,7 +131,7 @@ export default function FriendsTab() {
   const handleRemoveFriend = async (friendshipId: string, username: string) => {
     if (
       !window.confirm(
-        `Are you sure you want to remove @${username} as a friend?`
+        `Are you sure you want to remove @${username} as a friend?`,
       )
     ) {
       return;
@@ -266,7 +275,7 @@ export default function FriendsTab() {
                   onClick={() =>
                     handleRemoveFriend(
                       request.id,
-                      request.addressee?.username || "user"
+                      request.addressee?.username || "user",
                     )
                   }
                   className="px-3 py-1 bg-gray-600 hover:bg-gray-700 text-white text-sm font-semibold rounded-lg transition-colors"
@@ -313,7 +322,7 @@ export default function FriendsTab() {
                     onClick={() =>
                       handleRemoveFriend(
                         friendship.id,
-                        friend?.username || "user"
+                        friend?.username || "user",
                       )
                     }
                     className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition-colors"

@@ -2,11 +2,11 @@ import { Logger } from "./logger";
 
 /**
  * Session State Store
- * 
+ *
  * Client-side interface for managing session-level state in Netlify Blobs.
  * This is separate from participant-level session data and is used for
  * coordinating session-wide events like room creation, phase changes, etc.
- * 
+ *
  * Use Cases:
  * - GameSetup creates Daily room → updates session state
  * - Lobby polls session state → detects room creation → updates UI
@@ -27,7 +27,7 @@ export interface SessionState {
  * Get current session state
  */
 export async function getSessionState(
-  sessionId: string
+  sessionId: string,
 ): Promise<SessionState | null> {
   try {
     const response = await fetch(
@@ -37,7 +37,7 @@ export async function getSessionState(
         headers: {
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     if (response.status === 404) {
@@ -66,7 +66,7 @@ export async function getSessionState(
  */
 export async function updateSessionState(
   sessionId: string,
-  updates: Partial<SessionState>
+  updates: Partial<SessionState>,
 ): Promise<SessionState | null> {
   try {
     const response = await fetch(`/.netlify/edge-functions/session-state`, {
@@ -102,7 +102,7 @@ export async function updateSessionState(
  */
 export async function setSessionState(
   sessionId: string,
-  state: SessionState
+  state: SessionState,
 ): Promise<SessionState | null> {
   try {
     const response = await fetch(`/.netlify/edge-functions/session-state`, {
@@ -136,9 +136,7 @@ export async function setSessionState(
 /**
  * Delete session state
  */
-export async function deleteSessionState(
-  sessionId: string
-): Promise<boolean> {
+export async function deleteSessionState(sessionId: string): Promise<boolean> {
   try {
     const response = await fetch(`/.netlify/edge-functions/session-state`, {
       method: "DELETE",
@@ -174,7 +172,7 @@ export async function deleteSessionState(
 export function subscribeToSessionState(
   sessionId: string,
   callback: (state: SessionState | null) => void,
-  intervalMs: number = 3000
+  intervalMs: number = 3000,
 ): () => void {
   let lastState: SessionState | null = null;
   let lastUpdated: number | undefined = undefined;
@@ -183,10 +181,7 @@ export function subscribeToSessionState(
     const state = await getSessionState(sessionId);
 
     // Only trigger callback if state actually changed
-    if (
-      state &&
-      state.lastUpdated !== lastUpdated
-    ) {
+    if (state && state.lastUpdated !== lastUpdated) {
       lastUpdated = state.lastUpdated;
       lastState = state;
       callback(state);

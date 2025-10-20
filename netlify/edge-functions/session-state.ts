@@ -64,7 +64,7 @@ export default async (req: Request, context: Context) => {
         {
           status: 400,
           headers: { "Content-Type": "application/json" },
-        }
+        },
       );
     }
 
@@ -92,7 +92,7 @@ export default async (req: Request, context: Context) => {
             {
               status: 404,
               headers: { "Content-Type": "application/json" },
-            }
+            },
           );
         }
 
@@ -104,7 +104,7 @@ export default async (req: Request, context: Context) => {
           {
             status: 200,
             headers: { "Content-Type": "application/json" },
-          }
+          },
         );
       }
 
@@ -119,7 +119,7 @@ export default async (req: Request, context: Context) => {
             {
               status: 400,
               headers: { "Content-Type": "application/json" },
-            }
+            },
           );
         }
 
@@ -137,10 +137,7 @@ export default async (req: Request, context: Context) => {
 
         await store.setJSON(stateKey, mergedState);
 
-        console.log(
-          `Updated session state for ${sessionId}:`,
-          mergedState
-        );
+        console.log(`Updated session state for ${sessionId}:`, mergedState);
 
         return new Response(
           JSON.stringify({
@@ -150,7 +147,7 @@ export default async (req: Request, context: Context) => {
           {
             status: 200,
             headers: { "Content-Type": "application/json" },
-          }
+          },
         );
       }
 
@@ -165,7 +162,7 @@ export default async (req: Request, context: Context) => {
             {
               status: 400,
               headers: { "Content-Type": "application/json" },
-            }
+            },
           );
         }
 
@@ -176,10 +173,7 @@ export default async (req: Request, context: Context) => {
 
         await store.setJSON(stateKey, newState);
 
-        console.log(
-          `Replaced session state for ${sessionId}:`,
-          newState
-        );
+        console.log(`Replaced session state for ${sessionId}:`, newState);
 
         return new Response(
           JSON.stringify({
@@ -189,7 +183,7 @@ export default async (req: Request, context: Context) => {
           {
             status: 200,
             headers: { "Content-Type": "application/json" },
-          }
+          },
         );
       }
 
@@ -199,13 +193,10 @@ export default async (req: Request, context: Context) => {
 
         console.log(`Deleted session state for ${sessionId}`);
 
-        return new Response(
-          JSON.stringify({ success: true }),
-          {
-            status: 200,
-            headers: { "Content-Type": "application/json" },
-          }
-        );
+        return new Response(JSON.stringify({ success: true }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
       }
 
       default:
@@ -217,7 +208,7 @@ export default async (req: Request, context: Context) => {
           {
             status: 405,
             headers: { "Content-Type": "application/json" },
-          }
+          },
         );
     }
   } catch (error) {
@@ -230,7 +221,7 @@ export default async (req: Request, context: Context) => {
       {
         status: 500,
         headers: { "Content-Type": "application/json" },
-      }
+      },
     );
   }
 };

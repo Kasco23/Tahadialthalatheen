@@ -10,6 +10,7 @@
 ## Root Cause Analysis
 
 ### Database Issue
+
 The main problem was that participants were created **without `profile_id`**, causing the JOIN query to return NULL:
 
 ```typescript
@@ -18,16 +19,18 @@ Profiles!profile_id(flag, team)
 ```
 
 When `profile_id` is NULL, the JOIN returns no data, so:
+
 - `player.Profiles?.flag` = undefined → Falls back to default "sa"
 - `player.Profiles?.team` = undefined → No logo shows
 
 ### Verification
+
 ```sql
 -- Before fix
 SELECT profile_id FROM Participants WHERE session_code = '492YTI';
 -- Result: profile_id = NULL
 
--- After fix  
+-- After fix
 SELECT profile_id FROM Participants WHERE session_code = '492YTI';
 -- Result: profile_id = 'b44828b2-33cd-4998-a701-1a6a3126e77e'
 ```
@@ -35,9 +38,10 @@ SELECT profile_id FROM Participants WHERE session_code = '492YTI';
 ## Fixes Implemented
 
 ### 1. Database Update - Set profile_id for Existing Participant
+
 ```sql
-UPDATE "Participants" 
-SET profile_id = 'b44828b2-33cd-4998-a701-1a6a3126e77e' 
+UPDATE "Participants"
+SET profile_id = 'b44828b2-33cd-4998-a701-1a6a3126e77e'
 WHERE participant_id = '34d6afa0-2add-40ae-856f-b9ece2f2243c';
 ```
 
@@ -46,9 +50,11 @@ WHERE participant_id = '34d6afa0-2add-40ae-856f-b9ece2f2243c';
 ---
 
 ### 2. Code Fix - mutations.ts
+
 **File**: `src/lib/mutations.ts`
 
 **Before**:
+
 ```typescript
 const participantsToCreate = [
   {
@@ -69,6 +75,7 @@ const participantsToCreate = [
 ```
 
 **After**:
+
 ```typescript
 const participantsToCreate = [
   {
@@ -93,9 +100,11 @@ const participantsToCreate = [
 ---
 
 ### 3. Profile.tsx - Remove Helper Text
+
 **File**: `src/pages/Profile.tsx`
 
 **Removed**:
+
 ```tsx
 <p className="text-xs text-gray-500 mt-1">
   Use "Change Team" button below to update
@@ -111,17 +120,19 @@ const participantsToCreate = [
 ---
 
 ### 4. Enhance SVG Image Quality
+
 **Files**: `src/pages/Profile.tsx`, `src/components/LobbyLogo.tsx`
 
 #### Profile.tsx - Team Logo
+
 ```tsx
 <img
   src={profile.team}
   alt="Team logo"
   className="w-8 h-8 object-contain"
   style={{
-    imageRendering: '-webkit-optimize-contrast', // ✅ Added for crisp SVGs
-    shapeRendering: 'geometricPrecision',       // ✅ Added for sharp edges
+    imageRendering: "-webkit-optimize-contrast", // ✅ Added for crisp SVGs
+    shapeRendering: "geometricPrecision", // ✅ Added for sharp edges
   }}
   onError={(e) => {
     e.currentTarget.style.display = "none";
@@ -130,6 +141,7 @@ const participantsToCreate = [
 ```
 
 #### LobbyLogo.tsx
+
 ```tsx
 <img
   src={logoUrl}
@@ -137,17 +149,18 @@ const participantsToCreate = [
   className="w-full h-full object-contain rounded"
   style={{
     // Optimize SVG rendering for maximum quality
-    imageRendering: '-webkit-optimize-contrast',  // ✅ Changed from 'auto'
-    shapeRendering: 'geometricPrecision',         // ✅ Added
-    backfaceVisibility: 'hidden',
-    transform: 'translateZ(0)',
-    WebkitBackfaceVisibility: 'hidden',
-    WebkitTransform: 'translateZ(0)',
+    imageRendering: "-webkit-optimize-contrast", // ✅ Changed from 'auto'
+    shapeRendering: "geometricPrecision", // ✅ Added
+    backfaceVisibility: "hidden",
+    transform: "translateZ(0)",
+    WebkitBackfaceVisibility: "hidden",
+    WebkitTransform: "translateZ(0)",
   }}
 />
 ```
 
 **CSS Properties Explained**:
+
 - `imageRendering: '-webkit-optimize-contrast'`: Tells browser to optimize for high-contrast vector images (SVGs)
 - `shapeRendering: 'geometricPrecision'`: Ensures sharp, precise rendering of SVG shapes
 - `backfaceVisibility: 'hidden'`: GPU acceleration optimization
@@ -160,24 +173,28 @@ const participantsToCreate = [
 ## Testing Results
 
 ### Profile Page
+
 ✅ **Name field**: Shows "Tareq" correctly (was never empty)  
 ✅ **Team logo**: Real Madrid crest displays in high quality  
 ✅ **Team name**: Extracts "Real Madrid" from URL correctly  
 ✅ **Flag icon**: Palestine flag displays  
 ✅ **Flag name**: Shows "Palestine" (not "PS")  
-✅ **Helper text**: Removed  
+✅ **Helper text**: Removed
 
 ### Lobby Page
+
 ✅ **Host participant**:
-  - Flag: Palestine (PS) ✅
-  - Team logo: Real Madrid crest ✅
-  - Both render in high quality ✅
+
+- Flag: Palestine (PS) ✅
+- Team logo: Real Madrid crest ✅
+- Both render in high quality ✅
 
 ### Database Verification
+
 ```sql
-SELECT 
-  p.name, 
-  p.role, 
+SELECT
+  p.name,
+  p.role,
   p.profile_id,
   pr.flag,
   pr.team
@@ -189,6 +206,7 @@ WHERE p.session_id IN (
 ```
 
 **Result**:
+
 ```
 name     | role | profile_id                           | flag | team
 ---------|------|--------------------------------------|------|------------------------------------------
@@ -202,19 +220,23 @@ Tareq    | Host | b44828b2-33cd-4998-a701-1a6a3126e77e | PS   | https://...stora
 ## Before & After Screenshots
 
 ### Lobby - Before
+
 - Flag: SA (default fallback) ❌
 - Team logo: Not showing ❌
 
 ### Lobby - After
+
 - Flag: PS (Palestine) ✅
 - Team logo: Real Madrid crest ✅
 - High quality SVG rendering ✅
 
 ### Profile - Before
+
 - Helper text: "Use 'Change Team' button below to update" ❌
 - SVG quality: Standard ⚠️
 
 ### Profile - After
+
 - Helper text: Removed ✅
 - SVG quality: Enhanced with geometricPrecision ✅
 
@@ -231,18 +253,20 @@ Tareq    | Host | b44828b2-33cd-4998-a701-1a6a3126e77e | PS   | https://...stora
 ## Future Considerations
 
 ### Profile ID Null Handling
+
 If a participant doesn't have a profile_id (legacy data), the current code gracefully falls back to participant fields:
 
 ```tsx
-<Flag 
-  code={(player.Profiles?.flag || player.flag) ?? "sa"} 
-  className="text-lg" 
+<Flag
+  code={(player.Profiles?.flag || player.flag) ?? "sa"}
+  className="text-lg"
 />
 ```
 
 **Recommendation**: Add migration script to backfill `profile_id` for all existing participants without one.
 
 ### SVG Rendering Across Browsers
+
 The current implementation uses vendor-specific properties that work in Chromium-based browsers. For full cross-browser support, consider:
 
 ```tsx
@@ -255,12 +279,15 @@ style={{
 ```
 
 ### Team Logo Storage
+
 Current implementation stores **full URL** in `Profiles.team`:
+
 ```
 https://psdrwkjkgubatiemsgqn.supabase.co/storage/v1/object/public/logos/La-Liga/real-madrid.svg
 ```
 
 **Alternative approach**: Store just team name and generate URL in helper:
+
 ```typescript
 // Store: "Real Madrid"
 // Generate: getTeamLogoUrl("Real Madrid") → URL
@@ -280,7 +307,8 @@ All issues have been successfully resolved:
 3. ✅ **SVG quality enhanced** - Crisp, sharp rendering with `geometricPrecision`
 4. ✅ **Name field works correctly** - Was never broken, just user confusion
 
-**Impact**: 
+**Impact**:
+
 - Existing session: Fixed via SQL UPDATE
 - Future sessions: Fixed via code changes in mutations.ts
 - UI quality: Significantly improved with enhanced SVG rendering

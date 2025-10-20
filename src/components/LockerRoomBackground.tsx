@@ -8,10 +8,10 @@ interface LockerRoomBackgroundProps {
 
 /**
  * LockerRoomBackground Component
- * 
+ *
  * A themed background component that simulates a professional football team's locker room.
  * Inspired by top clubs like Real Madrid, Atletico Madrid, Juventus, and Bayern Munich.
- * 
+ *
  * Features:
  * - Rows of lockers on both sides with jersey hangers
  * - Central tactical board for strategy display
@@ -19,7 +19,7 @@ interface LockerRoomBackgroundProps {
  * - Football equipment (boots, balls)
  * - Ambient warm lighting effects
  * - Optional animations for light fixtures
- * 
+ *
  * @param children - Content to render on top of the background
  * @param animated - Enable/disable lighting animations (default: true)
  * @param variant - Color scheme: default (warm), dark (minimal), bright (vibrant)
@@ -327,7 +327,11 @@ export const LockerRoomBackground: React.FC<LockerRoomBackgroundProps> = ({
 
       {/* Bottom Benches */}
       <div className="absolute bottom-0 left-0 right-0 h-32 md:h-40">
-        <svg className="w-full h-full" viewBox="0 0 1200 160" preserveAspectRatio="none">
+        <svg
+          className="w-full h-full"
+          viewBox="0 0 1200 160"
+          preserveAspectRatio="none"
+        >
           {/* Bench supports and seats */}
           {[100, 400, 700, 1000].map((x, index) => (
             <g key={`bench-${index}`}>

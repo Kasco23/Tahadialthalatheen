@@ -1,6 +1,7 @@
 # Database Schema Dump
 
 ## Overview
+
 This document contains the full schema structure for project **psdrwkjkgubatiemsgqn** including tables, indexes, extensions, and migrations.
 
 ---
@@ -8,10 +9,12 @@ This document contains the full schema structure for project **psdrwkjkgubatiems
 ## 🧱 Tables (Schema: public)
 
 ### Sessions
+
 Primary Key: `session_id`
 Comment: RLS optimized: Single SELECT policy for all roles
 
 **Columns**
+
 - phase: text — must be one of ['Setup', 'Lobby', 'Full Lobby', 'In-Progress', 'Tie-Breaker', 'Results', 'Review']
 - game_state: text — must be one of ['pre-quiz', 'active', 'post-quiz', 'concluded']
 - ended_at: timestamptz
@@ -21,6 +24,7 @@ Comment: RLS optimized: Single SELECT policy for all roles
 - host_profile_id: uuid
 
 **Foreign Keys**
+
 - Sessions.host_profile_id → Profiles.id
 - Scores.session_id → Sessions.session_id
 - SegmentConfig.session_id → Sessions.session_id
@@ -31,10 +35,12 @@ Comment: RLS optimized: Single SELECT policy for all roles
 ---
 
 ### Participants
+
 Primary Key: `participant_id`
 Comment: RLS optimized: Single SELECT policy for all roles
 
 **Columns**
+
 - session_id: uuid
 - name: text
 - role: text — one of ['Host', 'Player1', 'Player2', 'GameMaster']
@@ -51,6 +57,7 @@ Comment: RLS optimized: Single SELECT policy for all roles
 - profile_id: uuid
 
 **Foreign Keys**
+
 - Strikes.participant_id → Participants.participant_id
 - Participant.session_id → Sessions.session_id
 - Score.participant_id → Participants.participant_id
@@ -59,24 +66,29 @@ Comment: RLS optimized: Single SELECT policy for all roles
 ---
 
 ### SegmentConfig
+
 Primary Key: `config_id`
 
 **Columns**
+
 - session_id: uuid
 - segment_code: text — one of ['WDYK', 'AUCT', 'BELL', 'UPDW', 'REMO']
 - questions_count: integer
 - config_id: uuid (default: extensions.uuid_generate_v4())
 
 **Foreign Keys**
+
 - SegmentConfig.session_id → Sessions.session_id
 
 ---
 
 ### Scores
+
 Primary Key: `score_id`
 Comment: RLS optimized: Single SELECT policy for all roles
 
 **Columns**
+
 - session_id: uuid
 - participant_id: uuid
 - segment_code: text — one of ['WDYK', 'AUCT', 'BELL', 'UPDW', 'REMO']
@@ -84,15 +96,18 @@ Comment: RLS optimized: Single SELECT policy for all roles
 - points: integer (default: 0)
 
 **Foreign Keys**
+
 - Score.participant_id → Participants.participant_id
 - Score.session_id → Sessions.session_id
 
 ---
 
 ### DailyRooms
+
 Primary Key: `room_id`
 
 **Columns**
+
 - room_id: uuid
 - room_url: text
 - active_participants: jsonb (default: [])
@@ -100,14 +115,17 @@ Primary Key: `room_id`
 - ready: boolean (default: false)
 
 **Foreign Keys**
+
 - DailyRooms.room_id → Sessions.session_id
 
 ---
 
 ### Strikes
+
 Primary Key: `strike_id`
 
 **Columns**
+
 - session_id: uuid
 - participant_id: uuid
 - segment_code: text — must equal 'WDYK'
@@ -115,15 +133,18 @@ Primary Key: `strike_id`
 - strikes: integer (default: 0)
 
 **Foreign Keys**
+
 - Strikes.participant_id → Participants.participant_id
 - Strikes.session_id → Sessions.session_id
 
 ---
 
 ### Profiles
+
 Primary Key: `id`
 
 **Columns**
+
 - id: uuid
 - name: text (2–40 chars)
 - team: text (nullable)
@@ -133,6 +154,7 @@ Primary Key: `id`
 - updated_at: timestamptz (default: now())
 
 **Foreign Keys**
+
 - profiles.id → auth.users.id
 - Sessions.host_profile_id → Profiles.id
 - Participants.profile_id → Profiles.id
@@ -168,14 +190,14 @@ Primary Key: `id`
 
 ## 🧩 Migrations
 
-| Version | Name |
-|----------|------|
-| 20250908133643 | remote_schema |
-| 20250908133702 | remote_schema |
+| Version        | Name                               |
+| -------------- | ---------------------------------- |
+| 20250908133643 | remote_schema                      |
+| 20250908133702 | remote_schema                      |
 | 20250914035421 | fix_secure_session_code_generation |
-| 20250916083430 | fix_function_search_path_security |
-| 20250916085918 | fix_pgcrypto_function_references |
-| 20250916085947 | optimize_rls_policies_fixed |
+| 20250916083430 | fix_function_search_path_security  |
+| 20250916085918 | fix_pgcrypto_function_references   |
+| 20250916085947 | optimize_rls_policies_fixed        |
 
 ---
 

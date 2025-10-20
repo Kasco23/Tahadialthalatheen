@@ -5,10 +5,12 @@
 This PR adds three major features to enhance the game experience:
 
 ### 1. 🎮 Invite Friends to Games
+
 **Where:** GameSetup and Lobby pages  
 **What:** A floating blue "Invite Friends" button in the bottom-right corner
 
 **How it works:**
+
 1. Click the "Invite Friends" button (bottom-right, blue gradient)
 2. A modal appears showing your friends list
 3. Click "Invite" next to any friend's name
@@ -16,40 +18,48 @@ This PR adds three major features to enhance the game experience:
 5. When they click it, they're taken directly to the join page with your session code
 
 **What friends see:**
+
 - Notification titled "Game Invite"
 - Message: "[Your Name] invited you to join a game!"
 - Clicking it takes them to: `/join?code=ABC123&seat=2`
 
 ### 2. 🎬 Auto-Create Daily Room
+
 **Where:** Session creation flow  
 **What:** Daily.co video room is created automatically
 
 **How it works:**
+
 1. Create a new session from Homepage
 2. Room is automatically created in the background
 3. By the time you reach GameSetup, the room is ready
 4. If creation fails, you can still create it manually in GameSetup
 
 **Benefits:**
+
 - Faster session setup
 - One less button to click
 - Seamless experience
 
 ### 3. 👤 Username Setup Reminder
+
 **Where:** Homepage, GameSetup, Lobby  
 **What:** Orange banner at the top of the page
 
 **When it appears:**
+
 - Only for users who don't have a username set
 - Existing users who signed up before username was required
 
 **How to dismiss:**
+
 - Click "Set Username" → goes to Profile page
 - OR click the X button to hide temporarily (shows again on refresh)
 
 ## UI Elements Added
 
 ### Invite Friends Button
+
 ```
 Location: Fixed position, bottom-right corner
 Style: Blue gradient (from-blue-500 to-blue-600)
@@ -59,6 +69,7 @@ Z-index: 40 (above most content)
 ```
 
 ### Invite Friends Modal
+
 ```
 Size: max-w-md, responsive
 Header: Green gradient with session code
@@ -72,6 +83,7 @@ Footer: Close button
 ```
 
 ### Username Setup Banner
+
 ```
 Position: Fixed top (z-index: 50)
 Style: Orange/amber gradient
@@ -82,11 +94,11 @@ Responsive: Adapts to mobile and desktop
 ## Code Structure
 
 ### New Files
+
 1. **src/components/InviteFriendsModal.tsx** (196 lines)
    - Friend list display
    - Invite sending logic
    - Loading states
-   
 2. **src/components/UsernameSetupBanner.tsx** (47 lines)
    - Username check
    - Banner display
@@ -98,19 +110,17 @@ Responsive: Adapts to mobile and desktop
    - Future enhancements
 
 ### Modified Files
+
 1. **src/lib/notifications.ts** (+31 lines)
    - `createSessionInvite()` function
-   
 2. **src/pages/GameSetup.tsx** (+39 lines)
    - Import modal and banner
    - Add floating button
    - Render modal
-   
 3. **src/pages/Lobby.tsx** (+41 lines)
    - Import modal and banner
    - Add floating button
    - Render modal
-   
 4. **src/pages/Homepage.tsx** (+28 lines)
    - Auto-create Daily room
    - Add username banner
@@ -119,6 +129,7 @@ Responsive: Adapts to mobile and desktop
 ## Testing Checklist
 
 ### Manual Testing
+
 - [ ] Create a session → verify room auto-created
 - [ ] Click "Invite Friends" in GameSetup → verify modal opens
 - [ ] Click "Invite Friends" in Lobby → verify modal opens
@@ -130,6 +141,7 @@ Responsive: Adapts to mobile and desktop
 - [ ] Refresh page → verify banner shows again if username still missing
 
 ### Edge Cases
+
 - [ ] Empty friend list
 - [ ] Friend with no avatar
 - [ ] Network error during invite
@@ -140,6 +152,7 @@ Responsive: Adapts to mobile and desktop
 ## Screenshots
 
 ### Invite Friends Button (Bottom-Right)
+
 ```
 ┌─────────────────────────────────────┐
 │                                     │
@@ -154,6 +167,7 @@ Responsive: Adapts to mobile and desktop
 ```
 
 ### Invite Friends Modal
+
 ```
 ┌──────────────────────────────────────┐
 │ 👥 Invite Friends    Session: ABC123│
@@ -173,6 +187,7 @@ Responsive: Adapts to mobile and desktop
 ```
 
 ### Username Setup Banner
+
 ```
 ┌──────────────────────────────────────────────┐
 │ ⚠️ Please set up your username to continue  │
@@ -184,17 +199,19 @@ Responsive: Adapts to mobile and desktop
 ## API Reference
 
 ### createSessionInvite()
+
 ```typescript
 function createSessionInvite(
-  recipientId: string,      // Friend's user ID
-  senderId: string,         // Your user ID
-  senderName: string,       // Your display name
-  sessionCode: string,      // Game session code
-  sessionId: string         // Game session ID
-): Promise<Notification>
+  recipientId: string, // Friend's user ID
+  senderId: string, // Your user ID
+  senderName: string, // Your display name
+  sessionCode: string, // Game session code
+  sessionId: string, // Game session ID
+): Promise<Notification>;
 ```
 
 **Returns:** Notification object with:
+
 - `type: "match_invite"`
 - `title: "Game Invite"`
 - `message: "${senderName} invited you to join a game!"`
@@ -204,6 +221,7 @@ function createSessionInvite(
 ## Environment Variables
 
 No new environment variables required! All features use existing:
+
 - `VITE_SUPABASE_DATABASE_URL` - For database operations
 - `VITE_SUPABASE_ANON_KEY` - For authentication
 - `DAILY_API_KEY` - For video room creation (server-side)
@@ -211,6 +229,7 @@ No new environment variables required! All features use existing:
 ## Backward Compatibility
 
 ✅ All features are fully backward compatible:
+
 - Existing sessions continue to work
 - Manual room creation still available
 - Users with usernames see no banner
@@ -227,6 +246,7 @@ No new environment variables required! All features use existing:
 ## Future Enhancements
 
 See `IMPLEMENTATION_SESSION_INVITE.md` for:
+
 - Invite by username
 - Pending invite list
 - Invite expiration
@@ -237,6 +257,7 @@ See `IMPLEMENTATION_SESSION_INVITE.md` for:
 ## Support
 
 For issues or questions:
+
 1. Check `IMPLEMENTATION_SESSION_INVITE.md` for technical details
 2. Review test cases in the testing section
 3. Check browser console for error messages

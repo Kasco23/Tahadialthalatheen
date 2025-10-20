@@ -73,12 +73,7 @@ const GameSetup: React.FC = () => {
   // Join as host when sessionId is available
   useEffect(() => {
     const joinAsHostEffect = async () => {
-      if (
-        !sessionId ||
-        !sessionCode ||
-        !user?.id ||
-        hostParticipantId
-      ) {
+      if (!sessionId || !sessionCode || !user?.id || hostParticipantId) {
         return; // Don't join if already joined or missing required data
       }
 
@@ -279,7 +274,7 @@ const GameSetup: React.FC = () => {
       setIsDailyRoomCreated(true);
       setRoomInfo({ room_url: created.room_url });
       setDailyRoomUrl(created.room_url); // Store in global atom
-      
+
       // Update session state in Netlify Blobs so Lobby can detect room creation
       Logger.log("Saving room creation status to Netlify Blobs...");
       await updateSessionState(sessionId, {
@@ -288,7 +283,7 @@ const GameSetup: React.FC = () => {
         segmentsConfigured: true,
       });
       Logger.log("Room creation status saved successfully");
-      
+
       setNotice({
         type: "success",
         message: "Daily room created successfully.",
@@ -363,256 +358,255 @@ const GameSetup: React.FC = () => {
     <StadiumBackground variant="default" animated={true}>
       {/* Username Setup Banner */}
       <UsernameSetupBanner />
-      
+
       <div className="min-h-screen flex flex-col p-4 md:p-8 relative">
-        
-      {/* Header */}
-      <div className="relative z-10 text-center mb-6">
-        <h1
-          className="text-4xl md:text-5xl font-black text-white mb-2 drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)]"
-          style={{
-            textShadow:
-              "2px 2px 4px rgba(0,0,0,0.8), 0 0 10px rgba(255,255,255,0.3)",
-          }}
-        >
-          🎮 Game Setup
-        </h1>
-        <p
-          className="text-green-100 text-lg drop-shadow-lg font-medium"
-          style={{ textShadow: "1px 1px 3px rgba(0,0,0,0.7)" }}
-        >
-          Manager's Tactical Board
-        </p>
-      </div>
+        {/* Header */}
+        <div className="relative z-10 text-center mb-6">
+          <h1
+            className="text-4xl md:text-5xl font-black text-white mb-2 drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)]"
+            style={{
+              textShadow:
+                "2px 2px 4px rgba(0,0,0,0.8), 0 0 10px rgba(255,255,255,0.3)",
+            }}
+          >
+            🎮 Game Setup
+          </h1>
+          <p
+            className="text-green-100 text-lg drop-shadow-lg font-medium"
+            style={{ textShadow: "1px 1px 3px rgba(0,0,0,0.7)" }}
+          >
+            Manager's Tactical Board
+          </p>
+        </div>
 
-      {/* Main content container */}
-      <div className="relative z-10 flex-1 max-w-7xl mx-auto w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full">
-          {/* Left side - Game Configuration */}
-          <div className="flex items-start justify-center">
-            <div className="w-full max-w-lg bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl border border-white/20 p-6">
-              <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
-                ⚙️ Game Configuration
-              </h2>
+        {/* Main content container */}
+        <div className="relative z-10 flex-1 max-w-7xl mx-auto w-full">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full">
+            {/* Left side - Game Configuration */}
+            <div className="flex items-start justify-center">
+              <div className="w-full max-w-lg bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl border border-white/20 p-6">
+                <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                  ⚙️ Game Configuration
+                </h2>
 
-              {/* Notice */}
-              {notice && (
-                <motion.div
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mb-6"
+                {/* Notice */}
+                {notice && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mb-6"
+                  >
+                    <Alert
+                      type={notice.type}
+                      message={notice.message}
+                      onClose={() => {
+                        setNotice(null);
+                      }}
+                    />
+                  </motion.div>
+                )}
+
+                {/* Create Daily Room Button */}
+                {!isDailyRoomCreated && (
+                  <button
+                    onClick={handleCreateDailyRoom}
+                    disabled={isLoading}
+                    className="w-full mb-6 py-4 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-bold rounded-xl shadow-lg transition-all duration-300 hover:shadow-2xl hover:scale-105 disabled:cursor-not-allowed disabled:hover:scale-100"
+                  >
+                    {isLoading ? "Creating Room..." : "🎬 Create Daily Room"}
+                  </button>
+                )}
+
+                {/* Room Created Confirmation */}
+                {isDailyRoomCreated && roomInfo && (
+                  <div className="mb-6 p-4 bg-green-50 border-2 border-green-400 rounded-lg">
+                    <p className="text-green-800 font-semibold mb-2 flex items-center">
+                      ✅ Daily Room Created!
+                    </p>
+                    <p className="text-sm text-green-700 break-all">
+                      Room URL: {roomInfo.room_url}
+                    </p>
+                  </div>
+                )}
+
+                {/* Segment Configuration Form */}
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleStartQuiz();
+                  }}
+                  className="space-y-4"
                 >
-                  <Alert
-                    type={notice.type}
-                    message={notice.message}
-                    onClose={() => {
-                      setNotice(null);
-                    }}
-                  />
-                </motion.div>
-              )}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-gray-700 flex items-center gap-2 border-b pb-2">
+                      <span>📋</span> Quiz Segments
+                    </h3>
 
-              {/* Create Daily Room Button */}
-              {!isDailyRoomCreated && (
-                <button
-                  onClick={handleCreateDailyRoom}
-                  disabled={isLoading}
-                  className="w-full mb-6 py-4 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-bold rounded-xl shadow-lg transition-all duration-300 hover:shadow-2xl hover:scale-105 disabled:cursor-not-allowed disabled:hover:scale-100"
-                >
-                  {isLoading ? "Creating Room..." : "🎬 Create Daily Room"}
-                </button>
-              )}
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-2 gap-4 items-center">
+                        <label
+                          htmlFor="wdyk"
+                          className="text-sm font-medium text-gray-700"
+                        >
+                          WDYK (What Do You Know)
+                        </label>
+                        <input
+                          type="number"
+                          id="wdyk"
+                          min="1"
+                          max="50"
+                          value={segments.WDYK}
+                          onChange={(e) => {
+                            handleSegmentChange("WDYK", e.target.value);
+                          }}
+                          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+                        />
+                      </div>
 
-              {/* Room Created Confirmation */}
-              {isDailyRoomCreated && roomInfo && (
-                <div className="mb-6 p-4 bg-green-50 border-2 border-green-400 rounded-lg">
-                  <p className="text-green-800 font-semibold mb-2 flex items-center">
-                    ✅ Daily Room Created!
-                  </p>
-                  <p className="text-sm text-green-700 break-all">
-                    Room URL: {roomInfo.room_url}
-                  </p>
-                </div>
-              )}
+                      <div className="grid grid-cols-2 gap-4 items-center">
+                        <label
+                          htmlFor="auct"
+                          className="text-sm font-medium text-gray-700"
+                        >
+                          AUCT (Auction)
+                        </label>
+                        <input
+                          type="number"
+                          id="auct"
+                          min="1"
+                          max="50"
+                          value={segments.AUCT}
+                          onChange={(e) =>
+                            handleSegmentChange("AUCT", e.target.value)
+                          }
+                          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+                        />
+                      </div>
 
-              {/* Segment Configuration Form */}
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  handleStartQuiz();
-                }}
-                className="space-y-4"
-              >
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-700 flex items-center gap-2 border-b pb-2">
-                    <span>📋</span> Quiz Segments
-                  </h3>
+                      <div className="grid grid-cols-2 gap-4 items-center">
+                        <label
+                          htmlFor="bell"
+                          className="text-sm font-medium text-gray-700"
+                        >
+                          BELL (Bell)
+                        </label>
+                        <input
+                          type="number"
+                          id="bell"
+                          min="1"
+                          max="50"
+                          value={segments.BELL}
+                          onChange={(e) =>
+                            handleSegmentChange("BELL", e.target.value)
+                          }
+                          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+                        />
+                      </div>
 
-                  <div className="space-y-3">
-                    <div className="grid grid-cols-2 gap-4 items-center">
-                      <label
-                        htmlFor="wdyk"
-                        className="text-sm font-medium text-gray-700"
-                      >
-                        WDYK (What Do You Know)
-                      </label>
-                      <input
-                        type="number"
-                        id="wdyk"
-                        min="1"
-                        max="50"
-                        value={segments.WDYK}
-                        onChange={(e) => {
-                          handleSegmentChange("WDYK", e.target.value);
-                        }}
-                        className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
-                      />
-                    </div>
+                      <div className="grid grid-cols-2 gap-4 items-center">
+                        <label
+                          htmlFor="updw"
+                          className="text-sm font-medium text-gray-700"
+                        >
+                          UPDW (Up Down)
+                        </label>
+                        <input
+                          type="number"
+                          id="updw"
+                          min="1"
+                          max="50"
+                          value={segments.UPDW}
+                          onChange={(e) =>
+                            handleSegmentChange("UPDW", e.target.value)
+                          }
+                          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+                        />
+                      </div>
 
-                    <div className="grid grid-cols-2 gap-4 items-center">
-                      <label
-                        htmlFor="auct"
-                        className="text-sm font-medium text-gray-700"
-                      >
-                        AUCT (Auction)
-                      </label>
-                      <input
-                        type="number"
-                        id="auct"
-                        min="1"
-                        max="50"
-                        value={segments.AUCT}
-                        onChange={(e) =>
-                          handleSegmentChange("AUCT", e.target.value)
-                        }
-                        className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4 items-center">
-                      <label
-                        htmlFor="bell"
-                        className="text-sm font-medium text-gray-700"
-                      >
-                        BELL (Bell)
-                      </label>
-                      <input
-                        type="number"
-                        id="bell"
-                        min="1"
-                        max="50"
-                        value={segments.BELL}
-                        onChange={(e) =>
-                          handleSegmentChange("BELL", e.target.value)
-                        }
-                        className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4 items-center">
-                      <label
-                        htmlFor="updw"
-                        className="text-sm font-medium text-gray-700"
-                      >
-                        UPDW (Up Down)
-                      </label>
-                      <input
-                        type="number"
-                        id="updw"
-                        min="1"
-                        max="50"
-                        value={segments.UPDW}
-                        onChange={(e) =>
-                          handleSegmentChange("UPDW", e.target.value)
-                        }
-                        className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4 items-center">
-                      <label
-                        htmlFor="remo"
-                        className="text-sm font-medium text-gray-700"
-                      >
-                        REMO (Remontada)
-                      </label>
-                      <input
-                        type="number"
-                        id="remo"
-                        min="1"
-                        max="50"
-                        value={segments.REMO}
-                        onChange={(e) =>
-                          handleSegmentChange("REMO", e.target.value)
-                        }
-                        className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
-                      />
+                      <div className="grid grid-cols-2 gap-4 items-center">
+                        <label
+                          htmlFor="remo"
+                          className="text-sm font-medium text-gray-700"
+                        >
+                          REMO (Remontada)
+                        </label>
+                        <input
+                          type="number"
+                          id="remo"
+                          min="1"
+                          max="50"
+                          value={segments.REMO}
+                          onChange={(e) =>
+                            handleSegmentChange("REMO", e.target.value)
+                          }
+                          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Start Quiz Button */}
-                <div className="pt-4">
-                  <button
-                    type="submit"
-                    disabled={!isDailyRoomCreated || participantCount < 2}
-                    className="w-full py-4 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 disabled:from-gray-400 disabled:to-gray-500 text-black font-bold rounded-xl shadow-lg transition-all duration-300 hover:shadow-2xl hover:scale-105 disabled:cursor-not-allowed disabled:hover:scale-100 text-lg"
-                  >
-                    🚀 Start Quiz
-                  </button>
-                </div>
-              </form>
+                  {/* Start Quiz Button */}
+                  <div className="pt-4">
+                    <button
+                      type="submit"
+                      disabled={!isDailyRoomCreated || participantCount < 2}
+                      className="w-full py-4 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 disabled:from-gray-400 disabled:to-gray-500 text-black font-bold rounded-xl shadow-lg transition-all duration-300 hover:shadow-2xl hover:scale-105 disabled:cursor-not-allowed disabled:hover:scale-100 text-lg"
+                    >
+                      🚀 Start Quiz
+                    </button>
+                  </div>
+                </form>
+              </div>
             </div>
-          </div>
 
-          {/* Right side - Lobby Status */}
-          <div className="flex items-start justify-center">
-            <div className="w-full max-w-2xl">
-              {sessionId && (
-                <LobbyStatus
-                  sessionId={sessionId}
-                  sessionCode={sessionCode || ""}
-                  onEndSession={handleEndSession}
-                  onLobbyUpdate={handleLobbyUpdate}
-                />
-              )}
+            {/* Right side - Lobby Status */}
+            <div className="flex items-start justify-center">
+              <div className="w-full max-w-2xl">
+                {sessionId && (
+                  <LobbyStatus
+                    sessionId={sessionId}
+                    sessionCode={sessionCode || ""}
+                    onEndSession={handleEndSession}
+                    onLobbyUpdate={handleLobbyUpdate}
+                  />
+                )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Invite Friends Button - Fixed Position */}
-      {sessionId && sessionCode && (
-        <button
-          onClick={() => setIsInviteModalOpen(true)}
-          className="fixed bottom-6 right-6 z-40 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-4 px-6 rounded-full shadow-2xl transition-all duration-300 hover:shadow-blue-500/50 hover:scale-110 flex items-center gap-2"
-        >
-          <svg
-            className="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
+        {/* Invite Friends Button - Fixed Position */}
+        {sessionId && sessionCode && (
+          <button
+            onClick={() => setIsInviteModalOpen(true)}
+            className="fixed bottom-6 right-6 z-40 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-4 px-6 rounded-full shadow-2xl transition-all duration-300 hover:shadow-blue-500/50 hover:scale-110 flex items-center gap-2"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
-          Invite Friends
-        </button>
-      )}
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            Invite Friends
+          </button>
+        )}
 
-      {/* Invite Friends Modal */}
-      {sessionId && sessionCode && (
-        <InviteFriendsModal
-          isOpen={isInviteModalOpen}
-          onClose={() => setIsInviteModalOpen(false)}
-          sessionCode={sessionCode}
-          sessionId={sessionId}
-        />
-      )}
+        {/* Invite Friends Modal */}
+        {sessionId && sessionCode && (
+          <InviteFriendsModal
+            isOpen={isInviteModalOpen}
+            onClose={() => setIsInviteModalOpen(false)}
+            sessionCode={sessionCode}
+            sessionId={sessionId}
+          />
+        )}
       </div>
     </StadiumBackground>
   );

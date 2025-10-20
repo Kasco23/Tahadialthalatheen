@@ -323,24 +323,26 @@ export async function getNemesis(
       { count: number; profile: Profile | null }
     > = {};
 
-    matches.forEach((match: Match & { home_player: Profile; away_player: Profile }) => {
-      const opponentId =
-        match.home_player_id === userId
-          ? match.away_player_id
-          : match.home_player_id;
-      const opponentProfile =
-        match.home_player_id === userId
-          ? match.away_player
-          : match.home_player;
+    matches.forEach(
+      (match: Match & { home_player: Profile; away_player: Profile }) => {
+        const opponentId =
+          match.home_player_id === userId
+            ? match.away_player_id
+            : match.home_player_id;
+        const opponentProfile =
+          match.home_player_id === userId
+            ? match.away_player
+            : match.home_player;
 
-      if (!lossCountByOpponent[opponentId]) {
-        lossCountByOpponent[opponentId] = {
-          count: 0,
-          profile: opponentProfile,
-        };
-      }
-      lossCountByOpponent[opponentId].count++;
-    });
+        if (!lossCountByOpponent[opponentId]) {
+          lossCountByOpponent[opponentId] = {
+            count: 0,
+            profile: opponentProfile,
+          };
+        }
+        lossCountByOpponent[opponentId].count++;
+      },
+    );
 
     // Find opponent with most losses
     let maxLosses = 0;

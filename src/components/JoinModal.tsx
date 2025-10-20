@@ -45,7 +45,7 @@ export const JoinModal: React.FC<JoinModalProps> = ({ isOpen, onClose }) => {
         sessionCode.toUpperCase(),
         profile.name || "Player",
         profile.flag || "",
-        "" // Team logo URL - can be added from profile if needed
+        "", // Team logo URL - can be added from profile if needed
       );
 
       // Store participant data in localStorage
@@ -57,7 +57,7 @@ export const JoinModal: React.FC<JoinModalProps> = ({ isOpen, onClose }) => {
         profile.name || undefined,
         profile.flag || undefined,
         undefined, // team logo url
-        profile.team || undefined
+        profile.team || undefined,
       );
 
       // Navigate to lobby
@@ -65,8 +65,10 @@ export const JoinModal: React.FC<JoinModalProps> = ({ isOpen, onClose }) => {
       if (seat) {
         setSeatInStorage(seat);
       }
-      navigate(getLobbyUrl(sessionCode.toUpperCase(), role as ParticipantRole, seat));
-      
+      navigate(
+        getLobbyUrl(sessionCode.toUpperCase(), role as ParticipantRole, seat),
+      );
+
       toast.success("Joined session successfully!");
       onClose();
     } catch (error) {
@@ -74,7 +76,7 @@ export const JoinModal: React.FC<JoinModalProps> = ({ isOpen, onClose }) => {
       toast.error(
         error instanceof Error
           ? error.message
-          : "Failed to join session. Please check your session code."
+          : "Failed to join session. Please check your session code.",
       );
     } finally {
       setIsJoining(false);

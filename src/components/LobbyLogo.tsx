@@ -22,12 +22,12 @@ export const LobbyLogo: React.FC<LobbyLogoProps> = ({
         className="w-full h-full object-contain rounded"
         style={{
           // Optimize SVG rendering for maximum quality
-          imageRendering: '-webkit-optimize-contrast',
-          shapeRendering: 'geometricPrecision',
-          backfaceVisibility: 'hidden',
-          transform: 'translateZ(0)',
-          WebkitBackfaceVisibility: 'hidden',
-          WebkitTransform: 'translateZ(0)',
+          imageRendering: "-webkit-optimize-contrast",
+          shapeRendering: "geometricPrecision",
+          backfaceVisibility: "hidden",
+          transform: "translateZ(0)",
+          WebkitBackfaceVisibility: "hidden",
+          WebkitTransform: "translateZ(0)",
         }}
         onError={(e) => {
           // Hide broken images gracefully

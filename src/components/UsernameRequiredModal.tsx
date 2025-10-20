@@ -34,7 +34,7 @@ export default function UsernameRequiredModal({
 
     if (!/^[a-z0-9_]{3,20}$/.test(username)) {
       toast.error(
-        "Username can only contain lowercase letters, numbers, and underscores"
+        "Username can only contain lowercase letters, numbers, and underscores",
       );
       return;
     }
@@ -44,11 +44,11 @@ export default function UsernameRequiredModal({
     try {
       await updateProfile({ username });
       toast.success("Username created successfully!");
-      
+
       if (onSuccess) {
         onSuccess();
       }
-      
+
       if (onClose) {
         onClose();
       }
@@ -63,7 +63,7 @@ export default function UsernameRequiredModal({
         errorMessage.includes("unique")
       ) {
         toast.error(
-          "This username is already taken. Please choose another one."
+          "This username is already taken. Please choose another one.",
         );
       } else {
         toast.error(errorMessage);
@@ -112,7 +112,9 @@ export default function UsernameRequiredModal({
                   type="text"
                   value={username}
                   onChange={(e) =>
-                    setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))
+                    setUsername(
+                      e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""),
+                    )
                   }
                   placeholder="yourname"
                   className="w-full pl-9 pr-4 py-3 bg-black/30 border-2 border-green-500/50 rounded-lg text-white placeholder-green-300/50 focus:outline-none focus:border-green-400 focus:ring-2 focus:ring-green-400/50"

@@ -1,18 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  getLeaderboardPlayers,
-  getLeaderboardMatches,
-} from "../lib/matches";
+import { getLeaderboardPlayers, getLeaderboardMatches } from "../lib/matches";
 import type { LeaderboardPlayer, LeaderboardMatch } from "../lib/matches";
 import { StadiumBackground } from "../components/StadiumBackground";
 import { Flag } from "../components/Flag";
 import toast from "react-hot-toast";
-import {
-  TrophyIcon,
-  FireIcon,
-  ChartBarIcon,
-} from "@heroicons/react/24/solid";
+import { TrophyIcon, FireIcon, ChartBarIcon } from "@heroicons/react/24/solid";
 
 export default function Leaderboard() {
   const navigate = useNavigate();
@@ -68,7 +61,9 @@ export default function Leaderboard() {
               <div className="flex items-center gap-3">
                 <TrophyIcon className="h-10 w-10 text-yellow-500" />
                 <div>
-                  <h1 className="text-4xl font-bold text-gray-800">Leaderboard</h1>
+                  <h1 className="text-4xl font-bold text-gray-800">
+                    Leaderboard
+                  </h1>
                   <p className="text-gray-600">Top players and epic matches</p>
                 </div>
               </div>
@@ -124,8 +119,12 @@ export default function Leaderboard() {
                   {players.length === 0 ? (
                     <div className="bg-white/95 backdrop-blur-sm rounded-xl p-12 text-center">
                       <ChartBarIcon className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                      <p className="text-xl font-semibold text-gray-700 mb-2">No player data yet</p>
-                      <p className="text-gray-500">Play some matches to see rankings!</p>
+                      <p className="text-xl font-semibold text-gray-700 mb-2">
+                        No player data yet
+                      </p>
+                      <p className="text-gray-500">
+                        Play some matches to see rankings!
+                      </p>
                     </div>
                   ) : (
                     players.map((player) => (
@@ -135,7 +134,9 @@ export default function Leaderboard() {
                       >
                         <div className="flex items-center gap-4">
                           {/* Rank */}
-                          <div className={`text-3xl font-bold w-16 text-center ${getRankColor(player.rank)}`}>
+                          <div
+                            className={`text-3xl font-bold w-16 text-center ${getRankColor(player.rank)}`}
+                          >
                             {getRankIcon(player.rank) || `#${player.rank}`}
                           </div>
 
@@ -149,15 +150,26 @@ export default function Leaderboard() {
                               />
                             ) : (
                               <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white font-bold text-lg">
-                                {(player.name || player.username || "?").charAt(0).toUpperCase()}
+                                {(player.name || player.username || "?")
+                                  .charAt(0)
+                                  .toUpperCase()}
                               </div>
                             )}
                             <div>
                               <div className="flex items-center gap-2">
-                                <h3 className="font-bold text-gray-800">{player.name || "Unknown"}</h3>
-                                {player.flag && <Flag code={player.flag} className="text-lg" />}
+                                <h3 className="font-bold text-gray-800">
+                                  {player.name || "Unknown"}
+                                </h3>
+                                {player.flag && (
+                                  <Flag
+                                    code={player.flag}
+                                    className="text-lg"
+                                  />
+                                )}
                               </div>
-                              <p className="text-sm text-gray-600">@{player.username || "unknown"}</p>
+                              <p className="text-sm text-gray-600">
+                                @{player.username || "unknown"}
+                              </p>
                             </div>
                           </div>
 
@@ -165,19 +177,27 @@ export default function Leaderboard() {
                           <div className="grid grid-cols-4 gap-4 text-center">
                             <div>
                               <p className="text-sm text-gray-600">Games</p>
-                              <p className="font-bold text-gray-800">{player.total_games}</p>
+                              <p className="font-bold text-gray-800">
+                                {player.total_games}
+                              </p>
                             </div>
                             <div>
                               <p className="text-sm text-gray-600">Wins</p>
-                              <p className="font-bold text-green-600">{player.wins}</p>
+                              <p className="font-bold text-green-600">
+                                {player.wins}
+                              </p>
                             </div>
                             <div>
                               <p className="text-sm text-gray-600">Win Rate</p>
-                              <p className="font-bold text-blue-600">{player.win_rate?.toFixed(1) || 0}%</p>
+                              <p className="font-bold text-blue-600">
+                                {player.win_rate?.toFixed(1) || 0}%
+                              </p>
                             </div>
                             <div>
                               <p className="text-sm text-gray-600">Points</p>
-                              <p className="font-bold text-purple-600">{player.total_points}</p>
+                              <p className="font-bold text-purple-600">
+                                {player.total_points}
+                              </p>
                             </div>
                           </div>
                         </div>
@@ -192,8 +212,12 @@ export default function Leaderboard() {
                   {matches.length === 0 ? (
                     <div className="bg-white/95 backdrop-blur-sm rounded-xl p-12 text-center">
                       <FireIcon className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                      <p className="text-xl font-semibold text-gray-700 mb-2">No matches yet</p>
-                      <p className="text-gray-500">Play some matches to see epic games!</p>
+                      <p className="text-xl font-semibold text-gray-700 mb-2">
+                        No matches yet
+                      </p>
+                      <p className="text-gray-500">
+                        Play some matches to see epic games!
+                      </p>
                     </div>
                   ) : (
                     matches.map((match) => (
@@ -202,7 +226,9 @@ export default function Leaderboard() {
                         className="bg-white/95 backdrop-blur-sm rounded-xl p-6 shadow-lg hover:shadow-xl transition-all"
                       >
                         <div className="flex items-center justify-between mb-4">
-                          <div className={`text-2xl font-bold ${getRankColor(match.rank)}`}>
+                          <div
+                            className={`text-2xl font-bold ${getRankColor(match.rank)}`}
+                          >
                             {getRankIcon(match.rank) || `#${match.rank}`}
                           </div>
                           <div className="text-right">
@@ -220,22 +246,39 @@ export default function Leaderboard() {
                           <div className="flex items-center gap-3 flex-1">
                             <div>
                               <div className="flex items-center gap-2">
-                                <span className="text-sm font-semibold text-gray-600">HOME</span>
-                                {match.home_flag && <Flag code={match.home_flag} className="text-lg" />}
+                                <span className="text-sm font-semibold text-gray-600">
+                                  HOME
+                                </span>
+                                {match.home_flag && (
+                                  <Flag
+                                    code={match.home_flag}
+                                    className="text-lg"
+                                  />
+                                )}
                               </div>
-                              <p className="font-bold text-gray-800">{match.home_name || "Unknown"}</p>
-                              <p className="text-sm text-gray-600">@{match.home_username || "unknown"}</p>
+                              <p className="font-bold text-gray-800">
+                                {match.home_name || "Unknown"}
+                              </p>
+                              <p className="text-sm text-gray-600">
+                                @{match.home_username || "unknown"}
+                              </p>
                             </div>
                           </div>
 
                           {/* Score */}
                           <div className="text-center px-6">
                             <div className="flex items-center gap-2">
-                              <div className={`text-3xl font-bold ${match.winner_id === match.home_player_id ? "text-green-600" : "text-gray-700"}`}>
+                              <div
+                                className={`text-3xl font-bold ${match.winner_id === match.home_player_id ? "text-green-600" : "text-gray-700"}`}
+                              >
                                 {match.home_total_points}
                               </div>
-                              <div className="text-2xl font-bold text-gray-400">-</div>
-                              <div className={`text-3xl font-bold ${match.winner_id === match.away_player_id ? "text-green-600" : "text-gray-700"}`}>
+                              <div className="text-2xl font-bold text-gray-400">
+                                -
+                              </div>
+                              <div
+                                className={`text-3xl font-bold ${match.winner_id === match.away_player_id ? "text-green-600" : "text-gray-700"}`}
+                              >
                                 {match.away_total_points}
                               </div>
                             </div>
@@ -250,31 +293,48 @@ export default function Leaderboard() {
                           <div className="flex items-center gap-3 flex-1 justify-end text-right">
                             <div>
                               <div className="flex items-center gap-2 justify-end">
-                                {match.away_flag && <Flag code={match.away_flag} className="text-lg" />}
-                                <span className="text-sm font-semibold text-gray-600">AWAY</span>
+                                {match.away_flag && (
+                                  <Flag
+                                    code={match.away_flag}
+                                    className="text-lg"
+                                  />
+                                )}
+                                <span className="text-sm font-semibold text-gray-600">
+                                  AWAY
+                                </span>
                               </div>
-                              <p className="font-bold text-gray-800">{match.away_name || "Unknown"}</p>
-                              <p className="text-sm text-gray-600">@{match.away_username || "unknown"}</p>
+                              <p className="font-bold text-gray-800">
+                                {match.away_name || "Unknown"}
+                              </p>
+                              <p className="text-sm text-gray-600">
+                                @{match.away_username || "unknown"}
+                              </p>
                             </div>
                           </div>
                         </div>
 
                         {/* Segments Played */}
-                        {match.segments_played && Array.isArray(match.segments_played) && match.segments_played.length > 0 && (
-                          <div className="mt-4 pt-4 border-t border-gray-200">
-                            <p className="text-xs text-gray-600 mb-1">Segments Played:</p>
-                            <div className="flex gap-2">
-                              {(match.segments_played as string[]).map((segment: string, idx: number) => (
-                                <span
-                                  key={idx}
-                                  className="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-semibold rounded"
-                                >
-                                  {segment}
-                                </span>
-                              ))}
+                        {match.segments_played &&
+                          Array.isArray(match.segments_played) &&
+                          match.segments_played.length > 0 && (
+                            <div className="mt-4 pt-4 border-t border-gray-200">
+                              <p className="text-xs text-gray-600 mb-1">
+                                Segments Played:
+                              </p>
+                              <div className="flex gap-2">
+                                {(match.segments_played as string[]).map(
+                                  (segment: string, idx: number) => (
+                                    <span
+                                      key={idx}
+                                      className="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-semibold rounded"
+                                    >
+                                      {segment}
+                                    </span>
+                                  ),
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        )}
+                          )}
                       </div>
                     ))
                   )}

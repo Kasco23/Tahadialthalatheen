@@ -1,4 +1,4 @@
-import type { Handler, HandlerEvent, HandlerContext } from "@netlify/functions";
+import type { Context } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
 
 /**
@@ -16,31 +16,35 @@ import { getStore } from "@netlify/blobs";
  * - 500: { success: false, error: <error-message> }
  */
 
-export const handler: Handler = async (
-  event: HandlerEvent,
-  _context: HandlerContext
-) => {
+export default async (req: Request, _context: Context) => {
   // Only allow GET requests
-  if (event.httpMethod !== "GET") {
-    return {
-      statusCode: 405,
-      body: JSON.stringify({ success: false, error: "Method not allowed" }),
-    };
+  if (req.method !== "GET") {
+    return new Response(
+      JSON.stringify({ success: false, error: "Method not allowed" }),
+      {
+        status: 405,
+        headers: { "Content-Type": "application/json" },
+      },
+    );
   }
 
   try {
     // Parse query parameters
-    const userId = event.queryStringParameters?.userId;
+    const url = new URL(req.url);
+    const userId = url.searchParams.get("userId");
 
     // Validate required parameters
     if (!userId) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({
+      return new Response(
+        JSON.stringify({
           success: false,
           error: "Missing userId parameter",
         }),
-      };
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
     }
 
     // Get blob store
@@ -52,30 +56,39 @@ export const handler: Handler = async (
     const profile = await store.get(profileKey, { type: "json" });
 
     if (!profile) {
-      return {
-        statusCode: 404,
-        body: JSON.stringify({
+      return new Response(
+        JSON.stringify({
           success: false,
           error: "Profile not found",
         }),
-      };
+        {
+          status: 404,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
     }
 
-    return {
-      statusCode: 200,
-      body: JSON.stringify({
+    return new Response(
+      JSON.stringify({
         success: true,
         profile,
       }),
-    };
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      },
+    );
   } catch (error) {
     console.error("Error retrieving active profile:", error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({
+    return new Response(
+      JSON.stringify({
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",
       }),
-    };
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      },
+    );
   }
 };

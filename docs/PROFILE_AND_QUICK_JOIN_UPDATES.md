@@ -16,11 +16,11 @@ This document summarizes the updates made to improve Profile display and Quick J
 **Location**: `src/pages/Profile.tsx`
 
 **Changes**:
+
 - ✅ **Flag Display**: Now shows flag icon + full country name (e.g., "Palestine" instead of "PS")
   - Uses `getFlagName()` from `flagHelper.ts` to convert code to full name
   - Read-only display in a styled container
   - Editable only via "Change Flag" button
-  
 - ✅ **Team Display**: Now shows team logo + team name
   - Extracts team name from logo URL if stored as URL
   - Shows team logo image with proper fallback handling
@@ -33,6 +33,7 @@ This document summarizes the updates made to improve Profile display and Quick J
   - Team and flag must be changed via dedicated buttons
 
 **Code Example**:
+
 ```tsx
 // Flag Display (Read-Only)
 <div className="px-4 py-3 border-2 border-gray-200 rounded-xl bg-gray-50">
@@ -40,7 +41,7 @@ This document summarizes the updates made to improve Profile display and Quick J
     <div className="flex items-center gap-3">
       <Flag code={profile.flag} className="text-2xl" />
       <span className="text-sm font-medium text-gray-700">
-        {getFlagName(profile.flag)}  {/* "Palestine" not "PS" */}
+        {getFlagName(profile.flag)} {/* "Palestine" not "PS" */}
       </span>
     </div>
   ) : (
@@ -56,21 +57,21 @@ This document summarizes the updates made to improve Profile display and Quick J
 **Location**: `src/components/ActiveGames.tsx`
 
 **Changes**:
+
 - ✅ **Host Detection**: Checks `Sessions.host_profile_id` to determine if user is the session creator
   - Fetches session data to get `host_profile_id`
   - Compares with current user's ID
-  
 - ✅ **Host Quick Join Logic**:
   - If user is host: Check for existing Host participant
     - If exists: Update presence and navigate to `/lobby/{code}/host`
     - If not exists: Create Host participant and navigate to `/lobby/{code}/host`
-  
 - ✅ **Player Quick Join Logic**:
   - If user is not host: Use existing `joinAsPlayerWithCode` function
     - Automatically assigns Player1 or Player2 based on availability
     - Navigates to `/lobby/{code}/1` or `/lobby/{code}/2`
 
 **Flow Diagram**:
+
 ```
 Quick Join Click
       |
@@ -107,6 +108,7 @@ Navigate /host
 **Status**: ✅ Already Implemented (from previous phase)
 
 **Features**:
+
 - Queries `Participants` with JOIN to `Profiles` table
 - Query: `SELECT *, Profiles!profile_id(flag, team)`
 - `ParticipantCard` component displays:
@@ -115,24 +117,18 @@ Navigate /host
   - Team logo URL generated via `getTeamLogoUrl()` from `teamLogoHelper.ts`
 
 **Code Reference**:
+
 ```tsx
 // ParticipantCard displays flag and team logo
 <div className="flex items-center space-x-2">
-  <Flag 
-    code={(player.Profiles?.flag || player.flag) ?? "sa"} 
-    className="text-lg" 
+  <Flag
+    code={(player.Profiles?.flag || player.flag) ?? "sa"}
+    className="text-lg"
   />
-  {teamLogoUrl && (
-    <LobbyLogo 
-      logoUrl={teamLogoUrl} 
-      teamName={player.name} 
-    />
-  )}
+  {teamLogoUrl && <LobbyLogo logoUrl={teamLogoUrl} teamName={player.name} />}
   <div>
     <div className="text-sm font-bold text-white">{player.name}</div>
-    <div className="text-xs text-blue-200">
-      {getRoleDisplay(player)}
-    </div>
+    <div className="text-xs text-blue-200">{getRoleDisplay(player)}</div>
   </div>
 </div>
 ```
@@ -147,6 +143,7 @@ Navigate /host
 **Status**: ✅ Created
 
 **Features**:
+
 - `FLAG_NAMES` record with 70+ country code mappings
   - Examples: `sa → Saudi Arabia`, `ps → Palestine`, `eg → Egypt`
 - `getFlagName(code: string)`: Returns full country name
@@ -154,11 +151,12 @@ Navigate /host
 - `getAllCountries()`: Returns array of all countries
 
 **Usage**:
+
 ```tsx
 import { getFlagName } from "../lib/flagHelper";
 
-getFlagName("ps")  // Returns: "Palestine"
-getFlagName("sa")  // Returns: "Saudi Arabia"
+getFlagName("ps"); // Returns: "Palestine"
+getFlagName("sa"); // Returns: "Saudi Arabia"
 ```
 
 #### teamLogoHelper.ts
@@ -167,6 +165,7 @@ getFlagName("sa")  // Returns: "Saudi Arabia"
 **Status**: ✅ Created (previous phase)
 
 **Features**:
+
 - Team-to-league mapping for 50+ teams
 - `getTeamLogoUrl(teamName, league?)`: Generates Supabase Storage URL
 - `getTeamsFromLeague(league)`: Lists teams in a league
@@ -177,6 +176,7 @@ getFlagName("sa")  // Returns: "Saudi Arabia"
 ## Database Schema Reference
 
 ### Sessions Table
+
 ```sql
 CREATE TABLE Sessions (
   session_id UUID PRIMARY KEY,
@@ -190,6 +190,7 @@ CREATE TABLE Sessions (
 ```
 
 ### Participants Table
+
 ```sql
 CREATE TABLE Participants (
   participant_id UUID PRIMARY KEY,
@@ -207,6 +208,7 @@ CREATE TABLE Participants (
 ```
 
 ### Profiles Table
+
 ```sql
 CREATE TABLE Profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id),
@@ -257,17 +259,20 @@ CREATE TABLE Profiles (
 #### Test Case 1: Host Quick Join
 
 **Setup**:
+
 1. User A creates a session
 2. User A's ID is stored in `Sessions.host_profile_id`
 3. User A leaves the lobby
 
 **Test Steps**:
+
 - [ ] User A clicks "Quick Join" on their created session
 - [ ] Expected: User A should be joined as Host
 - [ ] Expected: Navigation to `/lobby/{code}/host`
 - [ ] Expected: User A appears in participants list with role "Host"
 
 **Verification**:
+
 - [ ] Check `Participants` table → User A should have `role = 'Host'`
 - [ ] Lobby should show User A with "Host" label
 - [ ] User A should have host controls (start game, etc.)
@@ -277,16 +282,19 @@ CREATE TABLE Profiles (
 #### Test Case 2: Player Quick Join (First Player)
 
 **Setup**:
+
 1. User A creates a session (host)
 2. User B (not the host) clicks Quick Join
 
 **Test Steps**:
+
 - [ ] User B clicks "Quick Join" on User A's session
 - [ ] Expected: User B should be joined as Player1
 - [ ] Expected: Navigation to `/lobby/{code}/1`
 - [ ] Expected: User B appears in participants list with role "Player1"
 
 **Verification**:
+
 - [ ] Check `Participants` table → User B should have `role = 'Player1'`
 - [ ] Lobby should show User B with "Player1" label
 - [ ] User B should see player-specific UI (ready button, etc.)
@@ -296,17 +304,20 @@ CREATE TABLE Profiles (
 #### Test Case 3: Player Quick Join (Second Player)
 
 **Setup**:
+
 1. User A creates a session (host)
 2. User B already joined as Player1
 3. User C clicks Quick Join
 
 **Test Steps**:
+
 - [ ] User C clicks "Quick Join" on User A's session
 - [ ] Expected: User C should be joined as Player2
 - [ ] Expected: Navigation to `/lobby/{code}/2`
 - [ ] Expected: User C appears in participants list with role "Player2"
 
 **Verification**:
+
 - [ ] Check `Participants` table → User C should have `role = 'Player2'`
 - [ ] Lobby should show User C with "Player2" label
 - [ ] All three participants should be visible in lobby
@@ -316,12 +327,14 @@ CREATE TABLE Profiles (
 #### Test Case 4: Quick Join Session Full
 
 **Setup**:
+
 1. User A creates a session (host)
 2. User B joined as Player1
 3. User C joined as Player2
 4. User D clicks Quick Join
 
 **Test Steps**:
+
 - [ ] User D clicks "Quick Join" on the full session
 - [ ] Expected: Navigation to `/join?sessionCode={code}&error=full`
 - [ ] Expected: Error message displays "Session is full"
@@ -332,10 +345,12 @@ CREATE TABLE Profiles (
 #### Test Case 5: Unauthenticated Quick Join
 
 **Setup**:
+
 1. User signs out
 2. Active session exists
 
 **Test Steps**:
+
 - [ ] Unauthenticated user clicks "Quick Join"
 - [ ] Expected: Navigation to `/join?sessionCode={code}&role=player`
 - [ ] Join page should show pre-filled session code
@@ -394,12 +409,14 @@ CREATE TABLE Profiles (
 **Scenario**: Host disconnects and Quick Joins again
 
 **Expected Behavior**:
+
 - Existing Host participant should be updated (not duplicated)
 - `lobby_presence` updated to "Joined"
 - `disconnect_at` set to `null`
 - `join_at` updated to current timestamp
 
 **Test**:
+
 - [ ] Host creates session and joins
 - [ ] Host closes browser tab (disconnect)
 - [ ] Host reopens and clicks Quick Join
@@ -413,10 +430,12 @@ CREATE TABLE Profiles (
 **Scenario**: Two players click Quick Join at the same time on the same session
 
 **Expected Behavior**:
+
 - One should get Player1, other should get Player2
 - No race conditions causing duplicate roles
 
 **Test**:
+
 - [ ] Open two browsers with different users
 - [ ] Both click Quick Join simultaneously
 - [ ] Verify one gets Player1, other gets Player2
@@ -429,10 +448,12 @@ CREATE TABLE Profiles (
 **Scenario**: User Quick Joins but profile doesn't exist
 
 **Expected Behavior**:
+
 - Navigate to `/join` page for manual entry
 - Log error for debugging
 
 **Test**:
+
 - [ ] Manually delete user's profile from database
 - [ ] User clicks Quick Join
 - [ ] Verify graceful fallback to join page
@@ -465,7 +486,7 @@ CREATE TABLE Profiles (
 
 ## Known Limitations
 
-1. **Team Logo URL Extraction**: 
+1. **Team Logo URL Extraction**:
    - If team is stored as plain name (not URL), `getTeamLogoUrl()` generates URL
    - Only works for teams in `TEAM_LEAGUE_MAP` (50+ teams)
    - Other teams won't show logo (graceful fallback)
@@ -497,17 +518,20 @@ CREATE TABLE Profiles (
 ## Success Criteria
 
 ✅ **Profile Display**:
+
 - Flag shows icon + full country name (not abbreviation)
 - Team shows logo + team name
 - Both are read-only except via dedicated buttons
 
 ✅ **Quick Join**:
+
 - Host detection works correctly via `Sessions.host_profile_id`
 - Host joins as Host with correct routing
 - Players join as Player1/Player2 with correct routing
 - Handles all edge cases gracefully
 
 ✅ **Lobby**:
+
 - All participants show flag icon next to name
 - All participants show team logo next to name
 - Data comes from `Profiles` table via JOIN

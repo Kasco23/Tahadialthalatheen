@@ -13,6 +13,16 @@ import type {
   CreateDailyRoomResponse,
 } from "./types";
 
+// Type for participant data with Profile JOIN
+type ParticipantWithProfile = {
+  participant_id: string;
+  role: string;
+  isReady?: boolean;
+  lobby_presence?: string;
+  profile_id: string | null;
+  Profiles: Array<{ name: string }> | { name: string } | null;
+};
+
 // Interface for active session data
 export interface ActiveSession {
   session_id: string;
@@ -55,26 +65,18 @@ export async function createSession(
       throw new Error("Session created but missing required data");
     }
 
-    // Create both GameMaster and Host participants
-    // GameMaster is the PC user who created the session (immediately joined)
-    // Host participant will join later via mobile
+    // Create ONE participant for the creator with Host AND GameMaster role
+    // The creator is immediately joined and can access from any device
+    // Note: We use "Host" as the primary role since they control the game
     const { error: participantError } = await supabase
       .from("Participants")
-      .insert([
-        {
-          session_id: sessionData.session_id,
-          name: "GameMaster", // PC user who created the session
-          role: "GameMaster" as ParticipantRole,
-          lobby_presence: "Joined" as LobbyPresence, // PC user is immediately joined
-          profile_id: hostProfileId, // Link to creator's profile
-        },
-        {
-          session_id: sessionData.session_id,
-          name: "Host",
-          role: "Host" as ParticipantRole,
-          lobby_presence: "NotJoined" as LobbyPresence, // Host will join later
-        },
-      ]);
+      .insert({
+        session_id: sessionData.session_id,
+        role: "Host" as ParticipantRole,
+        lobby_presence: "Joined" as LobbyPresence, // Creator is immediately joined
+        profile_id: hostProfileId, // Link to creator's profile
+        join_at: new Date().toISOString(),
+      });
 
     if (participantError) {
       Logger.error("Participant creation failed:", participantError);
@@ -84,13 +86,14 @@ export async function createSession(
         .delete()
         .eq("session_id", sessionData.session_id);
       throw new Error(
-        `Failed to create participants: ${participantError.message}`,
+        `Failed to create participant: ${participantError.message}`,
       );
     }
 
     Logger.log("Session created successfully:", {
       sessionId: sessionData.session_id,
       sessionCode: sessionData.session_code,
+      hostProfileId,
     });
 
     return {
@@ -118,7 +121,7 @@ export async function getActiveSessions(): Promise<ActiveSession[]> {
       game_state,
       created_at,
       ended_at,
-      Participants(name, role, lobby_presence),
+      Participants(role, lobby_presence, profile_id, Profiles!profile_id(name)),
       DailyRooms(room_url)
     `,
     )
@@ -135,6 +138,7 @@ export async function getActiveSessions(): Promise<ActiveSession[]> {
   Logger.debug("Raw data from Supabase:", data);
 
   // Transform the data to match our interface
+  type ProfileData = { name: string } | null;
   type SessionRow = {
     session_id: string;
     session_code: string;
@@ -143,27 +147,32 @@ export async function getActiveSessions(): Promise<ActiveSession[]> {
     created_at: string;
     ended_at?: string | null;
     Participants?: Array<{
-      name: string;
       role: string;
       lobby_presence: string;
+      profile_id?: string;
+      Profiles?: ProfileData;
     }> | null;
     DailyRooms?: Array<{ room_url?: string }> | null;
   };
 
-  const rows = (data as SessionRow[]) || [];
+  const rows = (data as unknown as SessionRow[]) || [];
 
   const activeSessions: ActiveSession[] = rows.map((session) => {
     const participants = Array.isArray(session.Participants)
       ? session.Participants
       : [];
     const hostParticipant = participants.find((p) => p.role === "Host");
+    const hostName = hostParticipant?.Profiles?.name || "Unknown Host";
+
     // Only count Player1 and Player2 roles that have lobby_presence "Joined"
     const playerCount = participants.filter(
       (p) =>
         (p.role === "Player1" || p.role === "Player2") &&
         p.lobby_presence === "Joined",
     ).length;
-    const hasDailyRoom = !!(session.DailyRooms && session.DailyRooms.length > 0);
+    const hasDailyRoom = !!(
+      session.DailyRooms && session.DailyRooms.length > 0
+    );
 
     return {
       session_id: session.session_id,
@@ -171,7 +180,7 @@ export async function getActiveSessions(): Promise<ActiveSession[]> {
       phase: session.phase,
       game_state: session.game_state,
       created_at: session.created_at,
-      host_name: hostParticipant ? hostParticipant.name : "Unknown Host",
+      host_name: hostName,
       participant_count: playerCount,
       has_daily_room: hasDailyRoom,
     };
@@ -198,43 +207,53 @@ export async function getSessionIdByCode(sessionCode: string): Promise<string> {
 
 type ParticipantIdRow = { participant_id: string };
 
-// Helper to fetch participant_id by session and name
-async function getParticipantIdBySessionAndName(
-  sessionId: string,
-  name: string,
-): Promise<string> {
-  const { data, error } = await supabase
-    .from("Participants")
-    .select("participant_id")
-    .eq("session_id", sessionId)
-    .eq("name", name)
-    .limit(1)
-    .single();
-
-  if (error || !data) {
-    throw new Error(`Participant not found: ${error?.message || "no data"}`);
-  }
-
-  return (data as ParticipantIdRow).participant_id;
-}
-
 // Wrapper function for joining as player with session code
+// Smart logic: If user created the session (their profile_id exists as Host), rejoin as Host
+// Otherwise, join as Player1, Player2, or Guest based on available slots
 export async function joinAsPlayerWithCode(
   sessionCode: string,
-  name: string,
-  flag: string,
-  logoUrl: string,
+  _name: string, // Deprecated - now using Profiles.name
+  _flag: string, // Deprecated - now using Profiles.flag
+  _logoUrl: string, // Deprecated - now using Profiles.team
   profileId?: string,
 ): Promise<{ participantId: string; role: string }> {
   const sessionId = await getSessionIdByCode(sessionCode);
 
-  // First, check if player with this name already exists for the session (case-insensitive)
-  try {
+  // Check if this user is the session creator (Host)
+  if (profileId) {
+    const { data: hostCheck, error: hostError } = await supabase
+      .from("Participants")
+      .select("participant_id, role, lobby_presence")
+      .eq("session_id", sessionId)
+      .eq("profile_id", profileId)
+      .eq("role", "Host")
+      .maybeSingle();
+
+    // If user is the Host, update their presence and rejoin
+    if (!hostError && hostCheck) {
+      await supabase
+        .from("Participants")
+        .update({
+          lobby_presence: "Joined",
+          join_at: new Date().toISOString(),
+          disconnect_at: null,
+        })
+        .eq("participant_id", hostCheck.participant_id);
+
+      return {
+        participantId: hostCheck.participant_id,
+        role: "Host",
+      };
+    }
+  }
+
+  // Check if user already has a participant record with their profile_id (Player1/Player2/Guest)
+  if (profileId) {
     const { data: existing, error: existingErr } = await supabase
       .from("Participants")
       .select("participant_id, role")
       .eq("session_id", sessionId)
-      .ilike("name", name)
+      .eq("profile_id", profileId)
       .limit(1)
       .maybeSingle();
 
@@ -256,11 +275,9 @@ export async function joinAsPlayerWithCode(
         role: existingRow!.role || "Player1",
       };
     }
-  } catch (_e) {
-    // ignore and continue to create
   }
 
-  // Determine available player role (Player1 or Player2)
+  // Determine available player role (Player1, Player2, or Guest)
   const { data: playersData, error: playersError } = await supabase
     .from("Participants")
     .select("role")
@@ -276,19 +293,22 @@ export async function joinAsPlayerWithCode(
   const existingRoles: string[] = Array.isArray(playersData)
     ? (playersData as Array<{ role?: string }>).map((r) => r.role || "")
     : [];
-  let assignedRole: string;
-  if (!existingRoles.includes("Player1")) assignedRole = "Player1";
-  else if (!existingRoles.includes("Player2")) assignedRole = "Player2";
-  else throw new Error("Session is full (both player slots taken)");
 
-  // Try insert with assigned role
+  let assignedRole: string;
+  if (!existingRoles.includes("Player1")) {
+    assignedRole = "Player1";
+  } else if (!existingRoles.includes("Player2")) {
+    assignedRole = "Player2";
+  } else {
+    // Both player slots taken, assign as Guest
+    assignedRole = "Guest";
+  }
+
+  // Insert new participant with assigned role
   const insertResultPlayer = await supabase
     .from("Participants")
     .insert({
       session_id: sessionId,
-      name,
-      flag,
-      team_logo_url: logoUrl,
       role: assignedRole,
       lobby_presence: "Joined",
       join_at: new Date().toISOString(),
@@ -316,28 +336,9 @@ export async function joinAsPlayerWithCode(
     };
   }
 
-  // If insert failed, try to find existing participant by name as a last resort
-  try {
-    const participantId = await getParticipantIdBySessionAndName(
-      sessionId,
-      name,
-    );
-    // Need to query for the role since getParticipantIdBySessionAndName only returns ID
-    const { data: roleData } = await supabase
-      .from("Participants")
-      .select("role")
-      .eq("participant_id", participantId)
-      .single();
-    return {
-      participantId,
-      role: roleData?.role || "Player1",
-    };
-  } catch (err) {
-    const insertMsg = extractErrorMessage(insertErrorPlayer);
-    throw new Error(
-      `Failed to join as player: ${insertMsg || (err instanceof Error ? err.message : String(err))}`,
-    );
-  }
+  // If insert failed, throw error
+  const insertMsg = extractErrorMessage(insertErrorPlayer);
+  throw new Error(`Failed to join session: ${insertMsg}`);
 }
 
 // 2. Add Segment Config (GameSetup)
@@ -1128,7 +1129,9 @@ export async function checkAllPlayersReady(
   // Direct database call (requires client to have appropriate permissions)
   const { data, error } = await supabase
     .from("Participants")
-    .select("participant_id, name, role, isReady")
+    .select(
+      "participant_id, role, isReady, profile_id, Profiles!profile_id(name)",
+    )
     .eq("session_id", sessionId)
     .in("role", ["Player1", "Player2"])
     .eq("lobby_presence", "Joined");
@@ -1137,12 +1140,19 @@ export async function checkAllPlayersReady(
     throw new Error(`Failed to check ready status: ${error.message}`);
   }
 
-  const participants = (data || []) as Array<{
-    participant_id: string;
-    name: string;
-    role: string;
-    isReady: boolean;
-  }>;
+  const participants = (data || []).map((p: ParticipantWithProfile) => {
+    const profileName =
+      Array.isArray(p.Profiles) && p.Profiles.length > 0
+        ? p.Profiles[0].name
+        : (p.Profiles as { name: string } | null)?.name || "Unknown";
+
+    return {
+      participant_id: p.participant_id,
+      name: profileName,
+      role: p.role,
+      isReady: p.isReady || false,
+    };
+  });
 
   const totalPlayers = participants.length;
   const readyCount = participants.filter((p) => p.isReady).length;
@@ -1255,7 +1265,9 @@ export async function getSessionParticipants(sessionId: string): Promise<
 > {
   const { data, error } = await supabase
     .from("Participants")
-    .select("participant_id, name, role, lobby_presence, profile_id")
+    .select(
+      "participant_id, role, lobby_presence, profile_id, Profiles!profile_id(name)",
+    )
     .eq("session_id", sessionId)
     .order("join_at", { ascending: true });
 
@@ -1263,7 +1275,20 @@ export async function getSessionParticipants(sessionId: string): Promise<
     throw new Error(`Failed to get session participants: ${error.message}`);
   }
 
-  return data || [];
+  return (data || []).map((p: ParticipantWithProfile) => {
+    const profileName =
+      Array.isArray(p.Profiles) && p.Profiles.length > 0
+        ? p.Profiles[0].name
+        : (p.Profiles as { name: string } | null)?.name || "Unknown";
+
+    return {
+      participant_id: p.participant_id,
+      name: profileName,
+      role: p.role,
+      lobby_presence: p.lobby_presence || "NotJoined",
+      profile_id: p.profile_id,
+    };
+  });
 }
 
 // 18. Set Participant Password
@@ -1315,7 +1340,9 @@ export async function verifyParticipantPassword(
   // Fetch participant data if password is valid
   const { data, error } = await supabase
     .from("Participants")
-    .select("participant_id, name, role, session_id, profile_id")
+    .select(
+      "participant_id, role, session_id, profile_id, Profiles!profile_id(name)",
+    )
     .eq("participant_id", participantId)
     .single();
 
@@ -1323,11 +1350,16 @@ export async function verifyParticipantPassword(
     return { valid: false };
   }
 
+  const profileData =
+    Array.isArray(data.Profiles) && data.Profiles.length > 0
+      ? data.Profiles[0]
+      : data.Profiles;
+
   return {
     valid: true,
     participant: {
       participant_id: data.participant_id,
-      name: data.name,
+      name: (profileData as { name: string } | null)?.name || "Unknown",
       role: data.role,
       session_id: data.session_id,
       profile_id: data.profile_id,
@@ -1337,8 +1369,9 @@ export async function verifyParticipantPassword(
 
 // 20. Update Participant Configuration (for rejoin)
 /**
- * Update participant's name, flag, and logo when rejoining
- * Allows participants to change their configuration on rejoin
+ * Update participant's profile when rejoining
+ * Note: Name, flag, and team are now stored in Profiles table, not Participants
+ * This function is deprecated - profile updates should go through updateProfile instead
  */
 export async function updateParticipantConfig(
   participantId: string,
@@ -1348,17 +1381,28 @@ export async function updateParticipantConfig(
     team_logo_url?: string;
   },
 ): Promise<void> {
-  const updateData: TablesUpdate<"Participants"> = {};
+  // Get the profile_id from participant
+  const { data: participant, error: fetchError } = await supabase
+    .from("Participants")
+    .select("profile_id")
+    .eq("participant_id", participantId)
+    .single();
 
-  if (config.name !== undefined) updateData.name = config.name;
-  if (config.flag !== undefined) updateData.flag = config.flag;
+  if (fetchError || !participant?.profile_id) {
+    throw new Error("Failed to fetch participant profile");
+  }
+
+  // Update the profile instead of participant
+  const profileUpdate: TablesUpdate<"Profiles"> = {};
+  if (config.name !== undefined) profileUpdate.name = config.name;
+  if (config.flag !== undefined) profileUpdate.flag = config.flag;
   if (config.team_logo_url !== undefined)
-    updateData.team_logo_url = config.team_logo_url;
+    profileUpdate.team = config.team_logo_url;
 
   const { error } = await supabase
-    .from("Participants")
-    .update(updateData)
-    .eq("participant_id", participantId);
+    .from("Profiles")
+    .update(profileUpdate)
+    .eq("id", participant.profile_id);
 
   if (error) {
     throw new Error(`Failed to update participant config: ${error.message}`);
@@ -1424,11 +1468,12 @@ export async function rejoinAsParticipant(
 }
 
 // Helper function to get available player seats for a session
-export async function getAvailableSeats(
-  sessionCode: string,
-): Promise<{ availableSeats: ParticipantRole[]; occupiedSeats: ParticipantRole[] }> {
+export async function getAvailableSeats(sessionCode: string): Promise<{
+  availableSeats: ParticipantRole[];
+  occupiedSeats: ParticipantRole[];
+}> {
   const sessionId = await getSessionIdByCode(sessionCode);
-  
+
   const { data: participants, error } = await supabase
     .from("Participants")
     .select("role")
@@ -1440,9 +1485,13 @@ export async function getAvailableSeats(
     throw new Error(`Failed to check available seats: ${error.message}`);
   }
 
-  const occupiedSeats = (participants || []).map((p) => p.role as ParticipantRole);
+  const occupiedSeats = (participants || []).map(
+    (p) => p.role as ParticipantRole,
+  );
   const allSeats: ParticipantRole[] = ["Player1", "Player2"];
-  const availableSeats = allSeats.filter((seat) => !occupiedSeats.includes(seat));
+  const availableSeats = allSeats.filter(
+    (seat) => !occupiedSeats.includes(seat),
+  );
 
   return { availableSeats, occupiedSeats };
 }

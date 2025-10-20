@@ -17,7 +17,12 @@ interface AuthContextType {
   session: Session | null;
   profile: Profile | null;
   loading: boolean;
-  signUp: (email: string, password: string, name: string, username: string) => Promise<void>;
+  signUp: (
+    email: string,
+    password: string,
+    name: string,
+    username: string,
+  ) => Promise<void>;
   signIn: (
     email: string,
     password: string,
@@ -26,7 +31,10 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
   refreshProfile: () => Promise<void>;
-  refreshSession: () => Promise<{ session: Session | null; user: User | null } | null>;
+  refreshSession: () => Promise<{
+    session: Session | null;
+    user: User | null;
+  } | null>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -48,7 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (error) throw error;
       setProfile(data);
-      
+
       // Store profile in Netlify Blobs for quick access
       if (data) {
         try {
@@ -92,7 +100,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, name: string, username: string) => {
+  const signUp = async (
+    email: string,
+    password: string,
+    name: string,
+    username: string,
+  ) => {
     // First check if username is already taken
     const { data: existingUser, error: checkError } = await supabase
       .from("Profiles")
@@ -101,7 +114,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .maybeSingle();
 
     if (checkError && checkError.code !== "PGRST116") {
-      throw new Error(`Failed to check username availability: ${checkError.message}`);
+      throw new Error(
+        `Failed to check username availability: ${checkError.message}`,
+      );
     }
 
     if (existingUser) {
@@ -126,7 +141,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .from("Profiles")
         .update({ username, name })
         .eq("id", data.user.id);
-      
+
       await fetchProfile(data.user.id);
     }
   };
@@ -152,7 +167,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     // Sign out from all sessions (global scope)
-    const { error } = await supabase.auth.signOut({ scope: 'global' });
+    const { error } = await supabase.auth.signOut({ scope: "global" });
     if (error) throw error;
     setProfile(null);
   };

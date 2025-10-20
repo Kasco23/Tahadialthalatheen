@@ -30,7 +30,13 @@ import { createDailyToken } from "../lib/mutations";
  * - To maintain video across routes (Lobby -> Quiz), ensure DailyProvider is at App level
  */
 
-type ParticipantRow = Database["public"]["Tables"]["Participants"]["Row"];
+type ParticipantRow = Database["public"]["Tables"]["Participants"]["Row"] & {
+  Profiles?: {
+    name?: string | null;
+    flag?: string | null;
+    team?: string | null;
+  } | null;
+};
 
 interface VideoCallProps {
   players: ParticipantRow[];
@@ -68,7 +74,8 @@ export const VideoCall: React.FC<VideoCallProps> = ({
         try {
           // Find current participant in players list
           const currentPlayer = players.find(
-            (p) => p.name.toLowerCase() === participantName.toLowerCase(),
+            (p) =>
+              p.Profiles?.name?.toLowerCase() === participantName.toLowerCase(),
           );
 
           if (currentPlayer?.participant_id) {
@@ -168,7 +175,10 @@ export const VideoCall: React.FC<VideoCallProps> = ({
   const playersByName = React.useMemo(() => {
     const map = new Map<string, ParticipantRow>();
     players.forEach((player) => {
-      map.set(player.name.toLowerCase(), player);
+      const playerName = player.Profiles?.name;
+      if (playerName) {
+        map.set(playerName.toLowerCase(), player);
+      }
     });
     return map;
   }, [players]);

@@ -1,7 +1,6 @@
 import { Logger } from "../lib/logger";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import ActiveGamesSidebar from "../components/ActiveGames";
 import { createSession, createDailyRoom } from "../lib/mutations";
 import { Alert } from "../components/Alert";
 import { useAuth } from "../contexts/AuthContext";
@@ -10,12 +9,13 @@ import { StadiumBackground } from "../components/StadiumBackground";
 import NotificationBell from "../components/NotificationBell";
 import { updateSessionState } from "../lib/sessionState";
 import { UsernameSetupBanner } from "../components/UsernameSetupBanner";
+import ActiveGamesSidebar from "../components/ActiveGames";
 
 const Homepage: React.FC = () => {
   const [isCreatingSession, setIsCreatingSession] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
-  const [isActiveGamesSidebarOpen, setIsActiveGamesSidebarOpen] = useState(false);
+  const [isActiveGamesOpen, setIsActiveGamesOpen] = useState(false);
   const [alert, setAlert] = useState<{
     type: "error" | "success" | "info";
     message: string;
@@ -39,27 +39,33 @@ const Homepage: React.FC = () => {
       if (!user?.id) {
         throw new Error("User not authenticated");
       }
-      
+
       // Create the session
       const { sessionId, sessionCode } = await createSession(user.id);
-      
+
       // Auto-create Daily room for the session
       try {
-        Logger.log("Auto-creating Daily room for session:", { sessionId, sessionCode });
+        Logger.log("Auto-creating Daily room for session:", {
+          sessionId,
+          sessionCode,
+        });
         const roomData = await createDailyRoom(sessionId, sessionCode);
-        
+
         // Update session state in Netlify Blobs
         await updateSessionState(sessionId, {
           dailyRoomCreated: true,
           dailyRoomUrl: roomData.room_url,
         });
-        
+
         Logger.log("Daily room auto-created successfully:", roomData);
       } catch (roomError) {
         // Log the error but don't block navigation - room can be created later in GameSetup
-        Logger.error("Failed to auto-create Daily room (non-blocking):", roomError);
+        Logger.error(
+          "Failed to auto-create Daily room (non-blocking):",
+          roomError,
+        );
       }
-      
+
       // Navigate to game setup
       navigate(`/gamesetup/${sessionCode}`);
     } catch (error) {
@@ -97,8 +103,8 @@ const Homepage: React.FC = () => {
           <div className="absolute top-4 right-4 z-50 flex gap-3 items-center">
             {/* Active Games Button */}
             <button
-              onClick={() => setIsActiveGamesSidebarOpen(true)}
-              className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg flex items-center justify-center hover:shadow-xl transition-all hover:scale-105"
+              onClick={() => setIsActiveGamesOpen(true)}
+              className="w-12 h-12 rounded-lg bg-white shadow-lg flex items-center justify-center hover:shadow-xl transition-shadow"
               title="Active Games"
             >
               <span className="text-2xl">🎮</span>
@@ -106,7 +112,7 @@ const Homepage: React.FC = () => {
 
             {/* Notification Bell */}
             <NotificationBell />
-            
+
             {/* Profile Button */}
             <button
               onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
@@ -322,34 +328,6 @@ const Homepage: React.FC = () => {
         </div>
       </div>
 
-      {/* Expandable Arrow for Active Sessions - Only show if user is logged in */}
-      {user && (
-        <button
-          onClick={() => setIsActiveGamesSidebarOpen(!isActiveGamesSidebarOpen)}
-          className="fixed left-0 top-1/2 -translate-y-1/2 z-30 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-700 hover:to-purple-600 text-white p-4 rounded-r-2xl shadow-2xl transition-all duration-300 hover:pl-6 group"
-          aria-label="Toggle Active Sessions"
-        >
-          <div className="flex items-center gap-2">
-            <svg
-              className={`w-6 h-6 transition-transform duration-300 ${isActiveGamesSidebarOpen ? 'rotate-180' : ''}`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 5l7 7-7 7"
-              />
-            </svg>
-            <span className="text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-              Active Games
-            </span>
-          </div>
-        </button>
-      )}
-
       {/* Alert Component */}
       {alert && (
         <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-[60] w-full max-w-md px-4">
@@ -368,12 +346,10 @@ const Homepage: React.FC = () => {
       />
 
       {/* Active Games Sidebar */}
-      {user && (
-        <ActiveGamesSidebar
-          isOpen={isActiveGamesSidebarOpen}
-          onClose={() => setIsActiveGamesSidebarOpen(false)}
-        />
-      )}
+      <ActiveGamesSidebar
+        isOpen={isActiveGamesOpen}
+        onClose={() => setIsActiveGamesOpen(false)}
+      />
     </StadiumBackground>
   );
 };

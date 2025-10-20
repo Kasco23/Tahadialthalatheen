@@ -17,15 +17,8 @@ export default async (req: Request, _context: Context) => {
   try {
     // Parse request body
     const body = await req.json();
-    const {
-      recipient_id,
-      sender_id,
-      type,
-      title,
-      message,
-      link,
-      metadata,
-    } = body;
+    const { recipient_id, sender_id, type, title, message, link, metadata } =
+      body;
 
     // Validate required fields
     if (!recipient_id || !type || !title || !message) {

@@ -1,10 +1,10 @@
 import { Logger } from "../lib/logger";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { 
-  getActiveSessions, 
+import {
+  getActiveSessions,
   joinAsPlayerWithCode,
-  type ActiveSession 
+  type ActiveSession,
 } from "../lib/mutations";
 import { useAuth } from "../contexts/AuthContext";
 import { supabase } from "../lib/supabaseClient";
@@ -18,7 +18,10 @@ interface ActiveGamesSidebarProps {
   onClose: () => void;
 }
 
-const ActiveGamesSidebar: React.FC<ActiveGamesSidebarProps> = ({ isOpen, onClose }) => {
+const ActiveGamesSidebar: React.FC<ActiveGamesSidebarProps> = ({
+  isOpen,
+  onClose,
+}) => {
   const [activeSessions, setActiveSessions] = useState<ActiveSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -117,18 +120,16 @@ const ActiveGamesSidebar: React.FC<ActiveGamesSidebarProps> = ({ isOpen, onClose
             .eq("participant_id", existingHost.participant_id);
         } else {
           // Create new host participant
-          await supabase
-            .from("Participants")
-            .insert({
-              session_id: sessionData.session_id,
-              name: profileData.name || "Host",
-              flag: profileData.flag || "",
-              team_logo_url: profileData.team || "",
-              role: "Host",
-              lobby_presence: "Joined",
-              join_at: new Date().toISOString(),
-              profile_id: user.id,
-            });
+          await supabase.from("Participants").insert({
+            session_id: sessionData.session_id,
+            name: profileData.name || "Host",
+            flag: profileData.flag || "",
+            team_logo_url: profileData.team || "",
+            role: "Host",
+            lobby_presence: "Joined",
+            join_at: new Date().toISOString(),
+            profile_id: user.id,
+          });
         }
 
         Logger.info("Host joined session");
@@ -145,7 +146,9 @@ const ActiveGamesSidebar: React.FC<ActiveGamesSidebarProps> = ({ isOpen, onClose
         user.id,
       );
 
-      Logger.info(`Quick join successful - Participant ${participantId} joined as ${role}`);
+      Logger.info(
+        `Quick join successful - Participant ${participantId} joined as ${role}`,
+      );
 
       // Navigate directly to lobby
       const seat = role === "Player1" ? "1" : "2";
@@ -248,7 +251,9 @@ const ActiveGamesSidebar: React.FC<ActiveGamesSidebarProps> = ({ isOpen, onClose
             {activeSessions.length === 0 ? (
               <div className="text-center py-12">
                 <div className="text-green-300 text-6xl mb-4">⚽</div>
-                <p className="text-green-100 text-lg font-semibold">No active games</p>
+                <p className="text-green-100 text-lg font-semibold">
+                  No active games
+                </p>
                 <p className="text-green-300 text-sm mt-2">
                   Create a session to get started!
                 </p>
@@ -289,14 +294,20 @@ const ActiveGamesSidebar: React.FC<ActiveGamesSidebarProps> = ({ isOpen, onClose
 
                         <div className="flex items-center gap-2">
                           <span
-                            className={session.has_daily_room ? "text-green-400" : "text-yellow-400"}
+                            className={
+                              session.has_daily_room
+                                ? "text-green-400"
+                                : "text-yellow-400"
+                            }
                           >
                             {session.has_daily_room ? "📹" : "⏳"}
                           </span>
                           <span
                             className={`text-sm ${session.has_daily_room ? "text-green-200" : "text-yellow-200"}`}
                           >
-                            {session.has_daily_room ? "Video Ready" : "Setting up"}
+                            {session.has_daily_room
+                              ? "Video Ready"
+                              : "Setting up"}
                           </span>
                         </div>
                       </div>

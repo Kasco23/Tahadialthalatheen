@@ -8,7 +8,7 @@ interface StadiumBackgroundProps {
 
 /**
  * Professional 3D Stadium Background Component
- * 
+ *
  * Creates a modern, layered stadium atmosphere with:
  * - 3D perspective and depth
  * - Animated stadium lights
@@ -288,9 +288,7 @@ export const StadiumBackground: React.FC<StadiumBackgroundProps> = ({
       </div>
 
       {/* Content Container with Glassmorphism */}
-      <div className="relative z-10 min-h-screen flex flex-col">
-        {children}
-      </div>
+      <div className="relative z-10 min-h-screen flex flex-col">{children}</div>
 
       {/* Bottom Shadow for Depth */}
       <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black via-black/50 to-transparent pointer-events-none" />

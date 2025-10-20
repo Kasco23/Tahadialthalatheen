@@ -126,7 +126,11 @@ export interface FriendRequest {
 }
 
 // Notification types
-export type NotificationType = "friend_request" | "friend_accepted" | "match_invite" | "match_result";
+export type NotificationType =
+  | "friend_request"
+  | "friend_accepted"
+  | "match_invite"
+  | "match_result";
 
 export interface Notification {
   id: string;

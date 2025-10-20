@@ -5,18 +5,22 @@ This guide explains how to use the Username Required Modal and `useUsernameCheck
 ## Components
 
 ### 1. `UsernameRequiredModal`
+
 A reusable modal component that prompts users to create a username.
 
 **Props:**
+
 - `isOpen: boolean` - Controls modal visibility
 - `onClose?: () => void` - Callback when modal is closed (optional)
 - `onSuccess?: () => void` - Callback when username is created successfully (optional)
 - `message?: string` - Custom message to display (optional)
 
 ### 2. `useUsernameCheck` Hook
+
 A hook that provides username checking functionality.
 
 **Returns:**
+
 - `hasUsername: boolean` - True if user has a valid username
 - `showModal: boolean` - Current modal visibility state
 - `requireUsername: () => boolean` - Function to check and show modal if needed
@@ -24,13 +28,16 @@ A hook that provides username checking functionality.
 - `hideUsernameModal: () => void` - Hide the modal
 
 ### 3. `useRequireUsername` Hook
+
 A hook that automatically shows the modal on mount if user doesn't have a username.
 
 **Options:**
+
 - `autoShow?: boolean` - Automatically show modal on mount (default: true)
 - `message?: string` - Custom message for the modal
 
 **Returns:**
+
 - `hasUsername: boolean` - True if user has a valid username
 - `showModal: boolean` - Current modal visibility state
 - `hideModal: () => void` - Hide the modal
@@ -52,7 +59,7 @@ function MyComponent() {
     if (!requireUsername()) {
       return; // Modal will show automatically
     }
-    
+
     // Continue with your action
     console.log("User has username, proceeding...");
   };
@@ -64,10 +71,8 @@ function MyComponent() {
         onClose={hideUsernameModal}
         message="You need a username to use this feature."
       />
-      
-      <button onClick={handleAction}>
-        Do Something
-      </button>
+
+      <button onClick={handleAction}>Do Something</button>
     </>
   );
 }
@@ -82,7 +87,7 @@ import { useRequireUsername } from "../hooks/useUsernameCheck";
 function FriendsPage() {
   const { hasUsername, showModal, hideModal } = useRequireUsername({
     autoShow: true,
-    message: "You need a username to add friends."
+    message: "You need a username to add friends.",
   });
 
   if (!hasUsername) {
@@ -95,11 +100,7 @@ function FriendsPage() {
     );
   }
 
-  return (
-    <div>
-      {/* Your friends page content */}
-    </div>
-  );
+  return <div>{/* Your friends page content */}</div>;
 }
 ```
 
@@ -118,7 +119,7 @@ function SocialFeature() {
     if (!requireUsername()) {
       return;
     }
-    
+
     // Send friend request logic
   };
 
@@ -137,10 +138,8 @@ function SocialFeature() {
         onSuccess={handleUsernameCreated}
         message="Create a username to send friend requests."
       />
-      
-      <button onClick={handleSendFriendRequest}>
-        Send Friend Request
-      </button>
+
+      <button onClick={handleSendFriendRequest}>Send Friend Request</button>
     </>
   );
 }
@@ -174,6 +173,7 @@ function FeatureButton() {
 ## Where to Use This
 
 ### Recommended Pages/Features:
+
 1. **Friends Tab** - Adding/searching for friends
 2. **Leaderboards** - Displaying username in rankings
 3. **Profile Sharing** - Sharing profile via username
@@ -182,6 +182,7 @@ function FeatureButton() {
 6. **Notifications** - Sending/receiving notifications between users
 
 ### Implementation Checklist:
+
 - [ ] Friends page/tab
 - [ ] Leaderboard display
 - [ ] Quick join (✅ Done)
@@ -192,11 +193,13 @@ function FeatureButton() {
 ## Validation Rules
 
 The username must meet these criteria:
+
 - **Length**: 3-20 characters
-- **Characters**: Lowercase letters (a-z), numbers (0-9), underscores (_) only
+- **Characters**: Lowercase letters (a-z), numbers (0-9), underscores (\_) only
 - **Uniqueness**: Must not already exist in the database
 
 The modal automatically handles:
+
 - Real-time input sanitization
 - Validation errors
 - Duplicate username detection
@@ -205,6 +208,7 @@ The modal automatically handles:
 ## Styling
 
 The modal uses the same green theme as the rest of the application with:
+
 - Gradient backgrounds
 - Backdrop blur effects
 - Smooth transitions

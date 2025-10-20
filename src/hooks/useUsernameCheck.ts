@@ -55,7 +55,10 @@ export function useUsernameCheck() {
  * Hook that automatically shows the username modal on mount if user doesn't have a username.
  * Useful for pages that absolutely require a username.
  */
-export function useRequireUsername(options?: { autoShow?: boolean; message?: string }) {
+export function useRequireUsername(options?: {
+  autoShow?: boolean;
+  message?: string;
+}) {
   const { user, profile } = useAuth();
   const [showModal, setShowModal] = useState(false);
   const autoShow = options?.autoShow ?? true;

@@ -1,11 +1,13 @@
 # Database Schema Fix Migration - October 20, 2025
 
 ## Summary
+
 This migration fixes column naming inconsistencies between the database schema and TypeScript code expectations, enabling proper functionality for Friends, Notifications, and Matches features.
 
 ## Changes Made
 
 ### 1. Friends Table
+
 - **Renamed columns:**
   - `requester` → `requester_id`
   - `addressee` → `addressee_id`
@@ -15,6 +17,7 @@ This migration fixes column naming inconsistencies between the database schema a
 - **Added DELETE policy** for users to remove friendships
 
 ### 2. Notifications Table
+
 - **Renamed column:**
   - `user_id` → `recipient_id`
 - **Added columns:**
@@ -26,6 +29,7 @@ This migration fixes column naming inconsistencies between the database schema a
 - **Added DELETE policy** for users to delete their notifications
 
 ### 3. Matches Table
+
 - **Renamed columns:**
   - `home_player` → `home_player_id`
   - `away_player` → `away_player_id`
@@ -40,22 +44,27 @@ This migration fixes column naming inconsistencies between the database schema a
 - **Added INSERT policy** for players to record matches
 
 ### 4. Performance Indexes
+
 Added indexes on frequently queried columns:
+
 - `idx_profiles_username` on Profiles(username)
 - `idx_friends_requester_id`, `idx_friends_addressee_id`, `idx_friends_status`
 - `idx_notifications_recipient_id`, `idx_notifications_is_read`
 - `idx_matches_session_id`, `idx_matches_home_player_id`, `idx_matches_away_player_id`
 
 ### 5. Profile Component Updates
+
 - Added username field to profile form
 - Username validation: 3-20 characters, lowercase letters, numbers, and underscores only
 - Unique constraint enforcement with user-friendly error messages
 - Username displayed in profile header
 
 ## Breaking Changes
+
 None - this migration fixes existing issues and aligns schema with code expectations.
 
 ## Testing Required
+
 - [x] Friends requests work correctly
 - [x] Notifications load properly
 - [x] Statistics and matches tracking functional
@@ -63,7 +72,9 @@ None - this migration fixes existing issues and aligns schema with code expectat
 - [x] Friend search by username works
 
 ## Rollback
+
 If needed, rollback would require:
+
 1. Reversing all column renames
 2. Dropping new columns
 3. Recreating original RLS policies

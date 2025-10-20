@@ -99,6 +99,7 @@ npx supabase gen types typescript --local > src/lib/types/supabase.ts
 ## Data schema (updated)
 
 ### Core Tables
+
 - **Profiles** — user accounts with unique username
 - **Sessions** — game sessions
 - **Participants** — players in sessions
@@ -108,12 +109,14 @@ npx supabase gen types typescript --local > src/lib/types/supabase.ts
 - **DailyRooms** — video call rooms
 
 ### New Tables (v2.0)
+
 - **Friends** — friendship relationships (requester, addressee, status)
 - **Notifications** — in-app notification system
 - **Matches** — completed game records with home/away players
 - **PlayerSegmentStats** — detailed segment-level performance stats
 
 ### Views
+
 - **UserInbox** — notifications with sender profile info
 - **leaderboard_players** — top players by win rate
 - **leaderboard_matches** — top matches by total points

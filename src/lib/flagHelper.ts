@@ -1,85 +1,85 @@
 /**
  * Flag Helper - Country Code to Full Name Mapping
- * 
+ *
  * Maps country codes (used in flag emojis) to their full English names
  */
 
 export const FLAG_NAMES: Record<string, string> = {
   // Middle East & North Africa
-  "sa": "Saudi Arabia",
-  "ae": "United Arab Emirates",
-  "eg": "Egypt",
-  "ma": "Morocco",
-  "tn": "Tunisia",
-  "dz": "Algeria",
-  "jo": "Jordan",
-  "lb": "Lebanon",
-  "sy": "Syria",
-  "iq": "Iraq",
-  "ye": "Yemen",
-  "om": "Oman",
-  "kw": "Kuwait",
-  "qa": "Qatar",
-  "bh": "Bahrain",
-  "ps": "Palestine",
-  
+  sa: "Saudi Arabia",
+  ae: "United Arab Emirates",
+  eg: "Egypt",
+  ma: "Morocco",
+  tn: "Tunisia",
+  dz: "Algeria",
+  jo: "Jordan",
+  lb: "Lebanon",
+  sy: "Syria",
+  iq: "Iraq",
+  ye: "Yemen",
+  om: "Oman",
+  kw: "Kuwait",
+  qa: "Qatar",
+  bh: "Bahrain",
+  ps: "Palestine",
+
   // Europe
-  "gb": "United Kingdom",
-  "fr": "France",
-  "de": "Germany",
-  "es": "Spain",
-  "it": "Italy",
-  "pt": "Portugal",
-  "nl": "Netherlands",
-  "be": "Belgium",
-  "ch": "Switzerland",
-  "at": "Austria",
-  "se": "Sweden",
-  "no": "Norway",
-  "dk": "Denmark",
-  "fi": "Finland",
-  "ie": "Ireland",
-  "pl": "Poland",
-  "cz": "Czech Republic",
-  "gr": "Greece",
-  "tr": "Turkey",
-  "ru": "Russia",
-  "ua": "Ukraine",
-  
+  gb: "United Kingdom",
+  fr: "France",
+  de: "Germany",
+  es: "Spain",
+  it: "Italy",
+  pt: "Portugal",
+  nl: "Netherlands",
+  be: "Belgium",
+  ch: "Switzerland",
+  at: "Austria",
+  se: "Sweden",
+  no: "Norway",
+  dk: "Denmark",
+  fi: "Finland",
+  ie: "Ireland",
+  pl: "Poland",
+  cz: "Czech Republic",
+  gr: "Greece",
+  tr: "Turkey",
+  ru: "Russia",
+  ua: "Ukraine",
+
   // Americas
-  "us": "United States",
-  "ca": "Canada",
-  "mx": "Mexico",
-  "br": "Brazil",
-  "ar": "Argentina",
-  "cl": "Chile",
-  "co": "Colombia",
-  "pe": "Peru",
-  "uy": "Uruguay",
-  
+  us: "United States",
+  ca: "Canada",
+  mx: "Mexico",
+  br: "Brazil",
+  ar: "Argentina",
+  cl: "Chile",
+  co: "Colombia",
+  pe: "Peru",
+  uy: "Uruguay",
+
   // Asia
-  "jp": "Japan",
-  "cn": "China",
-  "kr": "South Korea",
-  "in": "India",
-  "th": "Thailand",
-  "vn": "Vietnam",
-  "id": "Indonesia",
-  "my": "Malaysia",
-  "sg": "Singapore",
-  
+  jp: "Japan",
+  cn: "China",
+  kr: "South Korea",
+  in: "India",
+  th: "Thailand",
+  vn: "Vietnam",
+  id: "Indonesia",
+  my: "Malaysia",
+  sg: "Singapore",
+
   // Africa
-  "ng": "Nigeria",
-  "za": "South Africa",
-  "ke": "Kenya",
-  "gh": "Ghana",
-  "ci": "Ivory Coast",
-  "cm": "Cameroon",
-  "sn": "Senegal",
-  
+  ng: "Nigeria",
+  za: "South Africa",
+  ke: "Kenya",
+  gh: "Ghana",
+  ci: "Ivory Coast",
+  cm: "Cameroon",
+  sn: "Senegal",
+
   // Oceania
-  "au": "Australia",
-  "nz": "New Zealand",
+  au: "Australia",
+  nz: "New Zealand",
 };
 
 /**
@@ -100,7 +100,7 @@ export function getFlagName(code: string): string {
 export function getCodeFromName(name: string): string {
   const normalizedName = name.toLowerCase().trim();
   const entry = Object.entries(FLAG_NAMES).find(
-    ([, value]) => value.toLowerCase() === normalizedName
+    ([, value]) => value.toLowerCase() === normalizedName,
   );
   return entry ? entry[0] : "";
 }

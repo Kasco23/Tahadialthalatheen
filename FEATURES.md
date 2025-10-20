@@ -5,6 +5,7 @@ This document describes the new features added to Tahadialthalatheen for enhance
 ## Overview
 
 The application now includes:
+
 - **User Profiles with Usernames** - Unique usernames for player identification
 - **Friends System** - Send and manage friend requests
 - **In-App Notifications** - Real-time notifications for friend requests, matches, and more
@@ -21,12 +22,14 @@ The application now includes:
 During signup, users now create a **unique username** (minimum 3 characters) that is used throughout the application.
 
 **Signup Flow:**
+
 1. Navigate to `/signup`
 2. Enter email, password, name, and **username**
 3. Username uniqueness is validated before account creation
 4. Username is displayed in profiles, leaderboards, and notifications
 
 **Profile Fields:**
+
 - `id` - UUID linked to auth.users
 - `name` - Display name
 - `username` - Unique identifier (min 3 chars)
@@ -38,6 +41,7 @@ During signup, users now create a **unique username** (minimum 3 characters) tha
 ### Profile Page
 
 Access your profile at `/profile` to:
+
 - View and edit profile information
 - See your statistics (coming soon: tabbed view)
 - Manage friends (coming soon)
@@ -91,6 +95,7 @@ const unsubscribe = subscribeFriendsUpdates(userId, callback)
 ### Database Schema
 
 **Friends Table:**
+
 - `id` - UUID primary key
 - `requester_id` - User who sent the request
 - `addressee_id` - User who received the request
@@ -117,6 +122,7 @@ const unsubscribe = subscribeFriendsUpdates(userId, callback)
 ### Inbox Page (`/inbox`)
 
 Features:
+
 - Filter by all/unread notifications
 - Click to mark as read and navigate
 - Delete individual notifications
@@ -156,6 +162,7 @@ const unsubscribe = subscribeNotificationsUpdates(userId, callback)
 ### Database Schema
 
 **Notifications Table:**
+
 - `id` - UUID primary key
 - `recipient_id` - User receiving notification
 - `sender_id` - User who triggered notification (nullable)
@@ -176,20 +183,21 @@ Joins Notifications with sender profile information for easy display.
 **Endpoint:** `/.netlify/functions/send-notification`
 
 **Usage:**
+
 ```typescript
-const response = await fetch('/.netlify/functions/send-notification', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
+const response = await fetch("/.netlify/functions/send-notification", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
   body: JSON.stringify({
-    recipient_id: 'user-uuid',
-    sender_id: 'sender-uuid', // optional
-    type: 'friend_request',
-    title: 'New Friend Request',
-    message: 'John sent you a friend request',
-    link: '/inbox',
-    metadata: { friend_id: 'friendship-uuid' }
-  })
-})
+    recipient_id: "user-uuid",
+    sender_id: "sender-uuid", // optional
+    type: "friend_request",
+    title: "New Friend Request",
+    message: "John sent you a friend request",
+    link: "/inbox",
+    metadata: { friend_id: "friendship-uuid" },
+  }),
+});
 ```
 
 ---
@@ -253,6 +261,7 @@ const matches = await getRecentMatches(profileId?, limit)
 ### Database Schema
 
 **Matches Table:**
+
 - `id` - UUID primary key
 - `session_id` - Game session reference
 - `home_player_id` - Home player (formerly Player 1)
@@ -265,6 +274,7 @@ const matches = await getRecentMatches(profileId?, limit)
 - `played_at` - Match timestamp
 
 **PlayerSegmentStats Table:**
+
 - `id` - UUID primary key
 - `profile_id` - Player reference
 - `segment_code` - Segment type (WDYK, AUCT, BELL, UPDW, REMO)
@@ -312,11 +322,13 @@ const matches = await getLeaderboardMatches(limit: number)
 ### Database Views
 
 **leaderboard_players View:**
+
 - Calculates win rate, total games, wins, losses, ties
 - Ranks players by win rate, then wins, then total points
 - Includes player profile information
 
 **leaderboard_matches View:**
+
 - Ranks matches by total_points (combined score)
 - Includes both players' profile information
 - Shows winner information
@@ -328,14 +340,17 @@ const matches = await getLeaderboardMatches(limit: number)
 Throughout the application, player roles have been updated:
 
 **Old Terminology:**
+
 - Player 1 / Player A
 - Player 2 / Player B
 
 **New Terminology:**
+
 - **Home** - First player position
 - **Away** - Second player position
 
 **Updated Locations:**
+
 - Leaderboard displays
 - Match records
 - Database schema (home_player_id, away_player_id)
@@ -350,6 +365,7 @@ Throughout the application, player roles have been updated:
 All new features use **Supabase Realtime** for instant updates:
 
 ### Enabled Tables:
+
 - Friends
 - Notifications
 - Matches
@@ -360,18 +376,18 @@ All new features use **Supabase Realtime** for instant updates:
 ```typescript
 // Subscribe to friends updates
 const unsubscribe = subscribeFriendsUpdates(userId, (payload) => {
-  console.log('Friend update:', payload)
+  console.log("Friend update:", payload);
   // Reload friends list
-})
+});
 
 // Subscribe to notifications
 const unsubscribe = subscribeNotificationsUpdates(userId, (payload) => {
-  console.log('New notification:', payload)
+  console.log("New notification:", payload);
   // Update notification badge
-})
+});
 
 // Cleanup
-return () => unsubscribe()
+return () => unsubscribe();
 ```
 
 ---
@@ -492,20 +508,24 @@ pnpm test src/lib/matches.test.ts
 ## Troubleshooting
 
 ### Username Already Exists
+
 - Username must be unique across all users
 - Try a different username during signup
 
 ### Notifications Not Appearing
+
 - Check Supabase Realtime is enabled on Notifications table
 - Verify RLS policies allow user to read their notifications
 - Check browser console for subscription errors
 
 ### Match Not Recording
+
 - Ensure both players have profile_id set
 - Verify Matches table has correct RLS policies
 - Check that winnerId is either homePlayerId, awayPlayerId, or null
 
 ### Leaderboard Empty
+
 - Play at least one complete match
 - Check that match was recorded in Matches table
 - Verify leaderboard views have correct permissions
@@ -544,6 +564,7 @@ Most functions accept optional profileId parameter. If omitted, uses current aut
 ## Support
 
 For issues or questions about these features:
+
 1. Check this documentation
 2. Review database schema in `supabase/migrations/`
 3. Check TypeScript types in `src/lib/types/`

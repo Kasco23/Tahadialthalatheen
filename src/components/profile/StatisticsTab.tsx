@@ -24,12 +24,14 @@ export default function StatisticsTab() {
 
       try {
         setLoading(true);
-        const [playerStats, segments, nemesisData, matches] = await Promise.all([
-          getPlayerStats(),
-          getPlayerSegmentStats(),
-          getNemesis(),
-          getRecentMatches(undefined, 5),
-        ]);
+        const [playerStats, segments, nemesisData, matches] = await Promise.all(
+          [
+            getPlayerStats(),
+            getPlayerSegmentStats(),
+            getNemesis(),
+            getRecentMatches(undefined, 5),
+          ],
+        );
 
         setStats(playerStats);
         setSegmentStats(segments);
@@ -196,8 +198,8 @@ export default function StatisticsTab() {
                     won
                       ? "bg-green-50 border border-green-200"
                       : tied
-                      ? "bg-gray-50 border border-gray-200"
-                      : "bg-red-50 border border-red-200"
+                        ? "bg-gray-50 border border-gray-200"
+                        : "bg-red-50 border border-red-200"
                   }`}
                 >
                   <div className="flex-1">
@@ -207,8 +209,8 @@ export default function StatisticsTab() {
                           won
                             ? "bg-green-600 text-white"
                             : tied
-                            ? "bg-gray-600 text-white"
-                            : "bg-red-600 text-white"
+                              ? "bg-gray-600 text-white"
+                              : "bg-red-600 text-white"
                         }`}
                       >
                         {won ? "WIN" : tied ? "TIE" : "LOSS"}

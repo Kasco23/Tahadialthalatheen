@@ -109,9 +109,7 @@ export async function markNotificationAsRead(
 
     if (error) {
       Logger.error("Error marking notification as read:", error);
-      throw new Error(
-        `Failed to mark notification as read: ${error.message}`,
-      );
+      throw new Error(`Failed to mark notification as read: ${error.message}`);
     }
 
     Logger.log("Notification marked as read:", notificationId);
@@ -160,7 +158,9 @@ export async function markAllNotificationsAsRead(): Promise<void> {
  * Delete a notification
  * @param notificationId - The ID of the notification to delete
  */
-export async function deleteNotification(notificationId: string): Promise<void> {
+export async function deleteNotification(
+  notificationId: string,
+): Promise<void> {
   try {
     const {
       data: { user },

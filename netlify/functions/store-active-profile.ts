@@ -1,4 +1,4 @@
-import type { Handler, HandlerEvent, HandlerContext } from "@netlify/functions";
+import type { Context } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
 
 /**
@@ -33,32 +33,35 @@ interface RequestBody {
   profileData: ProfileData;
 }
 
-export const handler: Handler = async (
-  event: HandlerEvent,
-  _context: HandlerContext
-) => {
+export default async (req: Request, _context: Context) => {
   // Only allow POST requests
-  if (event.httpMethod !== "POST") {
-    return {
-      statusCode: 405,
-      body: JSON.stringify({ success: false, error: "Method not allowed" }),
-    };
+  if (req.method !== "POST") {
+    return new Response(
+      JSON.stringify({ success: false, error: "Method not allowed" }),
+      {
+        status: 405,
+        headers: { "Content-Type": "application/json" },
+      },
+    );
   }
 
   try {
     // Parse request body
-    const body: RequestBody = JSON.parse(event.body || "{}");
+    const body: RequestBody = await req.json();
     const { userId, profileData } = body;
 
     // Validate required parameters
     if (!userId || !profileData) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({
+      return new Response(
+        JSON.stringify({
           success: false,
           error: "Missing userId or profileData",
         }),
-      };
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
     }
 
     // Use global store for active profiles
@@ -73,21 +76,27 @@ export const handler: Handler = async (
       lastUpdated: Date.now(),
     });
 
-    return {
-      statusCode: 200,
-      body: JSON.stringify({
+    return new Response(
+      JSON.stringify({
         success: true,
         message: "Profile stored successfully",
       }),
-    };
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      },
+    );
   } catch (error) {
     console.error("Error storing active profile:", error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({
+    return new Response(
+      JSON.stringify({
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",
       }),
-    };
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      },
+    );
   }
 };

@@ -145,7 +145,9 @@ export default function Inbox() {
                 <div>
                   <h1 className="text-3xl font-bold text-gray-800">Inbox</h1>
                   <p className="text-gray-600">
-                    {unreadCount > 0 ? `${unreadCount} unread` : "All caught up!"}
+                    {unreadCount > 0
+                      ? `${unreadCount} unread`
+                      : "All caught up!"}
                   </p>
                 </div>
               </div>
@@ -202,7 +204,9 @@ export default function Inbox() {
             ) : notifications.length === 0 ? (
               <div className="bg-white/95 backdrop-blur-sm rounded-xl p-12 text-center">
                 <BellIcon className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                <p className="text-xl font-semibold text-gray-700 mb-2">No notifications</p>
+                <p className="text-xl font-semibold text-gray-700 mb-2">
+                  No notifications
+                </p>
                 <p className="text-gray-500">You're all caught up!</p>
               </div>
             ) : (
@@ -224,7 +228,9 @@ export default function Inbox() {
                           <h3 className="font-semibold text-gray-800 mb-1">
                             {notification.title}
                           </h3>
-                          <p className="text-gray-600 text-sm">{notification.message}</p>
+                          <p className="text-gray-600 text-sm">
+                            {notification.message}
+                          </p>
                           {notification.sender_username && (
                             <p className="text-gray-500 text-xs mt-1">
                               From: @{notification.sender_username}
