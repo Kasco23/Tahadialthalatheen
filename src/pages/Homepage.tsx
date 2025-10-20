@@ -2,12 +2,14 @@ import { Logger } from "../lib/logger";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import ActiveGamesSidebar from "../components/ActiveGames";
-import { createSession } from "../lib/mutations";
+import { createSession, createDailyRoom } from "../lib/mutations";
 import { Alert } from "../components/Alert";
 import { useAuth } from "../contexts/AuthContext";
 import { JoinModal } from "../components/JoinModal";
 import { StadiumBackground } from "../components/StadiumBackground";
 import NotificationBell from "../components/NotificationBell";
+import { updateSessionState } from "../lib/sessionState";
+import { UsernameSetupBanner } from "../components/UsernameSetupBanner";
 
 const Homepage: React.FC = () => {
   const [isCreatingSession, setIsCreatingSession] = useState(false);
@@ -37,7 +39,27 @@ const Homepage: React.FC = () => {
       if (!user?.id) {
         throw new Error("User not authenticated");
       }
-      const { sessionCode } = await createSession(user.id);
+      
+      // Create the session
+      const { sessionId, sessionCode } = await createSession(user.id);
+      
+      // Auto-create Daily room for the session
+      try {
+        Logger.log("Auto-creating Daily room for session:", { sessionId, sessionCode });
+        const roomData = await createDailyRoom(sessionId, sessionCode);
+        
+        // Update session state in Netlify Blobs
+        await updateSessionState(sessionId, {
+          dailyRoomCreated: true,
+          dailyRoomUrl: roomData.room_url,
+        });
+        
+        Logger.log("Daily room auto-created successfully:", roomData);
+      } catch (roomError) {
+        // Log the error but don't block navigation - room can be created later in GameSetup
+        Logger.error("Failed to auto-create Daily room (non-blocking):", roomError);
+      }
+      
       // Navigate to game setup
       navigate(`/gamesetup/${sessionCode}`);
     } catch (error) {
@@ -65,6 +87,8 @@ const Homepage: React.FC = () => {
 
   return (
     <StadiumBackground variant="default">
+      {/* Username Setup Banner */}
+      <UsernameSetupBanner />
 
       {/* User menu in top right */}
       {user && (

@@ -40,6 +40,8 @@ import {
   subscribeToSessionState,
   type SessionState,
 } from "../lib/sessionState";
+import { InviteFriendsModal } from "../components/InviteFriendsModal";
+import { UsernameSetupBanner } from "../components/UsernameSetupBanner";
 
 type ParticipantRow = Database["public"]["Tables"]["Participants"]["Row"] & {
   Profiles?: {
@@ -282,6 +284,9 @@ const Lobby: React.FC = () => {
   
   // Session state from Netlify Blobs (room creation, etc.)
   const [sessionState, setSessionState] = useState<SessionState | null>(null);
+  
+  // Invite modal state
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
 
   // Get participant name from localStorage
   const participantName =
@@ -855,6 +860,9 @@ const Lobby: React.FC = () => {
 
   return (
     <StadiumBackground variant="default" animated={true}>
+      {/* Username Setup Banner */}
+      <UsernameSetupBanner />
+      
       <div className="p-4 min-h-screen">
         {/* Header */}
         <div className="text-center mb-8 pt-8">
@@ -1061,6 +1069,39 @@ const Lobby: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Invite Friends Button - Fixed Position */}
+      {sessionId && sessionCode && (
+        <button
+          onClick={() => setIsInviteModalOpen(true)}
+          className="fixed bottom-6 right-6 z-40 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-4 px-6 rounded-full shadow-2xl transition-all duration-300 hover:shadow-blue-500/50 hover:scale-110 flex items-center gap-2"
+        >
+          <svg
+            className="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 4v16m8-8H4"
+            />
+          </svg>
+          Invite Friends
+        </button>
+      )}
+
+      {/* Invite Friends Modal */}
+      {sessionId && sessionCode && (
+        <InviteFriendsModal
+          isOpen={isInviteModalOpen}
+          onClose={() => setIsInviteModalOpen(false)}
+          sessionCode={sessionCode}
+          sessionId={sessionId}
+        />
       )}
     </StadiumBackground>
   );

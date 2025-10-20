@@ -292,3 +292,34 @@ export function subscribeNotificationsUpdates(
     supabase.removeChannel(channel);
   };
 }
+
+/**
+ * Create a session invite notification
+ * @param recipientId - The user ID who will receive the invite
+ * @param senderId - The user ID who sent the invite
+ * @param senderName - The name of the sender
+ * @param sessionCode - The session code to join
+ * @param sessionId - The session ID
+ * @returns The created notification
+ */
+export async function createSessionInvite(
+  recipientId: string,
+  senderId: string,
+  senderName: string,
+  sessionCode: string,
+  sessionId: string,
+): Promise<Notification> {
+  return createNotification(
+    recipientId,
+    senderId,
+    "match_invite",
+    "Game Invite",
+    `${senderName} invited you to join a game!`,
+    `/join?code=${sessionCode}&seat=2`, // Default to Player1 seat
+    {
+      sessionCode,
+      sessionId,
+      inviteType: "session",
+    },
+  );
+}
