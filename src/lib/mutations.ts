@@ -55,17 +55,26 @@ export async function createSession(
       throw new Error("Session created but missing required data");
     }
 
-    // Create only GameMaster participant (PC user who created the session)
-    // Host participant will be created separately when they join via mobile
+    // Create both GameMaster and Host participants
+    // GameMaster is the PC user who created the session (immediately joined)
+    // Host participant will join later via mobile
     const { error: participantError } = await supabase
       .from("Participants")
-      .insert({
-        session_id: sessionData.session_id,
-        name: "GameMaster", // PC user who created the session
-        role: "GameMaster" as ParticipantRole,
-        lobby_presence: "Joined" as LobbyPresence, // PC user is immediately joined
-        profile_id: hostProfileId, // Link to creator's profile
-      });
+      .insert([
+        {
+          session_id: sessionData.session_id,
+          name: "GameMaster", // PC user who created the session
+          role: "GameMaster" as ParticipantRole,
+          lobby_presence: "Joined" as LobbyPresence, // PC user is immediately joined
+          profile_id: hostProfileId, // Link to creator's profile
+        },
+        {
+          session_id: sessionData.session_id,
+          name: "Host",
+          role: "Host" as ParticipantRole,
+          lobby_presence: "NotJoined" as LobbyPresence, // Host will join later
+        },
+      ]);
 
     if (participantError) {
       Logger.error("Participant creation failed:", participantError);

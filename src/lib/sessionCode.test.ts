@@ -49,7 +49,7 @@ describe("Session Code Functionality", () => {
 
     const result = await getSessionIdByCode(mockSessionCode);
 
-    expect(mockFrom).toHaveBeenCalledWith("Session");
+    expect(mockFrom).toHaveBeenCalledWith("Sessions");
     expect(mockSelect).toHaveBeenCalledWith("session_id");
     expect(mockEq).toHaveBeenCalledWith("session_code", "ABC123");
     expect(result).toBe(mockSessionId);
