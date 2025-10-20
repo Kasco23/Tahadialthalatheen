@@ -1,4 +1,4 @@
-import type { Context, Config } from "@netlify/functions";
+import type { Context } from "@netlify/functions";
 
 export default async (req: Request, _context: Context) => {
   // Only allow POST requests
@@ -95,8 +95,4 @@ export default async (req: Request, _context: Context) => {
       },
     );
   }
-};
-
-export const config: Config = {
-  path: "/api/create-daily-token",
 };

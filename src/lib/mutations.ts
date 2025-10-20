@@ -164,10 +164,10 @@ export async function getActiveSessions(): Promise<ActiveSession[]> {
     const hostParticipant = participants.find((p) => p.role === "Host");
     const hostName = hostParticipant?.Profiles?.name || "Unknown Host";
 
-    // Only count Player1 and Player2 roles that have lobby_presence "Joined"
+    // Only count Home and Away roles that have lobby_presence "Joined"
     const playerCount = participants.filter(
       (p) =>
-        (p.role === "Player1" || p.role === "Player2") &&
+        (p.role === "Home" || p.role === "Away") &&
         p.lobby_presence === "Joined",
     ).length;
     const hasDailyRoom = !!(
@@ -209,7 +209,7 @@ type ParticipantIdRow = { participant_id: string };
 
 // Wrapper function for joining as player with session code
 // Smart logic: If user created the session (their profile_id exists as Host), rejoin as Host
-// Otherwise, join as Player1, Player2, or Guest based on available slots
+// Otherwise, join as Home, Away, or Guest based on available slots
 export async function joinAsPlayerWithCode(
   sessionCode: string,
   _name: string, // Deprecated - now using Profiles.name
@@ -247,7 +247,7 @@ export async function joinAsPlayerWithCode(
     }
   }
 
-  // Check if user already has a participant record with their profile_id (Player1/Player2/Guest)
+  // Check if user already has a participant record with their profile_id (Home/Away/Guest)
   if (profileId) {
     const { data: existing, error: existingErr } = await supabase
       .from("Participants")
@@ -272,17 +272,17 @@ export async function joinAsPlayerWithCode(
         .eq("participant_id", existingRow!.participant_id);
       return {
         participantId: existingRow!.participant_id,
-        role: existingRow!.role || "Player1",
+        role: existingRow!.role || "Home",
       };
     }
   }
 
-  // Determine available player role (Player1, Player2, or Guest)
+  // Determine available player role (Home, Away, or Guest)
   const { data: playersData, error: playersError } = await supabase
     .from("Participants")
     .select("role")
     .eq("session_id", sessionId)
-    .in("role", ["Player1", "Player2"]);
+    .in("role", ["Home", "Away"]);
 
   if (playersError) {
     throw new Error(
@@ -295,10 +295,10 @@ export async function joinAsPlayerWithCode(
     : [];
 
   let assignedRole: string;
-  if (!existingRoles.includes("Player1")) {
-    assignedRole = "Player1";
-  } else if (!existingRoles.includes("Player2")) {
-    assignedRole = "Player2";
+  if (!existingRoles.includes("Home")) {
+    assignedRole = "Home";
+  } else if (!existingRoles.includes("Away")) {
+    assignedRole = "Away";
   } else {
     // Both player slots taken, assign as Guest
     assignedRole = "Guest";
@@ -404,7 +404,7 @@ export async function createDailyRoom(
     }
 
     // Call Netlify function with session_code for room name
-    const response = await fetch("/api/create-daily-room", {
+    const response = await fetch("/.netlify/functions/createDailyRoom", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -657,7 +657,7 @@ export async function joinAsPlayer(
     .from("Participants")
     .select("role")
     .eq("session_id", sessionId)
-    .in("role", ["Player1", "Player2"]);
+    .in("role", ["Home", "Away"]);
 
   if (countError) {
     throw new Error(`Failed to check existing players: ${countError.message}`);
@@ -665,13 +665,13 @@ export async function joinAsPlayer(
 
   // Determine role based on existing players
   let role: ParticipantRole;
-  const hasPlayer1 = existingPlayers.some((p) => p.role === "Player1");
-  const hasPlayer2 = existingPlayers.some((p) => p.role === "Player2");
+  const hasHome = existingPlayers.some((p) => p.role === "Home");
+  const hasAway = existingPlayers.some((p) => p.role === "Away");
 
-  if (!hasPlayer1) {
-    role = "Player1";
-  } else if (!hasPlayer2) {
-    role = "Player2";
+  if (!hasHome) {
+    role = "Home";
+  } else if (!hasAway) {
+    role = "Away";
   } else {
     throw new Error("Session is full - maximum 2 players allowed");
   }
@@ -1133,7 +1133,7 @@ export async function checkAllPlayersReady(
       "participant_id, role, isReady, profile_id, Profiles!profile_id(name)",
     )
     .eq("session_id", sessionId)
-    .in("role", ["Player1", "Player2"])
+    .in("role", ["Home", "Away"])
     .eq("lobby_presence", "Joined");
 
   if (error) {
@@ -1175,7 +1175,7 @@ export async function resetAllPlayersReady(sessionId: string): Promise<void> {
     .from("Participants")
     .update({ isReady: false } as TablesUpdate<"Participants">)
     .eq("session_id", sessionId)
-    .in("role", ["Player1", "Player2"]);
+    .in("role", ["Home", "Away"]);
 
   if (error) {
     throw new Error(`Failed to reset ready status: ${error.message}`);
@@ -1478,7 +1478,7 @@ export async function getAvailableSeats(sessionCode: string): Promise<{
     .from("Participants")
     .select("role")
     .eq("session_id", sessionId)
-    .in("role", ["Player1", "Player2"]);
+    .in("role", ["Home", "Away"]);
 
   if (error) {
     Logger.error("Error checking available seats:", error);
@@ -1488,7 +1488,7 @@ export async function getAvailableSeats(sessionCode: string): Promise<{
   const occupiedSeats = (participants || []).map(
     (p) => p.role as ParticipantRole,
   );
-  const allSeats: ParticipantRole[] = ["Player1", "Player2"];
+  const allSeats: ParticipantRole[] = ["Home", "Away"];
   const availableSeats = allSeats.filter(
     (seat) => !occupiedSeats.includes(seat),
   );

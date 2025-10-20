@@ -150,10 +150,10 @@ const Results: React.FC = () => {
 
   const getPlayerScores = useCallback(() => {
     const player1 = players.find(
-      (p) => p.role === "Player1" || p.role === "playerA",
+      (p) => p.role === "Home" || p.role === "playerA",
     );
     const player2 = players.find(
-      (p) => p.role === "Player2" || p.role === "playerB",
+      (p) => p.role === "Away" || p.role === "playerB",
     );
 
     return {

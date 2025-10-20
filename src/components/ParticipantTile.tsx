@@ -33,20 +33,6 @@ interface ParticipantTileProps {
   playersByName: Map<string, ParticipantRow>;
 }
 
-// Helper function to get role display (copied from Lobby logic)
-const getRoleDisplay = (player: ParticipantRow) => {
-  switch (player.role) {
-    case "Host":
-      return "👑 Host";
-    case "Player1":
-      return "⚽ Player 1";
-    case "Player2":
-      return "🏆 Player 2";
-    default:
-      return player.role;
-  }
-};
-
 const ParticipantTile: React.FC<ParticipantTileProps> = ({
   participantId,
   playersByName,
@@ -60,13 +46,8 @@ const ParticipantTile: React.FC<ParticipantTileProps> = ({
     ? playersByName.get(userName.toLowerCase())
     : null;
 
-  // Determine display name and role
+  // Determine display name
   const displayName = playerData?.name || userName || "Unknown Participant";
-  const roleDisplay = playerData ? getRoleDisplay(playerData) : "Participant";
-
-  // Flag and logo
-  const flagCode = playerData?.flag || "sa"; // Default to Saudi Arabia
-  const logoUrl = playerData?.team_logo_url;
 
   // Check if video is available
   const hasVideo = videoTrack?.track && videoTrack.state === "playable";
@@ -105,24 +86,9 @@ const ParticipantTile: React.FC<ParticipantTileProps> = ({
 
       {/* Overlay with participant info */}
       <div className="absolute bottom-0 left-0 w-full bg-black/50 text-white text-sm p-2 flex items-center space-x-2">
-        {/* Flag */}
-        <span className={`fi fi-${flagCode} text-base`}></span>
-
-        {/* Team logo */}
-        {logoUrl && (
-          <img
-            src={logoUrl}
-            alt="Team logo"
-            className="w-5 h-5 object-contain inline"
-            onError={(e) => {
-              e.currentTarget.style.display = "none";
-            }}
-          />
-        )}
-
-        {/* Name and role */}
+        {/* Name only */}
         <span className="flex-1 truncate">
-          {displayName} • {roleDisplay}
+          {displayName}
         </span>
 
         {/* Video status indicator */}

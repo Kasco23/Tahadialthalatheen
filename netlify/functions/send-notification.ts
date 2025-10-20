@@ -126,7 +126,3 @@ export default async (req: Request, _context: Context) => {
     );
   }
 };
-
-export const config = {
-  path: "/send-notification",
-};

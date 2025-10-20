@@ -151,7 +151,7 @@ const ActiveGamesSidebar: React.FC<ActiveGamesSidebarProps> = ({
       );
 
       // Navigate directly to lobby
-      const seat = role === "Player1" ? "1" : "2";
+      const seat = role === "Home" ? "2" : "3";
       navigate(`/lobby/${sessionCode}/${seat}`);
     } catch (err) {
       Logger.error("Quick join error:", err);

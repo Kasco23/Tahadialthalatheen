@@ -72,7 +72,7 @@ const ParticipantCard: React.FC<ParticipantCardProps> = ({
   canToggleReady = false,
   isTogglingReady = false,
 }) => {
-  const isPlayer = player.role === "Player1" || player.role === "Player2";
+  const isPlayer = player.role === "Home" || player.role === "Away";
 
   // Generate team logo URL from Profile data only
   const teamLogoUrl = useMemo(() => {
@@ -515,8 +515,8 @@ const Lobby: React.FC = () => {
   const getRoleDisplay = (p: ParticipantRow) => {
     if (p.role === PARTICIPANT_ROLE.HOST) return "👑 Host";
     if (p.role === PARTICIPANT_ROLE.GAME_MASTER) return "🎮 Game Master";
-    if (p.role === PARTICIPANT_ROLE.PLAYER1) return "⚽ Player A";
-    if (p.role === PARTICIPANT_ROLE.PLAYER2) return "🏆 Player B";
+    if (p.role === PARTICIPANT_ROLE.HOME) return "⚽ Home";
+    if (p.role === PARTICIPANT_ROLE.AWAY) return "🏆 Away";
     return `👤 ${p.role}`;
   };
 
@@ -575,11 +575,11 @@ const Lobby: React.FC = () => {
       case "host":
         participantRole = PARTICIPANT_ROLE.HOST;
         break;
-      case "player1":
-        participantRole = PARTICIPANT_ROLE.PLAYER1;
+      case "home":
+        participantRole = PARTICIPANT_ROLE.HOME;
         break;
-      case "player2":
-        participantRole = PARTICIPANT_ROLE.PLAYER2;
+      case "away":
+        participantRole = PARTICIPANT_ROLE.AWAY;
         break;
       default:
         return;
@@ -619,11 +619,11 @@ const Lobby: React.FC = () => {
       case "host":
         participantRole = PARTICIPANT_ROLE.HOST;
         break;
-      case "player1":
-        participantRole = PARTICIPANT_ROLE.PLAYER1;
+      case "home":
+        participantRole = PARTICIPANT_ROLE.HOME;
         break;
-      case "player2":
-        participantRole = PARTICIPANT_ROLE.PLAYER2;
+      case "away":
+        participantRole = PARTICIPANT_ROLE.AWAY;
         break;
       default:
         return;
@@ -754,11 +754,11 @@ const Lobby: React.FC = () => {
           case "host":
             participantRole = PARTICIPANT_ROLE.HOST;
             break;
-          case "player1":
-            participantRole = PARTICIPANT_ROLE.PLAYER1;
+          case "home":
+            participantRole = PARTICIPANT_ROLE.HOME;
             break;
-          case "player2":
-            participantRole = PARTICIPANT_ROLE.PLAYER2;
+          case "away":
+            participantRole = PARTICIPANT_ROLE.AWAY;
             break;
           default:
             Logger.error("Invalid user role for leaving lobby:", userRole);
@@ -888,8 +888,8 @@ const Lobby: React.FC = () => {
                 <div className="space-y-3 max-h-96 overflow-y-auto">
                   {[
                     PARTICIPANT_ROLE.HOST,
-                    PARTICIPANT_ROLE.PLAYER1,
-                    PARTICIPANT_ROLE.PLAYER2,
+                    PARTICIPANT_ROLE.HOME,
+                    PARTICIPANT_ROLE.AWAY,
                   ].map((requiredRole) => {
                     const player = players.find(
                       (p) =>
@@ -902,7 +902,7 @@ const Lobby: React.FC = () => {
                       const { lobbyPresence, videoPresence } =
                         getPresenceStatus(player);
                       const isPlayer =
-                        player.role === "Player1" || player.role === "Player2";
+                        player.role === "Home" || player.role === "Away";
                       const isCurrentPlayer = resolvedSeat
                         ? SEAT_TO_ROLE[resolvedSeat] ===
                           player.role.toLowerCase()

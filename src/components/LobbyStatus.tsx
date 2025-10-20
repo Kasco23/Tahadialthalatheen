@@ -154,7 +154,7 @@ const LobbyStatus: React.FC<LobbyStatusProps> = ({
 
   // Filter out GameMaster from displayed participants and counts
   const displayParticipants = participants.filter((p) =>
-    ["Host", "Player1", "Player2"].includes(p.role),
+    ["Host", "Home", "Away"].includes(p.role),
   );
   const activeParticipantCount = displayParticipants.filter(
     (p) => p.lobby_presence === "Joined",

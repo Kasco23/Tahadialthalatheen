@@ -21,21 +21,21 @@ export type SegmentCode = "WDYK" | "AUCT" | "BELL" | "UPDW" | "REMO";
 // Application-specific enums and inputs (moved from the older single-file
 // `types.ts`). Keep these small and explicit rather than relying on
 // regenerated DB types for behaviour-level enums.
-export type ParticipantRole = "Host" | "Player1" | "Player2" | "GameMaster";
+export type ParticipantRole = "Host" | "Home" | "Away" | "GameMaster";
 
-// Constants for participant roles - Update to use "Home" and "Away" terminology
+// Constants for participant roles - Using "Home" and "Away" terminology
 export const PARTICIPANT_ROLE = {
   HOST: "Host" as const,
-  PLAYER1: "Player1" as const, // Home player
-  PLAYER2: "Player2" as const, // Away player
+  HOME: "Home" as const, // Formerly Player1
+  AWAY: "Away" as const, // Formerly Player2
   GAME_MASTER: "GameMaster" as const,
 } satisfies Record<string, ParticipantRole>;
 
 // Display labels for roles
 export const ROLE_DISPLAY_LABELS: Record<ParticipantRole, string> = {
   Host: "Host",
-  Player1: "Home",
-  Player2: "Away",
+  Home: "Home",
+  Away: "Away",
   GameMaster: "Game Master",
 };
 
@@ -99,18 +99,18 @@ export interface DailyTokenRefreshConfig {
 }
 
 // Seat-based routing system types
-export type SeatRole = "host" | "player1" | "player2";
+export type SeatRole = "host" | "home" | "away";
 
 export const SEAT_TO_ROLE: Record<string, SeatRole> = {
   "1": "host",
-  "2": "player1",
-  "3": "player2",
+  "2": "home",
+  "3": "away",
 };
 
 export const ROLE_TO_SEAT: Record<SeatRole, string> = {
   host: "1",
-  player1: "2",
-  player2: "3",
+  home: "2",
+  away: "3",
 };
 
 // Friend request types

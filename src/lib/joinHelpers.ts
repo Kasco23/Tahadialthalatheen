@@ -56,7 +56,7 @@ export async function checkForExistingParticipants(
       role === "host"
         ? (participants || []).filter((p) => p.role === "Host")
         : (participants || []).filter(
-            (p) => p.role === "Player1" || p.role === "Player2",
+            (p) => p.role === "Home" || p.role === "Away",
           );
 
     return filtered as ExistingParticipant[];

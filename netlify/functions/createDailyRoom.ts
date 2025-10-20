@@ -1,4 +1,4 @@
-import type { Context, Config } from "@netlify/functions";
+import type { Context } from "@netlify/functions";
 import { createClient } from "@supabase/supabase-js";
 
 export default async (req: Request, _context: Context) => {
@@ -173,8 +173,4 @@ export default async (req: Request, _context: Context) => {
       },
     );
   }
-};
-
-export const config: Config = {
-  path: "/api/create-daily-room",
 };

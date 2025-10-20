@@ -112,19 +112,19 @@ const JoinSimplified: React.FC = () => {
             throw new Error("Host slot not found in session");
           }
         } else {
-          // Assign Player1, Player2, or Guest role
+          // Assign Home, Away, or Guest role
           const { data: existingPlayers } = await supabase
             .from("Participants")
             .select("role")
             .eq("session_id", sessionId)
-            .in("role", ["Player1", "Player2"]);
+            .in("role", ["Home", "Away"]);
 
           const playerRoles = (existingPlayers || []).map((p) => p.role);
 
-          if (!playerRoles.includes("Player1")) {
-            role = "Player1";
-          } else if (!playerRoles.includes("Player2")) {
-            role = "Player2";
+          if (!playerRoles.includes("Home")) {
+            role = "Home";
+          } else if (!playerRoles.includes("Away")) {
+            role = "Away";
           } else {
             role = "GameMaster"; // Guest role
           }

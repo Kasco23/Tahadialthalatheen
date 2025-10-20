@@ -22,7 +22,7 @@ describe("ParticipantTile", () => {
         participant_id: "test-participant",
         session_id: "test-session",
         name: "Test User",
-        role: "Player1",
+        role: "Home",
         flag: "us",
         team_logo_url: "",
         lobby_presence: "Joined",
@@ -66,9 +66,8 @@ describe("ParticipantTile", () => {
       />,
     );
 
-    // Check that participant info is displayed
+    // Check that participant info is displayed (name only, no role after our recent changes)
     expect(screen.getByText(/Test User/)).toBeInTheDocument();
-    expect(screen.getByText(/Player 1/)).toBeInTheDocument();
   });
 
   it("should show connection status indicator", () => {

@@ -165,7 +165,7 @@ class DailyTokenManager {
         return { token: mockToken };
       }
 
-      const response = await fetch("/api/create-daily-token", {
+      const response = await fetch("/.netlify/functions/create-daily-token", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
