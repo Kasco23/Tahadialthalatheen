@@ -36,9 +36,9 @@ export default async (req: Request, _context: Context) => {
     // Validate notification type
     const validTypes = [
       "friend_request",
-      "friend_accepted",
+      "friend_accept",
       "match_invite",
-      "match_result",
+      "message",
     ];
     if (!validTypes.includes(type)) {
       return new Response(

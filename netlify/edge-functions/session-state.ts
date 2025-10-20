@@ -37,7 +37,7 @@ import { getStore } from "@netlify/blobs";
  * - 400: { success: false, error: <validation-error> }
  * - 500: { success: false, error: <error-message> }
  */
-export default async (req: Request, context: Context) => {
+export default async (req: Request, _context: Context) => {
   try {
     const method = req.method;
 
@@ -68,12 +68,8 @@ export default async (req: Request, context: Context) => {
       );
     }
 
-    // Get blob store
-    const store = getStore({
-      name: "session-state",
-      siteID: context.site.id,
-      token: Deno.env.get("NETLIFY_PERSONAL_ACCESS_TOKEN") || "",
-    });
+    // Get blob store (automatic configuration in deployed environment)
+    const store = getStore("session-state");
 
     const stateKey = `session:${sessionId}:state`;
 

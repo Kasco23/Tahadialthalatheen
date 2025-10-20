@@ -218,7 +218,8 @@ export async function deleteReadNotifications(): Promise<void> {
 }
 
 /**
- * Create a new notification (typically called by serverless function)
+ * Create a new notification via Netlify function
+ * This bypasses RLS by using the service role on the server side
  * @param recipientId - The user ID who will receive the notification
  * @param senderId - The user ID who triggered the notification (optional)
  * @param type - The type of notification
@@ -237,9 +238,13 @@ export async function createNotification(
   metadata: Record<string, unknown> = {},
 ): Promise<Notification> {
   try {
-    const { data, error } = await supabase
-      .from("Notifications")
-      .insert({
+    // Call the Netlify function to create notification with service role
+    const response = await fetch("/.netlify/functions/send-notification", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
         recipient_id: recipientId,
         sender_id: senderId,
         type,
@@ -247,17 +252,19 @@ export async function createNotification(
         message,
         link,
         metadata,
-      })
-      .select()
-      .single();
+      }),
+    });
 
-    if (error) {
-      Logger.error("Error creating notification:", error);
-      throw new Error(`Failed to create notification: ${error.message}`);
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(
+        errorData.error || `HTTP error! status: ${response.status}`,
+      );
     }
 
-    Logger.log("Notification created:", data);
-    return data;
+    const result = await response.json();
+    Logger.log("Notification created via function:", result);
+    return result.notification;
   } catch (error) {
     Logger.error("Error in createNotification:", error);
     throw error;

@@ -18,7 +18,7 @@ import { getStore } from "@netlify/blobs";
  * - 400: { success: false, error: "Missing required parameters" }
  * - 500: { success: false, error: <error-message> }
  */
-export default async (req: Request, context: Context) => {
+export default async (req: Request, _context: Context) => {
   try {
     // Allow POST for save/update and DELETE for removal
     if (req.method !== "POST" && req.method !== "DELETE") {
@@ -59,12 +59,8 @@ export default async (req: Request, context: Context) => {
       );
     }
 
-    // Get blob store
-    const store = getStore({
-      name: "session-data",
-      siteID: context.site.id,
-      token: Deno.env.get("NETLIFY_PERSONAL_ACCESS_TOKEN") || "",
-    });
+    // Get blob store (automatic configuration in deployed environment)
+    const store = getStore("session-data");
 
     if (req.method === "DELETE") {
       // Delete session data

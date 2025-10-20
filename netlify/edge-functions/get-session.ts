@@ -15,7 +15,7 @@ import { getStore } from "@netlify/blobs";
  * - 400: { success: false, error: "Missing key parameter" }
  * - 500: { success: false, error: <error-message> }
  */
-export default async (req: Request, context: Context) => {
+export default async (req: Request, _context: Context) => {
   try {
     // Only allow GET requests
     if (req.method !== "GET") {
@@ -56,12 +56,8 @@ export default async (req: Request, context: Context) => {
       );
     }
 
-    // Get blob store
-    const store = getStore({
-      name: "session-data",
-      siteID: context.site.id,
-      token: Deno.env.get("NETLIFY_PERSONAL_ACCESS_TOKEN") || "",
-    });
+    // Get blob store (automatic configuration in deployed environment)
+    const store = getStore("session-data");
 
     // Retrieve data from blob store
     const data = await store.get(key, { type: "json" });
