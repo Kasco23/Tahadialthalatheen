@@ -20,8 +20,31 @@
   node_bundler  = "esbuild"
   external_node_modules = ["@supabase/supabase-js"]
 
+# Scheduled function
 [functions."cleanupStatus"]
   schedule = "0 * * * *"  # Runs hourly at the top of the hour
+
+# Explicit function path mappings (required for Runtime API v2)
+[functions."createDailyRoom"]
+  path = "/.netlify/functions/createDailyRoom"
+
+[functions."create-daily-token"]
+  path = "/.netlify/functions/create-daily-token"
+
+[functions."send-notification"]
+  path = "/.netlify/functions/send-notification"
+
+[functions."store-active-profile"]
+  path = "/.netlify/functions/store-active-profile"
+
+[functions."get-active-profile"]
+  path = "/.netlify/functions/get-active-profile"
+
+[functions."mark-player-ready"]
+  path = "/.netlify/functions/mark-player-ready"
+
+[functions."check-ready-status"]
+  path = "/.netlify/functions/check-ready-status"
 
 # Edge function routes for session management
 [[edge_functions]]
