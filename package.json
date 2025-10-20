@@ -80,7 +80,7 @@
   "devDependencies": {
     "@eslint/js": "^9.37.0",
     "@netlify/edge-functions": "^2.19.0",
-    "@netlify/functions": "^4.3.0",
+    "@netlify/functions": "^2.8.2",
     "@netlify/vite-plugin": "^2.7.4",
     "@playwright/test": "^1.56.1",
     "@tailwindcss/postcss": "^4.1.14",
