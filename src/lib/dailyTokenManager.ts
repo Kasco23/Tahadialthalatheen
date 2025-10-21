@@ -95,11 +95,23 @@ class DailyTokenManager {
 
   /**
    * Clear all tokens for a room (when session ends)
+   * Supports partial room name matching (e.g., "915BDV" will match "thirty/915BDV:username")
    */
   clearRoomTokens(roomName: string): void {
-    const keysToDelete = Object.keys(this.cache).filter((key) =>
-      key.startsWith(`${roomName}:`),
-    );
+    const keysToDelete = Object.keys(this.cache).filter((key) => {
+      // Extract the room part from "roomName:userName" format
+      const [cachedRoomName] = key.split(":");
+      // Match if the cached room name ends with the provided roomName
+      // This handles cases like: roomName="915BDV" matching cachedRoomName="thirty/915BDV"
+      return (
+        cachedRoomName === roomName || cachedRoomName.endsWith(`/${roomName}`)
+      );
+    });
+
+    Logger.log("Clearing Daily tokens for room:", {
+      roomName,
+      keysFound: keysToDelete,
+    });
 
     keysToDelete.forEach((key) => {
       delete this.cache[key];
