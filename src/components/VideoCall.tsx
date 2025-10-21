@@ -6,11 +6,12 @@ import {
   useDailyError,
   useDaily,
 } from "@daily-co/daily-react";
+import { useAtom } from "jotai";
 import { ParticipantTile } from "./ParticipantTile";
 import { ControlsBar } from "./ControlsBar";
 import type { Database } from "../lib/types/supabase";
 import { supabase } from "../lib/supabaseClient";
-import { createDailyToken } from "../lib/mutations";
+import { dailyRoomUrlAtom, dailyTokenAtom } from "../atoms";
 
 /**
  * VideoCall Component - Daily.co video integration
@@ -41,20 +42,23 @@ type ParticipantRow = Database["public"]["Tables"]["Participants"]["Row"] & {
 interface VideoCallProps {
   players: ParticipantRow[];
   sessionCode: string;
-  sessionId: string;
+  sessionId?: string; // Make optional since no longer used
   participantName: string;
 }
 
 export const VideoCall: React.FC<VideoCallProps> = ({
   players,
   sessionCode,
-  sessionId,
   participantName,
 }) => {
   // Use modern Daily React hooks
   const { meetingError } = useDailyError();
   const callObject = useDaily();
   const [callError, setCallError] = React.useState<string | null>(null);
+
+  // Get room and token data from atoms (already created in Lobby)
+  const [roomUrl] = useAtom(dailyRoomUrlAtom);
+  const [token] = useAtom(dailyTokenAtom);
 
   // Get all participant IDs in the call (including local user)
   const participantIds = useParticipantIds();
@@ -97,21 +101,15 @@ export const VideoCall: React.FC<VideoCallProps> = ({
 
   // Handle joining Daily call
   const handleJoinDailyCall = async () => {
-    if (!sessionCode || !callObject) {
-      setCallError("No session code or call object available.");
+    if (!callObject) {
+      setCallError("No call object available.");
       return;
     }
 
-    // Get Daily room info from Supabase using sessionId (not sessionCode)
-    const { data: roomData } = await supabase
-      .from("DailyRooms")
-      .select("room_url, ready")
-      .eq("room_id", sessionId)
-      .single();
-
-    if (!roomData?.room_url) {
+    // Use room URL and token from atoms (already created in Lobby)
+    if (!roomUrl || !token) {
       setCallError(
-        "No Daily room available. Host needs to create a room first.",
+        "No Daily room or token available. Host needs to create a room first.",
       );
       return;
     }
@@ -121,7 +119,7 @@ export const VideoCall: React.FC<VideoCallProps> = ({
       window.location.hostname === "localhost" &&
       window.location.port === "5173";
     const isMockRoom =
-      roomData.room_url.includes("thirty.daily.co") && isLocalDev;
+      roomUrl.includes("thirty.daily.co") && isLocalDev;
 
     if (isMockRoom) {
       setCallError(
@@ -133,23 +131,20 @@ export const VideoCall: React.FC<VideoCallProps> = ({
     setCallError(null);
 
     try {
-      Logger.log("Using participant name for token:", participantName);
-
-      // Fetch the token for joining the Daily room
-      const tokenResponse = await createDailyToken(
-        sessionCode,
-        participantName,
-      );
-
-      // Join the Daily room using the modern hook-based approach
-      await callObject.join({
-        url: roomData.room_url,
-        token: tokenResponse.token,
+      Logger.log("Using pre-created token for Daily room join:", {
+        roomUrl,
         userName: participantName,
       });
 
-      Logger.log("Successfully initiated Daily room join:", {
-        roomUrl: roomData.room_url,
+      // Join the Daily room using the pre-created token from atoms
+      await callObject.join({
+        url: roomUrl,
+        token: token,
+        userName: participantName,
+      });
+
+      Logger.log("Successfully joined Daily room:", {
+        roomUrl,
         userName: participantName,
       });
     } catch (error) {

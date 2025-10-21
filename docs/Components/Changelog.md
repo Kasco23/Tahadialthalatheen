@@ -7,6 +7,40 @@
 
 ## October 21, 2025
 
+### Video Conference Token Management Fix
+
+**Type**: Bug Fix  
+**Impact**: Critical - Video call not working after Daily room creation  
+**Files Modified**: `Lobby.tsx`, `VideoCall.tsx`
+
+#### Problem
+
+- Video calls were not appearing in Lobby despite Daily room being created
+- Root cause: Duplicate token creation and database schema mismatches
+- VideoCall component was creating its own tokens instead of using pre-created ones from Lobby
+- Participants query was missing `username` field needed for token creation
+
+#### Solution
+
+- **Fixed Participants Query**: Added `username` field to Profiles JOIN in Lobby.tsx
+- **Centralized Token Management**: VideoCall now uses tokens from Jotai atoms instead of creating duplicates  
+- **Removed Duplicate Logic**: Eliminated redundant Daily room queries and token creation in VideoCall
+- **Proper Name Handling**: Uses `username` (safe, no spaces) for tokens and `name` for display
+
+#### Technical Changes
+
+1. Updated Participants query to include `username` from Profiles table
+2. Modified VideoCall to use `dailyRoomUrlAtom` and `dailyTokenAtom` instead of creating new tokens
+3. Removed duplicate Supabase query logic from VideoCall component
+4. Streamlined join process to use pre-created room and token data
+
+#### Result
+
+✅ Video conference now properly appears after Daily room creation  
+✅ No duplicate token creation or API calls  
+✅ Proper separation between display names and token usernames  
+✅ Centralized token management via Jotai atoms
+
 ### Video Conference Name Display - Bug Fix
 
 **Type**: Bug Fix  

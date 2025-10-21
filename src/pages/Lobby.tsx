@@ -545,6 +545,7 @@ const Lobby: React.FC = () => {
             *,
             Profiles!profile_id (
               name,
+              username,
               flag,
               team
             )
