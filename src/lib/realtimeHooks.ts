@@ -162,7 +162,7 @@ export function useSegmentConfig(sessionId: string | null) {
   return { segmentConfig, loading };
 }
 
-// Hook to subscribe to participant data with powerups
+// Hook to subscribe to participant data with powerups and Profile information
 export function useParticipants(sessionId: string | null) {
   const [participants, setParticipants] = useState<Tables<"Participants">[]>(
     [],
@@ -175,12 +175,21 @@ export function useParticipants(sessionId: string | null) {
       return;
     }
 
-    // Initial fetch
+    // Initial fetch - include Profile data for video participant display
     const fetchParticipants = async () => {
       try {
         const { data, error } = await supabase
           .from("Participants")
-          .select("*")
+          .select(
+            `
+            *,
+            Profiles!profile_id (
+              name,
+              flag,
+              team
+            )
+          `,
+          )
           .eq("session_id", sessionId);
 
         if (error) throw error;
