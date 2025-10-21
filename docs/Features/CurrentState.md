@@ -24,16 +24,33 @@
 ### 3. Lobby & Ready System
 
 - **Page**: Lobby
-- **Features**: Participant tiles, ready toggle, heartbeat tracking, video call preview
-- **Real-time**: Supabase subscriptions for participant updates
+- **Features**: 
+  - Participant tiles with complete Profiles data (name, username, flag, team)
+  - Ready toggle for players
+  - Heartbeat tracking for presence detection
+  - Video call preview with robust token system
+  - Refresh button preserves all participant data
+- **Token System** (Oct 21, 2025):
+  - Separates username (safe, no spaces) for Daily.co tokens
+  - Separates name (full, may have spaces) for UI display
+  - Fallback chain: `username || name || "player"`
+  - Automatic cache clearing on username change
+- **Real-time**: Supabase subscriptions for participant updates with Profiles JOIN
 - **Backend**: check-ready-status.ts, mark-player-ready.ts functions
 
 ### 4. Video Calling (Daily.co)
 
 - **Components**: VideoRoom, VideoCall, ParticipantTile
-- **Features**: Persistent video across routes (Lobby → Quiz), token auto-refresh
+- **Features**: 
+  - Persistent video across routes (Lobby → Quiz)
+  - Token auto-refresh with 5-minute expiry threshold
+  - Robust token system handling names with spaces
+  - Uses username (no spaces) for API tokens
+  - Displays full name (with spaces) in UI
 - **State**: dailyRoomUrlAtom, dailyTokenAtom, dailyUserNameAtom
+- **Token Management**: dailyTokenManager with domain-aware cache clearing
 - **Backend**: createDailyRoom.ts, create-daily-token.ts
+- **Recent Enhancement** (Oct 21, 2025): Separated token username from display name
 
 ### 5. Quiz Gameplay
 

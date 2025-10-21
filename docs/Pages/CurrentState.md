@@ -100,14 +100,23 @@
 - **Status**: ✅ Active
 - **Route**: `/lobby/:sessionCode/:seat?`
 - **Purpose**: Pre-game waiting room with video
-- **Dependencies**: VideoRoom, ParticipantTile, presence system
+- **Dependencies**: VideoRoom, ParticipantTile, presence system, dailyTokenManager
 - **Key Features**:
-  - Real-time participant list
-  - Video call integration (Daily.co)
+  - Real-time participant list with Profiles data (name, username, flag, team)
+  - Video call integration (Daily.co) with robust token system
+  - Separate username (safe, no spaces) for token creation
+  - Full name display in UI (may contain spaces)
   - Host controls (start game)
   - Presence indicators (online/offline)
   - Session info display
-  - Ready status indicators
+  - Ready status indicators with toggle for players
+  - Heartbeat mechanism for presence tracking
+  - Refresh button preserves complete participant data
+- **Token System**:
+  - Uses `Profiles.username` for Daily.co token (e.g., "tareq")
+  - Uses `Profiles.name` for UI display (e.g., "Tareq Salah")
+  - Fallback chain: `username || name || "player"`
+  - Automatic cache clearing on username change
 - **Size**: ~20KB
 
 ### Quiz.tsx

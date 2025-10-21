@@ -50,7 +50,10 @@
 - **Key Hooks**:
   - `useStrikes(sessionId)`: Subscribe to WDYK strikes
   - `useSegmentConfig(sessionId)`: Subscribe to segment configurations
-  - `useParticipants(sessionId)`: Subscribe to participant updates with Profile data
+  - `useParticipants(sessionId)`: Subscribe to participant updates with complete Profile data (name, username, flag, team)
+- **Recent Changes** (Oct 21, 2025):
+  - Added `username` to Profiles SELECT query in `useParticipants`
+  - Enables robust token system in Lobby.tsx
 - **Dependencies**: Supabase, Logger, types
 - **Used In**: Quiz.tsx, Lobby.tsx, GameSetup.tsx
 
@@ -201,8 +204,12 @@
   - `getToken(roomName, userName)`: Get cached or create new token
   - `getTokenInfo(roomName, userName)`: Get token metadata
   - `clearToken(roomName, userName)`: Clear specific token
-  - `clearRoomTokens(roomName)`: Clear all tokens for room
+  - `clearRoomTokens(roomName)`: Clear all tokens for room (supports domain-prefixed names)
 - **Token Expiry**: Handles 24-hour token expiration
+- **Recent Enhancements** (Oct 21, 2025):
+  - Enhanced `clearRoomTokens()` with partial room name matching
+  - Supports domain-prefixed rooms (e.g., "thirty/915BDV")
+  - Uses `endsWith()` pattern for flexible matching
 - **Used In**: mutations.ts, Lobby.tsx
 
 ### useDailyToken.ts

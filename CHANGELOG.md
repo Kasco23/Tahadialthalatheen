@@ -1,6 +1,104 @@
-# Changelog - Ready Button Fix & Rejoin System
+# Changelog
 
-## Version 1.1.0 - 2025-10-13
+**Project**: Tahadialthalatheen - Football Quiz Application  
+**Branch**: minimal
+
+---
+
+## Version 1.2.0 - October 21, 2025
+
+### 🎯 Robust Token System for Video Calls
+
+**Problem**: Video calls showing incorrect participant names due to cached tokens with spaces in usernames (e.g., "Tareq Salah" instead of cached "ABood"). Daily.co API requires usernames without spaces.
+
+**Solution**: Implemented comprehensive robust token system that separates safe usernames (for API) from display names (for UI).
+
+#### Key Changes
+
+**1. Lobby.tsx - Token System Architecture**
+- ✅ Added `tokenUsername` state variable for safe Daily.co token creation
+- ✅ Separated from `participantName` (display name) to handle spaces
+- ✅ Implemented fallback chain: `username || name || "player"`
+- ✅ Enhanced token cache clearing when username changes
+- ✅ Fixed refresh button to preserve complete Profiles data
+- **Location**: `src/pages/Lobby.tsx` (lines 298, 331-408, 788-808)
+
+**2. realtimeHooks.ts - Enhanced Database Queries**
+- ✅ Added `username` column to Profiles SELECT in `useParticipants` hook
+- ✅ Ensures username available for token creation
+- **Location**: `src/lib/realtimeHooks.ts` (line 188)
+
+**3. dailyTokenManager.ts - Cache Enhancements**
+- ✅ Enhanced `clearRoomTokens()` with partial room name matching
+- ✅ Handles domain-prefixed rooms (e.g., "thirty/915BDV")
+- ✅ Uses `endsWith()` pattern for flexible matching
+- **Location**: `src/lib/dailyTokenManager.ts` (lines 93-119)
+- **Commit**: Previous session
+
+#### Technical Implementation
+
+**Data Flow**:
+```typescript
+// Token Creation (Safe)
+Profiles.username = "tareq" → tokenUsername → createDailyToken("sessionCode", "tareq")
+
+// UI Display (Full Name)
+Profiles.name = "Tareq Salah" → participantName → Video UI shows "Tareq Salah"
+```
+
+**Fallback Chain**:
+```typescript
+const safeTokenName = profileUsername || profileName || "player";
+const displayName = profileName || profileUsername || "Unknown";
+```
+
+**Cache Clearing**:
+```typescript
+// Clears cache when username changes to prevent stale tokens
+if (sessionCode && tokenUsername && tokenUsername !== safeTokenName) {
+  clearRoomTokens(sessionCode);
+}
+```
+
+#### Bug Fixes
+
+- 🐛 Fixed: Video showing cached "ABood" instead of current "Tareq Salah"
+- 🐛 Fixed: Refresh button showing "Unknown" name and missing flag/logo
+- 🐛 Fixed: Daily.co token creation failing with names containing spaces
+- 🐛 Fixed: Token cache not clearing with domain-prefixed room names
+
+#### Database Changes
+
+- ✅ All Profiles queries now include `username` column
+- ✅ Refresh queries include complete Profiles JOIN (name, username, flag, team)
+- ✅ TypeScript types updated to include `username` field
+
+#### Impact
+
+- ✅ Robust handling of full names with spaces
+- ✅ Consistent participant display across refresh
+- ✅ Reliable Daily.co token creation
+- ✅ Better cache management for video calls
+
+#### Files Modified
+
+| File | Changes | Lines |
+|------|---------|-------|
+| `src/pages/Lobby.tsx` | Token system, refresh fix, types | 47, 298, 331-408, 788-808 |
+| `src/lib/realtimeHooks.ts` | Added username to query | 188 |
+| `src/lib/dailyTokenManager.ts` | Enhanced cache clearing | 93-119 (prior commit) |
+
+#### Testing Checklist
+
+- [x] Build succeeds with no TypeScript errors
+- [x] Token created with username (no spaces)
+- [x] UI displays full name (with spaces)
+- [x] Refresh preserves all participant data
+- [x] Cache clears on username change
+
+---
+
+## Version 1.1.0 - October 13, 2025
 
 ### 🎯 Overview
 

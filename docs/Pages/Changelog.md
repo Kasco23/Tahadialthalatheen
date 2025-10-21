@@ -7,6 +7,25 @@
 
 ## October 21, 2025
 
+### Lobby.tsx - Robust Token System Implementation
+
+- **Change**: Separated username (token) from name (display) for Daily.co integration
+- **Reason**: Names with spaces (e.g., "Tareq Salah") cause Daily.co token issues
+- **Features**:
+  - Added `tokenUsername` state variable for safe token creation
+  - Uses `Profiles.username` (no spaces) for Daily.co tokens
+  - Uses `Profiles.name` (full name) for UI display
+  - Implemented fallback chain: `username || name || "player"`
+  - Enhanced cache clearing when username changes
+  - Fixed refresh button to include complete Profiles data
+- **Database Changes**:
+  - Added `username` to all Profiles JOIN queries
+  - Prevents "Unknown" name and missing flag/logo on refresh
+- **TypeScript**: Added `username` field to `ParticipantRow` type
+- **Logging**: Enhanced logging to show both token username and display name
+- **Impact**: Robust token system handles all edge cases with names containing spaces
+- **Size**: ~20KB (no change)
+
 ### Documentation Created
 
 - ✅ Created comprehensive Pages documentation structure
