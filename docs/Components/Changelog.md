@@ -7,6 +7,28 @@
 
 ## October 21, 2025
 
+### Video Conference Name Display - Bug Fix
+
+**Type**: Bug Fix  
+**Impact**: Critical - Incorrect participant names shown in video conference  
+**Files Modified**: `Lobby.tsx`, `ParticipantTile.tsx`
+
+#### Problem
+- Video conference showed wrong name ("ABood") instead of correct Profiles table name ("Tareq Salah")
+- Root cause: `participantName` initialized from localStorage before Profiles data loaded
+- Daily.co token created with old cached name
+
+#### Solution
+- Initialize `participantName` as empty string (not from localStorage)
+- Token creation now waits for Profiles data to load
+- ParticipantTile enhanced to always prefer Profiles name
+
+#### Result
+✅ Video conference now displays correct names from Profiles table  
+✅ Single source of truth for participant names (Profiles table)
+
+---
+
 ### Documentation Created
 - ✅ Created comprehensive Components documentation structure
 - ✅ Documented 30+ active components with specifications

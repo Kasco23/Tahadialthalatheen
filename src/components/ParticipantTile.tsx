@@ -47,12 +47,13 @@ const ParticipantTile: React.FC<ParticipantTileProps> = ({
   const userName = useParticipantProperty(participantId, "user_name");
   const videoTrack = useVideoTrack(participantId);
 
-  // Find matching player data
+  // Find matching player data by userName
   const playerData = userName
     ? playersByName.get(userName.toLowerCase())
     : null;
 
-  // Determine display name from Profiles table
+  // Determine display name - ALWAYS prefer Profiles table name over Daily.co userName
+  // This ensures we show the correct name even if there's a mismatch
   const displayName = playerData?.Profiles?.name || userName || "Unknown Participant";
 
   // Check if video is available

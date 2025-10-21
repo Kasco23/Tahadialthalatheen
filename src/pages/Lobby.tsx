@@ -287,13 +287,9 @@ const Lobby: React.FC = () => {
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
 
   // Get participant name from Supabase Profiles table via current participant
-  // We'll update this dynamically when we find the current participant
-  const [participantName, setParticipantName] = useState<string>(
-    localStorage.getItem("tt_participant_name") ||
-      localStorage.getItem("playerName") ||
-      localStorage.getItem("hostName") ||
-      "Unknown",
-  );
+  // Initialize as empty string and ONLY set from Profiles table (not from localStorage)
+  // This ensures Daily token is created with the correct name from database
+  const [participantName, setParticipantName] = useState<string>("");
 
   // Update atoms when session data is resolved
   useEffect(() => {
@@ -338,6 +334,8 @@ const Lobby: React.FC = () => {
   // Store Daily room data in atoms when available and create token
   useEffect(() => {
     const setupDailyRoom = async () => {
+      // IMPORTANT: Only create token after participantName is loaded from Profiles table
+      // participantName starts as empty string and is set from Profiles data
       if (dailyRoom?.room_url && sessionCode && participantName) {
         Logger.log("Lobby: Storing Daily room data in atoms", {
           roomUrl: dailyRoom.room_url,
@@ -347,14 +345,14 @@ const Lobby: React.FC = () => {
         setDailyRoomUrl(dailyRoom.room_url);
         setDailyUserName(participantName);
 
-        // Create and store token
+        // Create and store token with the correct name from Profiles table
         try {
           const { token } = await createDailyToken(
             sessionCode,
             participantName,
           );
           setDailyToken(token);
-          Logger.log("Lobby: Daily token created and stored");
+          Logger.log("Lobby: Daily token created and stored with name:", participantName);
         } catch (error) {
           Logger.error("Lobby: Failed to create Daily token:", error);
         }

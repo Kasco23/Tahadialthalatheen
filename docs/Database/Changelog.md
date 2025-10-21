@@ -4,6 +4,37 @@
 
 ---
 
+## October 21, 2025 - Project Cleanup & Documentation Consolidation
+
+### Removed Duplicate/Obsolete Database Documentation
+
+**Type**: Cleanup  
+**Impact**: None - Removed redundant documentation  
+**Files Removed**: 1 file
+
+#### Changes Made
+
+1. **Deleted `supabase/schema_dump.md`**
+   - **Reason**: Fully superseded by `docs/Database/CurrentState.md`
+   - **Details**: 
+     - Old schema_dump.md was ~15KB, outdated format, less detailed
+     - CurrentState.md is 700+ lines, comprehensive, actively maintained
+     - All information from schema_dump.md is now in CurrentState.md with better organization
+   - **Impact**: Zero - All schema information preserved in better format
+
+2. **Consolidated Test Files**
+   - Removed `tests/components/FlagSelector.test.tsx` (duplicate)
+   - Tests now colocated in `src/components/` for better maintainability
+
+3. **Cleaned Up Temporary Documentation**
+   - Removed 6 temporary/meta documentation files
+   - Removed external Daily.co example code (21 files)
+   - Updated `.gitignore` to prevent build cache commits
+
+**Total Cleanup**: 24 files removed (~763KB), no functionality lost
+
+---
+
 ## October 21, 2025 - Database Usage Modernization
 
 ### Code Updates to Match Current Schema
