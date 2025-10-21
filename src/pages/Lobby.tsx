@@ -286,12 +286,14 @@ const Lobby: React.FC = () => {
   // Invite modal state
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
 
-  // Get participant name from localStorage
-  const participantName =
+  // Get participant name from Supabase Profiles table via current participant
+  // We'll update this dynamically when we find the current participant
+  const [participantName, setParticipantName] = useState<string>(
     localStorage.getItem("tt_participant_name") ||
-    localStorage.getItem("playerName") ||
-    localStorage.getItem("hostName") ||
-    "Unknown";
+      localStorage.getItem("playerName") ||
+      localStorage.getItem("hostName") ||
+      "Unknown",
+  );
 
   // Update atoms when session data is resolved
   useEffect(() => {
@@ -302,6 +304,36 @@ const Lobby: React.FC = () => {
       }
     }
   }, [sessionId, sessionCode, setSessionId, setCurrentSessionCode]);
+
+  // Update participant name from Profiles table based on current user's role
+  useEffect(() => {
+    if (!resolvedSeat || players.length === 0) return;
+
+    // Find current participant by role
+    const seatRole = SEAT_TO_ROLE[resolvedSeat];
+    let participantRole: string;
+    switch (seatRole) {
+      case "host":
+        participantRole = PARTICIPANT_ROLE.HOST;
+        break;
+      case "home":
+        participantRole = PARTICIPANT_ROLE.HOME;
+        break;
+      case "away":
+        participantRole = PARTICIPANT_ROLE.AWAY;
+        break;
+      default:
+        return;
+    }
+
+    const currentParticipant = players.find((p) => p.role === participantRole);
+    if (currentParticipant?.Profiles?.name) {
+      const profileName = currentParticipant.Profiles.name;
+      Logger.log("Setting participant name from Profiles table:", profileName);
+      setParticipantName(profileName);
+      setDailyUserName(profileName);
+    }
+  }, [resolvedSeat, players, setDailyUserName]);
 
   // Store Daily room data in atoms when available and create token
   useEffect(() => {
