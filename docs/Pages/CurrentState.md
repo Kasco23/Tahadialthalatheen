@@ -8,6 +8,7 @@
 ## Authentication & User Management
 
 ### Signup.tsx
+
 - **Status**: ✅ Active
 - **Route**: `/signup`
 - **Purpose**: New user registration with unique username validation
@@ -19,6 +20,7 @@
 - **Size**: ~8KB
 
 ### Login.tsx
+
 - **Status**: ✅ Active
 - **Route**: `/login`
 - **Purpose**: Existing user authentication
@@ -30,6 +32,7 @@
 - **Size**: ~6KB
 
 ### Profile.tsx
+
 - **Status**: ✅ Active
 - **Route**: `/profile`
 - **Route Protection**: Requires authentication
@@ -50,6 +53,7 @@
 ## Main Quiz Flow
 
 ### Homepage.tsx
+
 - **Status**: ✅ Active
 - **Route**: `/` (root)
 - **Purpose**: Landing page and main entry point
@@ -64,6 +68,7 @@
 - **Size**: ~15KB
 
 ### JoinSimplified.tsx
+
 - **Status**: ✅ Active
 - **Route**: `/join`
 - **Purpose**: Join session with role selection
@@ -77,6 +82,7 @@
 - **Size**: ~12KB
 
 ### GameSetup.tsx
+
 - **Status**: ✅ Active
 - **Route**: `/gamesetup/:sessionCode`
 - **Route Protection**: Host only
@@ -90,6 +96,7 @@
 - **Size**: ~10KB
 
 ### Lobby.tsx
+
 - **Status**: ✅ Active
 - **Route**: `/lobby/:sessionCode/:seat?`
 - **Purpose**: Pre-game waiting room with video
@@ -104,6 +111,7 @@
 - **Size**: ~20KB
 
 ### Quiz.tsx
+
 - **Status**: ✅ Active
 - **Route**: `/quiz/:sessionCode`
 - **Purpose**: Live gameplay interface
@@ -118,6 +126,7 @@
 - **Size**: ~18KB
 
 ### Results.tsx
+
 - **Status**: ✅ Active
 - **Route**: `/results/:sessionCode?`
 - **Purpose**: Post-game score review
@@ -135,6 +144,7 @@
 ## Customization Pages
 
 ### FlagSelection.tsx
+
 - **Status**: ✅ Active
 - **Route**: `/select-flag`
 - **Route Protection**: Requires authentication
@@ -148,6 +158,7 @@
 - **Size**: ~8KB
 
 ### TeamSelection.tsx
+
 - **Status**: ✅ Active
 - **Route**: `/select-team`
 - **Route Protection**: Requires authentication
@@ -165,6 +176,7 @@
 ## Social & Rankings
 
 ### Inbox.tsx
+
 - **Status**: ✅ Active
 - **Route**: `/inbox`
 - **Route Protection**: Requires authentication
@@ -181,6 +193,7 @@
 - **Size**: ~10KB
 
 ### Leaderboard.tsx
+
 - **Status**: ✅ Active
 - **Route**: `/leaderboard`
 - **Purpose**: Rankings and top performances
@@ -198,20 +211,25 @@
 ## Technical Notes
 
 ### Lazy Loading
+
 All pages are lazy-loaded in `App.tsx`:
+
 ```tsx
-const Homepage = lazy(() => import('./pages/Homepage'));
-const Lobby = lazy(() => import('./pages/Lobby'));
+const Homepage = lazy(() => import("./pages/Homepage"));
+const Lobby = lazy(() => import("./pages/Lobby"));
 // etc...
 ```
 
 ### Bundle Splitting
+
 Each page is its own chunk, optimizing initial load time.
 
 ### Authentication Flow
+
 Protected routes redirect to `/login` if user is not authenticated.
 
 ### URL Parameters
+
 - `:sessionCode` - Session identifier (all session flow pages)
 - `:seat?` - Optional seat number for quick rejoin (Lobby)
 
@@ -219,17 +237,18 @@ Protected routes redirect to `/login` if user is not authenticated.
 
 ## Performance Metrics
 
-| Page | Load Time | Components | Dependencies |
-|------|-----------|------------|--------------|
-| Homepage | ~450ms | 8 | Medium |
-| Lobby | ~600ms | 12 | High (video) |
-| Quiz | ~550ms | 10 | High (video + realtime) |
-| Profile | ~400ms | 6 | Medium |
-| Results | ~350ms | 4 | Low |
+| Page     | Load Time | Components | Dependencies            |
+| -------- | --------- | ---------- | ----------------------- |
+| Homepage | ~450ms    | 8          | Medium                  |
+| Lobby    | ~600ms    | 12         | High (video)            |
+| Quiz     | ~550ms    | 10         | High (video + realtime) |
+| Profile  | ~400ms    | 6          | Medium                  |
+| Results  | ~350ms    | 4          | Low                     |
 
 ---
 
 ## See Also
+
 - **Overview.md** - Category introduction
 - **Changelog.md** - Recent changes
 - **Deprecated.md** - Removed pages

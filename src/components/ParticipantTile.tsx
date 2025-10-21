@@ -54,7 +54,8 @@ const ParticipantTile: React.FC<ParticipantTileProps> = ({
 
   // Determine display name - ALWAYS prefer Profiles table name over Daily.co userName
   // This ensures we show the correct name even if there's a mismatch
-  const displayName = playerData?.Profiles?.name || userName || "Unknown Participant";
+  const displayName =
+    playerData?.Profiles?.name || userName || "Unknown Participant";
 
   // Check if video is available
   const hasVideo = videoTrack?.track && videoTrack.state === "playable";
@@ -94,9 +95,7 @@ const ParticipantTile: React.FC<ParticipantTileProps> = ({
       {/* Overlay with participant info */}
       <div className="absolute bottom-0 left-0 w-full bg-black/50 text-white text-sm p-2 flex items-center space-x-2">
         {/* Name only */}
-        <span className="flex-1 truncate">
-          {displayName}
-        </span>
+        <span className="flex-1 truncate">{displayName}</span>
 
         {/* Video status indicator */}
         <div

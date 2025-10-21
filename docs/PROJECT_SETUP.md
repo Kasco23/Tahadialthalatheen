@@ -23,24 +23,31 @@ Tahadialthalatheen is a React TypeScript quiz application built with Vite for li
 This documentation is organized into the following categories:
 
 ### 1. Pages (`/docs/Pages/`)
+
 All route components that users navigate to. Each page represents a distinct user flow or screen.
 
 ### 2. Components (`/docs/Components/`)
+
 Reusable UI components used across multiple pages. Organized by feature area.
 
 ### 3. Libraries (`/docs/Libraries/`)
+
 Core business logic, API clients, utilities, and helper functions.
 
 ### 4. Features (`/docs/Features/`)
+
 High-level feature documentation covering complete user journeys and workflows.
 
 ### 5. Backend (`/docs/Backend/`)
+
 Netlify serverless functions and edge functions.
 
 ### 6. Database (`/docs/Database/`)
+
 Supabase schema, migrations, RLS policies, and database views.
 
 ### 7. State Management (`/docs/State/`)
+
 Jotai atoms and global state structure.
 
 ---
@@ -48,6 +55,7 @@ Jotai atoms and global state structure.
 ## Quick Reference
 
 ### Key Technology Versions
+
 - Node.js: >= 22 (v22.19.0 confirmed)
 - pnpm: 10.18.3+
 - React: 19.2.0
@@ -58,6 +66,7 @@ Jotai atoms and global state structure.
 - Daily.co: 0.83.1
 
 ### Build Times (Reference)
+
 - Development Server: ~450ms startup
 - Production Build: ~10 seconds
 - Linting: ~3 seconds
@@ -65,6 +74,7 @@ Jotai atoms and global state structure.
 - Formatting: ~4 seconds
 
 ### Environment Variables Required
+
 ```bash
 # Frontend (VITE_* prefix = exposed to browser)
 VITE_SUPABASE_DATABASE_URL=https://your-project.supabase.co
@@ -107,6 +117,7 @@ Tahadialthalatheen/
 ## Core Workflow
 
 ### User Journey
+
 1. **Homepage** → Create or join session
 2. **Signup/Login** → Authenticate with unique username
 3. **Join Flow** → Select role (Host/Player) + customize (flag/team)
@@ -116,6 +127,7 @@ Tahadialthalatheen/
 7. **Results** → View final scores and review answers
 
 ### Development Workflow
+
 ```bash
 # Start development
 pnpm dev
@@ -137,15 +149,15 @@ pnpm build:prod
 
 ## Category Overview
 
-| Category | Purpose | File Count | Key Files |
-|----------|---------|------------|-----------|
-| Pages | User-facing routes | 13 | Homepage, Lobby, Quiz, Results |
-| Components | Reusable UI | 30+ | VideoRoom, ParticipantTile, Flag |
-| Libraries | Business logic | 25+ | mutations.ts, sessionHooks.ts |
-| Features | User journeys | N/A | Session creation, Video calls |
-| Backend | Serverless | 8 | createDailyRoom, send-notification |
-| Database | Schema & data | N/A | Migrations, views, RLS policies |
-| State | Global state | N/A | Session atoms, presence atoms |
+| Category   | Purpose            | File Count | Key Files                          |
+| ---------- | ------------------ | ---------- | ---------------------------------- |
+| Pages      | User-facing routes | 13         | Homepage, Lobby, Quiz, Results     |
+| Components | Reusable UI        | 30+        | VideoRoom, ParticipantTile, Flag   |
+| Libraries  | Business logic     | 25+        | mutations.ts, sessionHooks.ts      |
+| Features   | User journeys      | N/A        | Session creation, Video calls      |
+| Backend    | Serverless         | 8          | createDailyRoom, send-notification |
+| Database   | Schema & data      | N/A        | Migrations, views, RLS policies    |
+| State      | Global state       | N/A        | Session atoms, presence atoms      |
 
 ---
 
@@ -161,6 +173,7 @@ Each category folder contains:
 ### Update Process
 
 When making changes:
+
 1. Modify code files as needed
 2. Update relevant `CurrentState.md` with changes
 3. Add entry to `Changelog.md` with date and details

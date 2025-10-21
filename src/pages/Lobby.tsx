@@ -7,11 +7,12 @@ import { supabase } from "../lib/supabaseClient";
 import { useSession } from "../lib/sessionHooks";
 import {
   leaveLobbyByRole,
-  createDailyToken,
-  markPlayerReady,
-  checkAllPlayersReady,
   updateParticipantHeartbeat,
   markParticipantDisconnected,
+  markPlayerReady,
+  createDailyToken,
+  checkAllPlayersReady,
+  clearRoomTokens,
 } from "../lib/mutations";
 import { useSessionData } from "../lib/useSessionData";
 import {
@@ -326,10 +327,20 @@ const Lobby: React.FC = () => {
     if (currentParticipant?.Profiles?.name) {
       const profileName = currentParticipant.Profiles.name;
       Logger.log("Setting participant name from Profiles table:", profileName);
+
+      // Clear any cached Daily tokens with old names
+      if (sessionCode && participantName && participantName !== profileName) {
+        Logger.log("Clearing old Daily token cache due to name change:", {
+          old: participantName,
+          new: profileName,
+        });
+        clearRoomTokens(sessionCode);
+      }
+
       setParticipantName(profileName);
       setDailyUserName(profileName);
     }
-  }, [resolvedSeat, players, setDailyUserName]);
+  }, [resolvedSeat, players, setDailyUserName, sessionCode, participantName]);
 
   // Store Daily room data in atoms when available and create token
   useEffect(() => {
@@ -352,7 +363,10 @@ const Lobby: React.FC = () => {
             participantName,
           );
           setDailyToken(token);
-          Logger.log("Lobby: Daily token created and stored with name:", participantName);
+          Logger.log(
+            "Lobby: Daily token created and stored with name:",
+            participantName,
+          );
         } catch (error) {
           Logger.error("Lobby: Failed to create Daily token:", error);
         }

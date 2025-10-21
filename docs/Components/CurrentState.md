@@ -8,6 +8,7 @@
 ## Video & Communication
 
 ### VideoRoom.tsx
+
 - **Status**: ✅ Active, High Priority
 - **Purpose**: Persistent Daily.co video call wrapper
 - **Used In**: Lobby, Quiz pages
@@ -16,6 +17,7 @@
 - **Size**: ~8KB
 
 ### VideoCall.tsx
+
 - **Status**: ✅ Active
 - **Purpose**: Main video call container UI
 - **Used In**: VideoRoom wrapper
@@ -23,6 +25,7 @@
 - **Size**: ~10KB
 
 ### ParticipantTile.tsx
+
 - **Status**: ✅ Active, Tested
 - **Purpose**: Individual video tile for each participant
 - **Used In**: VideoCall, Lobby
@@ -31,6 +34,7 @@
 - **Size**: ~6KB
 
 ### ControlsBar.tsx
+
 - **Status**: ✅ Active
 - **Purpose**: Video call controls (mute, camera, leave)
 - **Used In**: VideoCall
@@ -42,6 +46,7 @@
 ## Session Management
 
 ### ActiveGames.tsx
+
 - **Status**: ✅ Active
 - **Purpose**: Sidebar displaying live sessions with Quick Join
 - **Used In**: Homepage
@@ -50,6 +55,7 @@
 - **Size**: ~12KB
 
 ### LobbyStatus.tsx
+
 - **Status**: ✅ Active
 - **Purpose**: Display session readiness status
 - **Used In**: Lobby, GameSetup
@@ -57,6 +63,7 @@
 - **Size**: ~5KB
 
 ### Timer.tsx
+
 - **Status**: ✅ Active
 - **Purpose**: Countdown timer for quiz questions
 - **Used In**: Quiz page
@@ -64,6 +71,7 @@
 - **Size**: ~4KB
 
 ### JoinModal.tsx
+
 - **Status**: ✅ Active
 - **Purpose**: Modal for joining sessions via code
 - **Used In**: Homepage
@@ -71,6 +79,7 @@
 - **Size**: ~6KB
 
 ### RejoinModal.tsx
+
 - **Status**: ✅ Active
 - **Purpose**: Reconnect to interrupted sessions
 - **Used In**: Various pages (global)
@@ -82,6 +91,7 @@
 ## User Customization
 
 ### AvatarEditor.tsx
+
 - **Status**: ✅ Active
 - **Purpose**: Upload and crop user profile picture
 - **Used In**: Profile page
@@ -90,6 +100,7 @@
 - **Size**: ~10KB
 
 ### Flag.tsx
+
 - **Status**: ✅ Active
 - **Purpose**: Display country flag SVG
 - **Used In**: Lobby, Profile, Leaderboard
@@ -97,12 +108,14 @@
 - **Size**: ~2KB
 
 ### FlagSelector.tsx
+
 - **Status**: ✅ Active
 - **Purpose**: Basic flag selection component
 - **Used In**: Join flow (fallback)
 - **Size**: ~5KB
 
 ### OptimizedFlagSelector.tsx
+
 - **Status**: ✅ Active, Preferred
 - **Purpose**: Optimized flag picker with search and virtualization
 - **Used In**: FlagSelection page, Join flow
@@ -110,6 +123,7 @@
 - **Size**: ~8KB
 
 ### TeamLogoPicker.tsx
+
 - **Status**: ✅ Active, Tested
 - **Purpose**: Grid-based team logo selection
 - **Used In**: TeamSelection page, Join flow
@@ -118,6 +132,7 @@
 - **Size**: ~7KB
 
 ### LogoSelector.tsx
+
 - **Status**: ✅ Active
 - **Purpose**: Alternative logo selection interface
 - **Used In**: TeamSelection page
@@ -125,6 +140,7 @@
 - **Size**: ~6KB
 
 ### LobbyLogo.tsx
+
 - **Status**: ✅ Active
 - **Purpose**: Display team logo in lobby/game
 - **Used In**: Lobby, Quiz pages
@@ -132,6 +148,7 @@
 - **Size**: ~3KB
 
 ### UsernameSetupBanner.tsx
+
 - **Status**: ✅ Active
 - **Purpose**: Prompt authenticated users without username to set one
 - **Used In**: Homepage
@@ -143,6 +160,7 @@
 ## Visual & Background
 
 ### StadiumBackground.tsx
+
 - **Status**: ✅ Active, Widely Used
 - **Purpose**: Reusable stadium-themed background wrapper
 - **Used In**: Homepage, Lobby, Profile, Inbox, Leaderboard
@@ -150,6 +168,7 @@
 - **Size**: ~5KB
 
 ### LockerRoomBackground.tsx
+
 - **Status**: ✅ Active
 - **Purpose**: Alternative locker room themed background
 - **Used In**: Auth pages (Signup/Login)
@@ -157,6 +176,7 @@
 - **Size**: ~4KB
 
 ### ChromaGrid.tsx
+
 - **Status**: ✅ Active
 - **Purpose**: Animated grid background effect
 - **Used In**: Various pages for visual enhancement
@@ -164,6 +184,7 @@
 - **Size**: ~3KB
 
 ### ChromaLogo.tsx
+
 - **Status**: ✅ Active
 - **Purpose**: Animated logo with chroma effect
 - **Used In**: Homepage, loading screens
@@ -175,6 +196,7 @@
 ## Notifications & Alerts
 
 ### NotificationBell.tsx
+
 - **Status**: ✅ Active
 - **Purpose**: Bell icon with unread notification count
 - **Used In**: Homepage header
@@ -183,6 +205,7 @@
 - **Size**: ~1.6KB
 
 ### Alert.tsx
+
 - **Status**: ✅ Active
 - **Purpose**: Toast-style notification component
 - **Used In**: Throughout app for user feedback
@@ -190,6 +213,7 @@
 - **Size**: ~3KB
 
 ### UsernameRequiredModal.tsx
+
 - **Status**: ✅ Active
 - **Purpose**: Block actions until username is set
 - **Used In**: Session creation/join flows
@@ -201,6 +225,7 @@
 ## Modals & Dialogs
 
 ### InviteFriendsModal.tsx
+
 - **Status**: ✅ Active
 - **Purpose**: Share session invitation with friends
 - **Used In**: Lobby page
@@ -208,6 +233,7 @@
 - **Size**: ~5KB
 
 ### PresetConfirmationModal.tsx
+
 - **Status**: ✅ Active
 - **Purpose**: Confirm preset configurations before applying
 - **Used In**: GameSetup page
@@ -215,6 +241,7 @@
 - **Size**: ~4KB
 
 ### AuthForm.tsx
+
 - **Status**: ✅ Active
 - **Purpose**: Reusable authentication form component
 - **Used In**: Signup, Login pages
@@ -226,6 +253,7 @@
 ## Profile Features (Subdirectory: profile/)
 
 ### profile/FriendsTab.tsx
+
 - **Status**: ✅ Active
 - **Purpose**: Friends management interface for Profile page
 - **Used In**: Profile page (Friends tab)
@@ -234,6 +262,7 @@
 - **Size**: ~12KB
 
 ### profile/StatisticsTab.tsx
+
 - **Status**: ✅ Active
 - **Purpose**: Display user match statistics
 - **Used In**: Profile page (Statistics tab)
@@ -246,6 +275,7 @@
 ## ReactBits Integration (Subdirectory: ReactBits/)
 
 ### ReactBits/AnimatedList.tsx
+
 - **Status**: ✅ Active
 - **Purpose**: Smooth list animations with framer-motion
 - **Used In**: Leaderboard, Inbox
@@ -253,6 +283,7 @@
 - **Size**: ~4KB
 
 ### ReactBits/Dock.tsx
+
 - **Status**: ✅ Active
 - **Purpose**: MacOS-style dock component
 - **Used In**: Future navigation enhancement
@@ -260,6 +291,7 @@
 - **Size**: ~6KB
 
 ### ReactBits/PixelCard.tsx
+
 - **Status**: ✅ Active
 - **Purpose**: Card with pixelated hover effect
 - **Used In**: Various card layouts
@@ -267,6 +299,7 @@
 - **Size**: ~5KB
 
 ### ReactBits/SpotlightCard.tsx
+
 - **Status**: ✅ Active
 - **Purpose**: Card with spotlight hover effect
 - **Used In**: Homepage session cards
@@ -278,16 +311,19 @@
 ## Technical Notes
 
 ### Testing Coverage
+
 - ParticipantTile: ✅ Full coverage
 - TeamLogoPicker: ✅ Full coverage
 - Others: Manual testing
 
 ### Performance
+
 - Large components use React.memo for optimization
 - Virtualization for long lists (OptimizedFlagSelector)
 - Lazy image loading where applicable
 
 ### Accessibility
+
 - Semantic HTML elements
 - ARIA labels on interactive elements
 - Keyboard navigation support
@@ -295,6 +331,7 @@
 ---
 
 ## See Also
+
 - **Overview.md** - Component categories
 - **Changelog.md** - Recent updates
 - **Deprecated.md** - Removed components

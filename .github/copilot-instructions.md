@@ -7,6 +7,7 @@
 ⚠️ **PRIVATE APPLICATION**: This is a **private** football quiz application for **personal use among friends only**. This is NOT a commercial product, public service, or market-oriented application. All features, design decisions, and scope are limited to small groups (typically 2-10 players per session).
 
 **Key Implications:**
+
 - No need for enterprise-scale features or optimizations
 - Focus on friend-group experience, not public audience
 - Simple workflows suitable for known users
@@ -290,8 +291,10 @@ docs/
 **Step 1**: Identify the category (Pages, Components, Libraries, etc.)
 
 **Step 2**: Update `CurrentState.md` in that category:
+
 ```markdown
 ### NewComponent.tsx
+
 - **Status**: ✅ Active
 - **Purpose**: Brief description
 - **Used In**: Where it's used
@@ -300,10 +303,12 @@ docs/
 ```
 
 **Step 3**: Add entry to `Changelog.md`:
+
 ```markdown
 ## October 21, 2025
 
 ### NewComponent.tsx - Created
+
 - **Purpose**: What it does
 - **Features**: Key capabilities
 - **Dependencies**: New libraries added
@@ -311,8 +316,10 @@ docs/
 ```
 
 **Step 4**: If replacing old file, move old entry from `CurrentState.md` to `Deprecated.md`:
+
 ```markdown
 ### OldComponent.tsx
+
 - **Deprecated On**: October 21, 2025
 - **Reason**: Why it was removed
 - **Replacement**: What replaced it
@@ -329,17 +336,19 @@ docs/
 #### 4. **Documentation Update Format**
 
 Each changelog entry should include:
+
 - **Date**: YYYY-MM-DD format
 - **File(s)**: Which file(s) were modified
 - **Type**: Created | Updated | Deprecated | Removed
 - **Change**: What was changed
-- **Reason**: Why the change was made  
+- **Reason**: Why the change was made
 - **Impact**: Effect on users/application
 - **Dependencies**: New libraries or components
 
 #### 5. **When to Update Overview.md**
 
 Only update `Overview.md` when:
+
 - Major structural changes occur
 - New subcategories are added
 - Core patterns change
@@ -348,12 +357,14 @@ Only update `Overview.md` when:
 ### 📖 Documentation Reading Order
 
 **For understanding the project:**
+
 1. Start with `/docs/PROJECT_SETUP.md` - High-level overview
 2. Read category `Overview.md` - Understand the category
 3. Check `CurrentState.md` - See current files and specs
 4. Review `Changelog.md` - Recent changes
 
 **Before making changes:**
+
 1. Check relevant `CurrentState.md` to understand existing files
 2. Review `Changelog.md` for recent patterns
 3. Make your changes
@@ -362,12 +373,14 @@ Only update `Overview.md` when:
 ### 🎯 Documentation Examples
 
 **Good Practice ✅:**
+
 ```markdown
 # Pages/Changelog.md
 
 ## October 21, 2025
 
 ### Profile.tsx - Updated
+
 - **Change**: Added Friends tab with friend request management
 - **Reason**: Enable social features for friend-to-friend gameplay
 - **Components**: Integrated FriendsTab.tsx component
@@ -375,6 +388,7 @@ Only update `Overview.md` when:
 ```
 
 **Bad Practice ❌:**
+
 ```markdown
 # PROFILE_UPDATE_OCT21_2025.md (standalone file)
 

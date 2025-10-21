@@ -8,6 +8,7 @@
 ## Core Database Operations
 
 ### mutations.ts
+
 - **Status**: ✅ Active
 - **Purpose**: All Supabase database operations and mutations
 - **Size**: ~45KB
@@ -27,6 +28,7 @@
 - **Used In**: All pages and components requiring database operations
 
 ### mutations.validation.ts
+
 - **Status**: ✅ Active
 - **Purpose**: Input validation for mutation functions
 - **Size**: ~3KB
@@ -41,6 +43,7 @@
 ## Real-time Hooks
 
 ### realtimeHooks.ts
+
 - **Status**: ✅ Active
 - **Purpose**: React hooks for Supabase real-time subscriptions
 - **Size**: ~8KB
@@ -52,6 +55,7 @@
 - **Used In**: Quiz.tsx, Lobby.tsx, GameSetup.tsx
 
 ### sessionHooks.ts
+
 - **Status**: ✅ Active
 - **Purpose**: Session data management hook
 - **Size**: ~3KB
@@ -64,6 +68,7 @@
 ## State Management
 
 ### sessionState.ts
+
 - **Status**: ✅ Active
 - **Purpose**: Session-level state management via Netlify Blobs
 - **Size**: ~5KB
@@ -77,6 +82,7 @@
 - **Used In**: Homepage.tsx, GameSetup.tsx, Lobby.tsx for cross-component coordination
 
 ### userSession.ts
+
 - **Status**: ✅ Active
 - **Purpose**: Hybrid localStorage + Netlify Blobs user session management
 - **Size**: ~7KB
@@ -93,6 +99,7 @@
 - **Used In**: Join pages, Lobby, GameSetup for participant state persistence
 
 ### useSessionData.ts
+
 - **Status**: ✅ Active
 - **Purpose**: Hook for fetching session + Daily room data
 - **Size**: ~4KB
@@ -104,6 +111,7 @@
 ## Presence & Real-time Communication
 
 ### presence.ts
+
 - **Status**: ✅ Active
 - **Purpose**: Real-time presence tracking via Supabase Realtime
 - **Size**: ~9KB
@@ -122,6 +130,7 @@
 ## Social Features
 
 ### friends.ts
+
 - **Status**: ✅ Active
 - **Purpose**: Friend request and friendship management
 - **Size**: ~12KB
@@ -138,6 +147,7 @@
 - **Used In**: Profile.tsx (FriendsTab), InviteFriendsModal.tsx
 
 ### notifications.ts
+
 - **Status**: ✅ Active
 - **Purpose**: In-app notification system
 - **Size**: ~9KB
@@ -152,6 +162,7 @@
 - **Used In**: Inbox.tsx, NotificationBell.tsx
 
 ### matches.ts
+
 - **Status**: ✅ Active
 - **Purpose**: Match recording and statistics tracking
 - **Size**: ~18KB
@@ -171,6 +182,7 @@
 ## Utilities & Helpers
 
 ### blobStore.ts
+
 - **Status**: ✅ Active
 - **Purpose**: Client interface for Netlify Blobs via Edge Functions
 - **Size**: ~5KB
@@ -181,6 +193,7 @@
 - **Used In**: userSession.ts for cross-device persistence
 
 ### dailyTokenManager.ts
+
 - **Status**: ✅ Active
 - **Purpose**: Daily.co token caching and lifecycle management
 - **Size**: ~6KB
@@ -193,6 +206,7 @@
 - **Used In**: mutations.ts, Lobby.tsx
 
 ### useDailyToken.ts
+
 - **Status**: ✅ Active
 - **Purpose**: React hook for Daily.co token auto-refresh
 - **Size**: ~4KB
@@ -204,6 +218,7 @@
 - **Used In**: VideoRoom.tsx for persistent video calls
 
 ### logger.ts
+
 - **Status**: ✅ Active
 - **Purpose**: Centralized logging utility with log levels
 - **Size**: ~3KB
@@ -211,6 +226,7 @@
 - **Used In**: All library files and components
 
 ### supabaseClient.ts
+
 - **Status**: ✅ Active
 - **Purpose**: Supabase client initialization
 - **Size**: ~1KB
@@ -223,6 +239,7 @@
 ## Helper Libraries
 
 ### joinHelpers.ts
+
 - **Status**: ✅ Active
 - **Purpose**: Join page utility functions
 - **Size**: ~6KB
@@ -235,6 +252,7 @@
 - **Used In**: JoinPage.tsx, JoinModal.tsx
 
 ### roleUtils.ts
+
 - **Status**: ✅ Active
 - **Purpose**: Role and seat mapping utilities
 - **Size**: ~2KB
@@ -242,6 +260,7 @@
 - **Used In**: Lobby.tsx, Join pages for role management
 
 ### flagHelper.ts
+
 - **Status**: ✅ Active
 - **Purpose**: Country flag code/name conversion
 - **Size**: ~4KB
@@ -252,6 +271,7 @@
 - **Used In**: FlagSelector.tsx, Profile.tsx
 
 ### flagIcons.ts
+
 - **Status**: ✅ Active
 - **Purpose**: Emoji flag icon mappings
 - **Size**: ~10KB
@@ -259,6 +279,7 @@
 - **Used In**: Flag.tsx, FlagSelector.tsx
 
 ### teamLogoHelper.ts
+
 - **Status**: ✅ Active
 - **Purpose**: Team logo URL generation and league mapping
 - **Size**: ~4KB
@@ -270,6 +291,7 @@
 - **Used In**: TeamLogoPicker.tsx, LobbyLogo.tsx
 
 ### participantAuth.ts
+
 - **Status**: ✅ Active
 - **Purpose**: Participant password hashing (bcrypt-style)
 - **Size**: ~3KB
@@ -280,6 +302,7 @@
 - **Used In**: mutations.ts for secure participant authentication
 
 ### activeProfile.ts
+
 - **Status**: ✅ Active
 - **Purpose**: Active profile management (server-side via Netlify functions)
 - **Size**: ~4KB
@@ -289,6 +312,7 @@
 - **Used In**: Homepage.tsx, Profile.tsx
 
 ### sessionCode.test.ts
+
 - **Status**: ✅ Active
 - **Purpose**: Session code generation tests
 - **Size**: ~2KB
@@ -296,6 +320,7 @@
 - **Used In**: Test suite
 
 ### mutations.test.ts
+
 - **Status**: ✅ Active
 - **Purpose**: Mutation function tests
 - **Size**: ~3KB
@@ -303,6 +328,7 @@
 - **Used In**: Test suite
 
 ### createSession.test.ts
+
 - **Status**: ✅ Active
 - **Purpose**: Session creation tests
 - **Size**: ~2KB
@@ -314,6 +340,7 @@
 ## Type Definitions
 
 ### types/supabase.ts
+
 - **Status**: ✅ Active
 - **Purpose**: Auto-generated Supabase database types
 - **Size**: ~25KB
@@ -323,6 +350,7 @@
 - **Used In**: All files requiring type safety with database operations
 
 ### types.ts
+
 - **Status**: ✅ Active
 - **Purpose**: Application-specific type definitions
 - **Size**: ~8KB

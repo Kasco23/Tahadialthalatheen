@@ -735,22 +735,24 @@ export async function leaveLobbyByRole(
   sessionId: string,
   role: string,
 ): Promise<void> {
-  // Find participant by session and role
+  // Find participant by session and role (use maybeSingle to handle not found gracefully)
   const { data: participant, error: findError } = await supabase
     .from("Participants")
     .select("participant_id")
     .eq("session_id", sessionId)
     .eq("role", role)
-    .single();
+    .maybeSingle();
 
   if (findError) {
-    throw new Error(`Failed to find participant: ${findError.message}`);
+    Logger.error(`Failed to find participant: ${findError.message}`);
+    return; // Don't throw, just log and return
   }
 
   if (!participant) {
-    throw new Error(
+    Logger.warn(
       `No participant found with role ${role} in session ${sessionId}`,
     );
+    return; // Don't throw, just log and return
   }
 
   // Update presence to disconnected

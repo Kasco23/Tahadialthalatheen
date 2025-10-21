@@ -11,9 +11,11 @@
 ## 📊 Public Schema Tables
 
 ### 1. Sessions
+
 **Purpose**: Core table for quiz game sessions
 
 **Columns**:
+
 - `session_id` UUID PRIMARY KEY (auto-generated)
 - `session_code` TEXT UNIQUE (auto-generated 6-char alphanumeric)
 - `host_profile_id` UUID → Profiles(id)
@@ -23,9 +25,11 @@
 - `ended_at` TIMESTAMPTZ
 
 **Indexes**:
+
 - None beyond primary key (small table, frequent full scans acceptable)
 
 **RLS Policies**:
+
 - ✅ `Sessions are readable` - SELECT (public) - All users can view
 - ✅ `Anyone can create a session` - INSERT (public)
 - ✅ `Only host can update session state` - UPDATE (public) - Checks host ownership
@@ -33,14 +37,17 @@
 **Real-time**: ✅ Enabled (publication: supabase_realtime)
 
 **Triggers**:
+
 - `set_session_code` BEFORE INSERT - Generates cryptographically secure session code
 
 ---
 
 ### 2. Participants
+
 **Purpose**: Tracks players and hosts in game sessions
 
 **Columns**:
+
 - `participant_id` UUID PRIMARY KEY (auto-generated)
 - `session_id` UUID → Sessions(session_id) ON DELETE CASCADE
 - `profile_id` UUID → Profiles(id)
@@ -57,6 +64,7 @@
 - `disconnect_at` TIMESTAMPTZ
 
 **Indexes**:
+
 - `idx_participant_session_id` - session_id
 - `idx_participant_session_presence` - (session_id, lobby_presence)
 - `idx_participant_active` - session_id WHERE lobby_presence = 'Joined'
@@ -64,22 +72,26 @@
 - `idx_participant_video` - session_id WHERE video_presence = true
 
 **RLS Policies**:
+
 - ✅ `Participants are readable` - SELECT (public)
 - ✅ `Participants can join sessions` - INSERT (public)
 - ✅ `Allow participant updates` - UPDATE (public)
 
 **Real-time**: ✅ Enabled
 
-**Notes**: 
+**Notes**:
+
 - Heartbeat mechanism for stale participant detection
 - Role 'Home'/'Away' renamed from 'Player1'/'Player2' (Oct 20, 2025)
 
 ---
 
 ### 3. Profiles
+
 **Purpose**: User profile information linked to auth.users
 
 **Columns**:
+
 - `id` UUID PRIMARY KEY → auth.users(id)
 - `username` TEXT UNIQUE CHECK (length >= 3)
 - `name` TEXT CHECK (length between 2-40)
@@ -90,9 +102,11 @@
 - `updated_at` TIMESTAMPTZ DEFAULT now()
 
 **Indexes**:
+
 - None documented beyond unique username
 
 **RLS Policies**:
+
 - ✅ `profiles_public_read` - SELECT (public) - All profiles viewable
 - ✅ `profiles_self_insert` - INSERT (authenticated) - Users create own profile
 - ✅ `profiles_self_update` - UPDATE (authenticated) - Users update own profile
@@ -100,9 +114,11 @@
 **Real-time**: ✅ Enabled
 
 **Triggers**:
+
 - `trg_profiles_touch` BEFORE UPDATE - Auto-updates `updated_at` timestamp
 
 **Foreign Keys Referenced By**:
+
 - Sessions(host_profile_id)
 - Participants(profile_id)
 - Friends(requester_id, addressee_id)
@@ -113,18 +129,22 @@
 ---
 
 ### 4. SegmentConfig
+
 **Purpose**: Quiz segment configuration per session
 
 **Columns**:
+
 - `config_id` UUID PRIMARY KEY (auto-generated)
 - `session_id` UUID → Sessions(session_id)
 - `segment_code` TEXT CHECK constraint ('WDYK', 'AUCT', 'BELL', 'UPDW', 'REMO')
 - `questions_count` INTEGER
 
 **Indexes**:
+
 - None documented
 
 **RLS Policies**:
+
 - ✅ `Allow read config` - SELECT (public)
 - ✅ `Allow host insert config` - INSERT (public)
 - ✅ `Allow host update config` - UPDATE (public)
@@ -134,9 +154,11 @@
 ---
 
 ### 5. Scores
+
 **Purpose**: Point tracking per participant per segment
 
 **Columns**:
+
 - `score_id` UUID PRIMARY KEY (auto-generated)
 - `session_id` UUID → Sessions(session_id)
 - `participant_id` UUID → Participants(participant_id)
@@ -144,9 +166,11 @@
 - `points` INTEGER DEFAULT 0
 
 **Indexes**:
+
 - None documented
 
 **RLS Policies**:
+
 - ✅ `Scores are readable` - SELECT (public)
 
 **Real-time**: ✅ Enabled
@@ -156,9 +180,11 @@
 ---
 
 ### 6. Strikes
+
 **Purpose**: Wrong answer tracking for 'WDYK' segment
 
 **Columns**:
+
 - `strike_id` UUID PRIMARY KEY (auto-generated)
 - `session_id` UUID → Sessions(session_id)
 - `participant_id` UUID → Participants(participant_id)
@@ -166,9 +192,11 @@
 - `strikes` INTEGER DEFAULT 0
 
 **Indexes**:
+
 - None documented
 
 **RLS Policies**:
+
 - ✅ `Allow read strikes` - SELECT (public)
 - ✅ `Allow host insert strikes` - INSERT (public)
 - ✅ `Allow host update strikes` - UPDATE (public)
@@ -178,9 +206,11 @@
 ---
 
 ### 7. DailyRooms
+
 **Purpose**: Daily.co video room URLs and state
 
 **Columns**:
+
 - `room_id` UUID PRIMARY KEY → Sessions(session_id)
 - `room_url` TEXT
 - `active_participants` JSONB DEFAULT '[]'
@@ -188,9 +218,11 @@
 - `ready` BOOLEAN DEFAULT false
 
 **Indexes**:
+
 - `idx_dailyroom_ready` - ready
 
 **RLS Policies**:
+
 - ✅ `dailyroom_select_policy` - SELECT (anon, authenticated, authenticator, dashboard_user)
 - ✅ `Anyone can insert DailyRoom` - INSERT (public)
 - ✅ `Only host can update DailyRoom` - UPDATE (public)
@@ -200,9 +232,11 @@
 ---
 
 ### 8. Friends
+
 **Purpose**: Friend request management and relationships
 
 **Columns**:
+
 - `id` BIGSERIAL PRIMARY KEY
 - `requester_id` UUID → Profiles(id) (who sent the request)
 - `addressee_id` UUID → Profiles(id) (who received the request)
@@ -211,6 +245,7 @@
 - `updated_at` TIMESTAMPTZ DEFAULT now()
 
 **Indexes**:
+
 - `idx_friends_requester` - requester_id
 - `idx_friends_requester_id` - requester_id (duplicate?)
 - `idx_friends_addressee` - addressee_id
@@ -219,6 +254,7 @@
 - `unique_friendship` UNIQUE - (LEAST(requester_id, addressee_id), GREATEST(requester_id, addressee_id))
 
 **RLS Policies**:
+
 - ✅ `Users can view their own friendships` - SELECT (public)
 - ✅ `Users can send friend requests` - INSERT (public)
 - ✅ `Users can update their own requests` - UPDATE (public)
@@ -227,14 +263,17 @@
 **Real-time**: ✅ Enabled
 
 **Triggers**:
+
 - `friends_notify_trigger` AFTER INSERT/UPDATE - Creates notifications on friend activity
 
 ---
 
 ### 9. Notifications
+
 **Purpose**: In-app notification system
 
 **Columns**:
+
 - `id` BIGSERIAL PRIMARY KEY
 - `recipient_id` UUID → Profiles(id)
 - `sender_id` UUID → Profiles(id)
@@ -248,12 +287,14 @@
 - `created_at` TIMESTAMPTZ DEFAULT now()
 
 **Indexes**:
+
 - `idx_notifications_user_id` - recipient_id
 - `idx_notifications_recipient_id` - recipient_id (duplicate?)
 - `idx_notifications_is_read` - is_read
 - `idx_notifications_created_at` - created_at DESC
 
 **RLS Policies**:
+
 - ✅ `Users can view their own notifications` - SELECT (public)
 - ✅ `Service role can insert notifications` - INSERT (authenticated, service_role)
 - ✅ `Users can mark their own notifications as read` - UPDATE (public)
@@ -266,9 +307,11 @@
 ---
 
 ### 10. Matches
+
 **Purpose**: Historical match records and results
 
 **Columns**:
+
 - `id` BIGSERIAL PRIMARY KEY
 - `session_id` UUID → Sessions(session_id)
 - `home_player_id` UUID → Profiles(id)
@@ -280,6 +323,7 @@
 - `created_at` TIMESTAMPTZ DEFAULT now()
 
 **Indexes**:
+
 - `idx_matches_session_id` - session_id
 - `idx_matches_home_player` - home_player_id
 - `idx_matches_home_player_id` - home_player_id (duplicate?)
@@ -288,6 +332,7 @@
 - `idx_matches_winner` - winner_id
 
 **RLS Policies**:
+
 - ✅ `Players can view their own matches` - SELECT (public)
 - ✅ `Players can insert their own matches` - INSERT (public)
 
@@ -296,9 +341,11 @@
 ---
 
 ### 11. PlayerSegmentStats
+
 **Purpose**: Aggregated performance statistics per player per segment
 
 **Columns**:
+
 - `id` BIGSERIAL PRIMARY KEY
 - `player_id` UUID → Profiles(id)
 - `segment_name` TEXT (e.g., 'WDYK', 'AUCT')
@@ -309,9 +356,11 @@
 - `updated_at` TIMESTAMPTZ DEFAULT now()
 
 **Indexes**:
+
 - None documented
 
 **RLS Policies**:
+
 - ✅ `Users can view their own stats` - SELECT (public)
 - ✅ `Users can upsert their own stats` - INSERT (public)
 - ✅ `Users can update their own stats` - UPDATE (public)
@@ -323,13 +372,15 @@
 ## 📸 Database Views
 
 ### UserInbox
+
 **Type**: SQL View (read-only)  
 **Purpose**: User-specific notifications with sender information  
 **Access**: Filtered by auth.uid()
 
 **Definition**:
+
 ```sql
-SELECT 
+SELECT
   n.id,
   n.recipient_id,
   n.type,
@@ -346,10 +397,12 @@ ORDER BY n.created_at DESC;
 ---
 
 ### leaderboard_players
+
 **Type**: SQL View (read-only)  
 **Purpose**: Player rankings by wins, win rate, and total points
 
 **Returns**:
+
 - Player profile info (id, username, name, flag, team, avatar_url)
 - Aggregate stats (games_played, wins, losses, total_points, win_rate)
 
@@ -360,10 +413,12 @@ ORDER BY n.created_at DESC;
 ---
 
 ### leaderboard_matches
+
 **Type**: SQL View (read-only)  
 **Purpose**: Match history with full player details
 
 **Returns**:
+
 - Match metadata (id, created_at, session_id, segments_played)
 - Home player full profile
 - Away player full profile
@@ -374,13 +429,15 @@ ORDER BY n.created_at DESC;
 
 ---
 
-## 🔐 Authentication Schema (auth.*)
+## 🔐 Authentication Schema (auth.\*)
 
 ### auth.users
+
 **Rows**: 7 active users  
 **Purpose**: Supabase Auth core user table  
 **RLS**: ✅ Enabled  
 **Key Features**:
+
 - Email/password authentication
 - OAuth support (SSO ready but not configured)
 - Phone authentication support
@@ -389,14 +446,17 @@ ORDER BY n.created_at DESC;
 - Soft delete capability (deleted_at)
 
 **Triggers**:
+
 - `on_auth_user_created` AFTER INSERT → calls `handle_new_user()` to auto-create Profile
 
 ---
 
 ### auth.sessions
+
 **Rows**: 12 active sessions  
 **Purpose**: User session tracking  
 **Key Columns**:
+
 - session_id, user_id, aal (authentication assurance level)
 - user_agent, ip
 - not_after (expiry), refreshed_at
@@ -404,20 +464,23 @@ ORDER BY n.created_at DESC;
 ---
 
 ### auth.identities
+
 **Rows**: 6 identities  
 **Purpose**: Third-party identity provider links (Google, GitHub, etc.)
 
 ---
 
 ### auth.refresh_tokens
+
 **Rows**: 36 tokens  
 **Purpose**: JWT refresh token storage
 
 ---
 
-## 📦 Storage Schema (storage.*)
+## 📦 Storage Schema (storage.\*)
 
 ### storage.buckets
+
 **Total Buckets**: 3
 
 1. **logos** (public)
@@ -436,6 +499,7 @@ ORDER BY n.created_at DESC;
    - Allowed Types: All
 
 **Storage Policies**:
+
 - `read_logos` - SELECT (public)
 - `avatars_public_read` - SELECT (public)
 - `avatars_own_write` - INSERT (authenticated) - User owns path
@@ -445,6 +509,7 @@ ORDER BY n.created_at DESC;
 ---
 
 ### storage.objects
+
 **Rows**: 5 files stored  
 **Purpose**: File metadata and paths
 
@@ -453,9 +518,11 @@ ORDER BY n.created_at DESC;
 ## ⚙️ Database Functions
 
 ### 1. generate_session_code()
+
 **Returns**: TRIGGER  
 **Purpose**: Generate cryptographically secure 6-character session codes  
 **Algorithm**:
+
 - 3 random digits + 3 random uppercase letters
 - Fisher-Yates shuffle using `gen_random_bytes()`
 - Uniqueness check against existing session codes
@@ -468,10 +535,12 @@ ORDER BY n.created_at DESC;
 ---
 
 ### 2. handle_new_user()
+
 **Returns**: TRIGGER  
 **Purpose**: Auto-create Profile record when auth.users row inserted  
 **Security**: SECURITY DEFINER with explicit search_path  
 **Behavior**:
+
 - Creates Profile with user's auth.id
 - Uses `raw_user_meta_data->>'name'` or defaults to 'Player'
 - ON CONFLICT DO NOTHING (idempotent)
@@ -481,10 +550,12 @@ ORDER BY n.created_at DESC;
 ---
 
 ### 3. notify_friend_activity()
+
 **Returns**: TRIGGER  
 **Purpose**: Auto-create notifications for friend request actions  
 **Security**: SECURITY DEFINER  
 **Behavior**:
+
 - INSERT + status='pending' → Notify addressee of friend request
 - UPDATE from 'pending' to 'accepted' → Notify requester of acceptance
 
@@ -493,6 +564,7 @@ ORDER BY n.created_at DESC;
 ---
 
 ### 4. touch_profiles_updated_at()
+
 **Returns**: TRIGGER  
 **Purpose**: Auto-update `updated_at` timestamp on Profiles  
 **Called By**: `trg_profiles_touch` on Profiles UPDATE
@@ -502,6 +574,7 @@ ORDER BY n.created_at DESC;
 ## 🔌 PostgreSQL Extensions
 
 **Installed Extensions** (5):
+
 1. **uuid-ossp** (v1.1) - UUID generation (used in all primary keys)
 2. **pgcrypto** (v1.3) - Cryptographic functions (session code generation)
 3. **pg_stat_statements** (v1.11) - Query performance monitoring
@@ -509,6 +582,7 @@ ORDER BY n.created_at DESC;
 5. **supabase_vault** (v0.3.1) - Secrets management
 
 **Available but Not Installed** (69 extensions including):
+
 - postgis, vector, pg_cron, wrappers, pgjwt, pgmq, rum, etc.
 
 ---
@@ -516,6 +590,7 @@ ORDER BY n.created_at DESC;
 ## 🚀 Edge Functions
 
 ### list-logos
+
 **Status**: ✅ ACTIVE (v8)  
 **Purpose**: List available team logos from storage  
 **Entrypoint**: `/supabase/functions/list-logos/index.ts`  
@@ -546,6 +621,7 @@ Located in `/netlify/functions/`:
 **Latest**: `20251020170018_add_notifications_insert_policy`
 
 **Recent Changes** (October 20, 2025):
+
 - Removed flag/team/name from Participants (moved to Profiles)
 - Created leaderboard views
 - Renamed Player1/Player2 roles to Home/Away
@@ -554,6 +630,7 @@ Located in `/netlify/functions/`:
 - Optimized RLS policies for performance
 
 **Security Fixes**:
+
 - `20250916083430_fix_function_search_path_security` - Prevented privilege escalation
 - `20250916085947_optimize_rls_policies_fixed` - Performance improvements
 - `20250914035421_fix_secure_session_code_generation` - Cryptographic RNG
@@ -563,6 +640,7 @@ Located in `/netlify/functions/`:
 ## 📊 Database Statistics
 
 **Total Rows**:
+
 - auth.users: 7
 - auth.sessions: 12
 - auth.refresh_tokens: 36
@@ -585,21 +663,25 @@ Located in `/netlify/functions/`:
 ## 🔒 Security Summary
 
 **Row Level Security (RLS)**:
+
 - ✅ Enabled on ALL public tables
-- ✅ Enabled on auth.* tables
-- ✅ Enabled on storage.* tables
+- ✅ Enabled on auth.\* tables
+- ✅ Enabled on storage.\* tables
 
 **Policy Design**:
+
 - Public read access for game data (Sessions, Participants, Scores)
 - User-scoped access for personal data (Profiles, Notifications, Friends)
 - Host-only write access for game state changes
 - Service role bypass for admin operations
 
 **Security Definer Functions**: 2
+
 - `handle_new_user()` - Runs with elevated privileges to create profiles
 - `notify_friend_activity()` - Creates notifications across users
 
 **Sensitive Data**:
+
 - No passwords stored in public schema
 - auth.users contains encrypted_password (Supabase managed)
 - No PII beyond username/name/email
@@ -610,17 +692,20 @@ Located in `/netlify/functions/`:
 ## 🎯 Performance Optimization
 
 **Indexed Columns**:
+
 - All primary keys
 - Foreign key columns (session_id, participant_id, profile_id, etc.)
 - Query-heavy columns (lobby_presence, lastHeartbeat, status, is_read)
 - Unique constraints (session_code, username, email, phone)
 
 **Partial Indexes**:
+
 - `idx_participant_active` - Only WHERE lobby_presence = 'Joined'
 - `idx_participant_heartbeat` - Only WHERE lobby_presence = 'Joined'
 - `idx_participant_video` - Only WHERE video_presence = true
 
 **Query Optimization**:
+
 - Views use JOINs for frequently accessed data
 - Comments indicate "RLS optimized" for core tables
 - Search path explicitly set in SECURITY DEFINER functions
@@ -630,6 +715,7 @@ Located in `/netlify/functions/`:
 ## 🔄 Real-time Subscriptions
 
 **Enabled Tables** (via supabase_realtime publication):
+
 - ✅ Sessions
 - ✅ Participants
 - ✅ Scores
@@ -641,6 +727,7 @@ Located in `/netlify/functions/`:
 - ✅ Profiles
 
 **Use Cases**:
+
 - Live score updates during quiz
 - Participant join/leave events
 - Friend request notifications
@@ -653,6 +740,7 @@ Located in `/netlify/functions/`:
 **Foreign Key Constraints**: All relationships enforced
 
 **Check Constraints**:
+
 - Enums enforced via CHECK (phase, game_state, role, lobby_presence, status, type)
 - Length validation (username >= 3, name 2-40)
 - Value ranges validated
@@ -660,6 +748,7 @@ Located in `/netlify/functions/`:
 **Default Values**: Comprehensive defaults for timestamps, booleans, arrays, JSON
 
 **Unique Constraints**:
+
 - session_code, username, email, phone
 - Composite unique on Friends (requester, addressee)
 
@@ -684,7 +773,7 @@ Located in `/netlify/functions/`:
 4. **Implement Soft Deletes**: Add deleted_at to critical tables
 5. **Add Audit Logging**: Track changes to Matches, Scores for dispute resolution
 6. **Storage Quotas**: Set file_size_limit on storage buckets
-7. **MIME Type Restrictions**: Limit avatars to image/* only
+7. **MIME Type Restrictions**: Limit avatars to image/\* only
 8. **Remove Duplicate Indexes**: Clean up redundant index definitions
 9. **Add Composite Indexes**: For multi-column query patterns (e.g., session_id + segment_code)
 10. **Database Monitoring**: Enable pg_stat_monitor for detailed query analytics

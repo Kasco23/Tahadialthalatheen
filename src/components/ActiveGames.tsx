@@ -120,11 +120,9 @@ const ActiveGamesSidebar: React.FC<ActiveGamesSidebarProps> = ({
             .eq("participant_id", existingHost.participant_id);
         } else {
           // Create new host participant
+          // Note: name, flag, and team are fetched from Profiles table via JOIN
           await supabase.from("Participants").insert({
             session_id: sessionData.session_id,
-            name: profileData.name || "Host",
-            flag: profileData.flag || "",
-            team_logo_url: profileData.team || "",
             role: "Host",
             lobby_presence: "Joined",
             join_at: new Date().toISOString(),
@@ -138,11 +136,12 @@ const ActiveGamesSidebar: React.FC<ActiveGamesSidebarProps> = ({
       }
 
       // Not host - join as player using available seat
+      // Note: name/flag/team parameters are deprecated, only profile_id is used
       const { participantId, role } = await joinAsPlayerWithCode(
         sessionCode,
-        profileData.name || "Player",
-        profileData.flag || "",
-        profileData.team || "",
+        "", // Deprecated: name now from Profiles table
+        "", // Deprecated: flag now from Profiles table
+        "", // Deprecated: team now from Profiles table
         user.id,
       );
 

@@ -72,14 +72,14 @@ export default async (req: Request, _context: Context) => {
     // Use global store for active profiles
     // This persists across all deploys and environments
     const storeName = "active-profiles";
-    
+
     // Add timeout and error handling for Blobs operations
     try {
       const store = getStore(storeName);
 
       // Store profile data with user ID as key - with timeout
       const profileKey = `user:${userId}:profile`;
-      
+
       await Promise.race([
         store.setJSON(profileKey, {
           ...profileData,

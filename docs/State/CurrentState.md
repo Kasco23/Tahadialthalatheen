@@ -11,6 +11,7 @@
 ### Session State
 
 #### sessionAtom
+
 - **Type**: `atom<string | null>`
 - **Purpose**: Stores current session ID
 - **Initial Value**: `null`
@@ -18,6 +19,7 @@
 - **Used By**: All pages requiring session context
 
 #### sessionCodeAtom
+
 - **Type**: `atom<string | null>`
 - **Purpose**: Stores current session code (6-character code)
 - **Initial Value**: `null`
@@ -29,6 +31,7 @@
 ### Participants State
 
 #### participantsAtom
+
 - **Type**: `atom<Record<string, Tables<"Participants">>>`
 - **Purpose**: Keyed map of all participants by participant_id
 - **Initial Value**: `{}`
@@ -37,6 +40,7 @@
 - **Used By**: Components displaying participant lists
 
 #### hostParticipantAtom
+
 - **Type**: Derived atom
 - **Purpose**: Returns the Host participant from participantsAtom
 - **Computed From**: `Object.values(participants).find((p) => p.role === "Host")`
@@ -44,6 +48,7 @@
 - **Used By**: Components needing host information
 
 #### playerParticipantsAtom
+
 - **Type**: Derived atom
 - **Purpose**: Returns all player participants (Player1, Player2)
 - **Computed From**: `Object.values(participants).filter((p) => p.role.startsWith("Player"))`
@@ -51,6 +56,7 @@
 - **Used By**: Lobby, Quiz for player-specific logic
 
 #### participantCountAtom
+
 - **Type**: Derived atom
 - **Purpose**: Returns total count of participants
 - **Computed From**: `Object.keys(participants).length`
@@ -62,6 +68,7 @@
 ### Daily.co Video Call State
 
 #### dailyRoomUrlAtom
+
 - **Type**: `atom<string | null>`
 - **Purpose**: Stores Daily.co room URL for video calls
 - **Initial Value**: `null`
@@ -70,6 +77,7 @@
 - **Used By**: VideoRoom.tsx for joining calls
 
 #### dailyTokenAtom
+
 - **Type**: `atom<string | null>`
 - **Purpose**: Stores Daily.co meeting token for authentication
 - **Initial Value**: `null`
@@ -79,6 +87,7 @@
 - **Used By**: VideoRoom.tsx for authenticated room access
 
 #### dailyUserNameAtom
+
 - **Type**: `atom<string | null>`
 - **Purpose**: Stores participant name for Daily.co display
 - **Initial Value**: `null`
@@ -86,6 +95,7 @@
 - **Used By**: VideoRoom.tsx for participant identification in video call
 
 #### dailyTokenExpiryAtom
+
 - **Type**: `atom<number | null>`
 - **Purpose**: Stores token expiration timestamp (milliseconds)
 - **Initial Value**: `null`
@@ -94,6 +104,7 @@
 - **Refresh Trigger**: 5 minutes before expiry
 
 #### dailyTokenRefreshingAtom
+
 - **Type**: `atom<boolean>`
 - **Purpose**: Indicates if token refresh is in progress
 - **Initial Value**: `false`

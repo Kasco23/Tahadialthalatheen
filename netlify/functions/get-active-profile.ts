@@ -49,7 +49,7 @@ export default async (req: Request, _context: Context) => {
 
     // Get blob store with timeout protection
     const storeName = "active-profiles";
-    
+
     try {
       const store = getStore(storeName);
 
@@ -93,7 +93,9 @@ export default async (req: Request, _context: Context) => {
           success: false,
           error: "Profile temporarily unavailable",
           details:
-            blobError instanceof Error ? blobError.message : "Storage unavailable",
+            blobError instanceof Error
+              ? blobError.message
+              : "Storage unavailable",
         }),
         {
           status: 503,

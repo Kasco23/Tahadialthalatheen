@@ -8,6 +8,7 @@
 ## Removed Pages
 
 ### Join.tsx (Original)
+
 - **Deprecated On**: October 17, 2025
 - **Reason**: Replaced by JoinSimplified.tsx with better UX
 - **Replacement**: JoinSimplified.tsx
@@ -20,6 +21,7 @@
   - New: Better mobile responsiveness
 
 **Migration Notes**:
+
 - All routes updated to use `/join` with JoinSimplified
 - No breaking changes for users
 - Session code validation logic preserved
@@ -36,6 +38,7 @@ None currently. All 13 pages are actively used in the application flow.
 ## Historical Notes
 
 ### Why Join.tsx was replaced
+
 1. UX feedback indicated multi-step was confusing
 2. Single-page form reduced abandonment rate
 3. Better alignment with mobile-first design
@@ -44,6 +47,7 @@ None currently. All 13 pages are actively used in the application flow.
 ---
 
 ## See Also
+
 - **CurrentState.md** - Active pages
 - **Changelog.md** - Recent changes
 - **Overview.md** - Category introduction

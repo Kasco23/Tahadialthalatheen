@@ -15,10 +15,12 @@ Pages are the top-level route components that users navigate to in the applicati
 ## Page Types
 
 ### Authentication Pages
+
 - **Signup.tsx** - Create new account with unique username
 - **Login.tsx** - Authenticate existing user
 
 ### Main Flow Pages
+
 - **Homepage.tsx** - Landing page, create/join session entry point
 - **JoinSimplified.tsx** - Join session with role selection (Host/Player)
 - **GameSetup.tsx** - Host-only configuration for quiz segments
@@ -27,6 +29,7 @@ Pages are the top-level route components that users navigate to in the applicati
 - **Results.tsx** - Post-game score breakdown and review
 
 ### Profile & Social Pages
+
 - **Profile.tsx** - User profile with tabs (Profile, Statistics, Friends)
 - **FlagSelection.tsx** - Choose country flag for player avatar
 - **TeamSelection.tsx** - Choose team logo for player avatar
@@ -45,14 +48,14 @@ All pages are registered in `src/App.tsx`:
   <Route path="/" element={<Homepage />} />
   <Route path="/signup" element={<Signup />} />
   <Route path="/login" element={<Login />} />
-  
+
   {/* Protected Routes */}
   <Route path="/profile" element={<Profile />} />
   <Route path="/inbox" element={<Inbox />} />
   <Route path="/leaderboard" element={<Leaderboard />} />
   <Route path="/select-flag" element={<FlagSelection />} />
   <Route path="/select-team" element={<TeamSelection />} />
-  
+
   {/* Session Flow Routes */}
   <Route path="/join" element={<JoinSimplified />} />
   <Route path="/gamesetup/:sessionCode" element={<GameSetup />} />
@@ -67,22 +70,26 @@ All pages are registered in `src/App.tsx`:
 ## Common Patterns
 
 ### Layout
+
 Most pages use `StadiumBackground` component for consistent theming:
+
 ```tsx
-<StadiumBackground>
-  {/* Page content */}
-</StadiumBackground>
+<StadiumBackground>{/* Page content */}</StadiumBackground>
 ```
 
 ### Authentication
+
 Pages check auth status via `useAuth()` context:
+
 ```tsx
 const { user } = useAuth();
-if (!user) navigate('/login');
+if (!user) navigate("/login");
 ```
 
 ### Navigation
+
 Pages use `react-router-dom` for navigation:
+
 ```tsx
 const navigate = useNavigate();
 const { sessionCode } = useParams();
@@ -93,6 +100,7 @@ const { sessionCode } = useParams();
 ## State Management
 
 Pages typically use:
+
 - **React hooks** (useState, useEffect) for local state
 - **Jotai atoms** for global state (session, presence)
 - **Supabase realtime** for live data updates

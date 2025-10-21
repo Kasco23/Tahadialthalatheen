@@ -8,6 +8,7 @@
 ## Netlify Serverless Functions (Node.js)
 
 ### createDailyRoom.ts
+
 - **Status**: ✅ Active
 - **Runtime**: Netlify Functions (Node.js) - Runtime API v2
 - **Endpoint**: `/.netlify/functions/createDailyRoom`
@@ -25,6 +26,7 @@
 - **Used By**: Homepage.tsx, GameSetup.tsx via mutations.ts
 
 ### create-daily-token.ts
+
 - **Status**: ✅ Active
 - **Runtime**: Netlify Functions (Node.js) - Runtime API v2
 - **Endpoint**: `/.netlify/functions/create-daily-token`
@@ -42,6 +44,7 @@
 - **Used By**: Lobby.tsx, Quiz.tsx via mutations.ts/dailyTokenManager.ts
 
 ### send-notification.ts
+
 - **Status**: ✅ Active
 - **Runtime**: Netlify Functions (Node.js) - Runtime API v2
 - **Endpoint**: `/.netlify/functions/send-notification`
@@ -59,6 +62,7 @@
 - **Used By**: Friend request system, match invites
 
 ### check-ready-status.ts
+
 - **Status**: ✅ Active
 - **Runtime**: Netlify Functions (Node.js) - Runtime API v2
 - **Endpoint**: `/.netlify/functions/check-ready-status`
@@ -76,6 +80,7 @@
 - **Used By**: Lobby.tsx via mutations.ts checkAllPlayersReady()
 
 ### mark-player-ready.ts
+
 - **Status**: ✅ Active
 - **Runtime**: Netlify Functions (Node.js) - Runtime API v2
 - **Endpoint**: `/.netlify/functions/mark-player-ready`
@@ -92,6 +97,7 @@
 - **Used By**: Lobby.tsx via mutations.ts markPlayerReady()
 
 ### get-active-profile.ts
+
 - **Status**: ✅ Active
 - **Runtime**: Netlify Functions (Node.js) - Runtime API v2
 - **Endpoint**: `/.netlify/functions/get-active-profile`
@@ -107,6 +113,7 @@
 - **Used By**: activeProfile.ts library
 
 ### store-active-profile.ts
+
 - **Status**: ✅ Active
 - **Runtime**: Netlify Functions (Node.js) - Runtime API v2
 - **Endpoint**: `/.netlify/functions/store-active-profile`
@@ -122,6 +129,7 @@
 - **Used By**: activeProfile.ts library
 
 ### cleanupStatus.ts
+
 - **Status**: ✅ Active (Scheduled)
 - **Runtime**: Netlify Functions (Node.js) - Runtime API v1 (scheduled functions)
 - **Schedule**: Hourly (cron: `0 * * * *`)
@@ -143,6 +151,7 @@
 ## Netlify Edge Functions (Deno)
 
 ### get-session.ts
+
 - **Status**: ✅ Active
 - **Runtime**: Deno Edge Functions
 - **Endpoint**: `/.netlify/edge-functions/get-session`
@@ -158,6 +167,7 @@
 - **Used By**: blobStore.ts loadSession()
 
 ### set-session.ts
+
 - **Status**: ✅ Active
 - **Runtime**: Deno Edge Functions
 - **Endpoint**: `/.netlify/edge-functions/set-session`
@@ -174,6 +184,7 @@
 - **Used By**: blobStore.ts saveSession(), deleteSession()
 
 ### session-state.ts
+
 - **Status**: ✅ Active
 - **Runtime**: Deno Edge Functions
 - **Endpoint**: `/.netlify/edge-functions/session-state`
@@ -196,11 +207,13 @@
 ## Backend Architecture
 
 ### API Gateway Pattern
+
 - **Frontend** → Netlify Functions → External APIs (Daily.co, Supabase)
 - **Security**: API keys secured in Netlify environment variables
 - **No CORS Issues**: Functions handle all external API calls
 
 ### Function Types
+
 1. **API Proxies**: createDailyRoom, create-daily-token (wrap Daily.co API)
 2. **Database Operations**: send-notification, check-ready-status, mark-player-ready (use service role key)
 3. **State Management**: get-session, set-session, session-state (use Netlify Blobs)
@@ -208,17 +221,20 @@
 5. **Profile Management**: get-active-profile, store-active-profile (cross-device sync)
 
 ### Runtime Versions
+
 - **Netlify Functions**: Runtime API v2 (modern async handler pattern)
 - **Edge Functions**: Deno runtime for low-latency operations
 - **Scheduled Functions**: Runtime API v1 (requires schedule config export)
 
 ### Error Handling
+
 - All functions return JSON responses with success/error fields
 - Timeout handling with abort controllers (createDailyRoom)
 - Detailed error logging to Netlify function logs
 - Client-friendly error messages
 
 ### Deployment
+
 - **Configured In**: netlify.toml
 - **Auto-deployment**: On git push to main/cleanup branches
 - **Build Command**: `pnpm build`
