@@ -3,11 +3,13 @@ import { Flag } from "./Flag";
 
 export interface RejoinParticipant {
   participant_id: string;
-  name: string;
   role: string;
-  flag: string | null;
-  team_logo_url: string | null;
   lobby_presence: string;
+  Profiles?: {
+    name?: string | null;
+    flag?: string | null;
+    team?: string | null;
+  } | null;
 }
 
 interface RejoinModalProps {
@@ -111,21 +113,21 @@ const RejoinModal: React.FC<RejoinModalProps> = ({
                     }`}
                   >
                     <div className="flex items-center space-x-4">
-                      {participant.team_logo_url && (
+                      {participant.Profiles?.team && (
                         <img
-                          src={participant.team_logo_url}
-                          alt={participant.name}
+                          src={participant.Profiles.team}
+                          alt={participant.Profiles.name || "Player"}
                           className="w-12 h-12 object-contain"
                         />
                       )}
-                      {participant.flag && (
+                      {participant.Profiles?.flag && (
                         <div className="w-12 h-8">
-                          <Flag code={participant.flag} />
+                          <Flag code={participant.Profiles.flag} />
                         </div>
                       )}
                       <div className="flex-1">
                         <div className="font-semibold text-gray-800">
-                          {participant.name}
+                          {participant.Profiles?.name || "Guest"}
                         </div>
                         <div className="text-sm text-gray-500">
                           {participant.role}

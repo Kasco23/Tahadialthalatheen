@@ -17,11 +17,13 @@ interface LobbyStatusProps {
 
 interface ParticipantInfo {
   participant_id: string;
-  name: string;
   role: string;
   lobby_presence: string;
-  flag?: string;
-  team_logo_url?: string;
+  Profiles?: {
+    name?: string | null;
+    flag?: string | null;
+    team?: string | null;
+  } | null;
 }
 
 interface DailyRoomInfo {
@@ -46,19 +48,40 @@ const LobbyStatus: React.FC<LobbyStatusProps> = ({
       try {
         setLoading(true);
 
-        // Fetch participants
+        // Fetch participants with Profile data
         const { data: participantsData, error: participantsError } =
           await supabase
             .from("Participants")
             .select(
-              "participant_id, name, role, lobby_presence, flag, team_logo_url",
+              `
+              participant_id,
+              role,
+              lobby_presence,
+              Profiles!profile_id (
+                name,
+                flag,
+                team
+              )
+            `,
             )
             .eq("session_id", sessionId);
 
         if (participantsError) {
           Logger.error("Error fetching participants:", participantsError);
         } else {
-          setParticipants(participantsData || []);
+          // Normalize the data - Profiles could be object or array
+          const normalizedParticipants = (participantsData || []).map(
+            (p: any) => {
+              const profileData = Array.isArray(p.Profiles)
+                ? p.Profiles[0]
+                : p.Profiles;
+              return {
+                ...p,
+                Profiles: profileData || null,
+              };
+            },
+          );
+          setParticipants(normalizedParticipants);
         }
 
         // Fetch daily room info
@@ -107,7 +130,7 @@ const LobbyStatus: React.FC<LobbyStatusProps> = ({
           {
             event: "*",
             schema: "public",
-            table: "Participant",
+            table: "Participants",
             filter: `session_id=eq.${sessionId}`,
           },
           () => {
@@ -123,7 +146,7 @@ const LobbyStatus: React.FC<LobbyStatusProps> = ({
           {
             event: "*",
             schema: "public",
-            table: "DailyRoom",
+            table: "DailyRooms",
             filter: `room_id=eq.${sessionId}`,
           },
           () => {
@@ -274,18 +297,20 @@ const LobbyStatus: React.FC<LobbyStatusProps> = ({
                 </span>
                 <div>
                   <div className="font-medium text-gray-800">
-                    {participant.name}
+                    {participant.Profiles?.name || "Guest"}
                   </div>
                   <div className="text-sm text-gray-500">
                     {participant.role}
                   </div>
                 </div>
-                {participant.flag && (
-                  <span className={`fi fi-${participant.flag} text-lg`}></span>
+                {participant.Profiles?.flag && (
+                  <span
+                    className={`fi fi-${participant.Profiles.flag} text-lg`}
+                  ></span>
                 )}
-                {participant.team_logo_url && (
+                {participant.Profiles?.team && (
                   <img
-                    src={participant.team_logo_url}
+                    src={participant.Profiles.team}
                     alt="Team Logo"
                     className="w-6 h-6 rounded"
                   />
