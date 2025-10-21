@@ -185,6 +185,7 @@ export function useParticipants(sessionId: string | null) {
             *,
             Profiles!profile_id (
               name,
+              username,
               flag,
               team
             )

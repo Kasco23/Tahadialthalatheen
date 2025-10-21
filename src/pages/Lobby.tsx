@@ -47,6 +47,7 @@ import { UsernameSetupBanner } from "../components/UsernameSetupBanner";
 type ParticipantRow = Database["public"]["Tables"]["Participants"]["Row"] & {
   Profiles?: {
     name?: string | null;
+    username?: string | null;
     flag?: string | null;
     team?: string | null;
   } | null;
@@ -291,6 +292,11 @@ const Lobby: React.FC = () => {
   // Initialize as empty string and ONLY set from Profiles table (not from localStorage)
   // This ensures Daily token is created with the correct name from database
   const [participantName, setParticipantName] = useState<string>("");
+  
+  // Separate state for Daily token username (safe, no spaces)
+  // Uses username from Profiles (e.g., "tareq") instead of full name (e.g., "Tareq Salah")
+  // This prevents Daily.co token issues with names containing spaces
+  const [tokenUsername, setTokenUsername] = useState<string>("");
 
   // Update atoms when session data is resolved
   useEffect(() => {
@@ -324,52 +330,86 @@ const Lobby: React.FC = () => {
     }
 
     const currentParticipant = players.find((p) => p.role === participantRole);
-    if (currentParticipant?.Profiles?.name) {
+    if (currentParticipant?.Profiles) {
       const profileName = currentParticipant.Profiles.name;
-      Logger.log("Setting participant name from Profiles table:", profileName);
+      const profileUsername = currentParticipant.Profiles.username;
+      
+      Logger.log("Setting participant data from Profiles table:", {
+        displayName: profileName,
+        tokenUsername: profileUsername,
+      });
 
-      // Clear any cached Daily tokens with old names
-      if (sessionCode && participantName && participantName !== profileName) {
-        Logger.log("Clearing old Daily token cache due to name change:", {
-          old: participantName,
-          new: profileName,
+      // Use username for Daily token (no spaces, safe for tokens)
+      // Use name for display in UI
+      const safeTokenName = profileUsername || profileName || "player";
+      const displayName = profileName || profileUsername || "Unknown";
+
+      // Clear any cached Daily tokens with old usernames
+      if (sessionCode && tokenUsername && tokenUsername !== safeTokenName) {
+        Logger.log("Clearing old Daily token cache due to username change:", {
+          old: tokenUsername,
+          new: safeTokenName,
         });
         clearRoomTokens(sessionCode);
       }
 
-      setParticipantName(profileName);
-      setDailyUserName(profileName);
+      setTokenUsername(safeTokenName);
+      setParticipantName(displayName);
+      setDailyUserName(displayName);
     }
-  }, [resolvedSeat, players, setDailyUserName, sessionCode, participantName]);
+  }, [resolvedSeat, players, setDailyUserName, sessionCode, tokenUsername]);
 
   // Store Daily room data in atoms when available and create token
   useEffect(() => {
     const setupDailyRoom = async () => {
-      // IMPORTANT: Only create token after participantName is loaded from Profiles table
-      // participantName starts as empty string and is set from Profiles data
-      if (dailyRoom?.room_url && sessionCode && participantName) {
-        Logger.log("Lobby: Storing Daily room data in atoms", {
+      // Log current state for debugging
+      Logger.log("Lobby: Daily room setup check", {
+        hasDailyRoom: !!dailyRoom,
+        roomUrl: dailyRoom?.room_url,
+        hasSessionCode: !!sessionCode,
+        hasTokenUsername: !!tokenUsername,
+        hasParticipantName: !!participantName,
+        tokenUsername,
+        displayName: participantName,
+      });
+
+      // IMPORTANT: Only create token after tokenUsername is loaded from Profiles table
+      // Use username (no spaces) for token, name (full) for display
+      if (dailyRoom?.room_url && sessionCode && tokenUsername && participantName) {
+        Logger.log("Lobby: Setting up Daily room data in atoms", {
           roomUrl: dailyRoom.room_url,
-          participantName,
+          tokenUsername,
+          displayName: participantName,
         });
 
         setDailyRoomUrl(dailyRoom.room_url);
-        setDailyUserName(participantName);
+        setDailyUserName(participantName); // Display name in UI
 
-        // Create and store token with the correct name from Profiles table
+        // Create and store token with safe username (no spaces)
         try {
           const { token } = await createDailyToken(
             sessionCode,
-            participantName,
+            tokenUsername, // Use username for token (safe, no spaces)
           );
           setDailyToken(token);
           Logger.log(
-            "Lobby: Daily token created and stored with name:",
-            participantName,
+            "Lobby: Daily token created successfully",
+            {
+              tokenUsername,
+              displayName: participantName,
+            },
           );
         } catch (error) {
           Logger.error("Lobby: Failed to create Daily token:", error);
         }
+      } else if (dailyRoom?.room_url && (!tokenUsername || !participantName)) {
+        Logger.warn(
+          "Lobby: Daily room available but waiting for participant data from Profiles",
+          {
+            hasTokenUsername: !!tokenUsername,
+            hasDisplayName: !!participantName,
+          },
+        );
       }
     };
 
@@ -377,6 +417,7 @@ const Lobby: React.FC = () => {
   }, [
     dailyRoom,
     sessionCode,
+    tokenUsername,
     participantName,
     setDailyRoomUrl,
     setDailyToken,
@@ -777,12 +818,30 @@ const Lobby: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      // Participants
+      
+      // Fetch participants WITH Profiles data to preserve name/flag/team
       const { data: pData, error: pErr } = await supabase
         .from("Participants")
-        .select("*")
+        .select(
+          `
+            *,
+            Profiles!profile_id (
+              name,
+              username,
+              flag,
+              team
+            )
+          `,
+        )
         .eq("session_id", sessionId);
-      if (!pErr) setPlayers((pData as ParticipantRow[]) || []);
+        
+      if (pErr) {
+        Logger.error("Error refreshing participants:", pErr);
+        setError("Failed to refresh participants");
+      } else {
+        setPlayers((pData as ParticipantRow[]) || []);
+        Logger.log("Participants refreshed with Profiles data:", pData);
+      }
     } finally {
       setLoading(false);
     }
