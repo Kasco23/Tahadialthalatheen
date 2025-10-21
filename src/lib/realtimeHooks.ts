@@ -211,7 +211,7 @@ export function useParticipants(sessionId: string | null) {
         {
           event: "*",
           schema: "public",
-          table: "Participant",
+          table: "Participants",
           filter: `session_id=eq.${sessionId}`,
         },
         (payload) => {

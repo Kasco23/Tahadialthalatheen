@@ -422,7 +422,7 @@ const Lobby: React.FC = () => {
           {
             event: "*",
             schema: "public",
-            table: "Participant",
+            table: "Participants",
             filter: `session_id=eq.${sessionId}`,
           },
           (

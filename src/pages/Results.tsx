@@ -11,14 +11,18 @@ import toast from "react-hot-toast";
 interface PlayerData {
   participant_id: string;
   session_id: string;
-  name: string;
   role: string;
-  flag: string;
-  team_logo_url?: string;
-  score: number;
-  is_connected: boolean;
-  is_host: boolean;
   profile_id?: string | null;
+  score?: number; // Computed from Scores table
+  Profiles?: {
+    name?: string | null;
+    flag?: string | null;
+    team?: string | null; // team logo URL
+  } | null;
+  // Legacy properties for backwards compatibility
+  name?: string;
+  flag?: string;
+  team_logo_url?: string;
 }
 
 interface SegmentScore {
@@ -86,7 +90,7 @@ const Results: React.FC = () => {
           {
             event: "*",
             schema: "public",
-            table: "Participant",
+            table: "Participants",
             filter: `session_id=eq.${sessionId}`,
           },
           (payload) => {
@@ -104,7 +108,17 @@ const Results: React.FC = () => {
         const { data: playersData, error: playersError } = await supabase
           .from("Participants")
           .select(
-            "participant_id, session_id, name, role, flag, team_logo_url, score, is_connected, is_host, profile_id",
+            `
+            participant_id,
+            session_id,
+            role,
+            profile_id,
+            Profiles!profile_id (
+              name,
+              flag,
+              team
+            )
+          `,
           )
           .eq("session_id", sessionId);
 
@@ -112,7 +126,21 @@ const Results: React.FC = () => {
           Logger.error("Error loading players:", playersError);
           setError("Failed to load player data");
         } else {
-          setPlayers(playersData || []);
+          // Normalize the data - Profiles could be object or array
+          const normalizedPlayers = (playersData || []).map((p: any) => {
+            const profileData = Array.isArray(p.Profiles)
+              ? p.Profiles[0]
+              : p.Profiles;
+            return {
+              ...p,
+              Profiles: profileData || null,
+              // Add legacy fields for backward compatibility
+              name: profileData?.name || "Guest",
+              flag: profileData?.flag || "xx",
+              team_logo_url: profileData?.team || null,
+            };
+          });
+          setPlayers(normalizedPlayers);
         }
       } catch (err) {
         Logger.error("Error loading players:", err);

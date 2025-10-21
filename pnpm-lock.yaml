@@ -210,6 +210,9 @@ importers:
       canvas:
         specifier: ^3.2.0
         version: 3.2.0
+      context7-mcp-server:
+        specifier: ^1.0.1
+        version: 1.0.1
       cssnano:
         specifier: ^7.1.1
         version: 7.1.1(postcss@8.5.6)
@@ -3718,6 +3721,10 @@ packages:
   content-type@1.0.5:
     resolution: {integrity: sha512-nTjqfcBFEipKdXCv4YDQWCfmcLZKm81ldF0pAopTvyrFGVbcR6P/VAAd5G7N+0tTr8QqiU0tFadD6FK4NtJwOA==}
     engines: {node: '>= 0.6'}
+
+  context7-mcp-server@1.0.1:
+    resolution: {integrity: sha512-EBIPUWhxI73RdzGZzq0/78CJdE3lBiAc62BtkzX1ZnbDFN2Wd2tAYFi3Pay5QSx7QuXSV8yEzzUKYd5MohTXtQ==}
+    hasBin: true
 
   convert-source-map@1.9.0:
     resolution: {integrity: sha512-ASFBup0Mz1uyiIjANan1jzLQami9z1PoYSZCiiYW2FczPbenXc45FZdBZLzOT+r6+iciuEModtmCti+hjaAk0A==}
@@ -12461,6 +12468,14 @@ snapshots:
 
   content-type@1.0.5: {}
 
+  context7-mcp-server@1.0.1:
+    dependencies:
+      '@modelcontextprotocol/sdk': 1.20.1
+      commander: 14.0.1
+      zod: 3.25.76
+    transitivePeerDependencies:
+      - supports-color
+
   convert-source-map@1.9.0: {}
 
   convert-source-map@2.0.0: {}
@@ -13652,7 +13667,7 @@ snapshots:
       mcp-proxy: 5.9.0
       strict-event-emitter-types: 2.0.0
       uri-templates: 0.2.0
-      xsschema: 0.3.5(zod-to-json-schema@3.24.6(zod@3.25.76))(zod@3.25.76)
+      xsschema: 0.3.5(zod-to-json-schema@3.24.6(zod@4.1.12))(zod@3.25.76)
       yargs: 18.0.0
       zod: 3.25.76
       zod-to-json-schema: 3.24.6(zod@3.25.76)
@@ -18052,10 +18067,10 @@ snapshots:
       commander: 2.20.3
       cssfilter: 0.0.10
 
-  xsschema@0.3.5(zod-to-json-schema@3.24.6(zod@3.25.76))(zod@3.25.76):
+  xsschema@0.3.5(zod-to-json-schema@3.24.6(zod@4.1.12))(zod@3.25.76):
     optionalDependencies:
       zod: 3.25.76
-      zod-to-json-schema: 3.24.6(zod@3.25.76)
+      zod-to-json-schema: 3.24.6(zod@4.1.12)
 
   xtend@4.0.2: {}
 
@@ -18116,6 +18131,11 @@ snapshots:
   zod-to-json-schema@3.24.6(zod@3.25.76):
     dependencies:
       zod: 3.25.76
+
+  zod-to-json-schema@3.24.6(zod@4.1.12):
+    dependencies:
+      zod: 4.1.12
+    optional: true
 
   zod@3.25.76: {}
 
