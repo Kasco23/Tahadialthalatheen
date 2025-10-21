@@ -2,7 +2,19 @@
 
 **ALWAYS follow these instructions first. Only search or explore further if the information here is incomplete or found to be in error.**
 
-Tahadialthalatheen is a React TypeScript application built with Vite that creates live head-to-head football quizzes. It uses Supabase for data, Daily.co for video calls, and is deployed on Netlify with serverless functions to be played between me and my friends and not serve a market or wide audience.
+## Project Scope
+
+⚠️ **PRIVATE APPLICATION**: This is a **private** football quiz application for **personal use among friends only**. This is NOT a commercial product, public service, or market-oriented application. All features, design decisions, and scope are limited to small groups (typically 2-10 players per session).
+
+**Key Implications:**
+- No need for enterprise-scale features or optimizations
+- Focus on friend-group experience, not public audience
+- Simple workflows suitable for known users
+- Features designed for intimate, casual play sessions
+
+---
+
+Tahadialthalatheen is a React TypeScript application built with Vite that creates live head-to-head football quizzes. It uses Supabase for data, Daily.co for video calls, and is deployed on Netlify with serverless functions.
 
 ## Core Development Workflow
 
@@ -227,3 +239,146 @@ pnpm lint && pnpm format && pnpm build && pnpm test
 - **E2E tests**: Require full environment setup including Supabase and Daily.co
 
 Remember: This application has FAST build times and simple development workflows. Most operations complete in seconds, making rapid iteration and testing very efficient.
+
+---
+
+## Documentation System
+
+### 📚 Centralized Documentation Structure
+
+The project uses a **structured, living documentation system** located in `/docs/` with the following organization:
+
+```
+docs/
+├── PROJECT_SETUP.md              # High-level project overview (read this first!)
+├── Pages/                        # Route components documentation
+│   ├── Overview.md               # Category introduction
+│   ├── CurrentState.md           # Active files and specifications
+│   ├── Deprecated.md             # Removed/obsolete files
+│   └── Changelog.md              # Historical changes
+├── Components/                   # UI components documentation
+│   ├── Overview.md
+│   ├── CurrentState.md
+│   ├── Deprecated.md
+│   └── Changelog.md
+├── Libraries/                    # Business logic & utilities
+│   ├── Overview.md
+│   ├── CurrentState.md
+│   ├── Deprecated.md
+│   └── Changelog.md
+├── Features/                     # High-level feature workflows
+│   └── [same structure]
+├── Backend/                      # Netlify functions
+│   └── [same structure]
+├── Database/                     # Schema & migrations
+│   └── [same structure]
+└── State/                        # Jotai atoms
+    └── [same structure]
+```
+
+### 🔄 Documentation Maintenance Rules
+
+**CRITICAL**: You MUST follow these rules when making ANY code changes:
+
+#### 1. **Update, Don't Create New Docs**
+
+- ❌ **NEVER** create standalone documentation markdown files (e.g., `FEATURE_SUMMARY_OCT21.md`)
+- ✅ **ALWAYS** update the existing category documentation files
+
+#### 2. **When Adding/Modifying Files**
+
+**Step 1**: Identify the category (Pages, Components, Libraries, etc.)
+
+**Step 2**: Update `CurrentState.md` in that category:
+```markdown
+### NewComponent.tsx
+- **Status**: ✅ Active
+- **Purpose**: Brief description
+- **Used In**: Where it's used
+- **Key Features**: List of features
+- **Size**: File size
+```
+
+**Step 3**: Add entry to `Changelog.md`:
+```markdown
+## October 21, 2025
+
+### NewComponent.tsx - Created
+- **Purpose**: What it does
+- **Features**: Key capabilities
+- **Dependencies**: New libraries added
+- **Impact**: Effect on application
+```
+
+**Step 4**: If replacing old file, move old entry from `CurrentState.md` to `Deprecated.md`:
+```markdown
+### OldComponent.tsx
+- **Deprecated On**: October 21, 2025
+- **Reason**: Why it was removed
+- **Replacement**: What replaced it
+- **Status**: ❌ Inactive
+```
+
+#### 3. **When Removing Files**
+
+1. Remove entry from `CurrentState.md`
+2. Add detailed entry to `Deprecated.md` with reason
+3. Add deprecation note to `Changelog.md`
+4. Update `Overview.md` if structural changes occurred
+
+#### 4. **Documentation Update Format**
+
+Each changelog entry should include:
+- **Date**: YYYY-MM-DD format
+- **File(s)**: Which file(s) were modified
+- **Type**: Created | Updated | Deprecated | Removed
+- **Change**: What was changed
+- **Reason**: Why the change was made  
+- **Impact**: Effect on users/application
+- **Dependencies**: New libraries or components
+
+#### 5. **When to Update Overview.md**
+
+Only update `Overview.md` when:
+- Major structural changes occur
+- New subcategories are added
+- Core patterns change
+- Category purpose evolves
+
+### 📖 Documentation Reading Order
+
+**For understanding the project:**
+1. Start with `/docs/PROJECT_SETUP.md` - High-level overview
+2. Read category `Overview.md` - Understand the category
+3. Check `CurrentState.md` - See current files and specs
+4. Review `Changelog.md` - Recent changes
+
+**Before making changes:**
+1. Check relevant `CurrentState.md` to understand existing files
+2. Review `Changelog.md` for recent patterns
+3. Make your changes
+4. Update docs following the rules above
+
+### 🎯 Documentation Examples
+
+**Good Practice ✅:**
+```markdown
+# Pages/Changelog.md
+
+## October 21, 2025
+
+### Profile.tsx - Updated
+- **Change**: Added Friends tab with friend request management
+- **Reason**: Enable social features for friend-to-friend gameplay
+- **Components**: Integrated FriendsTab.tsx component
+- **Impact**: Users can now send/accept friend requests from profile
+```
+
+**Bad Practice ❌:**
+```markdown
+# PROFILE_UPDATE_OCT21_2025.md (standalone file)
+
+I updated Profile.tsx today to add a friends tab...
+```
+
+---
