@@ -26,7 +26,13 @@ import type { Database } from "../lib/types/supabase";
  * - Video state updates automatically through useVideoTrack hook
  */
 
-type ParticipantRow = Database["public"]["Tables"]["Participants"]["Row"];
+type ParticipantRow = Database["public"]["Tables"]["Participants"]["Row"] & {
+  Profiles?: {
+    name?: string | null;
+    flag?: string | null;
+    team?: string | null;
+  } | null;
+};
 
 interface ParticipantTileProps {
   participantId: string;
@@ -46,8 +52,8 @@ const ParticipantTile: React.FC<ParticipantTileProps> = ({
     ? playersByName.get(userName.toLowerCase())
     : null;
 
-  // Determine display name
-  const displayName = playerData?.name || userName || "Unknown Participant";
+  // Determine display name from Profiles table
+  const displayName = playerData?.Profiles?.name || userName || "Unknown Participant";
 
   // Check if video is available
   const hasVideo = videoTrack?.track && videoTrack.state === "playable";

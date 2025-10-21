@@ -12,7 +12,13 @@ vi.mock("@daily-co/daily-react", () => ({
   ),
 }));
 
-type ParticipantRow = Database["public"]["Tables"]["Participants"]["Row"];
+type ParticipantRow = Database["public"]["Tables"]["Participants"]["Row"] & {
+  Profiles?: {
+    name?: string | null;
+    flag?: string | null;
+    team?: string | null;
+  } | null;
+};
 
 describe("ParticipantTile", () => {
   const mockPlayersByName = new Map<string, ParticipantRow>([
@@ -31,12 +37,17 @@ describe("ParticipantTile", () => {
         disconnect_at: null,
         lastHeartbeat: new Date().toISOString(),
         password: null,
-        profile_id: null,
+        profile_id: "test-profile-id",
         powerup_alhabeed: null,
         powerup_bellegoal: null,
         powerup_pass_used: null,
         powerup_slippyg: null,
         isReady: false,
+        Profiles: {
+          name: "Test User from Profile",
+          flag: "us",
+          team: "Test Team",
+        },
       },
     ],
   ]);
@@ -66,8 +77,8 @@ describe("ParticipantTile", () => {
       />,
     );
 
-    // Check that participant info is displayed (name only, no role after our recent changes)
-    expect(screen.getByText(/Test User/)).toBeInTheDocument();
+    // Check that participant info is displayed from Profiles table
+    expect(screen.getByText(/Test User from Profile/)).toBeInTheDocument();
   });
 
   it("should show connection status indicator", () => {
