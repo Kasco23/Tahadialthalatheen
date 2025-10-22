@@ -471,13 +471,9 @@ export async function getDailyRoom(
       .from("DailyRooms")
       .select("room_url, ready")
       .eq("room_id", sessionId)
-      .single();
+      .maybeSingle();
 
     if (error) {
-      if (error.code === "PGRST116") {
-        // No room found
-        return null;
-      }
       throw new Error(`Failed to get Daily room: ${error.message}`);
     }
 
