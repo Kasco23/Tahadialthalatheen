@@ -18,7 +18,7 @@ export async function storeActiveProfile(
   profileData: Profile,
 ): Promise<void> {
   try {
-    const response = await fetch("/.netlify/functions/store-active-profile", {
+    const response = await fetch("/api/store-active-profile", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -33,6 +33,12 @@ export async function storeActiveProfile(
     const contentType = response.headers.get("content-type");
     if (!contentType || !contentType.includes("application/json")) {
       const text = await response.text();
+      // Check if it's a dev environment HTML page
+      if (text.includes("<!doctype") || text.includes("<!DOCTYPE")) {
+        // Silently skip in development - Netlify Functions not available
+        Logger.debug("Netlify Functions unavailable in local dev - skipping profile storage");
+        return;
+      }
       throw new Error(`Non-JSON response from server: ${text.slice(0, 100)}`);
     }
 
@@ -44,6 +50,11 @@ export async function storeActiveProfile(
 
     Logger.log("Active profile stored successfully:", { userId });
   } catch (error) {
+    // Don't throw in development - just log as debug
+    if (error instanceof Error && error.message.includes("Non-JSON response")) {
+      Logger.debug("Profile storage skipped (dev environment)");
+      return;
+    }
     Logger.error("Error storing active profile:", error);
     throw error;
   }
@@ -59,7 +70,7 @@ export async function getActiveProfile(
 ): Promise<Profile | null> {
   try {
     const response = await fetch(
-      `/.netlify/functions/get-active-profile?userId=${encodeURIComponent(userId)}`,
+      `/api/get-active-profile?userId=${encodeURIComponent(userId)}`,
     );
 
     // Check if response is JSON before parsing

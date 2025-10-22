@@ -239,7 +239,7 @@ export async function createNotification(
 ): Promise<Notification> {
   try {
     // Call the Netlify function to create notification with service role
-    const response = await fetch("/.netlify/functions/send-notification", {
+    const response = await fetch("/api/send-notification", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

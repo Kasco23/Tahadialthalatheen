@@ -59,7 +59,7 @@ export const VideoCallJoinButton: React.FC<VideoCallJoinButtonProps> = ({
       .from("DailyRooms")
       .select("room_url, ready")
       .eq("room_id", sessionId)
-      .single();
+      .maybeSingle();
   };
 
   const joinDailyRoom = async (roomUrl: string, token: string) => {

@@ -38,7 +38,7 @@
     "@heroicons/react": "^2.2.0",
     "@mendable/firecrawl-js": "^4.4.1",
     "@mui/material": "^7.3.4",
-    "@netlify/blobs": "^10.1.0",
+    "@netlify/blobs": "^10.2.0",
     "@supabase/supabase-js": "^2.76.1",
     "@tailwindcss/vite": "^4.1.15",
     "@tanstack/react-query": "^5.90.5",
@@ -79,9 +79,9 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.38.0",
-    "@netlify/edge-functions": "^3.0.0",
-    "@netlify/functions": "^5.0.0",
-    "@netlify/vite-plugin": "^2.7.4",
+    "@netlify/edge-functions": "^3.0.1",
+    "@netlify/functions": "^5.0.1",
+    "@netlify/vite-plugin": "^2.7.5",
     "@playwright/test": "^1.56.1",
     "@tailwindcss/postcss": "^4.1.15",
     "@testing-library/jest-dom": "^6.9.1",
@@ -140,18 +140,17 @@
       "@parcel/watcher",
       "@sentry/cli",
       "@swc/core",
-      "canvas",
       "esbuild",
       "inotify",
       "msw",
       "netlify",
       "netlify-cli",
+      "protobufjs",
       "puppeteer",
       "sharp",
       "supabase",
-      "unix-dgram",
-      "unrs-resolver"
+      "unix-dgram"
     ]
   },
-  "packageManager": "pnpm@10.18.3+sha512.bbd16e6d7286fd7e01f6b3c0b3c932cda2965c06a908328f74663f10a9aea51f1129eea615134bf992831b009eabe167ecb7008b597f40ff9bc75946aadfb08d"
+  "packageManager": "pnpm@10.19.0+sha512.c9fc7236e92adf5c8af42fd5bf1612df99c2ceb62f27047032f4720b33f8eacdde311865e91c411f2774f618d82f320808ecb51718bfa82c060c4ba7c76a32b8"
 }

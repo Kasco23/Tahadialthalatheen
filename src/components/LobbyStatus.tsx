@@ -57,7 +57,7 @@ const LobbyStatus: React.FC<LobbyStatusProps> = ({
               participant_id,
               role,
               lobby_presence,
-              Profiles!profile_id (
+              Profiles!Participants_profile_id_fkey (
                 name,
                 flag,
                 team
@@ -89,14 +89,11 @@ const LobbyStatus: React.FC<LobbyStatusProps> = ({
           .from("DailyRooms")
           .select("room_url, ready")
           .eq("room_id", sessionId)
-          .single();
+          .maybeSingle();
 
         if (dailyRoomError) {
-          if (dailyRoomError.code !== "PGRST116") {
-            // Not found error is ok
-            Logger.error("Error fetching daily room:", dailyRoomError);
-          }
-        } else {
+          Logger.error("Error fetching daily room:", dailyRoomError);
+        } else if (dailyRoomData) {
           setDailyRoom(dailyRoomData);
         }
 

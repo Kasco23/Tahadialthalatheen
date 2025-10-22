@@ -154,9 +154,9 @@ const GameSetup: React.FC = () => {
         .from("DailyRooms")
         .select("*")
         .eq("room_id", sessionId)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== "PGRST116") {
+      if (error) {
         Logger.error("Error fetching room info:", error.message);
         return;
       }

@@ -278,6 +278,20 @@ export async function getSessionBlob(
     );
 
     if (!response.ok) {
+      // Check if it's a dev environment error
+      if (response.status === 503) {
+        const result = await response.json().catch(() => ({}));
+        if (result.dev) {
+          // Silently fail in development - Blobs not available
+          return {
+            success: false,
+            data: null,
+            error: "Blobs unavailable in dev",
+            cached: false,
+            source: "blob",
+          };
+        }
+      }
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
 
