@@ -772,24 +772,15 @@ export async function createDailyToken(
   userName: string,
 ): Promise<{ token: string; room_url?: string }> {
   try {
-    Logger.log("Creating Daily token via Supabase Edge Function:", { sessionCode, userName });
+    Logger.log("Creating Daily token via Netlify Function:", { sessionCode, userName });
 
-    // Get Supabase project URL from environment
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_DATABASE_URL;
-    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-    if (!supabaseUrl || !supabaseAnonKey) {
-      throw new Error("Supabase configuration missing");
-    }
-
-    // Call Supabase Edge Function to create Daily.co token
+    // Call Netlify Function to create Daily.co token
     const response = await fetch(
-      `${supabaseUrl}/functions/v1/create-daily-token`,
+      "/.netlify/functions/create-daily-token",
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${supabaseAnonKey}`,
         },
         body: JSON.stringify({
           session_code: sessionCode,
@@ -809,7 +800,7 @@ export async function createDailyToken(
     }
 
     const data = await response.json();
-    Logger.log("Daily token created successfully via Supabase Edge Function");
+    Logger.log("Daily token created successfully via Netlify Function");
 
     return { 
       token: data.token,
