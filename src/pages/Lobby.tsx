@@ -299,11 +299,16 @@ const Lobby: React.FC = () => {
       Logger.log("Setting participant data from Profiles table:", {
         displayName: profileName,
         tokenUsername: profileUsername,
+        hasUsername: !!profileUsername,
+        hasName: !!profileName,
       });
 
       // Use username for Daily token (no spaces, safe for tokens)
+      // If username is null/empty, sanitize name by removing spaces
       // Use name for display in UI
-      const safeTokenName = profileUsername || profileName || "player";
+      const safeTokenName = profileUsername || 
+                           (profileName ? profileName.replace(/\s+/g, '') : null) || 
+                           "player";
       const displayName = profileName || profileUsername || "Unknown";
 
       // Log username changes for debugging
