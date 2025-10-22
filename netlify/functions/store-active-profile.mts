@@ -45,9 +45,10 @@ export default async (req: Request, context: Context) => {
       );
     }
 
-    // Use global store with strong consistency
+    // Use consolidated "participants" store with strong consistency
+    // Migrated from "active-profiles" in Phase 3.2
     const store = getStore({
-      name: "active-profiles",
+      name: "participants",
       consistency: "strong",
     });
 

@@ -68,9 +68,10 @@ export default async (req: Request, _context: Context) => {
       );
     }
 
-    // Get blob store with strong consistency for session state
+    // Get consolidated "sessions" store with strong consistency
+    // Migrated from "session-state" in Phase 3.2
     const store = getStore({
-      name: "session-state",
+      name: "sessions",
       consistency: "strong",
     });
 

@@ -1,6 +1,9 @@
 import { atom } from "jotai";
 import type { Tables } from "../lib/types/supabase";
 
+// Re-export blob atoms
+export * from './blobAtoms';
+
 // Session atoms
 export const sessionAtom = atom<string | null>(null);
 export const sessionCodeAtom = atom<string | null>(null);
