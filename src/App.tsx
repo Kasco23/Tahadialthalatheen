@@ -1,8 +1,10 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useEffect } from "react";
 import { DailyProvider } from "@daily-co/daily-react";
 import { Toaster } from "react-hot-toast";
 import { AuthProvider } from "./contexts/AuthContext";
+import { getDeviceId } from "./lib/blobsManager";
+import { Logger } from "./lib/logger";
 
 // Lazy load all page components for better code splitting
 const Homepage = lazy(() => import("./pages/Homepage"));
@@ -20,6 +22,16 @@ const Inbox = lazy(() => import("./pages/Inbox"));
 const Leaderboard = lazy(() => import("./pages/Leaderboard"));
 
 function App() {
+  // ✨ PHASE 2.4: Initialize device ID on app startup
+  useEffect(() => {
+    const initializeDeviceId = () => {
+      const deviceId = getDeviceId();
+      Logger.log("🔧 Device ID initialized:", deviceId);
+    };
+    
+    initializeDeviceId();
+  }, []);
+
   return (
     <AuthProvider>
       <DailyProvider>

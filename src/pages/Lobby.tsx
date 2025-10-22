@@ -39,6 +39,15 @@ import {
 } from "../lib/sessionState";
 import { InviteFriendsModal } from "../components/InviteFriendsModal";
 import { UsernameSetupBanner } from "../components/UsernameSetupBanner";
+import {
+  saveParticipantBlob,
+  getParticipantBlob,
+  getDeviceId,
+  saveLobbySnapshot,
+  getLobbySnapshot,
+  type ParticipantBlobData,
+  type LobbySnapshotData,
+} from "../lib/blobsManager";
 
 type ParticipantRow = Database["public"]["Tables"]["Participants"]["Row"] & {
   Profiles?: {
@@ -201,6 +210,9 @@ const Lobby: React.FC = () => {
 
   // Invite modal state
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  
+  // ✨ PHASE 2.3: Snapshot recovery indicator
+  const [recoveredFromSnapshot, setRecoveredFromSnapshot] = useState(false);
 
   // Get participant name from Supabase Profiles table via current participant
   // Initialize as empty string and ONLY set from Profiles table (not from localStorage)
@@ -221,6 +233,42 @@ const Lobby: React.FC = () => {
       }
     }
   }, [sessionId, sessionCode, setSessionId, setCurrentSessionCode]);
+
+  // ✨ PHASE 2.3: Try to recover from lobby snapshot on mount
+  useEffect(() => {
+    if (!sessionId || !sessionCode || players.length > 0) return;
+
+    const attemptSnapshotRecovery = async () => {
+      Logger.log("🔍 Checking for lobby snapshot...");
+      const result = await getLobbySnapshot(sessionId);
+      
+      if (result.success && result.data) {
+        const snapshot = result.data;
+        const snapshotAge = Date.now() - new Date(snapshot.snapshot_timestamp).getTime();
+        const twoMinutes = 2 * 60 * 1000;
+        
+        if (snapshotAge < twoMinutes) {
+          Logger.log("✅ Recovered lobby from snapshot", {
+            age_seconds: Math.floor(snapshotAge / 1000),
+            participant_count: snapshot.participant_count,
+          });
+          setRecoveredFromSnapshot(true);
+          
+          // Could restore participant list from snapshot if needed
+          // For now, just indicate recovery happened
+          setTimeout(() => setRecoveredFromSnapshot(false), 5000); // Clear after 5s
+        } else {
+          Logger.log("⏰ Snapshot too old, ignoring", {
+            age_minutes: Math.floor(snapshotAge / 60000),
+          });
+        }
+      } else {
+        Logger.log("ℹ️ No lobby snapshot found");
+      }
+    };
+
+    attemptSnapshotRecovery();
+  }, [sessionId, sessionCode, players.length]);
 
   // Update participant name from Profiles table based on current user's role
   useEffect(() => {
@@ -475,6 +523,58 @@ const Lobby: React.FC = () => {
             const playersData = (data as ParticipantRow[]) || [];
             setPlayers(playersData);
             setError(null);
+            
+            // ✨ PHASE 2.2: Save participant blobs for all players
+            Logger.log(`💾 Saving participant blobs for ${playersData.length} players`);
+            const deviceId = getDeviceId();
+            
+            playersData.forEach(async (player) => {
+              const participantBlobData: ParticipantBlobData = {
+                participant_id: player.participant_id,
+                profile_id: player.profile_id,
+                name: player.Profiles?.name || "Unknown",
+                username: player.Profiles?.username || null,
+                flag: player.Profiles?.flag || "sa",
+                team: player.Profiles?.team || null,
+                team_logo_url: player.Profiles?.team ? getTeamLogoUrl(player.Profiles.team) : null,
+                
+                current_session_id: sessionId,
+                current_session_code: sessionCode || null,
+                role: player.role as "Host" | "Home" | "Away" | "GameMaster" | "Guest",
+                
+                lobby_presence: player.lobby_presence as "NotJoined" | "Joined" | "Disconnected",
+                video_presence: player.video_presence || false,
+                last_heartbeat: player.lastHeartbeat || new Date().toISOString(),
+                
+                join_at: player.join_at || new Date().toISOString(),
+                disconnect_at: player.disconnect_at || null,
+                
+                device_id: deviceId,
+                last_device_sync: new Date().toISOString(),
+                
+                preferred_flag: player.Profiles?.flag || null,
+                preferred_team: player.Profiles?.team || null,
+                
+                audio_enabled: true, // Default values
+                video_enabled: true,
+                
+                created_at: player.join_at || new Date().toISOString(),
+                last_updated: new Date().toISOString(),
+                session_history: [sessionId],
+                
+                metadata: {
+                  join_context: "Lobby",
+                  last_sync: new Date().toISOString(),
+                },
+              };
+              
+              const result = await saveParticipantBlob(participantBlobData);
+              if (result.success) {
+                Logger.log(`✅ Saved blob for participant ${player.participant_id}`);
+              } else {
+                Logger.warn(`⚠️ Failed to save blob for ${player.participant_id}:`, result.error);
+              }
+            });
           }
         }
       } catch (err) {
@@ -498,7 +598,7 @@ const Lobby: React.FC = () => {
       isMounted = false;
       channel.unsubscribe();
     };
-  }, [sessionId, resolvedSeat]);
+  }, [sessionId, resolvedSeat, sessionCode]);
 
   const getPresenceStatus = (p: ParticipantRow) => {
     const lobbyPresence =
@@ -534,9 +634,54 @@ const Lobby: React.FC = () => {
     );
   };
 
-  // Heartbeat mechanism - send heartbeat every 30 seconds for current participant
+  // ✨ PHASE 2.2: Load participant blob on mount to restore preferences
   useEffect(() => {
-    if (!sessionId || !resolvedSeat) return;
+    if (!resolvedSeat || players.length === 0) return;
+
+    const seatRole = SEAT_TO_ROLE[resolvedSeat];
+    let participantRole: string;
+    switch (seatRole) {
+      case "host":
+        participantRole = PARTICIPANT_ROLE.HOST;
+        break;
+      case "home":
+        participantRole = PARTICIPANT_ROLE.HOME;
+        break;
+      case "away":
+        participantRole = PARTICIPANT_ROLE.AWAY;
+        break;
+      default:
+        return;
+    }
+
+    const currentParticipant = players.find((p) => p.role === participantRole);
+    if (!currentParticipant) return;
+
+    const loadParticipantPreferences = async () => {
+      Logger.log("🔍 Loading participant preferences from Blobs...");
+      const result = await getParticipantBlob(currentParticipant.participant_id);
+      
+      if (result.success && result.data) {
+        Logger.log("✅ Participant preferences loaded from Blobs", {
+          source: result.source,
+          preferred_flag: result.data.preferred_flag,
+          preferred_team: result.data.preferred_team,
+        });
+        
+        // Could restore audio/video preferences here if needed
+        // For now, just log that preferences are available
+      } else {
+        Logger.log("ℹ️ No participant preferences found in Blobs");
+      }
+    };
+
+    loadParticipantPreferences();
+  }, [resolvedSeat, players]);
+
+  // Heartbeat mechanism - send heartbeat every 30 seconds for current participant
+  // ✨ PHASE 2.2: Enhanced with participant blob updates
+  useEffect(() => {
+    if (!sessionId || !resolvedSeat || !sessionCode) return;
 
     // Find current participant by role
     const seatRole = SEAT_TO_ROLE[resolvedSeat];
@@ -558,12 +703,66 @@ const Lobby: React.FC = () => {
     const currentParticipant = players.find((p) => p.role === participantRole);
     if (!currentParticipant) return;
 
-    // Send initial heartbeat
+    // Helper function to update participant blob
+    const updateCurrentParticipantBlob = async () => {
+      const deviceId = getDeviceId();
+      const participantBlobData: ParticipantBlobData = {
+        participant_id: currentParticipant.participant_id,
+        profile_id: currentParticipant.profile_id,
+        name: currentParticipant.Profiles?.name || "Unknown",
+        username: currentParticipant.Profiles?.username || null,
+        flag: currentParticipant.Profiles?.flag || "sa",
+        team: currentParticipant.Profiles?.team || null,
+        team_logo_url: currentParticipant.Profiles?.team 
+          ? getTeamLogoUrl(currentParticipant.Profiles.team) 
+          : null,
+        
+        current_session_id: sessionId,
+        current_session_code: sessionCode,
+        role: currentParticipant.role as "Host" | "Home" | "Away" | "GameMaster" | "Guest",
+        
+        lobby_presence: currentParticipant.lobby_presence as "NotJoined" | "Joined" | "Disconnected",
+        video_presence: currentParticipant.video_presence || false,
+        last_heartbeat: new Date().toISOString(),
+        
+        join_at: currentParticipant.join_at || new Date().toISOString(),
+        disconnect_at: currentParticipant.disconnect_at || null,
+        
+        device_id: deviceId,
+        last_device_sync: new Date().toISOString(),
+        
+        preferred_flag: currentParticipant.Profiles?.flag || null,
+        preferred_team: currentParticipant.Profiles?.team || null,
+        
+        audio_enabled: true,
+        video_enabled: true,
+        
+        created_at: currentParticipant.join_at || new Date().toISOString(),
+        last_updated: new Date().toISOString(),
+        session_history: [sessionId],
+        
+        metadata: {
+          join_context: "Lobby",
+          last_sync: new Date().toISOString(),
+        },
+      };
+      
+      const result = await saveParticipantBlob(participantBlobData);
+      if (!result.success) {
+        Logger.warn("⚠️ Failed to update participant blob:", result.error);
+      }
+    };
+
+    // Send initial heartbeat to DB
     updateParticipantHeartbeat(currentParticipant.participant_id, sessionId);
+    
+    // Update initial participant blob
+    updateCurrentParticipantBlob();
 
     // Set up interval to send heartbeat every 30 seconds
     const heartbeatInterval = setInterval(() => {
       updateParticipantHeartbeat(currentParticipant.participant_id, sessionId);
+      updateCurrentParticipantBlob(); // ✨ Also update blob
     }, 30000); // 30 seconds
 
     // Cleanup on unmount or when dependencies change
@@ -576,7 +775,57 @@ const Lobby: React.FC = () => {
         },
       );
     };
-  }, [sessionId, resolvedSeat, players]);
+  }, [sessionId, sessionCode, resolvedSeat, players]);
+
+  // ✨ PHASE 2.3: Save lobby snapshot every 30 seconds
+  useEffect(() => {
+    if (!sessionId || !sessionCode || players.length === 0) return;
+
+    const saveSnapshot = async () => {
+      const snapshotData: LobbySnapshotData = {
+        session_id: sessionId,
+        session_code: sessionCode,
+        snapshot_timestamp: new Date().toISOString(),
+        
+        participants: players.map(p => ({
+          participant_id: p.participant_id,
+          name: p.Profiles?.name || "Unknown",
+          role: p.role,
+          flag: p.Profiles?.flag || "sa",
+          team: p.Profiles?.team || null,
+          lobby_presence: p.lobby_presence,
+          video_presence: p.video_presence || false,
+          join_at: p.join_at || null,
+        })),
+        
+        phase: session?.phase || "Lobby",
+        daily_room_url: dailyRoom?.room_url || null,
+        participant_count: players.length,
+      };
+      
+      const result = await saveLobbySnapshot(snapshotData);
+      if (result.success) {
+        Logger.log("📸 Lobby snapshot saved", {
+          participant_count: players.length,
+          source: result.source,
+        });
+      } else {
+        Logger.warn("⚠️ Failed to save lobby snapshot:", result.error);
+      }
+    };
+
+    // Save initial snapshot
+    saveSnapshot();
+
+    // Set up interval to save snapshot every 30 seconds
+    const snapshotInterval = setInterval(() => {
+      saveSnapshot();
+    }, 30000); // 30 seconds
+
+    return () => {
+      clearInterval(snapshotInterval);
+    };
+  }, [sessionId, sessionCode, players, session?.phase, dailyRoom?.room_url]);
 
   // Presence tracking: Detect tab close, navigation, and visibility changes
   useEffect(() => {
@@ -806,6 +1055,14 @@ const Lobby: React.FC = () => {
                 📹{" "}
                 <span className="font-bold text-green-300">
                   Video Room Ready
+                </span>
+              </div>
+            )}
+            {recoveredFromSnapshot && (
+              <div className="bg-blue-600/20 px-4 py-2 rounded-lg border border-blue-400/40 animate-pulse">
+                📸{" "}
+                <span className="font-bold text-blue-300">
+                  Recovered from Snapshot
                 </span>
               </div>
             )}

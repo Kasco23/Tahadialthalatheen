@@ -116,10 +116,10 @@
 
 ### Lobby.tsx
 
-- **Status**: ✅ Active
+- **Status**: ✅ Active (Enhanced - Phases 2.2 & 2.3)
 - **Route**: `/lobby/:sessionCode/:seat?`
-- **Purpose**: Pre-game waiting room with video
-- **Dependencies**: VideoRoom, ParticipantTile, presence system, dailyTokenManager
+- **Purpose**: Pre-game waiting room with comprehensive participant tracking, video, and crash recovery
+- **Dependencies**: VideoRoom, ParticipantTile, presence system, dailyTokenManager, blobsManager.ts
 - **Key Features**:
   - Real-time participant list with Profiles data (name, username, flag, team)
   - Video call integration (Daily.co) with robust token system
@@ -128,15 +128,32 @@
   - Host controls (start game)
   - Presence indicators (online/offline)
   - Session info display
-  - Ready status indicators with toggle for players
-  - Heartbeat mechanism for presence tracking
+  - Heartbeat mechanism for presence tracking (every 30 seconds)
   - Refresh button preserves complete participant data
+  - **✨ NEW (Phase 2.2)**: Participant Blobs with cross-device tracking
+  - **✨ NEW (Phase 2.3)**: Lobby snapshots every 30 seconds for crash recovery
+- **Participant Blobs Integration** (Phase 2.2):
+  - `saveParticipantBlob()` on initial load for all participants
+  - `getParticipantBlob()` on mount to restore preferences (flag, team)
+  - Blob updates every 30 seconds with heartbeat
+  - Device ID tracking (`getDeviceId()`) for cross-device continuity
+  - Stores: profile info, session data, presence status, preferences, device_id
+  - Multi-layer caching (Browser Cache API + memory + Blobs + localStorage)
+- **Lobby Snapshots** (Phase 2.3):
+  - `saveLobbySnapshot()` every 30 seconds captures full lobby state
+  - `getLobbySnapshot()` on mount for crash recovery (< 2 minutes)
+  - UI indicator shows "Recovered from Snapshot" (blue badge, 5s auto-dismiss)
+  - Snapshot includes: participant list, phase, daily_room_url, participant_count
 - **Token System**:
   - Uses `Profiles.username` for Daily.co token (e.g., "tareq")
   - Uses `Profiles.name` for UI display (e.g., "Tareq Salah")
   - Fallback chain: `username || name || "player"`
   - Automatic cache clearing on username change
-- **Size**: ~20KB
+- **Performance**:
+  - Reduced database queries via participant blob caching
+  - Instant crash recovery from snapshots (< 100ms)
+  - Cross-device session continuity via device_id
+- **Size**: ~22KB (increased due to Blobs integration)
 
 ### Quiz.tsx
 

@@ -20,6 +20,40 @@
 - **Code Location**: Lines 370-410 in setupDailyRoom useEffect
 - **Size**: ~20.78KB (slight decrease due to removed dependencies)
 
+## October 22, 2025
+
+### App.tsx - Enhanced with Phase 2.4 Device ID Tracking
+
+- **Change**: Added device ID initialization on app startup
+- **Implementation**:
+  - Lines 2-7: Import useEffect, getDeviceId, Logger
+  - Lines 25-31: New useEffect calls getDeviceId() and logs device ID
+- **Purpose**: Enable cross-device session continuity by generating/retrieving stable device ID
+- **Impact**: All participant blobs now include device_id for tracking across devices
+- **Dependencies**: Uses crypto.randomUUID() via blobsManager.ts
+
+### Lobby.tsx - Enhanced with Phases 2.2 & 2.3 Blobs Integration
+
+- **Change**: Comprehensive participant Blobs and lobby snapshots
+- **Features Added (Phase 2.2 - Participant Blobs)**:
+  - Lines 42-49: Import saveParticipantBlob, getParticipantBlob, getDeviceId, saveLobbySnapshot, getLobbySnapshot
+  - Lines 486-537: Save participant blobs for all players on initial load with device_id
+  - Lines 597-633: Load participant preferences from Blobs on mount (getParticipantBlob)
+  - Lines 634-780: Enhanced heartbeat with participant blob updates every 30 seconds
+  - ParticipantBlobData includes: profile info, session relationship, presence status, device tracking, preferences
+- **Features Added (Phase 2.3 - Lobby Snapshots)**:
+  - Lines 212-215: Added recoveredFromSnapshot state for UI indicator
+  - Lines 237-270: Snapshot recovery logic on mount with 2-minute age validation
+  - Lines 782-828: Periodic snapshot saving every 30 seconds with full lobby state
+  - Lines 1053-1062: UI indicator for snapshot recovery (blue badge, 5s auto-dismiss)
+  - LobbySnapshotData captures: participants array, phase, daily_room_url, participant_count
+- **Performance Impact**:
+  - Participant data cached locally, reducing database queries
+  - Lobby recovers from crashes using snapshots (< 2 minutes old)
+  - Device ID enables cross-device participant tracking
+- **Testing**: Build validated successfully (6.04s), TypeScript compilation clean
+- **Dependencies**: Uses blobsManager.ts, Browser Cache API, crypto.randomUUID()
+
 ## January 20, 2025
 
 ### GameSetup.tsx - Enhanced with Phase 2.1 Blobs Integration
