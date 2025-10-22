@@ -1,4 +1,4 @@
-import type { Context } from "@netlify/edge-functions";
+import type { Context, Config } from "@netlify/edge-functions";
 import { getStore } from "@netlify/blobs";
 
 /**
@@ -56,8 +56,11 @@ export default async (req: Request, _context: Context) => {
       );
     }
 
-    // Get blob store (automatic configuration in deployed environment)
-    const store = getStore("session-data");
+    // Get blob store - uses environment context automatically
+    const store = getStore({
+      name: "session-data",
+      consistency: "strong", // Ensure strong consistency for session data
+    });
 
     // Retrieve data from blob store
     const data = await store.get(key, { type: "json" });
@@ -96,4 +99,8 @@ export default async (req: Request, _context: Context) => {
       },
     );
   }
+};
+
+export const config: Config = {
+  path: "/.netlify/edge-functions/get-session",
 };

@@ -9,10 +9,7 @@ import {
   leaveLobbyByRole,
   updateParticipantHeartbeat,
   markParticipantDisconnected,
-  markPlayerReady,
   createDailyToken,
-  checkAllPlayersReady,
-  clearRoomTokens,
 } from "../lib/mutations";
 import { useSessionData } from "../lib/useSessionData";
 import {
@@ -31,7 +28,6 @@ import {
   PARTICIPANT_ROLE,
   ROLE_DISPLAY_LABELS,
   SEAT_TO_ROLE,
-  type ParticipantRole,
 } from "../lib/types";
 import { resolveSeatFromUrl, setSeatInStorage } from "../lib/userSession";
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
@@ -58,10 +54,6 @@ interface ParticipantCardProps {
   lobbyPresence: string;
   videoPresence: string;
   getRoleDisplay: (player: ParticipantRow) => string;
-  isReady?: boolean;
-  onToggleReady?: (participantId: string, currentReady: boolean) => void;
-  canToggleReady?: boolean;
-  isTogglingReady?: boolean;
 }
 
 const ParticipantCard: React.FC<ParticipantCardProps> = ({
@@ -69,12 +61,7 @@ const ParticipantCard: React.FC<ParticipantCardProps> = ({
   lobbyPresence,
   videoPresence,
   getRoleDisplay,
-  isReady = false,
-  onToggleReady,
-  canToggleReady = false,
-  isTogglingReady = false,
 }) => {
-  const isPlayer = player.role === "Home" || player.role === "Away";
 
   // Generate team logo URL from Profile data only
   const teamLogoUrl = useMemo(() => {
@@ -147,74 +134,6 @@ const ParticipantCard: React.FC<ParticipantCardProps> = ({
             {videoPresence}
           </span>
         </div>
-
-        {/* Ready Status - Only show for players */}
-        {isPlayer && (
-          <div className="flex justify-between items-center mt-2 pt-2 border-t border-white/10">
-            <span className="text-xs text-blue-200">Ready:</span>
-            <div className="flex items-center gap-2">
-              <span
-                className={`text-xs font-medium ${
-                  isReady ? "text-green-400" : "text-yellow-400"
-                }`}
-              >
-                {isReady ? "✓ Ready" : "⏳ Not Ready"}
-              </span>
-              {canToggleReady && onToggleReady && (
-                <button
-                  onClick={() => onToggleReady(player.participant_id, isReady)}
-                  disabled={isTogglingReady}
-                  className={`
-                    relative px-3 py-1.5 rounded-lg font-semibold text-xs
-                    transition-all duration-200 ease-in-out
-                    focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-transparent
-                    disabled:opacity-50 disabled:cursor-not-allowed
-                    shadow-sm hover:shadow-md
-                    ${
-                      isReady
-                        ? "bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white focus:ring-red-400 border border-red-400/50"
-                        : "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white focus:ring-green-400 border border-green-400/50"
-                    }
-                    ${isTogglingReady ? "animate-pulse" : ""}
-                  `}
-                  type="button"
-                  aria-label={isReady ? "Mark as not ready" : "Mark as ready"}
-                  aria-pressed={isReady}
-                >
-                  {isTogglingReady ? (
-                    <span className="flex items-center gap-1">
-                      <svg
-                        className="animate-spin h-3 w-3"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                      </svg>
-                      <span>...</span>
-                    </span>
-                  ) : isReady ? (
-                    "✗ Unready"
-                  ) : (
-                    "✓ Ready"
-                  )}
-                </button>
-              )}
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
@@ -276,11 +195,6 @@ const Lobby: React.FC = () => {
   const [players, setPlayers] = useState<ParticipantRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [readyStates, setReadyStates] = useState<Record<string, boolean>>({});
-  const [allPlayersReady, setAllPlayersReady] = useState(false);
-  const [togglingReadyParticipant, setTogglingReadyParticipant] = useState<
-    string | null
-  >(null);
 
   // Session state from Netlify Blobs (room creation, etc.)
   const [sessionState, setSessionState] = useState<SessionState | null>(null);
@@ -344,13 +258,12 @@ const Lobby: React.FC = () => {
       const safeTokenName = profileUsername || profileName || "player";
       const displayName = profileName || profileUsername || "Unknown";
 
-      // Clear any cached Daily tokens with old usernames
+      // Log username changes for debugging
       if (sessionCode && tokenUsername && tokenUsername !== safeTokenName) {
-        Logger.log("Clearing old Daily token cache due to username change:", {
+        Logger.log("Username changed, will create new token:", {
           old: tokenUsername,
           new: safeTokenName,
         });
-        clearRoomTokens(sessionCode);
       }
 
       setTokenUsername(safeTokenName);
@@ -385,22 +298,34 @@ const Lobby: React.FC = () => {
         setDailyRoomUrl(dailyRoom.room_url);
         setDailyUserName(participantName); // Display name in UI
 
-        // Create and store token with safe username (no spaces)
+        // Create and store token via Netlify Function
         try {
-          const { token } = await createDailyToken(
+          const response = await createDailyToken(
             sessionCode,
             tokenUsername, // Use username for token (safe, no spaces)
           );
-          setDailyToken(token);
+          
+          // Update token atom
+          setDailyToken(response.token);
+          
+          // If room URL is provided in response, update it (fallback/verification)
+          if (response.room_url && response.room_url !== dailyRoom.room_url) {
+            Logger.log("Updating room URL from token response:", response.room_url);
+            setDailyRoomUrl(response.room_url);
+          }
+          
           Logger.log(
             "Lobby: Daily token created successfully",
             {
               tokenUsername,
               displayName: participantName,
+              hasRoomUrl: !!response.room_url,
             },
           );
         } catch (error) {
           Logger.error("Lobby: Failed to create Daily token:", error);
+          // Show error to user
+          setError("Failed to join video call. Please try again.");
         }
       } else if (dailyRoom?.room_url && (!tokenUsername || !participantName)) {
         Logger.warn(
@@ -491,12 +416,6 @@ const Lobby: React.FC = () => {
               if (payload.new) {
                 const newParticipant = payload.new as ParticipantRow;
                 setPlayers((prev) => [...prev, newParticipant]);
-                // Sync ready state (handle null/undefined, default to false)
-                setReadyStates((prev) => ({
-                  ...prev,
-                  [newParticipant.participant_id]:
-                    newParticipant.isReady ?? false,
-                }));
               }
             } else if (payload.eventType === "UPDATE") {
               const updatedParticipant = payload.new as ParticipantRow;
@@ -508,12 +427,6 @@ const Lobby: React.FC = () => {
                     : player,
                 ),
               );
-              // Sync ready state immediately from realtime update (handle null/undefined, default to false)
-              setReadyStates((prev) => ({
-                ...prev,
-                [updatedParticipant.participant_id]:
-                  updatedParticipant.isReady ?? false,
-              }));
             } else if (payload.eventType === "DELETE") {
               setPlayers((prev) =>
                 prev.filter(
@@ -614,41 +527,12 @@ const Lobby: React.FC = () => {
         p.role !== PARTICIPANT_ROLE.GAME_MASTER &&
         p.lobby_presence === LOBBY_PRESENCE.JOINED,
     );
-    // Check if we have at least 2 players AND all players are ready
+    // Check if we have at least 2 players
     return (
       joinedNonHostsAndGMs.length >= 2 &&
-      session.phase === "Lobby" &&
-      allPlayersReady
+      session.phase === "Lobby"
     );
   };
-
-  // Check all players ready status
-  useEffect(() => {
-    if (!sessionId) return;
-
-    const checkReadyStatus = async () => {
-      try {
-        const result = await checkAllPlayersReady(sessionId);
-        setAllPlayersReady(result.allReady);
-
-        // Update ready states map
-        const newReadyStates: Record<string, boolean> = {};
-        result.participants.forEach((p) => {
-          newReadyStates[p.participant_id] = p.isReady;
-        });
-        setReadyStates(newReadyStates);
-      } catch (error) {
-        Logger.error("Failed to check ready status:", error);
-      }
-    };
-
-    checkReadyStatus();
-
-    // Poll every 2 seconds for ready status updates
-    const interval = setInterval(checkReadyStatus, 2000);
-
-    return () => clearInterval(interval);
-  }, [sessionId, players]);
 
   // Heartbeat mechanism - send heartbeat every 30 seconds for current participant
   useEffect(() => {
@@ -764,50 +648,6 @@ const Lobby: React.FC = () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [sessionId, resolvedSeat, players]);
-
-  // Handle ready toggle for current player
-  const handleToggleReady = async (
-    participantId: string,
-    currentReady: boolean,
-  ) => {
-    setTogglingReadyParticipant(participantId);
-    try {
-      await markPlayerReady(participantId, !currentReady);
-      Logger.log(
-        `Player ${participantId} ready status toggled to: ${!currentReady}`,
-      );
-
-      // Update local state immediately for better UX (optimistic update)
-      setReadyStates((prev) => ({
-        ...prev,
-        [participantId]: !currentReady,
-      }));
-
-      // Persist ready state to Netlify Blobs for reconnection
-      if (sessionId) {
-        const { saveSession } = await import("../lib/blobStore");
-        const currentPlayer = players.find(
-          (p) => p.participant_id === participantId,
-        );
-        await saveSession(sessionId, participantId, {
-          isReady: !currentReady,
-          participantId,
-          sessionCode: sessionCode || "",
-          participantName,
-          role: currentPlayer?.role as ParticipantRole | undefined,
-        });
-      }
-    } catch (error) {
-      Logger.error("Failed to toggle ready status:", error);
-      // Revert optimistic update on error
-      setReadyStates((prev) => ({
-        ...prev,
-        [participantId]: currentReady,
-      }));
-    } finally {
-      setTogglingReadyParticipant(null);
-    }
-  };
 
   const handleStartQuiz = () => {
     // Navigate to quiz page
@@ -1005,12 +845,6 @@ const Lobby: React.FC = () => {
                       // Show actual participant
                       const { lobbyPresence, videoPresence } =
                         getPresenceStatus(player);
-                      const isPlayer =
-                        player.role === "Home" || player.role === "Away";
-                      const isCurrentPlayer = resolvedSeat
-                        ? SEAT_TO_ROLE[resolvedSeat] ===
-                          player.role.toLowerCase()
-                        : false;
 
                       return (
                         <ParticipantCard
@@ -1019,12 +853,6 @@ const Lobby: React.FC = () => {
                           lobbyPresence={lobbyPresence}
                           videoPresence={videoPresence}
                           getRoleDisplay={getRoleDisplay}
-                          isReady={readyStates[player.participant_id] || false}
-                          onToggleReady={handleToggleReady}
-                          canToggleReady={isPlayer && isCurrentPlayer}
-                          isTogglingReady={
-                            togglingReadyParticipant === player.participant_id
-                          }
                         />
                       );
                     } else {

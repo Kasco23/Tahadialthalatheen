@@ -20,31 +20,12 @@
   node_bundler  = "esbuild"
   external_node_modules = ["@supabase/supabase-js"]
 
-# Scheduled function
-[functions."cleanupStatus"]
-  schedule = "0 * * * *"  # Runs hourly at the top of the hour
-
-# Explicit function path mappings (required for Runtime API v2)
-[functions."createDailyRoom"]
-  path = "/.netlify/functions/createDailyRoom"
+# Note: Scheduled function cleanupStatus.mts now uses in-code Config export for schedule
+# Note: Serverless functions (createDailyRoom, send-notification, store-active-profile, get-active-profile)
+#       now use in-code Config exports for custom paths (e.g., /api/create-daily-room)
 
 [functions."create-daily-token"]
   path = "/.netlify/functions/create-daily-token"
-
-[functions."send-notification"]
-  path = "/.netlify/functions/send-notification"
-
-[functions."store-active-profile"]
-  path = "/.netlify/functions/store-active-profile"
-
-[functions."get-active-profile"]
-  path = "/.netlify/functions/get-active-profile"
-
-[functions."mark-player-ready"]
-  path = "/.netlify/functions/mark-player-ready"
-
-[functions."check-ready-status"]
-  path = "/.netlify/functions/check-ready-status"
 
 # Edge function routes for session management
 [[edge_functions]]

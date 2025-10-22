@@ -22,6 +22,11 @@ import { updateSessionState } from "../lib/sessionState";
 import { StadiumBackground } from "../components/StadiumBackground";
 import { InviteFriendsModal } from "../components/InviteFriendsModal";
 import { UsernameSetupBanner } from "../components/UsernameSetupBanner";
+import { 
+  saveSessionBlob, 
+  getSessionBlob,
+  type SessionBlobData 
+} from "../lib/blobsManager";
 
 const GameSetup: React.FC = () => {
   const navigate = useNavigate();
@@ -105,7 +110,6 @@ const GameSetup: React.FC = () => {
           flag: hostFlag, // Use host's selected flag
           team_logo_url: hostLogoUrl, // Use host's selected team logo
           isHost: true,
-          isReady: false,
           lastSeen: new Date(),
           role: "Host",
           timestamp: new Date().toISOString(),
@@ -165,6 +169,47 @@ const GameSetup: React.FC = () => {
       Logger.error("Unexpected error fetching room info:", error);
     }
   }, [sessionId]);
+
+  // ✨ PHASE 2.1: Load session data from Blobs on mount for resilience
+  useEffect(() => {
+    const loadSessionFromBlobs = async () => {
+      if (!sessionId) return;
+      
+      Logger.log("🔍 Loading session data from Blobs...");
+      const result = await getSessionBlob(sessionId);
+      
+      if (result.success && result.data) {
+        Logger.log("✅ Session data loaded from Blobs", {
+          source: result.source,
+          cached: result.cached,
+          room_created_at: result.data.daily_room_created_at,
+        });
+        
+        // Restore UI state from blob if available
+        if (result.data.daily_room_url) {
+          setIsDailyRoomCreated(true);
+          setRoomInfo({ room_url: result.data.daily_room_url });
+          setDailyRoomUrl(result.data.daily_room_url);
+          Logger.log("🎬 Daily room state restored from Blobs", {
+            room_name: result.data.daily_room_name,
+          });
+        }
+        
+        // Could also restore segment configuration if needed
+        if (result.data.metadata?.segments_config) {
+          Logger.log("⚙️ Segments config available in Blobs", {
+            segments: result.data.metadata.segments_config,
+          });
+        }
+      } else {
+        Logger.log("ℹ️ No session blob found or load failed", {
+          error: result.error,
+        });
+      }
+    };
+    
+    loadSessionFromBlobs();
+  }, [sessionId, setDailyRoomUrl]);
 
   // Load existing segment configuration when component mounts
   useEffect(() => {
@@ -269,24 +314,73 @@ const GameSetup: React.FC = () => {
         questions_count: count,
       }));
       await setSegmentConfig(sessionId, segmentConfigs);
+      
       // Use the already-created session code from DB (in route params)
       const created = await createDailyRoom(sessionId, sessionCode);
       setIsDailyRoomCreated(true);
       setRoomInfo({ room_url: created.room_url });
       setDailyRoomUrl(created.room_url); // Store in global atom
 
-      // Update session state in Netlify Blobs so Lobby can detect room creation
-      Logger.log("Saving room creation status to Netlify Blobs...");
+      // ✨ PHASE 2.1: Save comprehensive session data to Blobs
+      Logger.log("💾 Saving comprehensive session data to Netlify Blobs...");
+      
+      const sessionBlobData: SessionBlobData = {
+        session_id: sessionId,
+        session_code: sessionCode,
+        host_profile_id: user?.id || null,
+        
+        // Daily.co Video Integration
+        daily_room_url: created.room_url,
+        daily_room_name: created.room_name || null,
+        daily_room_created_at: new Date().toISOString(),
+        
+        // Session Configuration
+        phase: "Setup",
+        game_state: "pre-quiz",
+        segments_configured: true,
+        
+        // Participant Tracking
+        active_participant_ids: hostParticipantId ? [hostParticipantId] : [],
+        participant_count: 1,
+        max_participants: 10,
+        
+        // Metadata
+        created_at: new Date().toISOString(),
+        last_updated: new Date().toISOString(),
+        last_sync_with_supabase: new Date().toISOString(),
+        
+        metadata: {
+          segments_config: segments,
+          created_by: user?.id || "unknown",
+          creation_context: "GameSetup",
+        },
+      };
+
+      const blobResult = await saveSessionBlob(sessionBlobData);
+      
+      if (blobResult.success) {
+        Logger.log("✅ Session data saved to Blobs successfully", {
+          source: blobResult.source,
+          cached: blobResult.cached,
+        });
+      } else {
+        Logger.warn("⚠️ Failed to save to Blobs, but continuing", {
+          error: blobResult.error,
+        });
+      }
+      
+      // Also update legacy session state for backward compatibility
       await updateSessionState(sessionId, {
         dailyRoomCreated: true,
         dailyRoomUrl: created.room_url,
         segmentsConfigured: true,
       });
-      Logger.log("Room creation status saved successfully");
+      
+      Logger.log("🎉 Room creation complete with Blobs persistence");
 
       setNotice({
         type: "success",
-        message: "Daily room created successfully.",
+        message: "Daily room created successfully with cross-device sync enabled.",
       });
     } catch (error) {
       Logger.error("Error setting up game:", error);

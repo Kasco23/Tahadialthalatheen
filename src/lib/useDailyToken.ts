@@ -6,7 +6,7 @@ import {
   dailyTokenExpiryAtom,
   dailyTokenRefreshingAtom,
 } from "../atoms";
-import { createDailyToken, getDailyTokenInfo } from "./mutations";
+import { createDailyToken } from "./mutations";
 
 const TOKEN_EXPIRY_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes
 const TOKEN_REFRESH_INTERVAL_MS = 4 * 60 * 1000; // 4 minutes
@@ -41,11 +41,9 @@ export const useDailyToken = ({
       );
       setDailyToken(tokenResponse.token);
 
-      // Get token info to set expiry
-      const tokenInfo = getDailyTokenInfo(sessionCode, participantName);
-      if (tokenInfo) {
-        setTokenExpiry(tokenInfo.expires_at);
-      }
+      // Set token expiry to 2 hours from now (Daily.co standard)
+      const expiryTime = Date.now() + (2 * 60 * 60 * 1000); // 2 hours
+      setTokenExpiry(expiryTime);
 
       Logger.log("Daily token refreshed successfully");
       return tokenResponse.token;

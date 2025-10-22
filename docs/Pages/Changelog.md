@@ -5,9 +5,50 @@
 
 ---
 
+## October 22, 2025
+
+### Lobby.tsx - Token Generation Refactoring
+
+- **Change**: Updated to use simplified `createDailyToken()` with enhanced response handling
+- **Reason**: Align with refactored token generation (removed dailyTokenManager)
+- **Features**:
+  - Now handles both `token` and `room_url` from Netlify function response
+  - Improved error handling with user-facing error messages
+  - Removed `clearRoomTokens()` calls (no longer needed)
+  - Better logging for token creation flow
+- **Impact**: Cleaner code, better error visibility, more reliable token generation
+- **Code Location**: Lines 370-410 in setupDailyRoom useEffect
+- **Size**: ~20.78KB (slight decrease due to removed dependencies)
+
+## January 20, 2025
+
+### GameSetup.tsx - Enhanced with Phase 2.1 Blobs Integration
+
+- **Change**: Comprehensive Session Blobs integration using blobsManager.ts library
+- **Features Added**:
+  - `saveSessionBlob()` call in `handleCreateDailyRoom()` with full SessionBlobData schema
+  - Stores: host_profile_id, daily_room_url, daily_room_name, daily_room_created_at
+  - Tracks: phase, game_state, segments_configured, active_participant_ids, participant_count
+  - Metadata: segments_config, created_by, creation_context
+  - `getSessionBlob()` on mount for resilience and state restoration
+  - Automatic cache invalidation and multi-layer caching (Browser Cache API + memory)
+- **Implementation Details**:
+  - Lines 25-29: Import saveSessionBlob, getSessionBlob, SessionBlobData from blobsManager
+  - Lines 175-213: New useEffect for session loading from Blobs on mount
+  - Lines 285-338: Enhanced handleCreateDailyRoom with comprehensive Blobs persistence
+  - Maintains backward compatibility with updateSessionState() for legacy support
+- **Benefits**:
+  - Page refresh recovery: UI state restored from Blobs instantly
+  - Cross-device session continuity: Same session accessible from multiple devices
+  - Reduced Supabase queries: Cached data served from Blobs/Browser Cache
+  - 5-layer fallback: Cache → Blobs → localStorage → Supabase → Error
+- **Testing**: Build validated successfully (6.29s), TypeScript compilation clean
+- **Dependencies**: Uses @netlify/blobs (strong consistency), Browser Cache API (5min TTL)
+- **Impact**: Foundation for Phase 2.2-3.2 implementation, improved user experience for hosts
+
 ## October 21, 2025
 
-### Lobby.tsx - Robust Token System Implementation
+### Profile.tsx - Updated
 
 - **Change**: Separated username (token) from name (display) for Daily.co integration
 - **Reason**: Names with spaces (e.g., "Tareq Salah") cause Daily.co token issues

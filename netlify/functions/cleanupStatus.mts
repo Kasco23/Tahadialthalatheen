@@ -1,4 +1,4 @@
-import type { Handler } from "@netlify/functions";
+import type { Config } from "@netlify/functions";
 import { createClient } from "@supabase/supabase-js";
 
 /**
@@ -11,30 +11,24 @@ import { createClient } from "@supabase/supabase-js";
  *
  * Logic:
  * - Finds participants with lastHeartbeat > 10 minutes ago
- * - Sets isConnected=false, isReady=false, inCall=false for stale participants
+ * - Sets lobby_presence=Disconnected, video_presence=false for stale participants
  * - Returns count of cleaned participants
  *
- * Scheduled in netlify.toml:
- * [[functions]]
- * name = "cleanupStatus"
- * schedule = "0 * * * *"  # Runs hourly at the top of the hour
+ * Note: Scheduled functions have a 30-second execution limit
  */
-export const handler: Handler = async (_event, _context) => {
+export default async (req: Request) => {
   try {
-    // Initialize Supabase client with service role key
-    const supabaseUrl = process.env.SUPABASE_DATABASE_URL;
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    // Parse the scheduled event body
+    const { next_run } = await req.json();
+    console.log("Running cleanupStatus. Next invocation at:", next_run);
+
+    // Initialize Supabase client with service role key using Netlify.env
+    const supabaseUrl = Netlify.env.get("SUPABASE_DATABASE_URL");
+    const supabaseKey = Netlify.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
     if (!supabaseUrl || !supabaseKey) {
       console.error("Missing Supabase environment variables");
-      return {
-        statusCode: 500,
-        body: JSON.stringify({
-          success: false,
-          error: "Server configuration error",
-          cleaned: 0,
-        }),
-      };
+      return;
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey, {
@@ -45,7 +39,7 @@ export const handler: Handler = async (_event, _context) => {
     const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
 
     console.log(
-      `Checking for stale participants (lastHeartbeat < ${tenMinutesAgo})`,
+      `Checking for stale participants (lastHeartbeat < ${tenMinutesAgo})`
     );
 
     // Find stale participants who appear connected but haven't sent heartbeat
@@ -57,14 +51,7 @@ export const handler: Handler = async (_event, _context) => {
 
     if (selectError) {
       console.error("Error querying stale participants:", selectError);
-      return {
-        statusCode: 500,
-        body: JSON.stringify({
-          success: false,
-          error: `Database query error: ${selectError.message}`,
-          cleaned: 0,
-        }),
-      };
+      return;
     }
 
     const cleanedCount = staleUsers?.length || 0;
@@ -76,33 +63,26 @@ export const handler: Handler = async (_event, _context) => {
           id: u.participant_id,
           name: u.name,
           role: u.role,
-        })),
+        }))
       );
 
       // Update stale participants to disconnected state
+      // Note: isReady column has been removed from the schema
       const { error: updateError } = await supabase
         .from("Participants")
         .update({
           lobby_presence: "Disconnected",
-          isReady: false,
           video_presence: false,
           disconnect_at: new Date().toISOString(),
         })
         .in(
           "participant_id",
-          staleUsers.map((u) => u.participant_id),
+          staleUsers.map((u) => u.participant_id)
         );
 
       if (updateError) {
         console.error("Error updating stale participants:", updateError);
-        return {
-          statusCode: 500,
-          body: JSON.stringify({
-            success: false,
-            error: `Database update error: ${updateError.message}`,
-            cleaned: 0,
-          }),
-        };
+        return;
       }
 
       console.log(`Successfully cleaned up ${cleanedCount} stale participants`);
@@ -110,23 +90,14 @@ export const handler: Handler = async (_event, _context) => {
       console.log("No stale participants found");
     }
 
-    return {
-      statusCode: 200,
-      body: JSON.stringify({
-        success: true,
-        cleaned: cleanedCount,
-        timestamp: new Date().toISOString(),
-      }),
-    };
+    console.log(
+      `cleanupStatus completed: ${cleanedCount} participants cleaned at ${new Date().toISOString()}`
+    );
   } catch (error) {
     console.error("Unexpected error in cleanupStatus function:", error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({
-        success: false,
-        error: error instanceof Error ? error.message : "Unknown error",
-        cleaned: 0,
-      }),
-    };
   }
+};
+
+export const config: Config = {
+  schedule: "0 * * * *", // Runs hourly at the top of the hour
 };

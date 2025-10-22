@@ -41,14 +41,25 @@ TypeScript, React (Vite), Tailwind, Supabase, Daily.co (video), Socket.io. Tests
 
 ## Quick start
 
-Requirements: Node.js >= 22, pnpm
+**Requirements**: 
+- Node.js >= 22
+- Deno >= 2.5 (for Edge Functions)
+- pnpm
 
-Install and run:
+**Install and run**:
 
 ```bash
+# Install dependencies
 pnpm install
+
+# Install Deno (required for Edge Functions)
+curl -fsSL https://deno.land/install.sh | sh
+
+# Start dev server
 pnpm dev
 ```
+
+**Troubleshooting**: If you see "Could not establish a connection to the Netlify Edge Functions local development server", install Deno using the command above. See [TROUBLESHOOTING.md](./docs/TROUBLESHOOTING.md) for more details.
 
 Common scripts:
 

@@ -1,5 +1,15 @@
 import type { Context } from "@netlify/functions";
 
+/**
+ * Netlify Function: Create Daily.co Meeting Token
+ * 
+ * Creates a Daily.co meeting token for a specific room and user.
+ * The token is used to authenticate users joining the video call.
+ * 
+ * @param {string} session_code - The session code (used as room name)
+ * @param {string} user_name - The user's display name in the video call
+ * @returns {object} { token: string, room_url: string }
+ */
 export default async (req: Request, _context: Context) => {
   // Only allow POST requests
   if (req.method !== "POST") {
@@ -38,6 +48,9 @@ export default async (req: Request, _context: Context) => {
         },
       );
     }
+
+    // Get Daily domain from environment (with fallback)
+    const dailyDomain = process.env.DAILY_DOMAIN || process.env.VITE_DAILY_DOMAIN || "thirty.daily.co";
 
     // Create meeting token using Daily.co API
     const tokenResponse = await fetch(
@@ -78,10 +91,20 @@ export default async (req: Request, _context: Context) => {
 
     const tokenData = await tokenResponse.json();
 
-    return new Response(JSON.stringify(tokenData), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    // Construct the room URL
+    const roomUrl = `https://${dailyDomain}/${roomIdentifier.toLowerCase()}`;
+
+    // Return both token and room URL for convenience
+    return new Response(
+      JSON.stringify({
+        token: tokenData.token,
+        room_url: roomUrl,
+      }),
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      },
+    );
   } catch (error) {
     console.error("Error creating Daily token:", error);
     return new Response(

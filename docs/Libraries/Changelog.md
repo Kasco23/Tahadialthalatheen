@@ -2,6 +2,35 @@
 
 **Tracking Start**: October 21, 2025
 
+## October 22, 2025
+
+### mutations.ts - Daily Token Refactoring
+
+- **Change**: Replaced `dailyTokenManager` abstraction with direct Netlify function call in `createDailyToken()`
+- **Reason**: Simplify video call token generation flow and remove unnecessary caching layer
+- **Features**:
+  - Direct call to `/.netlify/functions/create-daily-token`
+  - Returns both `token` and `room_url` for convenience
+  - Improved error handling with detailed logging
+  - Local dev mode support with mock tokens
+  - Removed dependencies on `getDailyTokenInfo()`, `clearDailyToken()`, and `clearRoomTokens()`
+- **Impact**: Cleaner, more maintainable token generation with fewer moving parts
+- **Code Location**: Lines 763-825 in `mutations.ts`
+- **Dependencies**: Removed `dailyTokenManager` import
+- **Migration Note**: `dailyTokenManager.ts` is now deprecated but kept for reference
+
+### useDailyToken.ts - Simplified Token Refresh
+
+- **Change**: Removed dependency on `getDailyTokenInfo()`, calculate expiry locally
+- **Reason**: Align with simplified token management approach
+- **Features**:
+  - Token expiry calculated as 2 hours from creation (Daily.co standard)
+  - Auto-refresh logic remains unchanged
+  - Cleaner implementation without external dependencies
+- **Impact**: More predictable token lifecycle management
+- **Code Location**: Lines 38-53 in `useDailyToken.ts`
+- **Dependencies**: Removed `getDailyTokenInfo` import
+
 ## October 21, 2025
 
 ### realtimeHooks.ts - Enhanced Profiles Query

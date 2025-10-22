@@ -1,5 +1,4 @@
 import { supabase } from "./supabaseClient";
-import { dailyTokenManager } from "./dailyTokenManager";
 import { Logger } from "./logger";
 import type {
   TablesUpdate,
@@ -759,34 +758,73 @@ export async function leaveLobbyByRole(
   await updateLobbyPresence(participant.participant_id, "Disconnected");
 }
 
-// Daily token retrieval with caching and refresh
+/**
+ * Create a Daily.co meeting token via Supabase Edge Function
+ * 
+ * This function calls the Supabase Edge Function to generate a Daily.co token
+ * for a specific room and user. The token is used to join the video call.
+ * 
+ * The Supabase function fetches session data from the database and generates
+ * the token using the Daily.co API.
+ * 
+ * @param sessionCode - The session code (used to look up the room)
+ * @param userName - The user's display name for the video call
+ * @returns Promise with the generated token and room URL
+ */
 export async function createDailyToken(
-  roomName: string,
+  sessionCode: string,
   userName: string,
-): Promise<{ token: string }> {
+): Promise<{ token: string; room_url?: string }> {
   try {
-    const token = await dailyTokenManager.getToken(roomName, userName);
-    return { token };
+    Logger.log("Creating Daily token via Supabase Edge Function:", { sessionCode, userName });
+
+    // Get Supabase project URL from environment
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_DATABASE_URL;
+    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      throw new Error("Supabase configuration missing");
+    }
+
+    // Call Supabase Edge Function to create Daily.co token
+    const response = await fetch(
+      `${supabaseUrl}/functions/v1/create-daily-token`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${supabaseAnonKey}`,
+        },
+        body: JSON.stringify({
+          session_code: sessionCode,
+          user_name: userName,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response
+        .json()
+        .catch(() => ({ error: "Unknown error" }));
+      Logger.error("Daily token creation failed:", errorData);
+      throw new Error(
+        `Failed to create Daily token: ${response.status} - ${JSON.stringify(errorData)}`,
+      );
+    }
+
+    const data = await response.json();
+    Logger.log("Daily token created successfully via Supabase Edge Function");
+
+    return { 
+      token: data.token,
+      room_url: data.room_url
+    };
   } catch (error) {
+    Logger.error("Error creating Daily token:", error);
     throw new Error(
-      `Failed to get Daily token: ${error instanceof Error ? error.message : "Unknown error"}`,
+      `Failed to create Daily token: ${error instanceof Error ? error.message : "Unknown error"}`,
     );
   }
-}
-
-// Get cached token info for debugging/monitoring
-export function getDailyTokenInfo(roomName: string, userName: string) {
-  return dailyTokenManager.getTokenInfo(roomName, userName);
-}
-
-// Clear token cache for a specific user
-export function clearDailyToken(roomName: string, userName: string): void {
-  dailyTokenManager.clearToken(roomName, userName);
-}
-
-// Clear all tokens for a room (when session ends)
-export function clearRoomTokens(roomName: string): void {
-  dailyTokenManager.clearRoomTokens(roomName);
 }
 
 export async function updateVideoPresence(
@@ -907,10 +945,9 @@ export async function endSession(
     throw new Error(`Failed to end session: ${error.message}`);
   }
 
-  // Clean up Daily.co tokens for this session
-  if (sessionCode) {
-    clearRoomTokens(sessionCode);
-  }
+  // Note: Daily.co tokens are stateless and expire automatically
+  // No need for explicit cleanup when session ends
+  Logger.log("Session ended:", { sessionId, sessionCode });
 }
 
 // 11. Increment Strike (WDYK only)
@@ -1026,167 +1063,7 @@ function extractErrorMessage(err: unknown): string {
   return String(err);
 }
 
-// 15. Mark Player as Ready/Not Ready
-/**
- * Update a participant's ready status for the lobby
- *
- * Note: Requires 'isReady' boolean field in Participant table
- * Migration: ALTER TABLE "Participant" ADD COLUMN "isReady" BOOLEAN DEFAULT false;
- *
- * Can be called via serverless function for better security:
- * POST /.netlify/functions/mark-player-ready
- * Body: { participantId, isReady }
- */
-export async function markPlayerReady(
-  participantId: string,
-  isReady: boolean,
-  useServerless = false,
-): Promise<void> {
-  if (useServerless) {
-    // Use serverless function to keep service role key secure
-    const response = await fetch("/.netlify/functions/mark-player-ready", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ participantId, isReady }),
-    });
-
-    if (!response.ok) {
-      const error = await response
-        .json()
-        .catch(() => ({ error: "Unknown error" }));
-      throw new Error(
-        `Failed to update ready status: ${error.error || "Unknown error"}`,
-      );
-    }
-
-    Logger.log(
-      `Player ${participantId} ready status set to: ${isReady} (via serverless)`,
-    );
-    return;
-  }
-
-  // Direct database call (requires client to have appropriate permissions)
-  const { error } = await supabase
-    .from("Participants")
-    .update({ isReady: isReady } as TablesUpdate<"Participants">)
-    .eq("participant_id", participantId);
-
-  if (error) {
-    throw new Error(`Failed to update ready status: ${error.message}`);
-  }
-
-  Logger.log(`Participant ${participantId} ready status set to: ${isReady}`);
-}
-
-// 16. Get All Participants Ready Status
-/**
- * Check if all non-Host participants in a session are ready
- *
- * Note: Requires 'isReady' boolean field in Participant table
- *
- * Can be called via serverless function for better security:
- * POST /.netlify/functions/check-ready-status
- * Body: { sessionId }
- */
-export async function checkAllPlayersReady(
-  sessionId: string,
-  useServerless = false,
-): Promise<{
-  allReady: boolean;
-  readyCount: number;
-  totalPlayers: number;
-  participants: Array<{
-    participant_id: string;
-    name: string;
-    role: string;
-    isReady: boolean;
-  }>;
-}> {
-  if (useServerless) {
-    // Use serverless function to keep service role key secure
-    const response = await fetch("/.netlify/functions/check-ready-status", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionId }),
-    });
-
-    if (!response.ok) {
-      const error = await response
-        .json()
-        .catch(() => ({ error: "Unknown error" }));
-      throw new Error(
-        `Failed to check ready status: ${error.error || "Unknown error"}`,
-      );
-    }
-
-    const result = await response.json();
-    return {
-      allReady: result.allReady,
-      readyCount: result.readyCount,
-      totalPlayers: result.totalPlayers,
-      participants: result.participants,
-    };
-  }
-
-  // Direct database call (requires client to have appropriate permissions)
-  const { data, error } = await supabase
-    .from("Participants")
-    .select(
-      "participant_id, role, isReady, profile_id, Profiles!profile_id(name)",
-    )
-    .eq("session_id", sessionId)
-    .in("role", ["Home", "Away"])
-    .eq("lobby_presence", "Joined");
-
-  if (error) {
-    throw new Error(`Failed to check ready status: ${error.message}`);
-  }
-
-  const participants = (data || []).map((p: ParticipantWithProfile) => {
-    const profileName =
-      Array.isArray(p.Profiles) && p.Profiles.length > 0
-        ? p.Profiles[0].name
-        : (p.Profiles as { name: string } | null)?.name || "Unknown";
-
-    return {
-      participant_id: p.participant_id,
-      name: profileName,
-      role: p.role,
-      isReady: p.isReady || false,
-    };
-  });
-
-  const totalPlayers = participants.length;
-  const readyCount = participants.filter((p) => p.isReady).length;
-  const allReady = totalPlayers > 0 && readyCount === totalPlayers;
-
-  return {
-    allReady,
-    readyCount,
-    totalPlayers,
-    participants,
-  };
-}
-
-// 17. Reset All Players Ready Status
-/**
- * Reset ready status for all players in a session (e.g., when starting a new round)
- */
-export async function resetAllPlayersReady(sessionId: string): Promise<void> {
-  const { error } = await supabase
-    .from("Participants")
-    .update({ isReady: false } as TablesUpdate<"Participants">)
-    .eq("session_id", sessionId)
-    .in("role", ["Home", "Away"]);
-
-  if (error) {
-    throw new Error(`Failed to reset ready status: ${error.message}`);
-  }
-
-  Logger.log(`All players ready status reset for session: ${sessionId}`);
-}
-
-// 18. Update Participant Heartbeat
+// 15. Update Participant Heartbeat
 /**
  * Update the lastHeartbeat timestamp for a participant to indicate they are still active.
  * Should be called every 30 seconds by active clients to maintain presence.

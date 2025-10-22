@@ -1,4 +1,4 @@
-import type { Context } from "@netlify/edge-functions";
+import type { Context, Config } from "@netlify/edge-functions";
 import { getStore } from "@netlify/blobs";
 
 /**
@@ -59,8 +59,11 @@ export default async (req: Request, _context: Context) => {
       );
     }
 
-    // Get blob store (automatic configuration in deployed environment)
-    const store = getStore("session-data");
+    // Get blob store with strong consistency
+    const store = getStore({
+      name: "session-data",
+      consistency: "strong",
+    });
 
     if (req.method === "DELETE") {
       // Delete session data
@@ -84,8 +87,13 @@ export default async (req: Request, _context: Context) => {
       );
     }
 
-    // Store data in blob store
-    await store.setJSON(key, data);
+    // Store data in blob store with metadata
+    await store.setJSON(key, data, {
+      metadata: {
+        updated_at: new Date().toISOString(),
+      },
+    });
+    
     console.log(`Saved session data for key: ${key}`);
 
     return new Response(JSON.stringify({ success: true }), {
@@ -105,4 +113,8 @@ export default async (req: Request, _context: Context) => {
       },
     );
   }
+};
+
+export const config: Config = {
+  path: "/.netlify/edge-functions/set-session",
 };

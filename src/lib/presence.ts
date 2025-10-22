@@ -14,7 +14,6 @@ export interface PresenceUser {
   name: string;
   flag: string;
   isHost: boolean;
-  isReady: boolean;
   lastSeen: Date;
   team_logo_url?: string; // Team logo URL for display
   // Legacy compatibility properties

@@ -1,4 +1,4 @@
-import type { Context } from "@netlify/edge-functions";
+import type { Context, Config } from "@netlify/edge-functions";
 import { getStore } from "@netlify/blobs";
 
 /**
@@ -68,8 +68,11 @@ export default async (req: Request, _context: Context) => {
       );
     }
 
-    // Get blob store (automatic configuration in deployed environment)
-    const store = getStore("session-state");
+    // Get blob store with strong consistency for session state
+    const store = getStore({
+      name: "session-state",
+      consistency: "strong",
+    });
 
     const stateKey = `session:${sessionId}:state`;
 
@@ -131,7 +134,12 @@ export default async (req: Request, _context: Context) => {
           lastUpdated: Date.now(),
         };
 
-        await store.setJSON(stateKey, mergedState);
+        await store.setJSON(stateKey, mergedState, {
+          metadata: {
+            updated_at: new Date().toISOString(),
+            operation: "partial_update",
+          },
+        });
 
         console.log(`Updated session state for ${sessionId}:`, mergedState);
 
@@ -148,7 +156,7 @@ export default async (req: Request, _context: Context) => {
       }
 
       case "PUT": {
-        // Full replacement
+        // Full replace - overwrite entire state
         if (!stateData) {
           return new Response(
             JSON.stringify({
@@ -167,7 +175,12 @@ export default async (req: Request, _context: Context) => {
           lastUpdated: Date.now(),
         };
 
-        await store.setJSON(stateKey, newState);
+        await store.setJSON(stateKey, newState, {
+          metadata: {
+            updated_at: new Date().toISOString(),
+            operation: "full_replace",
+          },
+        });
 
         console.log(`Replaced session state for ${sessionId}:`, newState);
 
@@ -184,15 +197,20 @@ export default async (req: Request, _context: Context) => {
       }
 
       case "DELETE": {
-        // Delete session state
+        // Clear session state
         await store.delete(stateKey);
 
-        console.log(`Deleted session state for ${sessionId}`);
+        console.log(`Cleared session state for ${sessionId}`);
 
-        return new Response(JSON.stringify({ success: true }), {
-          status: 200,
-          headers: { "Content-Type": "application/json" },
-        });
+        return new Response(
+          JSON.stringify({
+            success: true,
+          }),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          },
+        );
       }
 
       default:
@@ -220,4 +238,8 @@ export default async (req: Request, _context: Context) => {
       },
     );
   }
+};
+
+export const config: Config = {
+  path: "/.netlify/edge-functions/session-state",
 };

@@ -83,17 +83,36 @@
 
 ### GameSetup.tsx
 
-- **Status**: ✅ Active
+- **Status**: ✅ Active (Enhanced - Phase 2.1)
 - **Route**: `/gamesetup/:sessionCode`
 - **Route Protection**: Host only
-- **Purpose**: Configure quiz segments before starting
-- **Dependencies**: Supabase, Daily.co room creation
+- **Purpose**: Configure quiz segments and create Daily.co room with comprehensive Blobs persistence
+- **Dependencies**: Supabase, Daily.co, blobsManager.ts, sessionState
 - **Key Features**:
-  - Set question counts for segments
-  - Create Daily.co video room
-  - Update session configuration
+  - Set question counts for 5 segments (WDYK, AUCT, BELL, UPDW, REMO)
+  - Create Daily.co video room with token system
+  - **✨ NEW**: Comprehensive session data persistence to Netlify Blobs
+  - **✨ NEW**: Session state restoration from Blobs on mount (page refresh recovery)
+  - **✨ NEW**: Multi-layer caching (Browser Cache API + memory + Blobs + localStorage)
+  - Update legacy session state for backward compatibility
+  - Host presence tracking with heartbeat mechanism
+  - Real-time participant count from Lobby
   - Navigate to lobby when ready
-- **Size**: ~10KB
+- **Blobs Integration** (Phase 2.1):
+  - `saveSessionBlob()` on room creation with full SessionBlobData schema:
+    - Session metadata: session_id, session_code, host_profile_id
+    - Daily.co data: daily_room_url, daily_room_name, daily_room_created_at
+    - Game state: phase, game_state, segments_configured
+    - Participant tracking: active_participant_ids, participant_count
+    - Metadata: segments_config, created_by, creation_context
+  - `getSessionBlob()` on mount for resilience and UI state restoration
+  - 5-layer fallback: Cache (5min TTL) → Blobs → localStorage → Supabase → Error
+  - Strong consistency mode for immediate cross-device visibility
+- **Performance**:
+  - Cache hit rate: 80%+ (target)
+  - Reduced Supabase queries via cached Blobs data
+  - Instant state restoration on page refresh
+- **Size**: ~23KB (increased due to Blobs integration)
 
 ### Lobby.tsx
 

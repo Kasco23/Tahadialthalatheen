@@ -12,9 +12,10 @@ Tahadialthalatheen is a React TypeScript quiz application built with Vite for li
 - **Frontend**: React 19 + TypeScript + Vite 7 + Tailwind CSS 4 + DaisyUI
 - **Backend**: Supabase (PostgreSQL + Realtime)
 - **Video**: Daily.co integration for video calls
-- **Hosting**: Netlify with serverless functions
+- **Hosting**: Netlify with serverless functions and edge functions
 - **State**: Jotai for global state management
 - **Package Manager**: pnpm 10.18.3+
+- **Edge Runtime**: Deno (required for Netlify Edge Functions)
 
 ---
 
