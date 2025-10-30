@@ -18,7 +18,7 @@ export default async (req: Request, context: Context) => {
   if (req.method !== "POST") {
     return new Response(
       JSON.stringify({ success: false, error: "Method not allowed" }),
-      { status: 405, headers: { "Content-Type": "application/json" } }
+      { status: 405, headers: { "Content-Type": "application/json" } },
     );
   }
 
@@ -31,19 +31,21 @@ export default async (req: Request, context: Context) => {
           success: false,
           error: "Missing required fields: user_id, type, message",
         }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
+        { status: 400, headers: { "Content-Type": "application/json" } },
       );
     }
 
     // Validate environment variables
     const supabaseUrl = Netlify.env.get("SUPABASE_DATABASE_URL");
-    const supabaseKey = Netlify.env.get("SUPABASE_SERVICE_ROLE_KEY") || Netlify.env.get("SUPABASE_ANON_KEY");
+    const supabaseKey =
+      Netlify.env.get("SUPABASE_SERVICE_ROLE_KEY") ||
+      Netlify.env.get("SUPABASE_ANON_KEY");
 
     if (!supabaseUrl || !supabaseKey) {
       console.error("Supabase environment variables missing");
       return new Response(
         JSON.stringify({ success: false, error: "Server configuration error" }),
-        { status: 500, headers: { "Content-Type": "application/json" } }
+        { status: 500, headers: { "Content-Type": "application/json" } },
       );
     }
 
@@ -70,15 +72,18 @@ export default async (req: Request, context: Context) => {
           error: "Failed to create notification",
           details: error.message,
         }),
-        { status: 500, headers: { "Content-Type": "application/json" } }
+        { status: 500, headers: { "Content-Type": "application/json" } },
       );
     }
 
     console.log("Notification sent successfully to user:", user_id);
 
     return new Response(
-      JSON.stringify({ success: true, message: "Notification sent successfully" }),
-      { status: 200, headers: { "Content-Type": "application/json" } }
+      JSON.stringify({
+        success: true,
+        message: "Notification sent successfully",
+      }),
+      { status: 200, headers: { "Content-Type": "application/json" } },
     );
   } catch (error) {
     console.error("Error sending notification:", error);
@@ -87,7 +92,7 @@ export default async (req: Request, context: Context) => {
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",
       }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+      { status: 500, headers: { "Content-Type": "application/json" } },
     );
   }
 };

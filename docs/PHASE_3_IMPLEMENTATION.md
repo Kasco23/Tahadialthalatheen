@@ -4,7 +4,7 @@
 **Date Created**: October 22, 2025  
 **Last Updated**: October 22, 2025  
 **Phase**: Phase 3 (Advanced Integration)  
-**Status**: ✅ COMPLETED  
+**Status**: ✅ COMPLETED
 
 ## Table of Contents
 
@@ -26,7 +26,7 @@ Phase 3 brings **reactive state management** to Netlify Blobs through Jotai atom
 ### Goals
 
 **Phase 3.1**: Create blob-backed Jotai atoms with automatic persistence  
-**Phase 3.2**: Consolidate separate blob stores into unified naming  
+**Phase 3.2**: Consolidate separate blob stores into unified naming
 
 ### Key Outcomes
 
@@ -35,7 +35,7 @@ Phase 3 brings **reactive state management** to Netlify Blobs through Jotai atom
 ✅ Reduced boilerplate code in components  
 ✅ Unified blob store naming convention  
 ✅ Type-safe action dispatching  
-✅ Centralized error handling  
+✅ Centralized error handling
 
 ---
 
@@ -44,7 +44,7 @@ Phase 3 brings **reactive state management** to Netlify Blobs through Jotai atom
 ### Implementation Details
 
 **File Created**: `/src/atoms/blobAtoms.ts` (370+ lines)  
-**Export Updated**: `/src/atoms/index.ts` (added `export * from './blobAtoms'`)  
+**Export Updated**: `/src/atoms/index.ts` (added `export * from './blobAtoms'`)
 
 ### Architecture
 
@@ -65,7 +65,7 @@ const publicAtom = atom(
     // Handle load/save/update/clear actions
     // Optimistic updates + async blob persistence
     // Error handling with optional rollback
-  }
+  },
 );
 ```
 
@@ -76,24 +76,26 @@ const publicAtom = atom(
 **Purpose**: Manage session state with automatic Netlify Blobs persistence
 
 **Actions**:
+
 - `{ type: 'load', sessionId: string, useCache?: boolean }` - Load session from Blobs
 - `{ type: 'save', data: SessionBlobData, rollbackOnError?: boolean }` - Save complete session
 - `{ type: 'update', data: Partial<SessionBlobData>, rollbackOnError?: boolean }` - Partial update
 - `{ type: 'clear' }` - Clear session from memory
 
 **Usage Example**:
+
 ```typescript
 import { useAtom } from 'jotai';
 import { sessionBlobAtom } from '@/atoms';
 
 function GameSetup() {
   const [session, setSession] = useAtom(sessionBlobAtom);
-  
+
   useEffect(() => {
     // Load session on mount
     setSession({ type: 'load', sessionId: 'abc123' });
   }, []);
-  
+
   const updatePhase = async () => {
     // Optimistic update (immediate local state change + async blob save)
     await setSession({
@@ -102,15 +104,16 @@ function GameSetup() {
       rollbackOnError: true, // Revert if save fails
     });
   };
-  
+
   if (session.loading) return <div>Loading session...</div>;
   if (session.error) return <div>Error: {session.error}</div>;
-  
+
   return <div>Session: {session.data?.session_code}</div>;
 }
 ```
 
 **State Shape**:
+
 ```typescript
 {
   data: SessionBlobData | null,
@@ -125,24 +128,26 @@ function GameSetup() {
 **Purpose**: Manage participant state with automatic Netlify Blobs persistence
 
 **Actions**:
+
 - `{ type: 'load', participantId: string, useCache?: boolean }` - Load participant from Blobs
 - `{ type: 'save', data: ParticipantBlobData, rollbackOnError?: boolean }` - Save complete participant
 - `{ type: 'update', data: Partial<ParticipantBlobData>, rollbackOnError?: boolean }` - Partial update
 - `{ type: 'clear' }` - Clear participant from memory
 
 **Usage Example**:
+
 ```typescript
 import { useAtom } from 'jotai';
 import { participantBlobAtom } from '@/atoms';
 
 function Lobby() {
   const [participant, setParticipant] = useAtom(participantBlobAtom);
-  
+
   useEffect(() => {
     // Load participant on mount
     setParticipant({ type: 'load', participantId: 'xyz789' });
   }, []);
-  
+
   const updatePresence = async () => {
     // Optimistic update
     await setParticipant({
@@ -150,7 +155,7 @@ function Lobby() {
       data: { lobby_presence: 'active', last_heartbeat: Date.now() },
     });
   };
-  
+
   return <div>Participant: {participant.data?.name}</div>;
 }
 ```
@@ -158,21 +163,25 @@ function Lobby() {
 #### 3. Computed Atoms
 
 **Session-related**:
+
 - `currentSessionIdAtom` - Extract session_id from session blob
 - `currentSessionCodeAtom` - Extract session_code from session blob
 - `currentSessionPhaseAtom` - Extract phase from session blob
 
 **Participant-related**:
+
 - `currentParticipantIdAtom` - Extract participant_id from participant blob
 - `currentParticipantRoleAtom` - Extract role from participant blob
 - `currentParticipantPreferencesAtom` - Extract preferences (flag, team, audio/video settings)
 
 **Aggregate**:
+
 - `blobStatesAtom` - Combined session + participant state with aggregate flags
 - `isSessionLoadedAtom` - Boolean check for session loaded
 - `isParticipantLoadedAtom` - Boolean check for participant loaded
 
 **Usage Example**:
+
 ```typescript
 import { useAtomValue } from 'jotai';
 import { currentSessionPhaseAtom, currentParticipantPreferencesAtom } from '@/atoms';
@@ -180,7 +189,7 @@ import { currentSessionPhaseAtom, currentParticipantPreferencesAtom } from '@/at
 function StatusDisplay() {
   const phase = useAtomValue(currentSessionPhaseAtom);
   const prefs = useAtomValue(currentParticipantPreferencesAtom);
-  
+
   return (
     <div>
       <p>Phase: {phase}</p>
@@ -196,11 +205,13 @@ function StatusDisplay() {
 #### Optimistic Updates
 
 **How It Works**:
+
 1. Update local atom state immediately (instant UI feedback)
 2. Async save to Netlify Blobs (network operation)
 3. Optional rollback if save fails
 
 **Code Pattern**:
+
 ```typescript
 // Optimistic update
 const updatedData = { ...currentData, ...updates };
@@ -211,17 +222,19 @@ const result = await saveToBlobs(updatedData);
 
 if (!result.success && rollbackOnError) {
   set(_baseAtom, currentData); // Rollback
-  Logger.warn('Rolled back optimistic update');
+  Logger.warn("Rolled back optimistic update");
 }
 ```
 
 #### Error Handling
 
 **Error States**:
+
 - `sessionBlobErrorAtom` - Error from session operations
 - `participantBlobErrorAtom` - Error from participant operations
 
 **Error Recovery**:
+
 - Automatic fallback through 5-layer chain (Memory → Cache → Blobs → localStorage → Error)
 - Optional rollback to previous state on save failure
 - Error messages exposed through atom read interface
@@ -229,10 +242,12 @@ if (!result.success && rollbackOnError) {
 #### Loading States
 
 **Loading Indicators**:
+
 - `sessionBlobLoadingAtom` - Session load in progress
 - `participantBlobLoadingAtom` - Participant load in progress
 
 **Usage**:
+
 ```typescript
 const session = useAtomValue(sessionBlobAtom);
 
@@ -244,6 +259,7 @@ if (session.loading) {
 ### Integration with blobsManager.ts
 
 **Atoms use existing blob functions**:
+
 - `getSessionBlob()` - Read session from Blobs (with cache)
 - `saveSessionBlob()` - Write session to Blobs
 - `updateSessionBlob()` - Partial session update
@@ -259,22 +275,24 @@ if (session.loading) {
 ### Implementation Details
 
 **Files Modified**:
+
 1. `/netlify/functions/store-active-profile.mts`
 2. `/netlify/functions/get-active-profile.mts`
 3. `/netlify/edge-functions/session-state.ts`
 
 ### Store Name Changes
 
-| Old Store Name     | New Store Name  | Purpose                  |
-|--------------------|-----------------|--------------------------|
-| `active-profiles`  | `participants`  | Profile data storage     |
-| `session-state`    | `sessions`      | Session state management |
+| Old Store Name    | New Store Name | Purpose                  |
+| ----------------- | -------------- | ------------------------ |
+| `active-profiles` | `participants` | Profile data storage     |
+| `session-state`   | `sessions`     | Session state management |
 
 **Note**: `lobby-snapshots` store remains unchanged (specific purpose).
 
 ### Code Changes
 
 #### Before (store-active-profile.mts)
+
 ```typescript
 const store = getStore({
   name: "active-profiles",
@@ -283,6 +301,7 @@ const store = getStore({
 ```
 
 #### After (store-active-profile.mts)
+
 ```typescript
 // Use consolidated "participants" store with strong consistency
 // Migrated from "active-profiles" in Phase 3.2
@@ -293,6 +312,7 @@ const store = getStore({
 ```
 
 #### Before (session-state.ts)
+
 ```typescript
 const store = getStore({
   name: "session-state",
@@ -301,6 +321,7 @@ const store = getStore({
 ```
 
 #### After (session-state.ts)
+
 ```typescript
 // Get consolidated "sessions" store with strong consistency
 // Migrated from "session-state" in Phase 3.2
@@ -315,6 +336,7 @@ const store = getStore({
 **No data migration required**: Netlify Blobs are keyed by unique IDs (userId, sessionId). Changing store name creates new namespace - existing data remains in old stores until naturally phased out.
 
 **Rollout Plan**:
+
 1. ✅ Update all code to use new store names
 2. ✅ Deploy new code (uses `participants` and `sessions` stores)
 3. 🔄 Old data in `active-profiles` and `session-state` becomes stale naturally
@@ -340,26 +362,31 @@ Zero ESLint warnings (except pre-existing gradient CSS)
 ### Files Modified
 
 **Phase 3.1** (3 files):
+
 1. `/src/atoms/blobAtoms.ts` - **CREATED** (370+ lines)
 2. `/src/atoms/index.ts` - **MODIFIED** (added export)
 
 **Phase 3.2** (3 files):
+
 1. `/netlify/functions/store-active-profile.mts` - **MODIFIED** (1 line change)
 2. `/netlify/functions/get-active-profile.mts` - **MODIFIED** (1 line change)
 3. `/netlify/edge-functions/session-state.ts` - **MODIFIED** (1 line change)
 
 **Documentation**:
+
 1. `/docs/State/Changelog.md` - **UPDATED** (added Phase 3.1 entry)
 2. `/docs/PHASE_3_IMPLEMENTATION.md` - **CREATED** (this file)
 
 ### Bundle Size Impact
 
 **Phase 3.1** (blobAtoms.ts):
+
 - New file: ~15 kB (before gzip)
 - Gzipped: ~4-5 kB
 - Impact: Minimal (atoms lazy-loaded with component chunks)
 
 **Phase 3.2**:
+
 - Zero bundle size impact (backend-only changes)
 
 ---
@@ -369,6 +396,7 @@ Zero ESLint warnings (except pre-existing gradient CSS)
 ### Developer Experience
 
 **Before Phase 3**:
+
 ```typescript
 // Manual blob operations in components
 const loadSession = async () => {
@@ -394,34 +422,38 @@ const updateSession = async (updates) => {
 ```
 
 **After Phase 3**:
+
 ```typescript
 // Declarative atom-based approach
 const [session, setSession] = useAtom(sessionBlobAtom);
 
 useEffect(() => {
-  setSession({ type: 'load', sessionId });
+  setSession({ type: "load", sessionId });
 }, [sessionId]);
 
 const updateSession = (updates) => {
-  setSession({ type: 'update', data: updates, rollbackOnError: true });
+  setSession({ type: "update", data: updates, rollbackOnError: true });
 };
 
 // Automatic: loading states, error handling, optimistic updates, rollback
 ```
 
 **Lines of Code Reduction**:
+
 - GameSetup.tsx: ~50 lines → ~15 lines (70% reduction)
 - Lobby.tsx: ~80 lines → ~25 lines (69% reduction)
 
 ### Performance
 
 **Atom Benefits**:
+
 - Reactive updates: Components re-render only when atom values change
 - Selective subscriptions: Use `useAtomValue()` for read-only (no setter overhead)
 - Computed atoms: Memoized derived values (no re-computation on unrelated updates)
 - Lazy loading: Atoms only initialize when first accessed
 
 **Example**:
+
 ```typescript
 // Only re-renders when session phase changes (not on other session updates)
 const phase = useAtomValue(currentSessionPhaseAtom);
@@ -430,6 +462,7 @@ const phase = useAtomValue(currentSessionPhaseAtom);
 ### Architecture
 
 **Before Phase 3.2**:
+
 ```
 Blob Stores:
 - active-profiles (profile data)
@@ -440,6 +473,7 @@ Blob Stores:
 ```
 
 **After Phase 3.2**:
+
 ```
 Blob Stores:
 - participants (profile data + participant blobs)
@@ -458,6 +492,7 @@ Blob Stores:
 #### Phase 3.1: Blob-Backed Atoms
 
 **Test 1: Session Atom Load**
+
 1. Start dev server: `pnpm dev`
 2. Navigate to GameSetup page
 3. Open browser DevTools console
@@ -466,6 +501,7 @@ Blob Stores:
 6. Verify session data renders in UI
 
 **Test 2: Session Atom Update**
+
 1. While on GameSetup page, change a session setting (e.g., add segment)
 2. Check console for: `🔄 [sessionBlobAtom] Updating session: <session_id>`
 3. Verify log: `✅ [sessionBlobAtom] Session updated successfully`
@@ -473,6 +509,7 @@ Blob Stores:
 5. Verify update persisted (check segment appears after reload)
 
 **Test 3: Participant Atom Load**
+
 1. Navigate to Lobby page
 2. Open browser DevTools console
 3. Check for log: `🔄 [participantBlobAtom] Loading participant: <participant_id>`
@@ -480,6 +517,7 @@ Blob Stores:
 5. Verify participant name, flag, team render in UI
 
 **Test 4: Participant Atom Update**
+
 1. While in Lobby, change participant settings (flag/team/audio/video)
 2. Check console for: `🔄 [participantBlobAtom] Updating participant: <participant_id>`
 3. Verify log: `✅ [participantBlobAtom] Participant updated successfully`
@@ -487,6 +525,7 @@ Blob Stores:
 5. Verify preferences persisted
 
 **Test 5: Error Handling**
+
 1. Simulate network failure (DevTools Network tab → Offline)
 2. Try loading session/participant
 3. Verify fallback to localStorage works
@@ -494,6 +533,7 @@ Blob Stores:
 5. Verify error state renders in UI
 
 **Test 6: Computed Atoms**
+
 1. In Lobby, use React DevTools to inspect component state
 2. Find component using `currentSessionPhaseAtom`
 3. Verify value matches session.data.phase
@@ -503,18 +543,21 @@ Blob Stores:
 #### Phase 3.2: Store Consolidation
 
 **Test 7: Participants Store**
+
 1. Call store-active-profile API: `POST /api/store-active-profile`
 2. Check Netlify Blobs dashboard → Verify data in `participants` store
 3. Call get-active-profile API: `GET /api/get-active-profile?userId=<id>`
 4. Verify profile data retrieved successfully
 
 **Test 8: Sessions Store**
+
 1. Call session-state edge function: `POST /api/session-state`
 2. Check Netlify Blobs dashboard → Verify data in `sessions` store
 3. Call GET endpoint: `GET /api/session-state?sessionId=<id>`
 4. Verify session state retrieved successfully
 
 **Test 9: Old Store Data**
+
 1. Check Netlify Blobs dashboard for `active-profiles` store
 2. Verify old data still exists (not deleted)
 3. Create new profile → Verify written to `participants` store (not `active-profiles`)
@@ -523,33 +566,40 @@ Blob Stores:
 ### Automated Testing (Future)
 
 **Unit Tests** (to be added):
+
 ```typescript
 // Test sessionBlobAtom load action
-it('should load session from blobs', async () => {
+it("should load session from blobs", async () => {
   const store = createStore();
-  store.set(sessionBlobAtom, { type: 'load', sessionId: 'test123' });
+  store.set(sessionBlobAtom, { type: "load", sessionId: "test123" });
   await waitFor(() => {
     const session = store.get(sessionBlobAtom);
     expect(session.isLoaded).toBe(true);
-    expect(session.data?.session_id).toBe('test123');
+    expect(session.data?.session_id).toBe("test123");
   });
 });
 
 // Test optimistic update with rollback
-it('should rollback on save failure', async () => {
+it("should rollback on save failure", async () => {
   const store = createStore();
-  const initialData = { session_id: 'test', phase: 'setup' };
+  const initialData = { session_id: "test", phase: "setup" };
   store.set(_sessionBlobBaseAtom, initialData);
-  
+
   // Simulate save failure
-  jest.spyOn(blobsManager, 'saveSessionBlob').mockResolvedValue({ success: false, error: 'Network error' });
-  
-  store.set(sessionBlobAtom, { type: 'update', data: { phase: 'lobby' }, rollbackOnError: true });
-  
+  jest
+    .spyOn(blobsManager, "saveSessionBlob")
+    .mockResolvedValue({ success: false, error: "Network error" });
+
+  store.set(sessionBlobAtom, {
+    type: "update",
+    data: { phase: "lobby" },
+    rollbackOnError: true,
+  });
+
   await waitFor(() => {
     const session = store.get(sessionBlobAtom);
-    expect(session.data?.phase).toBe('setup'); // Rolled back
-    expect(session.error).toBe('Network error');
+    expect(session.data?.phase).toBe("setup"); // Rolled back
+    expect(session.error).toBe("Network error");
   });
 });
 ```
@@ -561,17 +611,20 @@ it('should rollback on save failure', async () => {
 ### Issue: "Session/Participant not loading"
 
 **Symptoms**:
+
 - Console shows: `⚠️ [sessionBlobAtom] Session load failed`
 - `session.error` is not null
 - UI shows error message
 
 **Possible Causes**:
+
 1. Network failure (cannot reach Netlify Blobs)
 2. Session/participant ID invalid or not found
 3. Blobs store not initialized
 4. localStorage blocked (private browsing)
 
 **Solutions**:
+
 1. Check network connectivity (DevTools Network tab)
 2. Verify session/participant ID is valid UUID
 3. Check Netlify Blobs dashboard for store existence
@@ -581,17 +634,20 @@ it('should rollback on save failure', async () => {
 ### Issue: "Optimistic updates not reverting"
 
 **Symptoms**:
+
 - State updates immediately but doesn't rollback on save failure
 - Console shows save error but UI still shows updated state
 
 **Possible Causes**:
+
 - `rollbackOnError: false` (default behavior)
 - Error not caught by atom write function
 
 **Solutions**:
+
 1. Explicitly set `rollbackOnError: true` in action:
    ```typescript
-   setSession({ type: 'update', data: updates, rollbackOnError: true });
+   setSession({ type: "update", data: updates, rollbackOnError: true });
    ```
 2. Check console for error logs
 3. Verify `saveSessionBlob()` returns proper error response
@@ -599,17 +655,20 @@ it('should rollback on save failure', async () => {
 ### Issue: "Computed atoms not updating"
 
 **Symptoms**:
+
 - `currentSessionPhaseAtom` shows old value after session update
 - Component using computed atom doesn't re-render
 
 **Possible Causes**:
+
 - Base atom not updated yet (async operation in progress)
 - Component not subscribed to computed atom correctly
 
 **Solutions**:
+
 1. Wait for async operation to complete:
    ```typescript
-   await setSession({ type: 'update', data: { phase: 'lobby' } });
+   await setSession({ type: "update", data: { phase: "lobby" } });
    const phase = get(currentSessionPhaseAtom); // Now updated
    ```
 2. Verify component uses `useAtomValue(currentSessionPhaseAtom)` correctly
@@ -618,14 +677,17 @@ it('should rollback on save failure', async () => {
 ### Issue: "Store name mismatch errors"
 
 **Symptoms**:
+
 - Netlify functions return 404 errors
 - Console shows "Store not found" errors
 
 **Possible Causes**:
+
 - Not all code updated to new store names
 - Old deployment still using `active-profiles` / `session-state`
 
 **Solutions**:
+
 1. Search codebase for old store names:
    ```bash
    grep -r "active-profiles" netlify/
@@ -638,15 +700,18 @@ it('should rollback on save failure', async () => {
 ### Issue: "Blob data not persisting"
 
 **Symptoms**:
+
 - Atom updates work but data lost on page refresh
 - Console shows successful save but data not in Blobs
 
 **Possible Causes**:
+
 - Netlify Blobs quota exceeded
 - API keys missing/invalid
 - Strong consistency mode not working
 
 **Solutions**:
+
 1. Check Netlify Blobs dashboard for quota usage
 2. Verify `NETLIFY_BLOBS_CONTEXT` environment variable set
 3. Test with `consistency: "eventual"` to isolate issue
@@ -659,6 +724,7 @@ it('should rollback on save failure', async () => {
 ### Immediate (Phase 3.3)
 
 **Comprehensive Testing**:
+
 - [ ] Test all Phase 3.1 atoms in GameSetup and Lobby
 - [ ] Verify optimistic updates work correctly
 - [ ] Test error handling and rollback scenarios
@@ -667,8 +733,10 @@ it('should rollback on save failure', async () => {
 - [ ] Crash recovery with atom-based state
 
 **Manual Testing Checklist**:
+
 ```markdown
 Session Atom:
+
 - [ ] Load session on GameSetup mount
 - [ ] Update session (add segment)
 - [ ] Clear session on unmount
@@ -676,6 +744,7 @@ Session Atom:
 - [ ] Rollback on save failure
 
 Participant Atom:
+
 - [ ] Load participant on Lobby mount
 - [ ] Update preferences (flag/team)
 - [ ] Update presence (heartbeat)
@@ -683,11 +752,13 @@ Participant Atom:
 - [ ] Error handling (invalid participant ID)
 
 Computed Atoms:
+
 - [ ] currentSessionPhaseAtom updates
 - [ ] currentParticipantPreferencesAtom updates
 - [ ] blobStatesAtom aggregate values
 
 Store Consolidation:
+
 - [ ] Participants store receives profile data
 - [ ] Sessions store receives session state
 - [ ] Old stores remain accessible (no data loss)
@@ -696,6 +767,7 @@ Store Consolidation:
 ### Short-term (Phase 3.4)
 
 **Comprehensive Data Flow Documentation**:
+
 - [ ] Document how each data type is created
 - [ ] Document all storage systems (Supabase/Blobs/Jotai/Cache/localStorage)
 - [ ] Document retrieval patterns and fallback chains
@@ -708,6 +780,7 @@ Store Consolidation:
 ### Medium-term (Phase 4)
 
 **Integration with Components**:
+
 - [ ] Update GameSetup.tsx to use sessionBlobAtom (replace manual calls)
 - [ ] Update Lobby.tsx to use participantBlobAtom (replace manual calls)
 - [ ] Add atom-based heartbeat mechanism in Lobby
@@ -715,22 +788,26 @@ Store Consolidation:
 - [ ] Add loading/error UI components
 
 **Example Hook**:
+
 ```typescript
 // src/hooks/useSessionBlob.ts
 export function useSessionBlob(sessionId: string | null) {
   const [session, setSession] = useAtom(sessionBlobAtom);
-  
+
   useEffect(() => {
     if (sessionId) {
-      setSession({ type: 'load', sessionId });
+      setSession({ type: "load", sessionId });
     }
-    return () => setSession({ type: 'clear' });
+    return () => setSession({ type: "clear" });
   }, [sessionId]);
-  
-  const updateSession = useCallback((data: Partial<SessionBlobData>) => {
-    setSession({ type: 'update', data, rollbackOnError: true });
-  }, [setSession]);
-  
+
+  const updateSession = useCallback(
+    (data: Partial<SessionBlobData>) => {
+      setSession({ type: "update", data, rollbackOnError: true });
+    },
+    [setSession],
+  );
+
   return { session, updateSession };
 }
 ```
@@ -738,6 +815,7 @@ export function useSessionBlob(sessionId: string | null) {
 ### Long-term (Phase 5)
 
 **Advanced Features**:
+
 - [ ] Atom devtools integration (jotai-devtools)
 - [ ] Atom persistence layer abstraction (support IndexedDB)
 - [ ] Atom middleware for logging/analytics
@@ -758,7 +836,7 @@ export function useSessionBlob(sessionId: string | null) {
 ✅ Error handling and loading states exposed through atom interface  
 ✅ Exported from src/atoms/index.ts  
 ✅ Build succeeds with zero TypeScript errors (6.02s)  
-✅ Zero bundle size increase (atoms lazy-loaded)  
+✅ Zero bundle size increase (atoms lazy-loaded)
 
 ### Phase 3.2
 
@@ -767,7 +845,7 @@ export function useSessionBlob(sessionId: string | null) {
 ✅ session-state.ts updated to use "sessions" store  
 ✅ Migration comments added to all modified files  
 ✅ Build succeeds with zero errors  
-✅ No backward compatibility breakage (old stores remain accessible)  
+✅ No backward compatibility breakage (old stores remain accessible)
 
 ---
 
@@ -776,24 +854,35 @@ export function useSessionBlob(sessionId: string | null) {
 ### Complete Atom API Reference
 
 **sessionBlobAtom Actions**:
+
 ```typescript
 type SessionBlobAction =
-  | { type: 'load'; sessionId: string; useCache?: boolean }
-  | { type: 'save'; data: SessionBlobData; rollbackOnError?: boolean }
-  | { type: 'update'; data: Partial<SessionBlobData>; rollbackOnError?: boolean }
-  | { type: 'clear' };
+  | { type: "load"; sessionId: string; useCache?: boolean }
+  | { type: "save"; data: SessionBlobData; rollbackOnError?: boolean }
+  | {
+      type: "update";
+      data: Partial<SessionBlobData>;
+      rollbackOnError?: boolean;
+    }
+  | { type: "clear" };
 ```
 
 **participantBlobAtom Actions**:
+
 ```typescript
 type ParticipantBlobAction =
-  | { type: 'load'; participantId: string; useCache?: boolean }
-  | { type: 'save'; data: ParticipantBlobData; rollbackOnError?: boolean }
-  | { type: 'update'; data: Partial<ParticipantBlobData>; rollbackOnError?: boolean }
-  | { type: 'clear' };
+  | { type: "load"; participantId: string; useCache?: boolean }
+  | { type: "save"; data: ParticipantBlobData; rollbackOnError?: boolean }
+  | {
+      type: "update";
+      data: Partial<ParticipantBlobData>;
+      rollbackOnError?: boolean;
+    }
+  | { type: "clear" };
 ```
 
 **Atom State Interface**:
+
 ```typescript
 interface AtomState<T> {
   data: T | null;
@@ -805,11 +894,11 @@ interface AtomState<T> {
 
 ### Blob Store Summary (After Phase 3.2)
 
-| Store Name         | Purpose                        | Data Type          | Consistency |
-|--------------------|--------------------------------|--------------------|-------------|
-| `sessions`         | Session metadata + state       | SessionBlobData    | Strong      |
-| `participants`     | Participant data + profiles    | ParticipantBlobData| Strong      |
-| `lobby-snapshots`  | Crash recovery snapshots       | LobbySnapshotData  | Strong      |
+| Store Name        | Purpose                     | Data Type           | Consistency |
+| ----------------- | --------------------------- | ------------------- | ----------- |
+| `sessions`        | Session metadata + state    | SessionBlobData     | Strong      |
+| `participants`    | Participant data + profiles | ParticipantBlobData | Strong      |
+| `lobby-snapshots` | Crash recovery snapshots    | LobbySnapshotData   | Strong      |
 
 ### Related Documentation
 

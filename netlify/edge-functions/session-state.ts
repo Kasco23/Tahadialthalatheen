@@ -41,14 +41,15 @@ export default async (req: Request, context: Context) => {
   try {
     // Check if we're in a development environment where Blobs might not be available
     const isDev = context.deploy?.context === "dev" || !context.site?.id;
-    
+
     if (isDev) {
       // In development, return a graceful response
       return new Response(
         JSON.stringify({
           success: false,
-          error: "Netlify Blobs not available in local development. Use 'netlify dev' or deploy to test.",
-          dev: true
+          error:
+            "Netlify Blobs not available in local development. Use 'netlify dev' or deploy to test.",
+          dev: true,
         }),
         {
           status: 503,

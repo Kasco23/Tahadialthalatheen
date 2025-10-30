@@ -1,7 +1,7 @@
 # Features - Current State
 
-**Last Updated**: October 21, 2025  
-**Feature Count**: 12 major features
+**Last Updated**: January 24, 2025  
+**Feature Count**: 13 major features
 
 ---
 
@@ -24,7 +24,7 @@
 ### 3. Lobby & Ready System
 
 - **Page**: Lobby
-- **Features**: 
+- **Features**:
   - Participant tiles with complete Profiles data (name, username, flag, team)
   - Ready toggle for players
   - Heartbeat tracking for presence detection
@@ -41,7 +41,7 @@
 ### 4. Video Calling (Daily.co)
 
 - **Components**: VideoRoom, VideoCall, ParticipantTile
-- **Features**: 
+- **Features**:
   - Persistent video across routes (Lobby → Quiz)
   - Token auto-refresh with 5-minute expiry threshold
   - Robust token system handling names with spaces
@@ -137,11 +137,45 @@
 
 ---
 
+## Advanced Features
+
+### 13. Semi-Automatic Question Generation (Transfermarkt API)
+
+- **Status**: 🚧 **Planning Complete** (Phase 1 Ready)
+- **Documentation**: `/docs/TRANSFERMARKT_INTEGRATION_ROADMAP.md`
+- **API**: Transfermarkt Open API (transfermarkt-api.fly.dev)
+- **Purpose**: Semi-automatic football quiz question generation for all 5 segments
+- **Segments Covered**:
+  - **REMO** (Remontada): Player career path questions using transfer history
+  - **BELL** (Bell Ringer): Statistical comparison questions (top scorers, assists, etc.)
+  - **WDYK** (Who Do You Know): Multi-league player identification
+  - **AUCT** (Auction): High-value questions with 100+ possible answers
+  - **UPDW** (Up Down): Hard trivia with template-based generation
+- **Architecture**:
+  - **API Wrapper**: `src/lib/api/transfermarkt.ts` (TransfermarktClient class)
+  - **Caching**: `src/lib/api/transfermarktCache.ts` (Netlify Blobs with TTL strategy)
+  - **Functions**: 5 Netlify functions (`generate-{segment}-question.mts`)
+  - **Database**: 3 new tables (generated_questions, question_bank, player_question_history)
+  - **Frontend**: `/tools/question-generator` page with 7 sub-components
+- **Key Features**:
+  - Cache-first pattern with >80% hit rate goal
+  - Answer limit handling (display 100, expand for 100+)
+  - Metadata tracking (api_source, api_params, total_answers_count)
+  - Profile integration ("My Questions" page)
+  - GameSetup integration with modal/drawer
+- **TTL Strategy**: 1 hour (searches) → 1 day (stats) → 7 days (profiles) → 30 days (transfers)
+- **Implementation Plan**: 14 phases across 12 implementation sessions + 2 documentation sessions
+- **Current Phase**: Phase 1.1 - Create TransfermarktClient API wrapper
+- **Estimated Completion**: ~20-30 hours total
+
+---
+
 ## Feature Interactions
 
 **Session Flow**: Homepage → GameSetup → Lobby → Quiz → Results  
 **Social Flow**: Signup → Profile → Friends → Notifications → Match Invites  
 **Video Flow**: GameSetup (create room) → Lobby (join call) → Quiz (persist call)  
-**Stats Flow**: Results (record match) → Profile (view stats) → Leaderboard (rankings)
+**Stats Flow**: Results (record match) → Profile (view stats) → Leaderboard (rankings)  
+**Question Generation Flow**: GameSetup → Generate Questions (modal) → Select Segment → Configure Parameters → Preview → Save to Session/Bank
 
 **Real-time Features**: Participant presence, friend requests, notifications, match results, scores

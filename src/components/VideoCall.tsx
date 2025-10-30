@@ -118,8 +118,7 @@ export const VideoCall: React.FC<VideoCallProps> = ({
     const isLocalDev =
       window.location.hostname === "localhost" &&
       window.location.port === "5173";
-    const isMockRoom =
-      roomUrl.includes("thirty.daily.co") && isLocalDev;
+    const isMockRoom = roomUrl.includes("thirty.daily.co") && isLocalDev;
 
     if (isMockRoom) {
       setCallError(

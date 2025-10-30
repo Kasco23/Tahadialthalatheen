@@ -28,20 +28,23 @@ export default async (req: Request, context: Context) => {
   if (req.method !== "POST") {
     return new Response(
       JSON.stringify({ success: false, error: "Method not allowed" }),
-      { status: 405, headers: { "Content-Type": "application/json" } }
+      { status: 405, headers: { "Content-Type": "application/json" } },
     );
   }
 
   try {
-    const { userId, profileData } = await req.json() as {
+    const { userId, profileData } = (await req.json()) as {
       userId: string;
       profileData: ProfileData;
     };
 
     if (!userId || !profileData) {
       return new Response(
-        JSON.stringify({ success: false, error: "Missing userId or profileData" }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
+        JSON.stringify({
+          success: false,
+          error: "Missing userId or profileData",
+        }),
+        { status: 400, headers: { "Content-Type": "application/json" } },
       );
     }
 
@@ -62,7 +65,7 @@ export default async (req: Request, context: Context) => {
 
     return new Response(
       JSON.stringify({ success: true, message: "Profile stored successfully" }),
-      { status: 200, headers: { "Content-Type": "application/json" } }
+      { status: 200, headers: { "Content-Type": "application/json" } },
     );
   } catch (error) {
     console.error("Error storing profile:", error);
@@ -71,7 +74,7 @@ export default async (req: Request, context: Context) => {
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",
       }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+      { status: 500, headers: { "Content-Type": "application/json" } },
     );
   }
 };

@@ -9,27 +9,31 @@
 ### ❌ Error: "Could not establish a connection to the Netlify Edge Functions local development server"
 
 **Full Error Message**:
+
 ```
 Error: Could not establish a connection to the Netlify Edge Functions local development server
     at EdgeFunctionsHandler.waitForDenoServer
 ```
 
-**Root Cause**: 
+**Root Cause**:
 Deno runtime is not installed. Netlify Edge Functions require Deno to run locally because they execute on the Deno runtime at the edge.
 
 **Solution**:
 
 1. **Install Deno**:
+
    ```bash
    curl -fsSL https://deno.land/install.sh | sh
    ```
 
 2. **Verify Installation**:
+
    ```bash
    deno --version
    ```
-   
+
    Expected output:
+
    ```
    deno 2.5.4 (stable, release, x86_64-unknown-linux-gnu)
    v8 14.0.365.5-rusty
@@ -49,14 +53,16 @@ The devcontainer is now configured to automatically install Deno when the contai
 ### ⚠️ Warning: "MissingBlobsEnvironmentError"
 
 **Error Message**:
+
 ```
 Blobs operation failed: MissingBlobsEnvironmentError: The environment has not been configured to use Netlify Blobs
 ```
 
-**Root Cause**: 
+**Root Cause**:
 Netlify Blobs requires site credentials for local development. This is expected behavior when running without Netlify authentication.
 
-**Impact**: 
+**Impact**:
+
 - **Non-blocking**: The dev server continues running
 - Only affects functions that use Netlify Blobs storage
 - Frontend and other backend functions work normally
@@ -64,19 +70,23 @@ Netlify Blobs requires site credentials for local development. This is expected 
 **Solutions**:
 
 **Option 1**: Ignore the warning (recommended for frontend-only development)
+
 - The warning doesn't affect most development workflows
 - Functions using Blobs will return mock data locally
 
 **Option 2**: Use Netlify Dev Server
+
 ```bash
 pnpm dev:netlify
 ```
+
 - Requires Netlify authentication (`netlify login`)
 - Provides full Netlify platform emulation
 - Blobs will work with your deployed site's storage
 
 **Option 3**: Configure environment variables
 Add to `.env.local`:
+
 ```bash
 NETLIFY_BLOBS_SITE_ID=your_site_id
 NETLIFY_BLOBS_TOKEN=your_token
@@ -87,19 +97,21 @@ NETLIFY_BLOBS_TOKEN=your_token
 ### ⚠️ Warning: "Multiple instances of @netlify/vite-plugin"
 
 **Warning Message**:
+
 ```
 Warning: Multiple instances of @netlify/vite-plugin have been loaded
 ```
 
-**Root Cause**: 
+**Root Cause**:
 The Netlify Vite plugin may be configured multiple times in the dependency tree.
 
-**Impact**: 
+**Impact**:
+
 - Non-blocking warning
 - Dev server functions normally
 - May cause unexpected behavior if plugin is configured differently
 
-**Solution**: 
+**Solution**:
 Check `vite.config.ts` and remove duplicate Netlify plugin configurations if present.
 
 ---
@@ -111,6 +123,7 @@ Check `vite.config.ts` and remove duplicate Netlify plugin configurations if pre
 **Error**: Build fails with TypeScript compilation errors
 
 **Solution**:
+
 ```bash
 # Check for errors
 pnpm build
@@ -126,6 +139,7 @@ pnpm build
 **Error**: `Error: The module was compiled against a different Node.js version`
 
 **Solution**:
+
 ```bash
 # Verify Node version
 node --version  # Should be 22+
@@ -139,18 +153,21 @@ node --version  # Should be 22+
 
 ### Edge Functions Not Executing
 
-**Symptoms**: 
+**Symptoms**:
+
 - Edge function routes return 404
 - Edge function paths not intercepting requests
 
 **Checklist**:
+
 1. ✅ Deno is installed: `deno --version`
 2. ✅ Edge functions exist in `/netlify/edge-functions/`
 3. ✅ Functions are declared in `netlify.toml` under `[[edge_functions]]`
 4. ✅ Dev server is running with Netlify middleware loaded
 
-**Solution**: 
+**Solution**:
 Check terminal output for:
+
 ```
 [vite] ⬥ Netlify Middleware loaded. Emulating features: edgeFunctions
 ```
@@ -167,8 +184,9 @@ If not present, ensure `@netlify/vite-plugin` is properly configured.
 
 **Cause**: Missing API keys
 
-**Solution**: 
+**Solution**:
 Check environment variables:
+
 ```bash
 # Required for Daily.co integration
 DAILY_API_KEY=your_daily_api_key
@@ -181,8 +199,9 @@ VITE_DAILY_DOMAIN=your_daily_domain
 
 **Cause**: Missing or incorrect Supabase credentials
 
-**Solution**: 
+**Solution**:
 Verify environment variables:
+
 ```bash
 VITE_SUPABASE_DATABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=your_anon_key

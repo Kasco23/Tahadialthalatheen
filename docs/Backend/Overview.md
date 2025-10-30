@@ -7,13 +7,17 @@
 The backend consists of two types of Netlify serverless functions:
 
 ### 1. **Netlify Functions** (Node.js)
+
 Located in: `/netlify/functions/`
+
 - Standard serverless functions running on Node.js runtime
 - Used for API endpoints, scheduled tasks, and third-party integrations
 - Examples: Daily.co room creation, notifications, profile storage
 
 ### 2. **Netlify Edge Functions** (Deno)
+
 Located in: `/netlify/edge-functions/`
+
 - Edge functions running on Deno runtime at the CDN edge
 - Used for low-latency operations and session state management
 - **Requires Deno to be installed for local development**
@@ -31,16 +35,19 @@ Located in: `/netlify/edge-functions/`
 ### Installing Deno
 
 If you encounter errors like:
+
 ```
 Error: Could not establish a connection to the Netlify Edge Functions local development server
 ```
 
 **Solution**: Install Deno runtime
+
 ```bash
 curl -fsSL https://deno.land/install.sh | sh
 ```
 
 Deno will be automatically added to your PATH. Restart your terminal or run:
+
 ```bash
 export PATH="/home/node/.deno/bin:$PATH"
 ```
@@ -54,17 +61,21 @@ The `.devcontainer/devcontainer.json` is configured to automatically install Den
 ## Running Locally
 
 ### Option 1: Direct Vite Dev Server (Recommended)
+
 ```bash
 pnpm dev
 ```
+
 - Starts Vite on `http://localhost:5173/`
 - Emulates Edge Functions, serverless functions, and Netlify features
 - **Requires Deno installed**
 
 ### Option 2: Netlify Dev Server
+
 ```bash
 pnpm dev:netlify
 ```
+
 - Requires Netlify authentication
 - Full Netlify platform emulation
 - Use when testing deployment-specific features
@@ -80,6 +91,7 @@ pnpm dev:netlify
 **Cause**: Deno runtime not installed
 
 **Solution**:
+
 1. Install Deno: `curl -fsSL https://deno.land/install.sh | sh`
 2. Add to PATH: `export PATH="/home/node/.deno/bin:$PATH"`
 3. Restart dev server: `pnpm dev`

@@ -93,7 +93,7 @@ export default async (req: Request, _context: Context) => {
         updated_at: new Date().toISOString(),
       },
     });
-    
+
     console.log(`Saved session data for key: ${key}`);
 
     return new Response(JSON.stringify({ success: true }), {

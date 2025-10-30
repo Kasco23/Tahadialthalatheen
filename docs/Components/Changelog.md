@@ -85,7 +85,7 @@
 #### Solution
 
 - **Fixed Participants Query**: Added `username` field to Profiles JOIN in Lobby.tsx
-- **Centralized Token Management**: VideoCall now uses tokens from Jotai atoms instead of creating duplicates  
+- **Centralized Token Management**: VideoCall now uses tokens from Jotai atoms instead of creating duplicates
 - **Removed Duplicate Logic**: Eliminated redundant Daily room queries and token creation in VideoCall
 - **Proper Name Handling**: Uses `username` (safe, no spaces) for tokens and `name` for display
 

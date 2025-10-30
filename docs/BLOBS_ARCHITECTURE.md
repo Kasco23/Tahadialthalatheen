@@ -1,11 +1,13 @@
 # Netlify Blobs Architecture Implementation Plan
 
 ## Overview
+
 This document outlines the comprehensive Blobs architecture for Tahadialthalatheen quiz application, designed to work seamlessly with Supabase, Jotai atoms, localStorage, and browser cache.
 
 ## Current State Analysis
 
 ### Existing Blobs Usage ✅
+
 1. **Edge Functions**:
    - `get-session.ts` - Uses `session-data` store
    - `set-session.ts` - Uses `session-data` store with strong consistency
@@ -18,21 +20,25 @@ This document outlines the comprehensive Blobs architecture for Tahadialthalathe
 ### Issues Identified 🔧
 
 #### 1. **Edge Functions Syntax** - ✅ CORRECT
+
 - All edge functions use proper `getStore()` import and syntax
 - Strong consistency configured correctly
 - Error handling present
 
-#### 2. **Serverless Functions Syntax** - ✅ CORRECT  
+#### 2. **Serverless Functions Syntax** - ✅ CORRECT
+
 - Use `@netlify/functions` Context and Config types correctly
 - Use `Netlify.env.get()` for environment variables (where needed)
 - Have Config exports with custom paths
 - Use strong consistency for blobs
 
 #### 3. **Store Naming Inconsistency** - ⚠️ NEEDS ALIGNMENT
+
 - `session-data` vs `session-state` - Two different stores for similar purposes
 - `active-profiles` for participant data - Not aligned with new comprehensive schema
 
 #### 4. **Missing Integration** - ❌ TODO
+
 - No Jotai atom integration with Blobs
 - No automatic cache invalidation
 - No sync with Supabase database
@@ -46,7 +52,7 @@ This document outlines the comprehensive Blobs architecture for Tahadialthalathe
 ```
 Global Stores (cross-deploy, production only):
 ├── sessions               # Session-level configuration and state
-├── participants           # Cross-device participant profiles  
+├── participants           # Cross-device participant profiles
 └── lobby-snapshots       # Quick recovery snapshots
 
 Deploy Stores (per-deployment):
@@ -58,6 +64,7 @@ Deploy Stores (per-deployment):
 ### Data Models
 
 #### SessionBlobData
+
 ```typescript
 {
   session_id: string
@@ -77,6 +84,7 @@ Deploy Stores (per-deployment):
 ```
 
 #### ParticipantBlobData
+
 ```typescript
 {
   participant_id: string
@@ -106,6 +114,7 @@ Deploy Stores (per-deployment):
 ```
 
 #### LobbySnapshotData
+
 ```typescript
 {
   session_id: string
@@ -121,6 +130,7 @@ Deploy Stores (per-deployment):
 ### Integration Strategy
 
 #### 1. **Supabase → Blobs → Jotai → UI** (Read Path)
+
 ```
 Supabase (source of truth)
     ↓
@@ -134,6 +144,7 @@ React Components (UI)
 ```
 
 #### 2. **UI → Jotai → Blobs → Supabase** (Write Path)
+
 ```
 User Action
     ↓
@@ -151,6 +162,7 @@ Re-sync if needed
 ## Implementation Tasks
 
 ### Phase 1: Core Infrastructure ✅ (Completed)
+
 - [x] Create `blobsManager.ts` with comprehensive types
 - [x] Implement cache wrapper (Browser Cache API + memory)
 - [x] Build session blob operations (get, save, update)
@@ -160,6 +172,7 @@ Re-sync if needed
 - [x] Add cache invalidation utilities
 
 ### Phase 2: Function Updates (In Progress)
+
 - [ ] Update `store-active-profile.mts` with enhanced participant schema
 - [ ] Update `get-active-profile.mts` with cache awareness
 - [ ] Create new `sync-participant.mts` for Supabase sync
@@ -167,6 +180,7 @@ Re-sync if needed
 - [ ] Add environment-aware store selection (prod vs dev)
 
 ### Phase 3: Jotai Integration (Planned)
+
 - [ ] Create `blobAtoms.ts` with blob-backed atoms
 - [ ] Add auto-sync hooks for session atoms
 - [ ] Add auto-sync hooks for participant atoms
@@ -174,6 +188,7 @@ Re-sync if needed
 - [ ] Add real-time sync with Supabase subscriptions
 
 ### Phase 4: Component Integration (Planned)
+
 - [ ] Update GameSetup.tsx to use session blobs
 - [ ] Update Lobby.tsx to use participant blobs + snapshots
 - [ ] Add offline detection and fallback
@@ -181,6 +196,7 @@ Re-sync if needed
 - [ ] Add "Continue on another device" feature
 
 ### Phase 5: Testing & Optimization (Planned)
+
 - [ ] Test cross-device continuity
 - [ ] Test offline mode with localStorage fallback
 - [ ] Test cache invalidation strategies
@@ -191,8 +207,9 @@ Re-sync if needed
 ## Usage Examples
 
 ### Example 1: Store Session Data in GameSetup
+
 ```typescript
-import { saveSessionBlob } from '../lib/blobsManager';
+import { saveSessionBlob } from "../lib/blobsManager";
 
 // After creating Daily room
 const sessionData: SessionBlobData = {
@@ -202,8 +219,8 @@ const sessionData: SessionBlobData = {
   daily_room_url: roomUrl,
   daily_room_name: roomName,
   daily_room_created_at: new Date().toISOString(),
-  phase: 'Setup',
-  game_state: 'pre-quiz',
+  phase: "Setup",
+  game_state: "pre-quiz",
   segments_configured: false,
   active_participant_ids: [hostParticipantId],
   participant_count: 1,
@@ -215,18 +232,19 @@ const sessionData: SessionBlobData = {
 
 const result = await saveSessionBlob(sessionData);
 if (result.success) {
-  console.log('Session saved to blobs!');
+  console.log("Session saved to blobs!");
 }
 ```
 
 ### Example 2: Load Participant Data on Page Load
+
 ```typescript
-import { getParticipantBlob } from '../lib/blobsManager';
+import { getParticipantBlob } from "../lib/blobsManager";
 
 // On component mount
 useEffect(() => {
   const loadParticipant = async () => {
-    const participantId = localStorage.getItem('participantId');
+    const participantId = localStorage.getItem("participantId");
     if (!participantId) return;
 
     const result = await getParticipantBlob(participantId);
@@ -247,8 +265,9 @@ useEffect(() => {
 ```
 
 ### Example 3: Save Lobby Snapshot Periodically
+
 ```typescript
-import { saveLobbySnapshot } from '../lib/blobsManager';
+import { saveLobbySnapshot } from "../lib/blobsManager";
 
 // In Lobby.tsx - save snapshot every 30 seconds
 useEffect(() => {
@@ -259,17 +278,17 @@ useEffect(() => {
       session_id: sessionId,
       session_code: sessionCode,
       snapshot_timestamp: new Date().toISOString(),
-      participants: participants.map(p => ({
+      participants: participants.map((p) => ({
         participant_id: p.participant_id,
-        name: p.Profiles?.name || 'Unknown',
+        name: p.Profiles?.name || "Unknown",
         role: p.role,
-        flag: p.Profiles?.flag || 'sa',
+        flag: p.Profiles?.flag || "sa",
         team: p.Profiles?.team,
         lobby_presence: p.lobby_presence,
         video_presence: p.video_presence,
         join_at: p.join_at,
       })),
-      phase: session?.phase || 'Lobby',
+      phase: session?.phase || "Lobby",
       daily_room_url: dailyRoomUrl,
       participant_count: participants.length,
     };
@@ -295,6 +314,7 @@ useEffect(() => {
 ## Benefits
 
 ### For Users
+
 - ✅ Seamless cross-device experience
 - ✅ Continue sessions on different devices
 - ✅ Faster load times (cached data)
@@ -302,6 +322,7 @@ useEffect(() => {
 - ✅ No data loss on page refresh
 
 ### For Developers
+
 - ✅ Clear data flow architecture
 - ✅ Easy to debug (rich metadata)
 - ✅ Testable (each layer isolated)
@@ -311,16 +332,18 @@ useEffect(() => {
 ## Monitoring & Debugging
 
 ### Cache Hit Rates
+
 ```typescript
 // Track cache performance
 const cacheStats = {
   hits: 0,
   misses: 0,
-  hitRate: () => hits / (hits + misses)
+  hitRate: () => hits / (hits + misses),
 };
 ```
 
 ### Blob Operation Logs
+
 ```typescript
 // All blob operations log:
 // - Timestamp
@@ -331,6 +354,7 @@ const cacheStats = {
 ```
 
 ### Error Recovery
+
 ```typescript
 // Automatic fallback chain:
 Blobs → Cache → localStorage → Supabase → Error

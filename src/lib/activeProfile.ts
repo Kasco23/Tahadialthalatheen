@@ -36,7 +36,9 @@ export async function storeActiveProfile(
       // Check if it's a dev environment HTML page
       if (text.includes("<!doctype") || text.includes("<!DOCTYPE")) {
         // Silently skip in development - Netlify Functions not available
-        Logger.debug("Netlify Functions unavailable in local dev - skipping profile storage");
+        Logger.debug(
+          "Netlify Functions unavailable in local dev - skipping profile storage",
+        );
         return;
       }
       throw new Error(`Non-JSON response from server: ${text.slice(0, 100)}`);

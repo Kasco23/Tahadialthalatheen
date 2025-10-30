@@ -22,13 +22,10 @@ import { createClient } from "@supabase/supabase-js";
 export default async (req: Request, context: Context) => {
   // Only allow POST requests
   if (req.method !== "POST") {
-    return new Response(
-      JSON.stringify({ error: "Method not allowed" }),
-      {
-        status: 405,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+    return new Response(JSON.stringify({ error: "Method not allowed" }), {
+      status: 405,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
   try {
@@ -41,14 +38,16 @@ export default async (req: Request, context: Context) => {
         {
           status: 400,
           headers: { "Content-Type": "application/json" },
-        }
+        },
       );
     }
 
     // Validate environment variables using Netlify.env
     const dailyApiKey = Netlify.env.get("DAILY_API_KEY");
     const supabaseUrl = Netlify.env.get("SUPABASE_DATABASE_URL");
-    const supabaseKey = Netlify.env.get("SUPABASE_SERVICE_ROLE_KEY") || Netlify.env.get("SUPABASE_ANON_KEY");
+    const supabaseKey =
+      Netlify.env.get("SUPABASE_SERVICE_ROLE_KEY") ||
+      Netlify.env.get("SUPABASE_ANON_KEY");
 
     if (!dailyApiKey) {
       console.error("DAILY_API_KEY environment variable is not set");
@@ -57,7 +56,7 @@ export default async (req: Request, context: Context) => {
         {
           status: 500,
           headers: { "Content-Type": "application/json" },
-        }
+        },
       );
     }
 
@@ -68,7 +67,7 @@ export default async (req: Request, context: Context) => {
         {
           status: 500,
           headers: { "Content-Type": "application/json" },
-        }
+        },
       );
     }
 
@@ -86,13 +85,10 @@ export default async (req: Request, context: Context) => {
 
     if (sessionErr || !sessionRow?.session_id) {
       console.error("Session not found:", sessionErr);
-      return new Response(
-        JSON.stringify({ error: "Session not found" }),
-        {
-          status: 404,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+      return new Response(JSON.stringify({ error: "Session not found" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
     const session_id = sessionRow.session_id;
@@ -132,7 +128,7 @@ export default async (req: Request, context: Context) => {
         {
           status: roomResponse.status,
           headers: { "Content-Type": "application/json" },
-        }
+        },
       );
     }
 
@@ -140,13 +136,11 @@ export default async (req: Request, context: Context) => {
     console.log("Daily.co room created:", roomData.name);
 
     // Save room data to Supabase
-    const { error: dbError } = await supabase
-      .from("DailyRooms")
-      .upsert({
-        room_id: session_id,
-        room_url: roomData.url,
-        ready: true,
-      });
+    const { error: dbError } = await supabase.from("DailyRooms").upsert({
+      room_id: session_id,
+      room_url: roomData.url,
+      ready: true,
+    });
 
     if (dbError) {
       console.error("Failed to save room to database:", dbError);
@@ -158,7 +152,7 @@ export default async (req: Request, context: Context) => {
         {
           status: 500,
           headers: { "Content-Type": "application/json" },
-        }
+        },
       );
     }
 
@@ -172,7 +166,7 @@ export default async (req: Request, context: Context) => {
       {
         status: 200,
         headers: { "Content-Type": "application/json" },
-      }
+      },
     );
   } catch (error) {
     console.error("Error creating Daily room:", error);
@@ -184,7 +178,7 @@ export default async (req: Request, context: Context) => {
       {
         status: 500,
         headers: { "Content-Type": "application/json" },
-      }
+      },
     );
   }
 };

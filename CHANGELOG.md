@@ -16,6 +16,7 @@
 #### Key Changes
 
 **1. Lobby.tsx - Token System Architecture**
+
 - ✅ Added `tokenUsername` state variable for safe Daily.co token creation
 - ✅ Separated from `participantName` (display name) to handle spaces
 - ✅ Implemented fallback chain: `username || name || "player"`
@@ -24,11 +25,13 @@
 - **Location**: `src/pages/Lobby.tsx` (lines 298, 331-408, 788-808)
 
 **2. realtimeHooks.ts - Enhanced Database Queries**
+
 - ✅ Added `username` column to Profiles SELECT in `useParticipants` hook
 - ✅ Ensures username available for token creation
 - **Location**: `src/lib/realtimeHooks.ts` (line 188)
 
 **3. dailyTokenManager.ts - Cache Enhancements**
+
 - ✅ Enhanced `clearRoomTokens()` with partial room name matching
 - ✅ Handles domain-prefixed rooms (e.g., "thirty/915BDV")
 - ✅ Uses `endsWith()` pattern for flexible matching
@@ -38,6 +41,7 @@
 #### Technical Implementation
 
 **Data Flow**:
+
 ```typescript
 // Token Creation (Safe)
 Profiles.username = "tareq" → tokenUsername → createDailyToken("sessionCode", "tareq")
@@ -47,12 +51,14 @@ Profiles.name = "Tareq Salah" → participantName → Video UI shows "Tareq Sala
 ```
 
 **Fallback Chain**:
+
 ```typescript
 const safeTokenName = profileUsername || profileName || "player";
 const displayName = profileName || profileUsername || "Unknown";
 ```
 
 **Cache Clearing**:
+
 ```typescript
 // Clears cache when username changes to prevent stale tokens
 if (sessionCode && tokenUsername && tokenUsername !== safeTokenName) {
@@ -82,11 +88,11 @@ if (sessionCode && tokenUsername && tokenUsername !== safeTokenName) {
 
 #### Files Modified
 
-| File | Changes | Lines |
-|------|---------|-------|
-| `src/pages/Lobby.tsx` | Token system, refresh fix, types | 47, 298, 331-408, 788-808 |
-| `src/lib/realtimeHooks.ts` | Added username to query | 188 |
-| `src/lib/dailyTokenManager.ts` | Enhanced cache clearing | 93-119 (prior commit) |
+| File                           | Changes                          | Lines                     |
+| ------------------------------ | -------------------------------- | ------------------------- |
+| `src/pages/Lobby.tsx`          | Token system, refresh fix, types | 47, 298, 331-408, 788-808 |
+| `src/lib/realtimeHooks.ts`     | Added username to query          | 188                       |
+| `src/lib/dailyTokenManager.ts` | Enhanced cache clearing          | 93-119 (prior commit)     |
 
 #### Testing Checklist
 

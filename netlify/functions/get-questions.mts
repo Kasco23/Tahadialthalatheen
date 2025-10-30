@@ -4,11 +4,11 @@ import type { Database } from "../../src/lib/types/supabase";
 
 /**
  * Get Questions for Quiz
- * 
+ *
  * - Returns questions for a segment
  * - If user is Host role: includes correct_answer_index
  * - If user is Player role: answers hidden (correct_answer_index set to null)
- * 
+ *
  * Query params:
  * - segment_code: WDYK | AUCT | BELL | UPDW | REMO
  * - session_id: UUID (required for role check)
@@ -26,16 +26,16 @@ export default async (req: Request, context: Context) => {
   if (!segmentCode || !sessionId) {
     return new Response(
       JSON.stringify({ error: "segment_code and session_id required" }),
-      { status: 400, headers: { "Content-Type": "application/json" } }
+      { status: 400, headers: { "Content-Type": "application/json" } },
     );
   }
 
   const validSegments = ["WDYK", "AUCT", "BELL", "UPDW", "REMO"];
   if (!validSegments.includes(segmentCode)) {
-    return new Response(
-      JSON.stringify({ error: "Invalid segment_code" }),
-      { status: 400, headers: { "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ error: "Invalid segment_code" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
   try {
@@ -56,9 +56,10 @@ export default async (req: Request, context: Context) => {
 
     if (authHeader) {
       // Extract user from JWT
-      const { data: { user }, error: authError } = await supabase.auth.getUser(
-        authHeader.replace("Bearer ", "")
-      );
+      const {
+        data: { user },
+        error: authError,
+      } = await supabase.auth.getUser(authHeader.replace("Bearer ", ""));
 
       if (user && !authError) {
         userId = user.id;
@@ -90,11 +91,11 @@ export default async (req: Request, context: Context) => {
 
     if (!questions || questions.length === 0) {
       return new Response(
-        JSON.stringify({ 
-          questions: [], 
-          message: `No questions available for segment ${segmentCode}` 
+        JSON.stringify({
+          questions: [],
+          message: `No questions available for segment ${segmentCode}`,
         }),
-        { status: 200, headers: { "Content-Type": "application/json" } }
+        { status: 200, headers: { "Content-Type": "application/json" } },
       );
     }
 
@@ -113,20 +114,20 @@ export default async (req: Request, context: Context) => {
     });
 
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         questions: filteredQuestions,
         role: userRole,
-        total_available: questions.length 
+        total_available: questions.length,
       }),
-      { status: 200, headers: { "Content-Type": "application/json" } }
+      { status: 200, headers: { "Content-Type": "application/json" } },
     );
   } catch (error) {
     console.error("Error fetching questions:", error);
     return new Response(
-      JSON.stringify({ 
-        error: error instanceof Error ? error.message : "Internal server error" 
+      JSON.stringify({
+        error: error instanceof Error ? error.message : "Internal server error",
       }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+      { status: 500, headers: { "Content-Type": "application/json" } },
     );
   }
 };

@@ -28,7 +28,7 @@ function App() {
       const deviceId = getDeviceId();
       Logger.log("🔧 Device ID initialized:", deviceId);
     };
-    
+
     initializeDeviceId();
   }, []);
 

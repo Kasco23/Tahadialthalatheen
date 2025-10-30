@@ -41,7 +41,8 @@ TypeScript, React (Vite), Tailwind, Supabase, Daily.co (video), Socket.io. Tests
 
 ## Quick start
 
-**Requirements**: 
+**Requirements**:
+
 - Node.js >= 22
 - Deno >= 2.5 (for Edge Functions)
 - pnpm

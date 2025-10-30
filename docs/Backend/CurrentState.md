@@ -1,7 +1,7 @@
 # Backend - Current State
 
-**Last Updated**: October 21, 2025  
-**Total Active Functions**: 8 Serverless + 3 Edge Functions = 11 total
+**Last Updated**: January 24, 2025  
+**Total Active Functions**: 8 Serverless + 3 Edge Functions + 5 Planned = 16 total
 
 ---
 
@@ -219,6 +219,117 @@
 3. **State Management**: get-session, set-session, session-state (use Netlify Blobs)
 4. **Scheduled Tasks**: cleanupStatus (automated maintenance)
 5. **Profile Management**: get-active-profile, store-active-profile (cross-device sync)
+6. **Question Generation**: generate-remontada-question, generate-bell-question, generate-wdyk-question, generate-auction-question, generate-updw-question (planned)
+
+---
+
+## Planned Serverless Functions (Question Generators)
+
+### generate-remontada-question.mts
+
+- **Status**: 🚧 **Planned** (Phase 4)
+- **Runtime**: Netlify Functions (Node.js) - Runtime API v2
+- **Endpoint**: `/.netlify/functions/generate-remontada-question`
+- **Method**: POST
+- **Purpose**: Generate REMO (Remontada) segment questions using player transfer history
+- **Request Body**: `{ player_name: string, career_span?: string }`
+- **Response**: `{ question: QuestionObject, metadata: { api_source, api_params, total_answers_count, answers_truncated } }`
+- **Key Features**:
+  - Uses /transfers endpoint to extract career path
+  - Cleans club names (removes parentheses, loan indicators)
+  - Sorts clubs chronologically
+  - Handles answer limit (display 100, warn if 100+)
+  - Caches results with 30-day TTL
+- **API Endpoints Used**: /players/search, /players/{id}/transfers
+- **Dependencies**: api/transfermarkt.ts, api/transfermarktCache.ts
+- **Part Of**: Transfermarkt API Integration Project (Phase 4)
+
+### generate-bell-question.mts
+
+- **Status**: 🚧 **Planned** (Phase 5)
+- **Runtime**: Netlify Functions (Node.js) - Runtime API v2
+- **Endpoint**: `/.netlify/functions/generate-bell-question`
+- **Method**: POST
+- **Purpose**: Generate BELL (Bell Ringer) segment questions using statistical data
+- **Request Body**: `{ stat_type: 'top_scorer' | 'most_assists' | 'most_appearances', competition_id?: string, season_id?: string, limit?: number }`
+- **Response**: `{ question: QuestionObject, metadata: { api_source, api_params, total_answers_count, answers_truncated } }`
+- **Key Features**:
+  - Uses /stats endpoint for statistical comparisons
+  - Supports competition and season filtering
+  - Handles tied answers (same stat value)
+  - Answer limit handling (100+ scenarios)
+  - Caches with 1-day TTL (stats change seasonally)
+- **API Endpoints Used**: /players/search, /players/{id}/stats
+- **Dependencies**: api/transfermarkt.ts, api/transfermarktCache.ts
+- **Part Of**: Transfermarkt API Integration Project (Phase 5)
+
+### generate-wdyk-question.mts
+
+- **Status**: 🚧 **Planned** (Phase 6)
+- **Runtime**: Netlify Functions (Node.js) - Runtime API v2
+- **Endpoint**: `/.netlify/functions/generate-wdyk-question`
+- **Method**: POST
+- **Purpose**: Generate WDYK (Who Do You Know) segment questions with multi-league filtering
+- **Request Body**: `{ leagues: string[], season?: string, club?: string }`
+- **Response**: `{ question: QuestionObject, metadata: { api_source, api_params, total_answers_count, answers_truncated } }`
+- **Key Features**:
+  - Multi-league player search
+  - Club roster filtering by season
+  - Answer limit critical (often 100+ players)
+  - Display 100 with expand option
+  - Cache with 7-day TTL
+- **API Endpoints Used**: /clubs/search, /clubs/{id}/players, /players/search
+- **Dependencies**: api/transfermarkt.ts, api/transfermarktCache.ts
+- **Part Of**: Transfermarkt API Integration Project (Phase 6)
+
+### generate-auction-question.mts
+
+- **Status**: 🚧 **Planned** (Phase 6)
+- **Runtime**: Netlify Functions (Node.js) - Runtime API v2
+- **Endpoint**: `/.netlify/functions/generate-auction-question`
+- **Method**: POST
+- **Purpose**: Generate AUCT (Auction) segment questions with high-value, multi-answer scenarios
+- **Request Body**: `{ leagues: string[], criteria: string, season?: string }`
+- **Response**: `{ question: QuestionObject, metadata: { api_source, api_params, total_answers_count, answers_truncated } }`
+- **Key Features**:
+  - Similar to WDYK but designed for 100+ answer scenarios
+  - "Name all players who..." format
+  - Answer limit handling essential
+  - Display 100, warn about total, expand UI
+  - Cache with 7-day TTL
+- **API Endpoints Used**: /players/search, /clubs/{id}/players
+- **Dependencies**: api/transfermarkt.ts, api/transfermarktCache.ts
+- **Part Of**: Transfermarkt API Integration Project (Phase 6)
+
+### generate-updw-question.mts
+
+- **Status**: 🚧 **Planned** (Phase 7)
+- **Runtime**: Netlify Functions (Node.js) - Runtime API v2
+- **Endpoint**: `/.netlify/functions/generate-updw-question`
+- **Method**: POST
+- **Purpose**: Generate UPDW (Up Down) segment hard trivia questions using templates
+- **Request Body**: `{ template_type: string, player_name?: string, club_name?: string }`
+- **Response**: `{ question: QuestionObject, metadata: { api_source, api_params, manual_verification_required } }`
+- **Key Features**:
+  - Template-based generation (jersey numbers, rare achievements)
+  - Manual verification workflow for edge cases
+  - Uses /jersey_numbers and /achievements endpoints
+  - Smaller answer sets (usually <10)
+  - Cache with 30-day TTL
+- **API Endpoints Used**: /players/{id}/jersey_numbers, /players/{id}/achievements
+- **Dependencies**: api/transfermarkt.ts, api/transfermarktCache.ts
+- **Part Of**: Transfermarkt API Integration Project (Phase 7)
+
+---
+
+## Function Categories Summary
+
+1. **Video Call Management**: createDailyRoom, create-daily-token (Daily.co integration)
+2. **Notifications**: send-notification (friend requests, match invites)
+3. **Quiz State Management**: get-questions, update-quiz-state, record-buzz (gameplay)
+4. **Scheduled Tasks**: cleanupStatus (automated maintenance)
+5. **Profile Management**: get-active-profile, store-active-profile (cross-device sync)
+6. **Question Generation**: generate-remontada-question, generate-bell-question, generate-wdyk-question, generate-auction-question, generate-updw-question (planned)
 
 ### Runtime Versions
 

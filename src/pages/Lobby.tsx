@@ -71,7 +71,6 @@ const ParticipantCard: React.FC<ParticipantCardProps> = ({
   videoPresence,
   getRoleDisplay,
 }) => {
-
   // Generate team logo URL from Profile data only
   const teamLogoUrl = useMemo(() => {
     const profileTeam = player.Profiles?.team;
@@ -210,7 +209,7 @@ const Lobby: React.FC = () => {
 
   // Invite modal state
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
-  
+
   // ✨ PHASE 2.3: Snapshot recovery indicator
   const [recoveredFromSnapshot, setRecoveredFromSnapshot] = useState(false);
 
@@ -218,7 +217,7 @@ const Lobby: React.FC = () => {
   // Initialize as empty string and ONLY set from Profiles table (not from localStorage)
   // This ensures Daily token is created with the correct name from database
   const [participantName, setParticipantName] = useState<string>("");
-  
+
   // Separate state for Daily token username (safe, no spaces)
   // Uses username from Profiles (e.g., "tareq") instead of full name (e.g., "Tareq Salah")
   // This prevents Daily.co token issues with names containing spaces
@@ -241,19 +240,20 @@ const Lobby: React.FC = () => {
     const attemptSnapshotRecovery = async () => {
       Logger.log("🔍 Checking for lobby snapshot...");
       const result = await getLobbySnapshot(sessionId);
-      
+
       if (result.success && result.data) {
         const snapshot = result.data;
-        const snapshotAge = Date.now() - new Date(snapshot.snapshot_timestamp).getTime();
+        const snapshotAge =
+          Date.now() - new Date(snapshot.snapshot_timestamp).getTime();
         const twoMinutes = 2 * 60 * 1000;
-        
+
         if (snapshotAge < twoMinutes) {
           Logger.log("✅ Recovered lobby from snapshot", {
             age_seconds: Math.floor(snapshotAge / 1000),
             participant_count: snapshot.participant_count,
           });
           setRecoveredFromSnapshot(true);
-          
+
           // Could restore participant list from snapshot if needed
           // For now, just indicate recovery happened
           setTimeout(() => setRecoveredFromSnapshot(false), 5000); // Clear after 5s
@@ -295,7 +295,7 @@ const Lobby: React.FC = () => {
     if (currentParticipant?.Profiles) {
       const profileName = currentParticipant.Profiles.name;
       const profileUsername = currentParticipant.Profiles.username;
-      
+
       Logger.log("Setting participant data from Profiles table:", {
         displayName: profileName,
         tokenUsername: profileUsername,
@@ -306,9 +306,10 @@ const Lobby: React.FC = () => {
       // Use username for Daily token (no spaces, safe for tokens)
       // If username is null/empty, sanitize name by removing spaces
       // Use name for display in UI
-      const safeTokenName = profileUsername || 
-                           (profileName ? profileName.replace(/\s+/g, '') : null) || 
-                           "player";
+      const safeTokenName =
+        profileUsername ||
+        (profileName ? profileName.replace(/\s+/g, "") : null) ||
+        "player";
       const displayName = profileName || profileUsername || "Unknown";
 
       // Log username changes for debugging
@@ -341,7 +342,12 @@ const Lobby: React.FC = () => {
 
       // IMPORTANT: Only create token after tokenUsername is loaded from Profiles table
       // Use username (no spaces) for token, name (full) for display
-      if (dailyRoom?.room_url && sessionCode && tokenUsername && participantName) {
+      if (
+        dailyRoom?.room_url &&
+        sessionCode &&
+        tokenUsername &&
+        participantName
+      ) {
         Logger.log("Lobby: Setting up Daily room data in atoms", {
           roomUrl: dailyRoom.room_url,
           tokenUsername,
@@ -357,24 +363,24 @@ const Lobby: React.FC = () => {
             sessionCode,
             tokenUsername, // Use username for token (safe, no spaces)
           );
-          
+
           // Update token atom
           setDailyToken(response.token);
-          
+
           // If room URL is provided in response, update it (fallback/verification)
           if (response.room_url && response.room_url !== dailyRoom.room_url) {
-            Logger.log("Updating room URL from token response:", response.room_url);
+            Logger.log(
+              "Updating room URL from token response:",
+              response.room_url,
+            );
             setDailyRoomUrl(response.room_url);
           }
-          
-          Logger.log(
-            "Lobby: Daily token created successfully",
-            {
-              tokenUsername,
-              displayName: participantName,
-              hasRoomUrl: !!response.room_url,
-            },
-          );
+
+          Logger.log("Lobby: Daily token created successfully", {
+            tokenUsername,
+            displayName: participantName,
+            hasRoomUrl: !!response.room_url,
+          });
         } catch (error) {
           Logger.error("Lobby: Failed to create Daily token:", error);
           // Show error to user
@@ -528,11 +534,13 @@ const Lobby: React.FC = () => {
             const playersData = (data as ParticipantRow[]) || [];
             setPlayers(playersData);
             setError(null);
-            
+
             // ✨ PHASE 2.2: Save participant blobs for all players
-            Logger.log(`💾 Saving participant blobs for ${playersData.length} players`);
+            Logger.log(
+              `💾 Saving participant blobs for ${playersData.length} players`,
+            );
             const deviceId = getDeviceId();
-            
+
             playersData.forEach(async (player) => {
               const participantBlobData: ParticipantBlobData = {
                 participant_id: player.participant_id,
@@ -541,43 +549,59 @@ const Lobby: React.FC = () => {
                 username: player.Profiles?.username || null,
                 flag: player.Profiles?.flag || "sa",
                 team: player.Profiles?.team || null,
-                team_logo_url: player.Profiles?.team ? getTeamLogoUrl(player.Profiles.team) : null,
-                
+                team_logo_url: player.Profiles?.team
+                  ? getTeamLogoUrl(player.Profiles.team)
+                  : null,
+
                 current_session_id: sessionId,
                 current_session_code: sessionCode || null,
-                role: player.role as "Host" | "Home" | "Away" | "GameMaster" | "Guest",
-                
-                lobby_presence: player.lobby_presence as "NotJoined" | "Joined" | "Disconnected",
+                role: player.role as
+                  | "Host"
+                  | "Home"
+                  | "Away"
+                  | "GameMaster"
+                  | "Guest",
+
+                lobby_presence: player.lobby_presence as
+                  | "NotJoined"
+                  | "Joined"
+                  | "Disconnected",
                 video_presence: player.video_presence || false,
-                last_heartbeat: player.lastHeartbeat || new Date().toISOString(),
-                
+                last_heartbeat:
+                  player.lastHeartbeat || new Date().toISOString(),
+
                 join_at: player.join_at || new Date().toISOString(),
                 disconnect_at: player.disconnect_at || null,
-                
+
                 device_id: deviceId,
                 last_device_sync: new Date().toISOString(),
-                
+
                 preferred_flag: player.Profiles?.flag || null,
                 preferred_team: player.Profiles?.team || null,
-                
+
                 audio_enabled: true, // Default values
                 video_enabled: true,
-                
+
                 created_at: player.join_at || new Date().toISOString(),
                 last_updated: new Date().toISOString(),
                 session_history: [sessionId],
-                
+
                 metadata: {
                   join_context: "Lobby",
                   last_sync: new Date().toISOString(),
                 },
               };
-              
+
               const result = await saveParticipantBlob(participantBlobData);
               if (result.success) {
-                Logger.log(`✅ Saved blob for participant ${player.participant_id}`);
+                Logger.log(
+                  `✅ Saved blob for participant ${player.participant_id}`,
+                );
               } else {
-                Logger.warn(`⚠️ Failed to save blob for ${player.participant_id}:`, result.error);
+                Logger.warn(
+                  `⚠️ Failed to save blob for ${player.participant_id}:`,
+                  result.error,
+                );
               }
             });
           }
@@ -626,17 +650,17 @@ const Lobby: React.FC = () => {
 
   const canStartQuiz = () => {
     if (!session) return false;
-    
+
     // Allow starting from Setup or Lobby phases for testing
     if (session.phase !== "Setup" && session.phase !== "Lobby") return false;
-    
+
     const joinedNonHostsAndGMs = players.filter(
       (p) =>
         p.role !== PARTICIPANT_ROLE.HOST &&
         p.role !== PARTICIPANT_ROLE.GAME_MASTER &&
         p.lobby_presence === LOBBY_PRESENCE.JOINED,
     );
-    
+
     // Relaxed requirement for testing: Allow host to start even without 2 players
     // In production, you'd want: joinedNonHostsAndGMs.length >= 2
     return true; // Always allow for development/testing
@@ -667,15 +691,17 @@ const Lobby: React.FC = () => {
 
     const loadParticipantPreferences = async () => {
       Logger.log("🔍 Loading participant preferences from Blobs...");
-      const result = await getParticipantBlob(currentParticipant.participant_id);
-      
+      const result = await getParticipantBlob(
+        currentParticipant.participant_id,
+      );
+
       if (result.success && result.data) {
         Logger.log("✅ Participant preferences loaded from Blobs", {
           source: result.source,
           preferred_flag: result.data.preferred_flag,
           preferred_team: result.data.preferred_team,
         });
-        
+
         // Could restore audio/video preferences here if needed
         // For now, just log that preferences are available
       } else {
@@ -721,40 +747,48 @@ const Lobby: React.FC = () => {
         username: currentParticipant.Profiles?.username || null,
         flag: currentParticipant.Profiles?.flag || "sa",
         team: currentParticipant.Profiles?.team || null,
-        team_logo_url: currentParticipant.Profiles?.team 
-          ? getTeamLogoUrl(currentParticipant.Profiles.team) 
+        team_logo_url: currentParticipant.Profiles?.team
+          ? getTeamLogoUrl(currentParticipant.Profiles.team)
           : null,
-        
+
         current_session_id: sessionId,
         current_session_code: sessionCode,
-        role: currentParticipant.role as "Host" | "Home" | "Away" | "GameMaster" | "Guest",
-        
-        lobby_presence: currentParticipant.lobby_presence as "NotJoined" | "Joined" | "Disconnected",
+        role: currentParticipant.role as
+          | "Host"
+          | "Home"
+          | "Away"
+          | "GameMaster"
+          | "Guest",
+
+        lobby_presence: currentParticipant.lobby_presence as
+          | "NotJoined"
+          | "Joined"
+          | "Disconnected",
         video_presence: currentParticipant.video_presence || false,
         last_heartbeat: new Date().toISOString(),
-        
+
         join_at: currentParticipant.join_at || new Date().toISOString(),
         disconnect_at: currentParticipant.disconnect_at || null,
-        
+
         device_id: deviceId,
         last_device_sync: new Date().toISOString(),
-        
+
         preferred_flag: currentParticipant.Profiles?.flag || null,
         preferred_team: currentParticipant.Profiles?.team || null,
-        
+
         audio_enabled: true,
         video_enabled: true,
-        
+
         created_at: currentParticipant.join_at || new Date().toISOString(),
         last_updated: new Date().toISOString(),
         session_history: [sessionId],
-        
+
         metadata: {
           join_context: "Lobby",
           last_sync: new Date().toISOString(),
         },
       };
-      
+
       const result = await saveParticipantBlob(participantBlobData);
       if (!result.success) {
         Logger.warn("⚠️ Failed to update participant blob:", result.error);
@@ -763,7 +797,7 @@ const Lobby: React.FC = () => {
 
     // Send initial heartbeat to DB
     updateParticipantHeartbeat(currentParticipant.participant_id, sessionId);
-    
+
     // Update initial participant blob
     updateCurrentParticipantBlob();
 
@@ -794,8 +828,8 @@ const Lobby: React.FC = () => {
         session_id: sessionId,
         session_code: sessionCode,
         snapshot_timestamp: new Date().toISOString(),
-        
-        participants: players.map(p => ({
+
+        participants: players.map((p) => ({
           participant_id: p.participant_id,
           name: p.Profiles?.name || "Unknown",
           role: p.role,
@@ -805,12 +839,12 @@ const Lobby: React.FC = () => {
           video_presence: p.video_presence || false,
           join_at: p.join_at || null,
         })),
-        
+
         phase: session?.phase || "Lobby",
         daily_room_url: dailyRoom?.room_url || null,
         participant_count: players.length,
       };
-      
+
       const result = await saveLobbySnapshot(snapshotData);
       if (result.success) {
         Logger.log("📸 Lobby snapshot saved", {
@@ -916,7 +950,7 @@ const Lobby: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       // Fetch participants WITH Profiles data to preserve name/flag/team
       const { data: pData, error: pErr } = await supabase
         .from("Participants")
@@ -932,7 +966,7 @@ const Lobby: React.FC = () => {
           `,
         )
         .eq("session_id", sessionId);
-        
+
       if (pErr) {
         Logger.error("Error refreshing participants:", pErr);
         setError("Failed to refresh participants");

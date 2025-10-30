@@ -11,6 +11,7 @@
 ### ✅ Validation Results: ALL PASS
 
 **Netlify Functions Syntax**: ✅ CORRECT (100%)
+
 - All serverless functions use modern `.mts` format
 - Proper Context and Config types from `@netlify/functions`
 - Environment variables accessed via `Netlify.env.get()`
@@ -18,12 +19,14 @@
 - Strong consistency enabled for all Blobs stores
 
 **Netlify Edge Functions Syntax**: ✅ CORRECT (100%)
+
 - All edge functions use proper Deno runtime patterns
 - Correct `getStore()` import from `@netlify/blobs`
 - Strong consistency configured appropriately
 - Proper error handling and response patterns
 
 **Build Status**: ✅ SUCCESS
+
 - TypeScript compilation: No errors
 - Vite build: Completed in ~7 seconds
 - All assets compressed and optimized
@@ -34,15 +37,16 @@
 
 ### Serverless Functions (.mts) - Node.js Runtime
 
-| Function | Path | Store | Consistency | Status |
-|----------|------|-------|-------------|--------|
-| `createDailyRoom.mts` | `/api/create-daily-room` | - | - | ✅ Modern |
-| `store-active-profile.mts` | `/api/store-active-profile` | `active-profiles` | Strong | ✅ Modern |
-| `get-active-profile.mts` | `/api/get-active-profile` | `active-profiles` | Strong | ✅ Modern |
-| `send-notification.mts` | `/api/send-notification` | - | - | ✅ Modern |
-| `cleanupStatus.mts` | Default | - | - | ✅ Modern (Scheduled) |
+| Function                   | Path                        | Store             | Consistency | Status                |
+| -------------------------- | --------------------------- | ----------------- | ----------- | --------------------- |
+| `createDailyRoom.mts`      | `/api/create-daily-room`    | -                 | -           | ✅ Modern             |
+| `store-active-profile.mts` | `/api/store-active-profile` | `active-profiles` | Strong      | ✅ Modern             |
+| `get-active-profile.mts`   | `/api/get-active-profile`   | `active-profiles` | Strong      | ✅ Modern             |
+| `send-notification.mts`    | `/api/send-notification`    | -                 | -           | ✅ Modern             |
+| `cleanupStatus.mts`        | Default                     | -                 | -           | ✅ Modern (Scheduled) |
 
 **Key Features**:
+
 - ES module syntax (`.mts`)
 - `Context` and `Config` types properly imported
 - `Netlify.env.get()` for environment variables
@@ -51,13 +55,14 @@
 
 ### Edge Functions (.ts) - Deno Runtime
 
-| Function | Path | Store | Consistency | Status |
-|----------|------|-------|-------------|--------|
-| `get-session.ts` | `/session/:code` | `session-data` | Strong | ✅ Correct |
-| `set-session.ts` | `/session/:code` | `session-data` | Strong | ✅ Correct |
-| `session-state.ts` | `/session/:code/state` | `session-state` | Strong | ✅ Correct |
+| Function           | Path                   | Store           | Consistency | Status     |
+| ------------------ | ---------------------- | --------------- | ----------- | ---------- |
+| `get-session.ts`   | `/session/:code`       | `session-data`  | Strong      | ✅ Correct |
+| `set-session.ts`   | `/session/:code`       | `session-data`  | Strong      | ✅ Correct |
+| `session-state.ts` | `/session/:code/state` | `session-state` | Strong      | ✅ Correct |
 
 **Key Features**:
+
 - Deno runtime with web platform APIs
 - `getStore()` correctly imported from `@netlify/blobs`
 - Strong consistency for session coordination
@@ -73,6 +78,7 @@
 **Purpose**: Comprehensive client-side interface for Netlify Blobs with intelligent caching and multi-layer fallback strategy.
 
 **Architecture Layers**:
+
 ```
 ┌─────────────────────────────────────────────────┐
 │            React Components (UI)                │
@@ -102,7 +108,9 @@
 ### Data Models
 
 #### **SessionBlobData** - Session-Level State
+
 Stores comprehensive session configuration and real-time state:
+
 - Session identification (ID, code)
 - Host information (profile ID)
 - Daily.co integration (room URL, name, timestamps)
@@ -111,13 +119,16 @@ Stores comprehensive session configuration and real-time state:
 - Metadata and sync timestamps
 
 **Use Cases**:
+
 - GameSetup: Save Daily room info after creation
 - Lobby: Load session state for UI updates
 - Cross-device: Resume session on different device
 - Recovery: Restore session after disconnect
 
 #### **ParticipantBlobData** - User-Level State
+
 Stores comprehensive participant data across sessions and devices:
+
 - Identity (participant ID, profile ID, name, username)
 - Customization (flag, team, team logo)
 - Session relationship (current session, role)
@@ -127,6 +138,7 @@ Stores comprehensive participant data across sessions and devices:
 - History (recent sessions)
 
 **Use Cases**:
+
 - Join flow: Restore user preferences and customizations
 - Lobby: Display participant info with cached data
 - Cross-device: Continue participation on another device
@@ -134,13 +146,16 @@ Stores comprehensive participant data across sessions and devices:
 - Personalization: Remember user preferences
 
 #### **LobbySnapshotData** - Recovery Snapshots
+
 Captures real-time lobby state for quick recovery:
+
 - Session context (ID, code, phase)
 - Participant snapshots (all current participants with key info)
 - Daily room status
 - Timestamp for staleness detection
 
 **Use Cases**:
+
 - Page refresh: Quickly restore lobby state
 - Network interruption: Resume from last snapshot
 - Host recovery: Restore session after crash
@@ -149,12 +164,14 @@ Captures real-time lobby state for quick recovery:
 ### Cache Strategy
 
 **Browser Cache API + In-Memory**:
+
 - 5-minute TTL for fast repeated access
 - Automatic invalidation on writes
 - Memory cache for instant reads
 - Cache API for persistence across tabs
 
 **Benefits**:
+
 - 🚀 10-100x faster reads (vs network)
 - 📶 Reduces network requests
 - 💾 Cross-tab data sharing
@@ -163,10 +180,10 @@ Captures real-time lobby state for quick recovery:
 ### Fallback Chain
 
 ```
-1. Browser Cache (0-5ms) → 
-2. Netlify Blobs (50-200ms) → 
-3. localStorage (5-10ms) → 
-4. Supabase (200-500ms) → 
+1. Browser Cache (0-5ms) →
+2. Netlify Blobs (50-200ms) →
+3. localStorage (5-10ms) →
+4. Supabase (200-500ms) →
 5. Error
 ```
 
@@ -177,6 +194,7 @@ Each layer provides progressively more reliable but slower access.
 ## Integration Points
 
 ### 1. **Supabase Database** (Source of Truth)
+
 - Authoritative data storage
 - Real-time subscriptions for live updates
 - Row Level Security (RLS) for data access control
@@ -185,6 +203,7 @@ Each layer provides progressively more reliable but slower access.
 **Blob Strategy**: Blobs cache frequently accessed data, reducing database load while Supabase remains the authoritative source.
 
 ### 2. **Jotai Atoms** (Reactive State)
+
 - In-memory reactive state management
 - Optimistic UI updates
 - Derived state computation
@@ -193,6 +212,7 @@ Each layer provides progressively more reliable but slower access.
 **Blob Strategy**: Atoms persist to Blobs on change, load from Blobs on mount. Provides instant UI feedback with background sync.
 
 ### 3. **localStorage** (Offline Fallback)
+
 - Browser-local persistence
 - Synchronous access (fast)
 - Works offline
@@ -201,6 +221,7 @@ Each layer provides progressively more reliable but slower access.
 **Blob Strategy**: localStorage stores critical participant data as backup when Blobs unavailable (offline mode).
 
 ### 4. **Browser Cache API** (Performance Layer)
+
 - HTTP response caching
 - In-memory object caching
 - TTL-based invalidation
@@ -213,6 +234,7 @@ Each layer provides progressively more reliable but slower access.
 ## Store Organization
 
 ### Global Stores (Production Only)
+
 ```
 sessions            # Cross-deploy session state
 participants        # User profiles persisting across sessions
@@ -223,7 +245,9 @@ session-state       # Session state management (current)
 ```
 
 ### Deploy Stores (Development)
+
 When `Netlify.context.deploy.context !== 'production'`, use deploy-scoped stores:
+
 ```
 dev-sessions
 dev-participants
@@ -231,6 +255,7 @@ dev-lobby-snapshots
 ```
 
 **Benefits**:
+
 - ✅ Production data isolation
 - ✅ Safe testing in development
 - ✅ Automatic cleanup on deploy deletion
@@ -243,7 +268,7 @@ dev-lobby-snapshots
 ### Pattern 1: Session Persistence in GameSetup
 
 ```typescript
-import { saveSessionBlob } from '../lib/blobsManager';
+import { saveSessionBlob } from "../lib/blobsManager";
 
 // After creating Daily.co room
 const sessionData: SessionBlobData = {
@@ -253,8 +278,8 @@ const sessionData: SessionBlobData = {
   daily_room_url: roomData.url,
   daily_room_name: roomData.name,
   daily_room_created_at: new Date().toISOString(),
-  phase: 'Setup',
-  game_state: 'pre-quiz',
+  phase: "Setup",
+  game_state: "pre-quiz",
   segments_configured: false,
   active_participant_ids: [hostParticipantId],
   participant_count: 1,
@@ -272,7 +297,7 @@ const result = await saveSessionBlob(sessionData);
 ### Pattern 2: Participant Data Restoration
 
 ```typescript
-import { getParticipantBlob } from '../lib/blobsManager';
+import { getParticipantBlob } from "../lib/blobsManager";
 
 useEffect(() => {
   const loadParticipantData = async () => {
@@ -281,7 +306,7 @@ useEffect(() => {
 
     // Tries: Cache → Blobs → localStorage → Supabase
     const result = await getParticipantBlob(participantId);
-    
+
     if (result.success && result.data) {
       // Restore all participant preferences
       setName(result.data.name);
@@ -289,7 +314,7 @@ useEffect(() => {
       setTeam(result.data.preferred_team || result.data.team);
       setAudioEnabled(result.data.audio_enabled);
       setVideoEnabled(result.data.video_enabled);
-      
+
       console.log(`Loaded from ${result.source} (cached: ${result.cached})`);
     }
   };
@@ -301,7 +326,7 @@ useEffect(() => {
 ### Pattern 3: Lobby Snapshot for Recovery
 
 ```typescript
-import { saveLobbySnapshot, getLobbySnapshot } from '../lib/blobsManager';
+import { saveLobbySnapshot, getLobbySnapshot } from "../lib/blobsManager";
 
 // Save snapshot every 30 seconds
 useEffect(() => {
@@ -312,11 +337,11 @@ useEffect(() => {
       session_id: sessionId,
       session_code: sessionCode,
       snapshot_timestamp: new Date().toISOString(),
-      participants: participants.map(p => ({
+      participants: participants.map((p) => ({
         participant_id: p.participant_id,
-        name: p.Profiles?.name || 'Unknown',
+        name: p.Profiles?.name || "Unknown",
         role: p.role,
-        flag: p.Profiles?.flag || 'sa',
+        flag: p.Profiles?.flag || "sa",
         team: p.Profiles?.team,
         lobby_presence: p.lobby_presence,
         video_presence: p.video_presence,
@@ -339,9 +364,10 @@ useEffect(() => {
     const result = await getLobbySnapshot(sessionId);
     if (result.success && result.data) {
       // Check if snapshot is recent (< 2 minutes old)
-      const age = Date.now() - new Date(result.data.snapshot_timestamp).getTime();
+      const age =
+        Date.now() - new Date(result.data.snapshot_timestamp).getTime();
       if (age < 2 * 60 * 1000) {
-        console.log('Recovering from snapshot:', result.data);
+        console.log("Recovering from snapshot:", result.data);
         // Restore lobby state
       }
     }
@@ -357,22 +383,22 @@ useEffect(() => {
 
 ### Read Operations
 
-| Source | Latency | Use Case |
-|--------|---------|----------|
-| Browser Cache (Memory) | 0-5ms | Repeated reads within 5min |
-| Browser Cache API | 5-10ms | Cross-tab access |
-| localStorage | 5-10ms | Offline fallback |
-| Netlify Blobs | 50-200ms | First read, cache miss |
-| Supabase | 200-500ms | Authoritative query |
+| Source                 | Latency   | Use Case                   |
+| ---------------------- | --------- | -------------------------- |
+| Browser Cache (Memory) | 0-5ms     | Repeated reads within 5min |
+| Browser Cache API      | 5-10ms    | Cross-tab access           |
+| localStorage           | 5-10ms    | Offline fallback           |
+| Netlify Blobs          | 50-200ms  | First read, cache miss     |
+| Supabase               | 200-500ms | Authoritative query        |
 
 ### Write Operations
 
-| Operation | Latency | Consistency |
-|-----------|---------|-------------|
-| Jotai Atom Update | <1ms | Optimistic (local only) |
-| localStorage Write | 5-10ms | Synchronous |
+| Operation           | Latency   | Consistency                   |
+| ------------------- | --------- | ----------------------------- |
+| Jotai Atom Update   | <1ms      | Optimistic (local only)       |
+| localStorage Write  | 5-10ms    | Synchronous                   |
 | Netlify Blobs Write | 100-300ms | Strong (immediate visibility) |
-| Supabase Write | 200-500ms | ACID (transactional) |
+| Supabase Write      | 200-500ms | ACID (transactional)          |
 
 ### Cache Hit Rates (Expected)
 
@@ -387,23 +413,27 @@ useEffect(() => {
 ### Current State → Enhanced State
 
 #### **Phase 1**: Backward Compatible (Current) ✅
+
 - Existing functions continue working
 - New `blobsManager.ts` available but optional
 - No breaking changes
 
 #### **Phase 2**: Gradual Adoption (Next)
+
 - GameSetup.tsx uses `saveSessionBlob()`
 - Lobby.tsx uses `getParticipantBlob()` and `saveLobbySnapshot()`
 - Profile components use participant blobs
 - Old patterns deprecated but functional
 
 #### **Phase 3**: Full Migration (Future)
+
 - All components use blobsManager
 - Consolidate stores: `active-profiles` → `participants`, `session-data` → `sessions`
 - Remove redundant localStorage logic
 - Add automated Supabase sync
 
 #### **Phase 4**: Optimization (Future)
+
 - Add Jotai atom integration
 - Implement optimistic updates
 - Add background sync workers
@@ -457,18 +487,21 @@ useEffect(() => {
 ## Testing Strategy
 
 ### Unit Tests
+
 - ✅ Cache wrapper (get, set, invalidate)
 - ✅ Blob operations (session, participant, snapshot)
 - ✅ Fallback chain behavior
 - ✅ Error handling and recovery
 
 ### Integration Tests
+
 - ✅ GameSetup → save session → Lobby load
 - ✅ Join → save participant → Page reload → restore
 - ✅ Network failure → localStorage fallback
 - ✅ Cache invalidation on write
 
 ### E2E Tests
+
 - ✅ Cross-device session continuity
 - ✅ Offline mode functionality
 - ✅ Lobby recovery from snapshot
@@ -481,16 +514,19 @@ useEffect(() => {
 ### Metrics to Track
 
 **Cache Performance**:
+
 - Hit rate per store
 - Average latency per source
 - Cache size and eviction rate
 
 **Blob Operations**:
+
 - Read/write success rate
 - Error rate by operation type
 - P50/P95/P99 latencies
 
 **Data Freshness**:
+
 - Age of cached data
 - Stale data detection rate
 - Sync conflicts
@@ -498,6 +534,7 @@ useEffect(() => {
 ### Logging Strategy
 
 All blob operations log:
+
 ```javascript
 {
   timestamp: '2025-10-22T12:34:56.789Z',
@@ -517,18 +554,21 @@ All blob operations log:
 ## Security Considerations
 
 ### Data Exposure
+
 - ✅ Blobs stored server-side (not client-accessible directly)
 - ✅ Edge/serverless functions act as security proxy
 - ✅ No sensitive data (passwords, tokens) in Blobs
 - ✅ RLS policies still enforced in Supabase
 
 ### Cross-Device Security
+
 - ✅ Device ID tracks continuity but isn't authentication
 - ✅ Session codes remain secret
 - ✅ Participant passwords in Supabase only
 - ✅ Blob access requires valid session context
 
 ### Cache Security
+
 - ✅ Browser Cache API scoped to origin
 - ✅ localStorage scoped to origin
 - ✅ No PII in cache keys
@@ -539,12 +579,14 @@ All blob operations log:
 ## Conclusion
 
 ### ✅ All Functions Validated
+
 - **Serverless functions**: 5/5 correct (100%)
 - **Edge functions**: 3/3 correct (100%)
 - **Build status**: ✅ SUCCESS
 - **TypeScript**: ✅ NO ERRORS
 
 ### 🚀 Enhanced Architecture Delivered
+
 - **New library**: `blobsManager.ts` (850+ lines)
 - **New documentation**: `BLOBS_ARCHITECTURE.md` (500+ lines)
 - **Data models**: 3 comprehensive TypeScript interfaces
@@ -552,6 +594,7 @@ All blob operations log:
 - **Fallback chain**: 5-layer resilience strategy
 
 ### 🎯 Benefits Achieved
+
 - **Performance**: 10-100x faster reads with caching
 - **Reliability**: Multi-layer fallback prevents data loss
 - **UX**: Seamless cross-device experience
@@ -559,6 +602,7 @@ All blob operations log:
 - **Scalability**: Reduces database load significantly
 
 ### 📋 Next Steps
+
 1. Review `BLOBS_ARCHITECTURE.md` implementation plan
 2. Integrate GameSetup with session blobs (Phase 2)
 3. Integrate Lobby with participant blobs (Phase 2)

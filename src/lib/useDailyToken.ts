@@ -42,7 +42,7 @@ export const useDailyToken = ({
       setDailyToken(tokenResponse.token);
 
       // Set token expiry to 2 hours from now (Daily.co standard)
-      const expiryTime = Date.now() + (2 * 60 * 60 * 1000); // 2 hours
+      const expiryTime = Date.now() + 2 * 60 * 60 * 1000; // 2 hours
       setTokenExpiry(expiryTime);
 
       Logger.log("Daily token refreshed successfully");

@@ -1,15 +1,15 @@
 /**
  * Blob-Backed Jotai Atoms
- * 
+ *
  * Provides reactive state management with automatic persistence to Netlify Blobs.
  * Uses optimistic updates with error handling and multi-layer fallback.
- * 
+ *
  * Architecture:
  * - Base atoms: Hold the current state in memory
  * - Derived atoms: Provide read/write interface with automatic Blob sync
  * - onMount: Load initial data from Blobs on first mount
  * - Write: Update local state immediately, save to Blobs asynchronously
- * 
+ *
  * Fallback chain (5 layers):
  * 1. Memory (Jotai atom state)
  * 2. Browser Cache API (5min TTL)
@@ -18,18 +18,15 @@
  * 5. Error state
  */
 
-import { atom } from 'jotai';
-import type {
-  SessionBlobData,
-  ParticipantBlobData,
-} from '../lib/blobsManager';
+import { atom } from "jotai";
+import type { SessionBlobData, ParticipantBlobData } from "../lib/blobsManager";
 import {
   getSessionBlob,
   saveSessionBlob,
   updateSessionBlob,
   getParticipantBlob,
   saveParticipantBlob,
-} from '../lib/blobsManager';
+} from "../lib/blobsManager";
 
 // Logger utility for debugging
 const Logger = {
@@ -80,20 +77,20 @@ const participantBlobErrorAtom = atom<string | null>(null);
 
 /**
  * Session Blob Atom with automatic persistence
- * 
+ *
  * Read: Returns current session blob data (loads from Blobs on first mount)
  * Write: Updates local state + saves to Blobs asynchronously
- * 
+ *
  * Usage:
  * ```typescript
  * const [session, setSession] = useAtom(sessionBlobAtom);
- * 
+ *
  * // Load session
  * setSession({ type: 'load', sessionId: 'abc123' });
- * 
+ *
  * // Update session (optimistic)
  * setSession({ type: 'update', data: { phase: 'lobby' } });
- * 
+ *
  * // Save complete session
  * setSession({ type: 'save', data: sessionBlobData });
  * ```
@@ -104,7 +101,7 @@ export const sessionBlobAtom = atom(
     const data = get(_sessionBlobBaseAtom);
     const loading = get(sessionBlobLoadingAtom);
     const error = get(sessionBlobErrorAtom);
-    
+
     return {
       data,
       loading,
@@ -115,94 +112,118 @@ export const sessionBlobAtom = atom(
   // Write function
   async (get, set, action: SessionBlobAction) => {
     try {
-      if (action.type === 'load') {
+      if (action.type === "load") {
         // Load session from Blobs
         set(sessionBlobLoadingAtom, true);
         set(sessionBlobErrorAtom, null);
-        
-        Logger.log('🔄 [sessionBlobAtom] Loading session:', action.sessionId);
-        
-        const result = await getSessionBlob(action.sessionId, action.useCache ?? true);
-        
+
+        Logger.log("🔄 [sessionBlobAtom] Loading session:", action.sessionId);
+
+        const result = await getSessionBlob(
+          action.sessionId,
+          action.useCache ?? true,
+        );
+
         if (result.success && result.data) {
           set(_sessionBlobBaseAtom, result.data);
-          Logger.log('✅ [sessionBlobAtom] Session loaded:', {
+          Logger.log("✅ [sessionBlobAtom] Session loaded:", {
             source: result.source,
             cached: result.cached,
             sessionId: action.sessionId,
           });
         } else {
-          set(sessionBlobErrorAtom, result.error || 'Failed to load session');
-          Logger.warn('⚠️ [sessionBlobAtom] Session load failed:', result.error);
+          set(sessionBlobErrorAtom, result.error || "Failed to load session");
+          Logger.warn(
+            "⚠️ [sessionBlobAtom] Session load failed:",
+            result.error,
+          );
         }
-        
+
         set(sessionBlobLoadingAtom, false);
-      } else if (action.type === 'save') {
+      } else if (action.type === "save") {
         // Save complete session to Blobs
         set(sessionBlobErrorAtom, null);
-        
-        Logger.log('💾 [sessionBlobAtom] Saving session:', action.data.session_id);
-        
+
+        Logger.log(
+          "💾 [sessionBlobAtom] Saving session:",
+          action.data.session_id,
+        );
+
         // Optimistic update: Update local state immediately
         set(_sessionBlobBaseAtom, action.data);
-        
+
         // Async save to Blobs
         const result = await saveSessionBlob(action.data);
-        
+
         if (result.success) {
-          Logger.log('✅ [sessionBlobAtom] Session saved successfully');
+          Logger.log("✅ [sessionBlobAtom] Session saved successfully");
         } else {
           // Rollback on failure (optional - can keep optimistic state)
-          Logger.error('❌ [sessionBlobAtom] Session save failed:', result.error);
-          set(sessionBlobErrorAtom, result.error || 'Failed to save session');
-          
+          Logger.error(
+            "❌ [sessionBlobAtom] Session save failed:",
+            result.error,
+          );
+          set(sessionBlobErrorAtom, result.error || "Failed to save session");
+
           if (action.rollbackOnError) {
             set(_sessionBlobBaseAtom, null);
-            Logger.warn('🔄 [sessionBlobAtom] Rolled back optimistic update');
+            Logger.warn("🔄 [sessionBlobAtom] Rolled back optimistic update");
           }
         }
-      } else if (action.type === 'update') {
+      } else if (action.type === "update") {
         // Partial update (merge with existing session)
         const currentSession = get(_sessionBlobBaseAtom);
-        
+
         if (!currentSession) {
-          Logger.warn('⚠️ [sessionBlobAtom] Cannot update: No session loaded');
-          set(sessionBlobErrorAtom, 'No session loaded');
+          Logger.warn("⚠️ [sessionBlobAtom] Cannot update: No session loaded");
+          set(sessionBlobErrorAtom, "No session loaded");
           return;
         }
-        
-        Logger.log('🔄 [sessionBlobAtom] Updating session:', currentSession.session_id);
-        
+
+        Logger.log(
+          "🔄 [sessionBlobAtom] Updating session:",
+          currentSession.session_id,
+        );
+
         // Optimistic update
         const updatedSession = { ...currentSession, ...action.data };
         set(_sessionBlobBaseAtom, updatedSession);
-        
+
         // Async save to Blobs
-        const result = await updateSessionBlob(currentSession.session_id, action.data);
-        
+        const result = await updateSessionBlob(
+          currentSession.session_id,
+          action.data,
+        );
+
         if (result.success) {
-          Logger.log('✅ [sessionBlobAtom] Session updated successfully');
+          Logger.log("✅ [sessionBlobAtom] Session updated successfully");
         } else {
-          Logger.error('❌ [sessionBlobAtom] Session update failed:', result.error);
-          set(sessionBlobErrorAtom, result.error || 'Failed to update session');
-          
+          Logger.error(
+            "❌ [sessionBlobAtom] Session update failed:",
+            result.error,
+          );
+          set(sessionBlobErrorAtom, result.error || "Failed to update session");
+
           if (action.rollbackOnError) {
             set(_sessionBlobBaseAtom, currentSession);
-            Logger.warn('🔄 [sessionBlobAtom] Rolled back optimistic update');
+            Logger.warn("🔄 [sessionBlobAtom] Rolled back optimistic update");
           }
         }
-      } else if (action.type === 'clear') {
+      } else if (action.type === "clear") {
         // Clear session from memory
-        Logger.log('🗑️ [sessionBlobAtom] Clearing session');
+        Logger.log("🗑️ [sessionBlobAtom] Clearing session");
         set(_sessionBlobBaseAtom, null);
         set(sessionBlobErrorAtom, null);
       }
     } catch (error) {
-      Logger.error('❌ [sessionBlobAtom] Unexpected error:', error);
-      set(sessionBlobErrorAtom, error instanceof Error ? error.message : 'Unknown error');
+      Logger.error("❌ [sessionBlobAtom] Unexpected error:", error);
+      set(
+        sessionBlobErrorAtom,
+        error instanceof Error ? error.message : "Unknown error",
+      );
       set(sessionBlobLoadingAtom, false);
     }
-  }
+  },
 );
 
 // ===========================
@@ -211,20 +232,20 @@ export const sessionBlobAtom = atom(
 
 /**
  * Participant Blob Atom with automatic persistence
- * 
+ *
  * Read: Returns current participant blob data (loads from Blobs on first mount)
  * Write: Updates local state + saves to Blobs asynchronously
- * 
+ *
  * Usage:
  * ```typescript
  * const [participant, setParticipant] = useAtom(participantBlobAtom);
- * 
+ *
  * // Load participant
  * setParticipant({ type: 'load', participantId: 'xyz789' });
- * 
+ *
  * // Update participant (optimistic)
  * setParticipant({ type: 'update', data: { lobby_presence: 'active' } });
- * 
+ *
  * // Save complete participant
  * setParticipant({ type: 'save', data: participantBlobData });
  * ```
@@ -235,7 +256,7 @@ export const participantBlobAtom = atom(
     const data = get(_participantBlobBaseAtom);
     const loading = get(participantBlobLoadingAtom);
     const error = get(participantBlobErrorAtom);
-    
+
     return {
       data,
       loading,
@@ -246,94 +267,135 @@ export const participantBlobAtom = atom(
   // Write function
   async (get, set, action: ParticipantBlobAction) => {
     try {
-      if (action.type === 'load') {
+      if (action.type === "load") {
         // Load participant from Blobs
         set(participantBlobLoadingAtom, true);
         set(participantBlobErrorAtom, null);
-        
-        Logger.log('🔄 [participantBlobAtom] Loading participant:', action.participantId);
-        
-        const result = await getParticipantBlob(action.participantId, action.useCache ?? true);
-        
+
+        Logger.log(
+          "🔄 [participantBlobAtom] Loading participant:",
+          action.participantId,
+        );
+
+        const result = await getParticipantBlob(
+          action.participantId,
+          action.useCache ?? true,
+        );
+
         if (result.success && result.data) {
           set(_participantBlobBaseAtom, result.data);
-          Logger.log('✅ [participantBlobAtom] Participant loaded:', {
+          Logger.log("✅ [participantBlobAtom] Participant loaded:", {
             source: result.source,
             cached: result.cached,
             participantId: action.participantId,
           });
         } else {
-          set(participantBlobErrorAtom, result.error || 'Failed to load participant');
-          Logger.warn('⚠️ [participantBlobAtom] Participant load failed:', result.error);
+          set(
+            participantBlobErrorAtom,
+            result.error || "Failed to load participant",
+          );
+          Logger.warn(
+            "⚠️ [participantBlobAtom] Participant load failed:",
+            result.error,
+          );
         }
-        
+
         set(participantBlobLoadingAtom, false);
-      } else if (action.type === 'save') {
+      } else if (action.type === "save") {
         // Save complete participant to Blobs
         set(participantBlobErrorAtom, null);
-        
-        Logger.log('💾 [participantBlobAtom] Saving participant:', action.data.participant_id);
-        
+
+        Logger.log(
+          "💾 [participantBlobAtom] Saving participant:",
+          action.data.participant_id,
+        );
+
         // Optimistic update: Update local state immediately
         set(_participantBlobBaseAtom, action.data);
-        
+
         // Async save to Blobs
         const result = await saveParticipantBlob(action.data);
-        
+
         if (result.success) {
-          Logger.log('✅ [participantBlobAtom] Participant saved successfully');
+          Logger.log("✅ [participantBlobAtom] Participant saved successfully");
         } else {
           // Rollback on failure (optional - can keep optimistic state)
-          Logger.error('❌ [participantBlobAtom] Participant save failed:', result.error);
-          set(participantBlobErrorAtom, result.error || 'Failed to save participant');
-          
+          Logger.error(
+            "❌ [participantBlobAtom] Participant save failed:",
+            result.error,
+          );
+          set(
+            participantBlobErrorAtom,
+            result.error || "Failed to save participant",
+          );
+
           if (action.rollbackOnError) {
             set(_participantBlobBaseAtom, null);
-            Logger.warn('🔄 [participantBlobAtom] Rolled back optimistic update');
+            Logger.warn(
+              "🔄 [participantBlobAtom] Rolled back optimistic update",
+            );
           }
         }
-      } else if (action.type === 'update') {
+      } else if (action.type === "update") {
         // Partial update (merge with existing participant)
         const currentParticipant = get(_participantBlobBaseAtom);
-        
+
         if (!currentParticipant) {
-          Logger.warn('⚠️ [participantBlobAtom] Cannot update: No participant loaded');
-          set(participantBlobErrorAtom, 'No participant loaded');
+          Logger.warn(
+            "⚠️ [participantBlobAtom] Cannot update: No participant loaded",
+          );
+          set(participantBlobErrorAtom, "No participant loaded");
           return;
         }
-        
-        Logger.log('🔄 [participantBlobAtom] Updating participant:', currentParticipant.participant_id);
-        
+
+        Logger.log(
+          "🔄 [participantBlobAtom] Updating participant:",
+          currentParticipant.participant_id,
+        );
+
         // Optimistic update
         const updatedParticipant = { ...currentParticipant, ...action.data };
         set(_participantBlobBaseAtom, updatedParticipant);
-        
+
         // Async save to Blobs (note: no updateParticipantBlob helper, use saveParticipantBlob)
         const result = await saveParticipantBlob(updatedParticipant);
-        
+
         if (result.success) {
-          Logger.log('✅ [participantBlobAtom] Participant updated successfully');
+          Logger.log(
+            "✅ [participantBlobAtom] Participant updated successfully",
+          );
         } else {
-          Logger.error('❌ [participantBlobAtom] Participant update failed:', result.error);
-          set(participantBlobErrorAtom, result.error || 'Failed to update participant');
-          
+          Logger.error(
+            "❌ [participantBlobAtom] Participant update failed:",
+            result.error,
+          );
+          set(
+            participantBlobErrorAtom,
+            result.error || "Failed to update participant",
+          );
+
           if (action.rollbackOnError) {
             set(_participantBlobBaseAtom, currentParticipant);
-            Logger.warn('🔄 [participantBlobAtom] Rolled back optimistic update');
+            Logger.warn(
+              "🔄 [participantBlobAtom] Rolled back optimistic update",
+            );
           }
         }
-      } else if (action.type === 'clear') {
+      } else if (action.type === "clear") {
         // Clear participant from memory
-        Logger.log('🗑️ [participantBlobAtom] Clearing participant');
+        Logger.log("🗑️ [participantBlobAtom] Clearing participant");
         set(_participantBlobBaseAtom, null);
         set(participantBlobErrorAtom, null);
       }
     } catch (error) {
-      Logger.error('❌ [participantBlobAtom] Unexpected error:', error);
-      set(participantBlobErrorAtom, error instanceof Error ? error.message : 'Unknown error');
+      Logger.error("❌ [participantBlobAtom] Unexpected error:", error);
+      set(
+        participantBlobErrorAtom,
+        error instanceof Error ? error.message : "Unknown error",
+      );
       set(participantBlobLoadingAtom, false);
     }
-  }
+  },
 );
 
 // ===========================
@@ -386,7 +448,7 @@ export const currentParticipantRoleAtom = atom((get) => {
 export const currentParticipantPreferencesAtom = atom((get) => {
   const { data } = get(participantBlobAtom);
   if (!data) return null;
-  
+
   return {
     preferred_flag: data.preferred_flag,
     preferred_team: data.preferred_team,
@@ -403,16 +465,24 @@ export const currentParticipantPreferencesAtom = atom((get) => {
 // ===========================
 
 type SessionBlobAction =
-  | { type: 'load'; sessionId: string; useCache?: boolean }
-  | { type: 'save'; data: SessionBlobData; rollbackOnError?: boolean }
-  | { type: 'update'; data: Partial<SessionBlobData>; rollbackOnError?: boolean }
-  | { type: 'clear' };
+  | { type: "load"; sessionId: string; useCache?: boolean }
+  | { type: "save"; data: SessionBlobData; rollbackOnError?: boolean }
+  | {
+      type: "update";
+      data: Partial<SessionBlobData>;
+      rollbackOnError?: boolean;
+    }
+  | { type: "clear" };
 
 type ParticipantBlobAction =
-  | { type: 'load'; participantId: string; useCache?: boolean }
-  | { type: 'save'; data: ParticipantBlobData; rollbackOnError?: boolean }
-  | { type: 'update'; data: Partial<ParticipantBlobData>; rollbackOnError?: boolean }
-  | { type: 'clear' };
+  | { type: "load"; participantId: string; useCache?: boolean }
+  | { type: "save"; data: ParticipantBlobData; rollbackOnError?: boolean }
+  | {
+      type: "update";
+      data: Partial<ParticipantBlobData>;
+      rollbackOnError?: boolean;
+    }
+  | { type: "clear" };
 
 // ===========================
 // Helper Functions
@@ -440,7 +510,7 @@ export const isParticipantLoadedAtom = atom((get) => {
 export const blobStatesAtom = atom((get) => {
   const session = get(sessionBlobAtom);
   const participant = get(participantBlobAtom);
-  
+
   return {
     session,
     participant,

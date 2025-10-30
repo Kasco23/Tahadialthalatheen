@@ -756,13 +756,13 @@ export async function leaveLobbyByRole(
 
 /**
  * Create a Daily.co meeting token via Supabase Edge Function
- * 
+ *
  * This function calls the Supabase Edge Function to generate a Daily.co token
  * for a specific room and user. The token is used to join the video call.
- * 
+ *
  * The Supabase function fetches session data from the database and generates
  * the token using the Daily.co API.
- * 
+ *
  * @param sessionCode - The session code (used to look up the room)
  * @param userName - The user's display name for the video call
  * @returns Promise with the generated token and room URL
@@ -772,22 +772,22 @@ export async function createDailyToken(
   userName: string,
 ): Promise<{ token: string; room_url?: string }> {
   try {
-    Logger.log("Creating Daily token via Netlify Function:", { sessionCode, userName });
+    Logger.log("Creating Daily token via Netlify Function:", {
+      sessionCode,
+      userName,
+    });
 
     // Call Netlify Function to create Daily.co token
-    const response = await fetch(
-      "/.netlify/functions/create-daily-token",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          session_code: sessionCode,
-          user_name: userName,
-        }),
-      }
-    );
+    const response = await fetch("/.netlify/functions/create-daily-token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        session_code: sessionCode,
+        user_name: userName,
+      }),
+    });
 
     if (!response.ok) {
       const errorData = await response
@@ -802,9 +802,9 @@ export async function createDailyToken(
     const data = await response.json();
     Logger.log("Daily token created successfully via Netlify Function");
 
-    return { 
+    return {
       token: data.token,
-      room_url: data.room_url
+      room_url: data.room_url,
     };
   } catch (error) {
     Logger.error("Error creating Daily token:", error);

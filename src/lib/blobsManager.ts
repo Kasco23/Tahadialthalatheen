@@ -35,27 +35,34 @@ export interface SessionBlobData {
   session_id: string;
   session_code: string;
   host_profile_id: string | null;
-  
+
   // Daily.co Video Integration
   daily_room_url: string | null;
   daily_room_name: string | null;
   daily_room_created_at: string | null;
-  
+
   // Session Configuration
-  phase: "Setup" | "Lobby" | "Full Lobby" | "In-Progress" | "Tie-Breaker" | "Results" | "Review";
+  phase:
+    | "Setup"
+    | "Lobby"
+    | "Full Lobby"
+    | "In-Progress"
+    | "Tie-Breaker"
+    | "Results"
+    | "Review";
   game_state: "pre-quiz" | "active" | "post-quiz" | "concluded";
   segments_configured: boolean;
-  
+
   // Participant Tracking
   active_participant_ids: string[];
   participant_count: number;
   max_participants: number;
-  
+
   // Metadata
   created_at: string;
   last_updated: string;
   last_sync_with_supabase: string | null;
-  
+
   // Custom extensible data
   metadata?: Record<string, unknown>;
 }
@@ -67,41 +74,41 @@ export interface SessionBlobData {
 export interface ParticipantBlobData {
   participant_id: string;
   profile_id: string | null;
-  
+
   // Identity & Display
   name: string;
   username: string | null;
   flag: string;
   team: string | null;
   team_logo_url: string | null;
-  
+
   // Session Relationship
   current_session_id: string | null;
   current_session_code: string | null;
   role: "Host" | "Home" | "Away" | "GameMaster" | "Guest";
-  
+
   // Presence & Connection
   lobby_presence: "NotJoined" | "Joined" | "Disconnected";
   video_presence: boolean;
   last_heartbeat: string;
   join_at: string | null;
   disconnect_at: string | null;
-  
+
   // Device Tracking (for cross-device continuity)
   device_id: string; // Browser fingerprint or UUID
   last_device_sync: string;
-  
+
   // User Preferences (persists across sessions)
   preferred_flag: string | null;
   preferred_team: string | null;
   audio_enabled: boolean;
   video_enabled: boolean;
-  
+
   // Metadata
   created_at: string;
   last_updated: string;
   session_history: string[]; // Recent session IDs
-  
+
   // Custom extensible data
   metadata?: Record<string, unknown>;
 }
@@ -114,7 +121,7 @@ export interface LobbySnapshotData {
   session_id: string;
   session_code: string;
   snapshot_timestamp: string;
-  
+
   // Participant Snapshots
   participants: Array<{
     participant_id: string;
@@ -126,7 +133,7 @@ export interface LobbySnapshotData {
     video_presence: boolean;
     join_at: string | null;
   }>;
-  
+
   // Session State
   phase: string;
   daily_room_url: string | null;
@@ -176,11 +183,11 @@ class BlobCache {
     try {
       const cache = await caches.open(CACHE_NAME);
       const response = await cache.match(key);
-      
+
       if (response) {
         const cachedData = await response.json();
         const age = Date.now() - cachedData.timestamp;
-        
+
         if (age < CACHE_TTL_MS) {
           Logger.log(`[BlobCache] Cache API hit for key: ${key}`);
           // Update memory cache
@@ -213,24 +220,30 @@ class BlobCache {
       });
       await cache.put(key, response);
     } catch (error) {
-      Logger.warn(`[BlobCache] Failed to cache to Cache API for key ${key}:`, error);
+      Logger.warn(
+        `[BlobCache] Failed to cache to Cache API for key ${key}:`,
+        error,
+      );
     }
   }
 
   async invalidate(key: string): Promise<void> {
     this.memoryCache.delete(key);
-    
+
     try {
       const cache = await caches.open(CACHE_NAME);
       await cache.delete(key);
     } catch (error) {
-      Logger.warn(`[BlobCache] Failed to invalidate cache for key ${key}:`, error);
+      Logger.warn(
+        `[BlobCache] Failed to invalidate cache for key ${key}:`,
+        error,
+      );
     }
   }
 
   async clear(): Promise<void> {
     this.memoryCache.clear();
-    
+
     try {
       await caches.delete(CACHE_NAME);
     } catch (error) {
@@ -299,7 +312,7 @@ export async function getSessionBlob(
 
     if (result.success && result.state) {
       const sessionData = result.state as SessionBlobData;
-      
+
       // Update cache
       await cache.set(cacheKey, sessionData);
 
@@ -320,8 +333,11 @@ export async function getSessionBlob(
       source: "blob",
     };
   } catch (error) {
-    Logger.error(`[getSessionBlob] Error fetching session ${sessionId}:`, error);
-    
+    Logger.error(
+      `[getSessionBlob] Error fetching session ${sessionId}:`,
+      error,
+    );
+
     return {
       success: false,
       data: null,
@@ -383,8 +399,11 @@ export async function saveSessionBlob(
       source: "blob",
     };
   } catch (error) {
-    Logger.error(`[saveSessionBlob] Error saving session ${sessionData.session_id}:`, error);
-    
+    Logger.error(
+      `[saveSessionBlob] Error saving session ${sessionData.session_id}:`,
+      error,
+    );
+
     return {
       success: false,
       data: null,
@@ -425,7 +444,7 @@ export async function updateSessionBlob(
 
     if (result.success && result.state) {
       const updatedData = result.state as SessionBlobData;
-      
+
       // Update cache
       await cache.set(cacheKey, updatedData);
 
@@ -446,8 +465,11 @@ export async function updateSessionBlob(
       source: "blob",
     };
   } catch (error) {
-    Logger.error(`[updateSessionBlob] Error updating session ${sessionId}:`, error);
-    
+    Logger.error(
+      `[updateSessionBlob] Error updating session ${sessionId}:`,
+      error,
+    );
+
     return {
       success: false,
       data: null,
@@ -487,9 +509,12 @@ export async function getParticipantBlob(
 
   // Fetch from Netlify Blobs via serverless function
   try {
-    const response = await fetch(`/api/get-active-profile?userId=${encodeURIComponent(participantId)}`, {
-      method: "GET",
-    });
+    const response = await fetch(
+      `/api/get-active-profile?userId=${encodeURIComponent(participantId)}`,
+      {
+        method: "GET",
+      },
+    );
 
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -499,7 +524,7 @@ export async function getParticipantBlob(
 
     if (result.success && result.profile) {
       const participantData = result.profile as ParticipantBlobData;
-      
+
       // Update cache
       await cache.set(cacheKey, participantData);
 
@@ -520,8 +545,11 @@ export async function getParticipantBlob(
       source: "blob",
     };
   } catch (error) {
-    Logger.error(`[getParticipantBlob] Error fetching participant ${participantId}:`, error);
-    
+    Logger.error(
+      `[getParticipantBlob] Error fetching participant ${participantId}:`,
+      error,
+    );
+
     // Try localStorage fallback
     try {
       const localData = localStorage.getItem(`participant:${participantId}`);
@@ -536,9 +564,12 @@ export async function getParticipantBlob(
         };
       }
     } catch (localError) {
-      Logger.warn("[getParticipantBlob] localStorage fallback failed:", localError);
+      Logger.warn(
+        "[getParticipantBlob] localStorage fallback failed:",
+        localError,
+      );
     }
-    
+
     return {
       success: false,
       data: null,
@@ -610,8 +641,11 @@ export async function saveParticipantBlob(
       source: "blob",
     };
   } catch (error) {
-    Logger.error(`[saveParticipantBlob] Error saving participant ${participantData.participant_id}:`, error);
-    
+    Logger.error(
+      `[saveParticipantBlob] Error saving participant ${participantData.participant_id}:`,
+      error,
+    );
+
     // Return success if localStorage save succeeded (offline mode)
     return {
       success: true,
@@ -662,7 +696,7 @@ export async function saveLobbySnapshot(
     };
   } catch (error) {
     Logger.error(`[saveLobbySnapshot] Error:`, error);
-    
+
     return {
       success: false,
       data: null,
@@ -712,7 +746,7 @@ export async function getLobbySnapshot(
     };
   } catch (error) {
     Logger.error(`[getLobbySnapshot] Error:`, error);
-    
+
     return {
       success: false,
       data: null,
@@ -736,8 +770,10 @@ export async function syncSessionWithSupabase(
 ): Promise<BlobResult<SessionBlobData>> {
   // This would be implemented to fetch from Supabase and update blob
   // Left as a hook for future implementation
-  Logger.log(`[syncSessionWithSupabase] Syncing session ${sessionId} with Supabase`);
-  
+  Logger.log(
+    `[syncSessionWithSupabase] Syncing session ${sessionId} with Supabase`,
+  );
+
   return {
     success: false,
     data: null,

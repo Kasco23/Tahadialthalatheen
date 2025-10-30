@@ -23,10 +23,10 @@ import { StadiumBackground } from "../components/StadiumBackground";
 import { InviteFriendsModal } from "../components/InviteFriendsModal";
 import { UsernameSetupBanner } from "../components/UsernameSetupBanner";
 import { QuestionManager } from "../components/QuestionManager";
-import { 
-  saveSessionBlob, 
+import {
+  saveSessionBlob,
   getSessionBlob,
-  type SessionBlobData 
+  type SessionBlobData,
 } from "../lib/blobsManager";
 
 const GameSetup: React.FC = () => {
@@ -176,17 +176,17 @@ const GameSetup: React.FC = () => {
   useEffect(() => {
     const loadSessionFromBlobs = async () => {
       if (!sessionId) return;
-      
+
       Logger.log("🔍 Loading session data from Blobs...");
       const result = await getSessionBlob(sessionId);
-      
+
       if (result.success && result.data) {
         Logger.log("✅ Session data loaded from Blobs", {
           source: result.source,
           cached: result.cached,
           room_created_at: result.data.daily_room_created_at,
         });
-        
+
         // Restore UI state from blob if available
         if (result.data.daily_room_url) {
           setIsDailyRoomCreated(true);
@@ -196,7 +196,7 @@ const GameSetup: React.FC = () => {
             room_name: result.data.daily_room_name,
           });
         }
-        
+
         // Could also restore segment configuration if needed
         if (result.data.metadata?.segments_config) {
           Logger.log("⚙️ Segments config available in Blobs", {
@@ -209,7 +209,7 @@ const GameSetup: React.FC = () => {
         });
       }
     };
-    
+
     loadSessionFromBlobs();
   }, [sessionId, setDailyRoomUrl]);
 
@@ -316,7 +316,7 @@ const GameSetup: React.FC = () => {
         questions_count: count,
       }));
       await setSegmentConfig(sessionId, segmentConfigs);
-      
+
       // Use the already-created session code from DB (in route params)
       const created = await createDailyRoom(sessionId, sessionCode);
       setIsDailyRoomCreated(true);
@@ -325,32 +325,32 @@ const GameSetup: React.FC = () => {
 
       // ✨ PHASE 2.1: Save comprehensive session data to Blobs
       Logger.log("💾 Saving comprehensive session data to Netlify Blobs...");
-      
+
       const sessionBlobData: SessionBlobData = {
         session_id: sessionId,
         session_code: sessionCode,
         host_profile_id: user?.id || null,
-        
+
         // Daily.co Video Integration
         daily_room_url: created.room_url,
         daily_room_name: created.room_name || null,
         daily_room_created_at: new Date().toISOString(),
-        
+
         // Session Configuration
         phase: "Setup",
         game_state: "pre-quiz",
         segments_configured: true,
-        
+
         // Participant Tracking
         active_participant_ids: hostParticipantId ? [hostParticipantId] : [],
         participant_count: 1,
         max_participants: 10,
-        
+
         // Metadata
         created_at: new Date().toISOString(),
         last_updated: new Date().toISOString(),
         last_sync_with_supabase: new Date().toISOString(),
-        
+
         metadata: {
           segments_config: segments,
           created_by: user?.id || "unknown",
@@ -359,7 +359,7 @@ const GameSetup: React.FC = () => {
       };
 
       const blobResult = await saveSessionBlob(sessionBlobData);
-      
+
       if (blobResult.success) {
         Logger.log("✅ Session data saved to Blobs successfully", {
           source: blobResult.source,
@@ -370,19 +370,20 @@ const GameSetup: React.FC = () => {
           error: blobResult.error,
         });
       }
-      
+
       // Also update legacy session state for backward compatibility
       await updateSessionState(sessionId, {
         dailyRoomCreated: true,
         dailyRoomUrl: created.room_url,
         segmentsConfigured: true,
       });
-      
+
       Logger.log("🎉 Room creation complete with Blobs persistence");
 
       setNotice({
         type: "success",
-        message: "Daily room created successfully with cross-device sync enabled.",
+        message:
+          "Daily room created successfully with cross-device sync enabled.",
       });
     } catch (error) {
       Logger.error("Error setting up game:", error);

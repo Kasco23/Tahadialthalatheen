@@ -22,11 +22,12 @@ Phase 2.1 enhances **GameSetup.tsx** with comprehensive Netlify Blobs persistenc
 **Changes Made**:
 
 1. **Imports Added** (Lines 25-29):
+
    ```typescript
-   import { 
-     saveSessionBlob, 
+   import {
+     saveSessionBlob,
      getSessionBlob,
-     type SessionBlobData 
+     type SessionBlobData,
    } from "../lib/blobsManager";
    ```
 
@@ -39,7 +40,7 @@ Phase 2.1 enhances **GameSetup.tsx** with comprehensive Netlify Blobs persistenc
      - `setDailyRoomUrl()` to update Jotai atom
    - Logs restoration success with source (cache/blobs/localStorage)
    - Gracefully handles missing or failed loads
-   
+
    ```typescript
    useEffect(() => {
      const loadSessionFromBlobs = async () => {
@@ -63,29 +64,30 @@ Phase 2.1 enhances **GameSetup.tsx** with comprehensive Netlify Blobs persistenc
    - Logs save success with source and cache status
    - Maintains backward compatibility with legacy `updateSessionState()`
    - Provides enhanced user feedback: "Daily room created successfully with cross-device sync enabled"
-   
+
    **SessionBlobData Stored**:
+
    ```typescript
    {
      session_id: string,
      session_code: string,
      host_profile_id: string | null,
-     
+
      // Daily.co Video Integration
      daily_room_url: string,
      daily_room_name: string | null,
      daily_room_created_at: ISO timestamp,
-     
+
      // Session Configuration
      phase: "Setup",
      game_state: "pre-quiz",
      segments_configured: true,
-     
+
      // Participant Tracking
      active_participant_ids: [hostParticipantId],
      participant_count: 1,
      max_participants: 10,
-     
+
      // Metadata
      created_at: ISO timestamp,
      last_updated: ISO timestamp,
@@ -157,12 +159,14 @@ Restore UI State if data found
 
 **Problem Solved**: Previously, if host refreshed page after creating room, UI state was lost
 
-**Solution**: 
+**Solution**:
+
 - `getSessionBlob()` on mount retrieves room URL and configuration
 - UI state automatically restored from cached/persisted data
 - User sees room as "already created" immediately
 
 **User Experience**:
+
 - Host creates room → refreshes page → room still shows as created ✅
 - No need to recreate room or query database
 - Instant restoration (< 100ms from cache)
@@ -172,11 +176,13 @@ Restore UI State if data found
 **Problem Solved**: Host couldn't switch devices mid-setup
 
 **Solution**:
+
 - Blobs stored with **strong consistency** for immediate visibility
 - Same session accessible from any device with session code
 - Session data includes host_profile_id for authorization
 
 **User Experience**:
+
 - Host starts setup on Phone A → creates room
 - Opens same session code on Laptop B → sees room already created ✅
 - Can continue from any device seamlessly
@@ -186,11 +192,13 @@ Restore UI State if data found
 **Problem Solved**: Every page load/refresh hit Supabase database
 
 **Solution**:
+
 - Multi-layer caching (Browser Cache API + memory + Blobs)
 - 5-minute TTL reduces unnecessary queries
 - Target: 80%+ cache hit rate
 
 **Performance Impact**:
+
 - **Before**: Every load = 1 Supabase query (100-300ms)
 - **After**: Cached loads = 0 queries (< 50ms) ⚡
 - **Estimated Savings**: 70-80% reduction in database queries
@@ -200,11 +208,13 @@ Restore UI State if data found
 **Problem Solved**: Network issues caused complete state loss
 
 **Solution**:
+
 - localStorage fallback preserves last known state
 - Read-only access to stale data when offline
 - Graceful degradation instead of failure
 
 **User Experience**:
+
 - Network drops → localStorage serves cached data
 - User sees "last known state" warning
 - Can still view configuration (read-only mode)
@@ -212,12 +222,13 @@ Restore UI State if data found
 ### 5. **Comprehensive Logging** 📊
 
 **Implementation**:
+
 ```typescript
 Logger.log("💾 Saving comprehensive session data to Netlify Blobs...");
 // ... save operation ...
 Logger.log("✅ Session data saved to Blobs successfully", {
-  source: blobResult.source,  // "cache" | "blobs" | "localStorage"
-  cached: blobResult.cached,  // true | false
+  source: blobResult.source, // "cache" | "blobs" | "localStorage"
+  cached: blobResult.cached, // true | false
 });
 Logger.log("🎬 Daily room state restored from Blobs", {
   room_name: result.data.daily_room_name,
@@ -225,6 +236,7 @@ Logger.log("🎬 Daily room state restored from Blobs", {
 ```
 
 **Benefits**:
+
 - Easy debugging with emoji markers (💾 🔍 ✅ ⚠️ 🎬)
 - Source tracking (cache vs blobs vs localStorage)
 - Performance monitoring (cache hit/miss rates)
@@ -243,6 +255,7 @@ pnpm build
 ```
 
 **Results**:
+
 - Zero TypeScript errors
 - Zero ESLint warnings (except pre-existing gradient warnings)
 - Build time: 6.29 seconds (fast iteration)
@@ -288,22 +301,28 @@ pnpm build
 ### Browser DevTools Inspection
 
 **Check Browser Cache API**:
+
 ```javascript
 // In browser console
-caches.open('blobs-cache-v1').then(cache => 
-  cache.keys().then(keys => console.log('Cached keys:', keys))
-);
+caches
+  .open("blobs-cache-v1")
+  .then((cache) =>
+    cache.keys().then((keys) => console.log("Cached keys:", keys)),
+  );
 ```
 
 **Check localStorage**:
+
 ```javascript
 // In browser console
-console.log('Blobs localStorage:', 
-  Object.keys(localStorage).filter(k => k.startsWith('blob:'))
+console.log(
+  "Blobs localStorage:",
+  Object.keys(localStorage).filter((k) => k.startsWith("blob:")),
 );
 ```
 
 **Monitor Network**:
+
 - Open Network tab, filter by "api" or "netlify"
 - Create room → should see POST to Blobs
 - Refresh immediately → should see NO Blobs request (cache hit)
@@ -315,17 +334,18 @@ console.log('Blobs localStorage:',
 
 ### Expected Performance
 
-| Metric | Target | Measurement Method |
-|--------|--------|-------------------|
-| Cache Hit Rate | 80%+ | Console logs over 100 page loads |
-| Cache Load Time | < 50ms | Browser DevTools Performance tab |
-| Blobs Load Time | < 200ms | Network tab (cold start) |
-| localStorage Load | < 10ms | Performance.now() in code |
-| Database Query Reduction | 70-80% | Compare logs before/after |
+| Metric                   | Target  | Measurement Method               |
+| ------------------------ | ------- | -------------------------------- |
+| Cache Hit Rate           | 80%+    | Console logs over 100 page loads |
+| Cache Load Time          | < 50ms  | Browser DevTools Performance tab |
+| Blobs Load Time          | < 200ms | Network tab (cold start)         |
+| localStorage Load        | < 10ms  | Performance.now() in code        |
+| Database Query Reduction | 70-80%  | Compare logs before/after        |
 
 ### Logging for Metrics
 
 Enable detailed logging:
+
 ```typescript
 // In GameSetup.tsx, the logger calls already provide:
 Logger.log("✅ Session data saved to Blobs successfully", {
@@ -336,12 +356,14 @@ Logger.log("✅ Session data saved to Blobs successfully", {
 ```
 
 Track metrics manually:
+
 ```javascript
 // In browser console after multiple loads
-const logs = performance.getEntriesByType('measure');
-const blobLoads = logs.filter(l => l.name.includes('blob'));
-console.log('Avg Blob Load Time:', 
-  blobLoads.reduce((sum, l) => sum + l.duration, 0) / blobLoads.length
+const logs = performance.getEntriesByType("measure");
+const blobLoads = logs.filter((l) => l.name.includes("blob"));
+console.log(
+  "Avg Blob Load Time:",
+  blobLoads.reduce((sum, l) => sum + l.duration, 0) / blobLoads.length,
 );
 ```
 
@@ -366,6 +388,7 @@ console.log('Avg Blob Load Time:',
 None required for client-side Blobs (uses Netlify's automatic injection).
 
 For Netlify Functions (already configured):
+
 ```env
 VITE_SUPABASE_DATABASE_URL=https://...
 VITE_SUPABASE_ANON_KEY=eyJ...
@@ -400,21 +423,25 @@ VITE_SUPABASE_ANON_KEY=eyJ...
 ### Planned Enhancements (Future Phases)
 
 #### Phase 2.2-2.4 (Immediate - Next Sprint)
+
 - Participant Blobs in Lobby.tsx
 - Device ID tracking for cross-device participants
 - Lobby snapshots for crash recovery
 
 #### Phase 3 (Short-term - Next 2 Weeks)
+
 - Blob-backed Jotai atoms with automatic sync
 - Real-time cache invalidation via Supabase subscriptions
 - Store consolidation (active-profiles → participants)
 
 #### Phase 4 (Medium-term - Next Month)
+
 - Optimistic locking with version numbers
 - Conflict resolution UI for concurrent updates
 - Advanced caching strategies (LRU, selective preloading)
 
 #### Phase 5 (Long-term - Future)
+
 - End-to-end encryption for sensitive data
 - Blob analytics and monitoring dashboard
 - Performance profiling and optimization
@@ -428,11 +455,13 @@ VITE_SUPABASE_ANON_KEY=eyJ...
 **Symptoms**: Console shows `⚠️ Failed to save to Blobs, but continuing`
 
 **Possible Causes**:
+
 1. Netlify Blobs not enabled in project settings
 2. Network connectivity issues
 3. Blobs quota exceeded (unlikely)
 
 **Solutions**:
+
 1. Check Netlify dashboard → Site Configuration → Blobs (ensure enabled)
 2. Retry operation (localStorage fallback should work)
 3. Check network tab for 4xx/5xx errors from Blobs API
@@ -442,11 +471,13 @@ VITE_SUPABASE_ANON_KEY=eyJ...
 **Symptoms**: Every load shows `source: "blobs"` instead of `source: "cache"`
 
 **Possible Causes**:
+
 1. Cache API disabled in browser (Privacy mode/settings)
 2. Browser cache cleared between loads
 3. Cache expiration (> 5 minutes between loads)
 
 **Solutions**:
+
 1. Test in regular browser window (not incognito/private)
 2. Load page twice within 1 minute to confirm caching
 3. Check `BlobCache.cleanupExpired()` isn't too aggressive
@@ -456,11 +487,13 @@ VITE_SUPABASE_ANON_KEY=eyJ...
 **Symptoms**: Page refresh shows empty state despite room created
 
 **Possible Causes**:
+
 1. `getSessionBlob()` returning no data
 2. Session ID not matching
 3. Blobs data corrupted or missing fields
 
 **Solutions**:
+
 1. Check console for "🔍 Loading..." log → see error details
 2. Verify `sessionId` in URL matches Blobs key
 3. Inspect Blobs data in Netlify dashboard → check schema
@@ -470,11 +503,13 @@ VITE_SUPABASE_ANON_KEY=eyJ...
 **Symptoms**: Device B doesn't see room created on Device A
 
 **Possible Causes**:
+
 1. Strong consistency not enabled on Blobs store
 2. Different session codes used
 3. Network delay (< 1 second propagation time)
 
 **Solutions**:
+
 1. Check `netlify/edge-functions/session-state.ts` has `consistency: "strong"`
 2. Verify same session code on both devices
 3. Wait 2-3 seconds and refresh (Blobs propagation time)
@@ -540,6 +575,7 @@ While Phase 2.1 focused on Blobs persistence, the implementation is **Daily.co-r
 - **Metadata Available**: `metadata.created_by` for host authorization
 
 **Future Phases** (2.2-2.4) will leverage this foundation for:
+
 - Token refresh using stored room metadata
 - Participant tracking with device IDs
 - Video presence management via ParticipantBlobData
@@ -587,6 +623,7 @@ While Phase 2.1 focused on Blobs persistence, the implementation is **Daily.co-r
 **Description**: Implement `saveParticipantBlob()` in Lobby.tsx for participant state persistence
 
 **Key Tasks**:
+
 1. Add `saveParticipantBlob()` on participant join
 2. Implement `getParticipantBlob()` on mount for preference restoration
 3. Track device_id for cross-device participant continuity
@@ -594,6 +631,7 @@ While Phase 2.1 focused on Blobs persistence, the implementation is **Daily.co-r
 5. Test with multiple participants across devices
 
 **Files to Modify**:
+
 - `/src/pages/Lobby.tsx` (main integration)
 - `/src/lib/presence.ts` (add Blobs calls)
 - `/docs/Pages/Changelog.md` (document changes)
@@ -605,6 +643,7 @@ While Phase 2.1 focused on Blobs persistence, the implementation is **Daily.co-r
 **Description**: Implement 30-second lobby snapshots for crash recovery
 
 **Key Tasks**:
+
 1. Add useEffect with setInterval for `saveLobbySnapshot()` every 30 seconds
 2. Implement recovery logic with `getLobbySnapshot()` on mount
 3. Check snapshot age (< 2 minutes) before using
@@ -612,6 +651,7 @@ While Phase 2.1 focused on Blobs persistence, the implementation is **Daily.co-r
 5. Test crash scenarios (close tab, browser crash)
 
 **Files to Modify**:
+
 - `/src/pages/Lobby.tsx` (snapshot logic)
 - `/src/components/LobbyStatus.tsx` (recovery indicator)
 
@@ -622,6 +662,7 @@ While Phase 2.1 focused on Blobs persistence, the implementation is **Daily.co-r
 **Description**: Track device IDs for all participants across sessions
 
 **Key Tasks**:
+
 1. Call `getDeviceId()` on app initialization (App.tsx)
 2. Include device_id in all `saveParticipantBlob()` calls
 3. Track `last_device_sync` timestamps
@@ -629,6 +670,7 @@ While Phase 2.1 focused on Blobs persistence, the implementation is **Daily.co-r
 5. Test with same user on multiple devices
 
 **Files to Modify**:
+
 - `/src/App.tsx` (device ID initialization)
 - `/src/pages/Lobby.tsx` (include in participant saves)
 

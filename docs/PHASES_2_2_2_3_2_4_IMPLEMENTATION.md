@@ -23,6 +23,7 @@ Phases 2.2-2.4 complete the Blobs integration by adding comprehensive participan
 ### Changes Made
 
 **1. Imports Added** (Lines 2-7):
+
 ```typescript
 import { Suspense, lazy, useEffect } from "react";
 import { getDeviceId } from "./lib/blobsManager";
@@ -30,13 +31,14 @@ import { Logger } from "./lib/logger";
 ```
 
 **2. Device ID Initialization** (Lines 25-31):
+
 ```typescript
 useEffect(() => {
   const initializeDeviceId = () => {
     const deviceId = getDeviceId();
     Logger.log("🔧 Device ID initialized:", deviceId);
   };
-  
+
   initializeDeviceId();
 }, []);
 ```
@@ -76,6 +78,7 @@ useEffect(() => {
 ### Changes Made
 
 **1. Imports Added** (Lines 42-49):
+
 ```typescript
 import {
   saveParticipantBlob,
@@ -89,6 +92,7 @@ import {
 ```
 
 **2. Save Participant Blobs on Initial Load** (Lines 486-537):
+
 ```typescript
 // ✨ PHASE 2.2: Save participant blobs for all players
 Logger.log(`💾 Saving participant blobs for ${playersData.length} players`);
@@ -103,43 +107,47 @@ playersData.forEach(async (player) => {
     flag: player.Profiles?.flag || "sa",
     team: player.Profiles?.team || null,
     team_logo_url: getTeamLogoUrl(player.Profiles.team) || null,
-    
+
     current_session_id: sessionId,
     current_session_code: sessionCode || null,
     role: player.role as "Host" | "Home" | "Away" | "GameMaster" | "Guest",
-    
-    lobby_presence: player.lobby_presence as "NotJoined" | "Joined" | "Disconnected",
+
+    lobby_presence: player.lobby_presence as
+      | "NotJoined"
+      | "Joined"
+      | "Disconnected",
     video_presence: player.video_presence || false,
     last_heartbeat: player.lastHeartbeat || new Date().toISOString(),
-    
+
     join_at: player.join_at || new Date().toISOString(),
     disconnect_at: player.disconnect_at || null,
-    
+
     device_id: deviceId,
     last_device_sync: new Date().toISOString(),
-    
+
     preferred_flag: player.Profiles?.flag || null,
     preferred_team: player.Profiles?.team || null,
-    
+
     audio_enabled: true,
     video_enabled: true,
-    
+
     created_at: player.join_at || new Date().toISOString(),
     last_updated: new Date().toISOString(),
     session_history: [sessionId],
-    
+
     metadata: {
       join_context: "Lobby",
       last_sync: new Date().toISOString(),
     },
   };
-  
+
   const result = await saveParticipantBlob(participantBlobData);
   // ... logging
 });
 ```
 
 **3. Load Participant Preferences on Mount** (Lines 597-633):
+
 ```typescript
 // ✨ PHASE 2.2: Load participant blob on mount to restore preferences
 useEffect(() => {
@@ -151,7 +159,7 @@ useEffect(() => {
   const loadParticipantPreferences = async () => {
     Logger.log("🔍 Loading participant preferences from Blobs...");
     const result = await getParticipantBlob(currentParticipant.participant_id);
-    
+
     if (result.success && result.data) {
       Logger.log("✅ Participant preferences loaded from Blobs", {
         source: result.source,
@@ -167,6 +175,7 @@ useEffect(() => {
 ```
 
 **4. Enhanced Heartbeat with Blob Updates** (Lines 634-780):
+
 ```typescript
 // Heartbeat mechanism - send heartbeat every 30 seconds
 // ✨ PHASE 2.2: Enhanced with participant blob updates
@@ -186,7 +195,7 @@ useEffect(() => {
       last_heartbeat: new Date().toISOString(),
       // ...
     };
-    
+
     const result = await saveParticipantBlob(participantBlobData);
     if (!result.success) {
       Logger.warn("⚠️ Failed to update participant blob:", result.error);
@@ -222,29 +231,29 @@ useEffect(() => {
   flag: string,              // "sa"
   team: string | null,       // "Al-Ahli"
   team_logo_url: string | null,
-  
+
   // Session Context
   current_session_id: string | null,
   current_session_code: string | null,
   role: "Host" | "Home" | "Away" | "GameMaster" | "Guest",
-  
+
   // Presence Status
   lobby_presence: "NotJoined" | "Joined" | "Disconnected",
   video_presence: boolean,
   last_heartbeat: ISO timestamp,
   join_at: ISO timestamp,
   disconnect_at: ISO timestamp | null,
-  
+
   // Device Tracking (Phase 2.4)
   device_id: UUID string,
   last_device_sync: ISO timestamp,
-  
+
   // User Preferences
   preferred_flag: string | null,
   preferred_team: string | null,
   audio_enabled: boolean,
   video_enabled: boolean,
-  
+
   // Metadata
   created_at: ISO timestamp,
   last_updated: ISO timestamp,
@@ -312,12 +321,14 @@ On Disconnect: Mark disconnected in Blobs
 ### Changes Made
 
 **1. State Added** (Lines 212-215):
+
 ```typescript
 // ✨ PHASE 2.3: Snapshot recovery indicator
 const [recoveredFromSnapshot, setRecoveredFromSnapshot] = useState(false);
 ```
 
 **2. Snapshot Recovery on Mount** (Lines 237-270):
+
 ```typescript
 // ✨ PHASE 2.3: Try to recover from lobby snapshot on mount
 useEffect(() => {
@@ -326,19 +337,20 @@ useEffect(() => {
   const attemptSnapshotRecovery = async () => {
     Logger.log("🔍 Checking for lobby snapshot...");
     const result = await getLobbySnapshot(sessionId);
-    
+
     if (result.success && result.data) {
       const snapshot = result.data;
-      const snapshotAge = Date.now() - new Date(snapshot.snapshot_timestamp).getTime();
+      const snapshotAge =
+        Date.now() - new Date(snapshot.snapshot_timestamp).getTime();
       const twoMinutes = 2 * 60 * 1000;
-      
+
       if (snapshotAge < twoMinutes) {
         Logger.log("✅ Recovered lobby from snapshot", {
           age_seconds: Math.floor(snapshotAge / 1000),
           participant_count: snapshot.participant_count,
         });
         setRecoveredFromSnapshot(true);
-        
+
         // Could restore participant list from snapshot if needed
         setTimeout(() => setRecoveredFromSnapshot(false), 5000); // Clear after 5s
       } else {
@@ -356,6 +368,7 @@ useEffect(() => {
 ```
 
 **3. Periodic Snapshot Saving** (Lines 782-828):
+
 ```typescript
 // ✨ PHASE 2.3: Save lobby snapshot every 30 seconds
 useEffect(() => {
@@ -366,8 +379,8 @@ useEffect(() => {
       session_id: sessionId,
       session_code: sessionCode,
       snapshot_timestamp: new Date().toISOString(),
-      
-      participants: players.map(p => ({
+
+      participants: players.map((p) => ({
         participant_id: p.participant_id,
         name: p.Profiles?.name || "Unknown",
         role: p.role,
@@ -377,12 +390,12 @@ useEffect(() => {
         video_presence: p.video_presence || false,
         join_at: p.join_at || null,
       })),
-      
+
       phase: session?.phase || "Lobby",
       daily_room_url: dailyRoom?.room_url || null,
       participant_count: players.length,
     };
-    
+
     const result = await saveLobbySnapshot(snapshotData);
     if (result.success) {
       Logger.log("📸 Lobby snapshot saved", {
@@ -407,6 +420,7 @@ useEffect(() => {
 ```
 
 **4. UI Indicator** (Lines 1053-1062):
+
 ```typescript
 {recoveredFromSnapshot && (
   <div className="bg-blue-600/20 px-4 py-2 rounded-lg border border-blue-400/40 animate-pulse">
@@ -425,7 +439,7 @@ useEffect(() => {
   session_id: string,
   session_code: string,
   snapshot_timestamp: ISO timestamp,
-  
+
   participants: Array<{
     participant_id: string,
     name: string,
@@ -436,7 +450,7 @@ useEffect(() => {
     video_presence: boolean,
     join_at: ISO timestamp | null
   }>,
-  
+
   phase: string,
   daily_room_url: string | null,
   participant_count: number
@@ -471,21 +485,25 @@ Timeline Example:
 ### Crash Recovery Scenarios
 
 **Scenario 1: Browser Crash**
+
 - **Problem**: User's browser crashes mid-game
 - **Solution**: On reopen, lobby loads snapshot from 30s ago
 - **Result**: Participant list, phase, and room URL restored instantly
 
 **Scenario 2: Network Drop During Load**
+
 - **Problem**: Supabase query fails due to network issue
 - **Solution**: Fallback to snapshot in Blobs (still accessible)
 - **Result**: Partial state restored from last snapshot
 
 **Scenario 3: Tab Accidentally Closed**
+
 - **Problem**: User closes tab and reopens immediately
 - **Solution**: Fresh page load checks for snapshot
 - **Result**: Lobby state restored if < 2 minutes old
 
 **Scenario 4: Snapshot Too Old**
+
 - **Problem**: User returns after 5 minutes (snapshot age > 2 min)
 - **Solution**: Ignore stale snapshot, load fresh from Supabase
 - **Result**: Normal load, no recovery indicator
@@ -506,6 +524,7 @@ pnpm build
 ```
 
 **Results**:
+
 - Zero TypeScript errors
 - Zero ESLint warnings (except pre-existing gradient)
 - Build time: 6.04 seconds
@@ -515,7 +534,6 @@ pnpm build
 
 1. **`/src/App.tsx`** (6 lines added)
    - Device ID initialization
-   
 2. **`/src/pages/Lobby.tsx`** (280+ lines added/modified)
    - Participant blob saving (all players)
    - Participant preference loading (current player)
@@ -527,6 +545,7 @@ pnpm build
 ### Dependencies
 
 **New**:
+
 - `getDeviceId()` from blobsManager.ts
 - `saveParticipantBlob()` from blobsManager.ts
 - `getParticipantBlob()` from blobsManager.ts
@@ -534,6 +553,7 @@ pnpm build
 - `getLobbySnapshot()` from blobsManager.ts
 
 **Existing**:
+
 - Browser Cache API (5-minute TTL)
 - localStorage (offline fallback)
 - Netlify Blobs (strong consistency)
@@ -546,33 +566,41 @@ pnpm build
 ### Before Phases 2.2-2.4
 
 ❌ **Participant Preferences Not Saved**
+
 - User sets flag/team → refreshes page → preferences lost
 
 ❌ **No Cross-Device Continuity**
+
 - User joins on phone → switches to laptop → treated as new participant
 
 ❌ **Crash = Total Data Loss**
+
 - Browser crashes → lobby state completely lost → must reload from scratch
 
 ❌ **No Offline Access**
+
 - Network drops → no participant data available → blank screen
 
 ### After Phases 2.2-2.4
 
 ✅ **Participant Preferences Persisted**
+
 - User sets flag/team → refreshes page → preferences restored instantly
 
 ✅ **Cross-Device Continuity**
+
 - User joins on phone (Device ID: abc-123)
 - Switches to laptop → same Device ID recognized
 - Preferences and session history carried over
 
 ✅ **Crash Recovery**
+
 - Browser crashes → lobby loads snapshot from 30s ago
 - Participant list, phase, room URL all restored
 - "Recovered from Snapshot" indicator shown
 
 ✅ **Offline Resilience**
+
 - Network drops → participant data served from localStorage
 - Can view last known lobby state even offline
 - Graceful degradation instead of failure
@@ -583,28 +611,30 @@ pnpm build
 
 ### Participant Blob Operations
 
-| Operation | Latency | Cache Hit Rate | Source |
-|-----------|---------|----------------|--------|
-| Initial Load (Cache Miss) | 150-300ms | 0% | Blobs |
-| Heartbeat Update (Cache Hit) | < 50ms | 80%+ | Cache API |
-| Preference Load (Cache Hit) | < 30ms | 90%+ | Memory |
-| Offline Fallback | < 10ms | 100% | localStorage |
+| Operation                    | Latency   | Cache Hit Rate | Source       |
+| ---------------------------- | --------- | -------------- | ------------ |
+| Initial Load (Cache Miss)    | 150-300ms | 0%             | Blobs        |
+| Heartbeat Update (Cache Hit) | < 50ms    | 80%+           | Cache API    |
+| Preference Load (Cache Hit)  | < 30ms    | 90%+           | Memory       |
+| Offline Fallback             | < 10ms    | 100%           | localStorage |
 
 ### Snapshot Operations
 
-| Operation | Latency | Frequency | Storage Size |
-|-----------|---------|-----------|--------------|
-| Save Snapshot | 100-200ms | Every 30s | ~2-5 KB |
-| Load Snapshot | 50-150ms | On mount | ~2-5 KB |
-| Snapshot Validation | < 1ms | On load | N/A |
+| Operation           | Latency   | Frequency | Storage Size |
+| ------------------- | --------- | --------- | ------------ |
+| Save Snapshot       | 100-200ms | Every 30s | ~2-5 KB      |
+| Load Snapshot       | 50-150ms  | On mount  | ~2-5 KB      |
+| Snapshot Validation | < 1ms     | On load   | N/A          |
 
 ### Database Query Reduction
 
 **Before**:
+
 - Every page load: 1 Supabase query per participant
 - Example (3 participants): 3 queries = 300-900ms total
 
 **After**:
+
 - First load: 1 query (participants saved to Blobs)
 - Subsequent loads: 0 queries (served from cache)
 - Reduction: 70-80% fewer database queries
@@ -616,11 +646,13 @@ pnpm build
 ### Manual Testing Checklist
 
 **Phase 2.4 - Device ID Tracking**:
+
 - [ ] Open app, check console for "🔧 Device ID initialized"
 - [ ] Refresh page, verify same device ID logged
 - [ ] Clear localStorage, verify new device ID generated
 
 **Phase 2.2 - Participant Blobs**:
+
 - [ ] Join lobby as Host
 - [ ] Check console for "💾 Saving participant blobs for X players"
 - [ ] Check console for "✅ Saved blob for participant"
@@ -630,6 +662,7 @@ pnpm build
 - [ ] Join from different device, verify device_id different
 
 **Phase 2.3 - Lobby Snapshots**:
+
 - [ ] Join lobby, wait for "📸 Lobby snapshot saved" log
 - [ ] Wait 30 seconds, verify another snapshot log
 - [ ] Close tab, reopen immediately (< 2 min)
@@ -643,20 +676,23 @@ pnpm build
 ### Browser DevTools Inspection
 
 **Check Device ID**:
+
 ```javascript
 // In browser console
-localStorage.getItem('device_id');
+localStorage.getItem("device_id");
 // Expected: "550e8400-e29b-41d4-a716-446655440000" (UUID)
 ```
 
 **Check Participant Blobs**:
+
 ```javascript
 // In browser console
-localStorage.getItem('blob:participant:YOUR_PARTICIPANT_ID');
+localStorage.getItem("blob:participant:YOUR_PARTICIPANT_ID");
 // Should show JSON with participant data
 ```
 
 **Monitor Heartbeat**:
+
 ```
 Open Console → Filter by "💾" or "✅"
 Expected every 30 seconds:
@@ -665,6 +701,7 @@ Expected every 30 seconds:
 ```
 
 **Monitor Snapshots**:
+
 ```
 Open Console → Filter by "📸"
 Expected every 30 seconds:
@@ -704,16 +741,19 @@ Expected every 30 seconds:
 ### Planned Enhancements
 
 #### Phase 3 (Short-term - Next Week):
+
 - **Blob-Backed Jotai Atoms**: Auto-sync atoms with Blobs for reactive state
 - **Store Consolidation**: Merge active-profiles → participants, session-data → sessions
 
 #### Phase 4 (Medium-term - Next Month):
+
 - **BroadcastChannel API**: Real-time cross-tab blob synchronization
 - **Extended Snapshot Window**: 5-minute recovery with staleness warnings
 - **Optimistic Locking**: Version numbers for conflict detection
 - **Advanced Caching**: LRU eviction, selective preloading, predictive prefetch
 
 #### Phase 5 (Long-term - Future):
+
 - **Account-Based Device Linking**: Manage multiple devices per user
 - **End-to-End Encryption**: Encrypt blobs for public deployment
 - **Analytics Dashboard**: Blob usage metrics, cache hit rates, recovery stats
@@ -728,11 +768,13 @@ Expected every 30 seconds:
 **Symptoms**: Console shows `⚠️ Failed to save blob for participant:` warnings
 
 **Possible Causes**:
+
 1. Netlify Blobs not enabled
 2. Network connectivity issues
 3. Quota exceeded (unlikely)
 
 **Solutions**:
+
 1. Check Netlify dashboard → Blobs settings (ensure enabled)
 2. Retry operation (localStorage fallback should work)
 3. Check Network tab for 4xx/5xx errors from Blobs API
@@ -742,11 +784,13 @@ Expected every 30 seconds:
 **Symptoms**: No "Recovered from Snapshot" badge after crash/reopen
 
 **Possible Causes**:
+
 1. Snapshot age > 2 minutes (too old)
 2. No snapshot saved yet (< 30 seconds in lobby)
 3. Snapshot storage failed
 
 **Solutions**:
+
 1. Verify snapshot age with console logs ("⏰ Snapshot too old")
 2. Wait 30 seconds in lobby before testing recovery
 3. Check for "📸 Lobby snapshot saved" logs
@@ -756,10 +800,12 @@ Expected every 30 seconds:
 **Symptoms**: Different device ID logged on each page load
 
 **Possible Causes**:
+
 1. localStorage being cleared (Privacy mode, extensions)
 2. crypto.randomUUID() not supported (old browser)
 
 **Solutions**:
+
 1. Test in regular browser window (not incognito)
 2. Check localStorage.getItem('device_id') manually
 3. Update browser to version supporting crypto.randomUUID()
@@ -769,11 +815,13 @@ Expected every 30 seconds:
 **Symptoms**: User sets flag/team, refreshes, preferences lost
 
 **Possible Causes**:
+
 1. getParticipantBlob() returning no data
 2. Blob save failed initially
 3. Participant ID mismatch
 
 **Solutions**:
+
 1. Check console for "🔍 Loading participant preferences" log
 2. Verify "✅ Saved blob for participant" logged initially
 3. Compare participant_id in URL vs. localStorage
@@ -826,6 +874,7 @@ Expected every 30 seconds:
 **Description**: Create reactive blob-backed atoms for automatic state synchronization
 
 **Key Tasks**:
+
 1. Create `/src/atoms/blobAtoms.ts` with sessionBlobAtom, participantBlobAtom
 2. Implement syncedSessionAtom with auto-save to Blobs
 3. Integrate with GameSetup and Lobby
@@ -833,6 +882,7 @@ Expected every 30 seconds:
 5. Test with concurrent updates from multiple tabs
 
 **Files to Create/Modify**:
+
 - `/src/atoms/blobAtoms.ts` (new file, ~200 lines)
 - `/src/pages/GameSetup.tsx` (replace manual blob calls with atoms)
 - `/src/pages/Lobby.tsx` (replace manual blob calls with atoms)
@@ -845,14 +895,16 @@ Expected every 30 seconds:
 **Description**: Consolidate redundant Netlify Blob stores
 
 **Key Tasks**:
+
 1. Migrate `active-profiles` → `participants` store
 2. Migrate `session-data` → `sessions` store
-3. Update netlify/functions/*.mts to use consolidated stores
-4. Update netlify/edge-functions/*.ts to use consolidated stores
+3. Update netlify/functions/\*.mts to use consolidated stores
+4. Update netlify/edge-functions/\*.ts to use consolidated stores
 5. Remove old store references
 6. Document final architecture
 
 **Files to Modify**:
+
 - `/netlify/functions/store-active-profile.mts`
 - `/netlify/functions/get-active-profile.mts`
 - `/netlify/edge-functions/session-state.ts`

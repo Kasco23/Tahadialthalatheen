@@ -12,7 +12,7 @@ export default async (req: Request, context: Context) => {
   if (req.method !== "GET") {
     return new Response(
       JSON.stringify({ success: false, error: "Method not allowed" }),
-      { status: 405, headers: { "Content-Type": "application/json" } }
+      { status: 405, headers: { "Content-Type": "application/json" } },
     );
   }
 
@@ -23,7 +23,7 @@ export default async (req: Request, context: Context) => {
     if (!userId) {
       return new Response(
         JSON.stringify({ success: false, error: "Missing userId parameter" }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
+        { status: 400, headers: { "Content-Type": "application/json" } },
       );
     }
 
@@ -39,16 +39,16 @@ export default async (req: Request, context: Context) => {
     if (!profileData) {
       return new Response(
         JSON.stringify({ success: false, error: "Profile not found" }),
-        { status: 404, headers: { "Content-Type": "application/json" } }
+        { status: 404, headers: { "Content-Type": "application/json" } },
       );
     }
 
     console.log("Profile retrieved successfully for user:", userId);
 
-    return new Response(
-      JSON.stringify({ success: true, profileData }),
-      { status: 200, headers: { "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ success: true, profileData }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
   } catch (error) {
     console.error("Error retrieving profile:", error);
     return new Response(
@@ -56,7 +56,7 @@ export default async (req: Request, context: Context) => {
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",
       }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+      { status: 500, headers: { "Content-Type": "application/json" } },
     );
   }
 };

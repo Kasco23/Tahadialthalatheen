@@ -151,9 +151,10 @@ export const QuestionManager: React.FC<QuestionManagerProps> = ({
 
     setIsLoading(true);
     try {
-      const { error } = await (
-        await import("../lib/supabaseClient")
-      ).supabase.from("Questions").delete().eq("question_id", questionId);
+      const { error } = await (await import("../lib/supabaseClient")).supabase
+        .from("Questions")
+        .delete()
+        .eq("question_id", questionId);
 
       if (error) throw error;
 

@@ -39,7 +39,7 @@ export default async (req: Request) => {
     const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
 
     console.log(
-      `Checking for stale participants (lastHeartbeat < ${tenMinutesAgo})`
+      `Checking for stale participants (lastHeartbeat < ${tenMinutesAgo})`,
     );
 
     // Find stale participants who appear connected but haven't sent heartbeat
@@ -63,7 +63,7 @@ export default async (req: Request) => {
           id: u.participant_id,
           name: u.name,
           role: u.role,
-        }))
+        })),
       );
 
       // Update stale participants to disconnected state
@@ -77,7 +77,7 @@ export default async (req: Request) => {
         })
         .in(
           "participant_id",
-          staleUsers.map((u) => u.participant_id)
+          staleUsers.map((u) => u.participant_id),
         );
 
       if (updateError) {
@@ -91,7 +91,7 @@ export default async (req: Request) => {
     }
 
     console.log(
-      `cleanupStatus completed: ${cleanedCount} participants cleaned at ${new Date().toISOString()}`
+      `cleanupStatus completed: ${cleanedCount} participants cleaned at ${new Date().toISOString()}`,
     );
   } catch (error) {
     console.error("Unexpected error in cleanupStatus function:", error);

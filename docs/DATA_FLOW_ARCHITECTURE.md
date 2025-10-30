@@ -24,6 +24,7 @@
 **Purpose**: Authoritative database for all persistent data
 
 **Tables**:
+
 - `Sessions`: Game session metadata (session_id, phase, game_state, session_code, host_profile_id)
 - `Participants`: Player/host records (participant_id, session_id, role, profile_id, lobby_presence, lastHeartbeat)
 - `Profiles`: User profiles (id, username, name, flag, team, avatar_url)
@@ -33,16 +34,18 @@
 - `Scores`, `Strikes`, `SegmentConfig`: Game data
 
 **Access Pattern**:
+
 ```typescript
 // Direct Supabase queries
 const { data, error } = await supabase
-  .from('Sessions')
-  .select('*')
-  .eq('session_id', sessionId)
+  .from("Sessions")
+  .select("*")
+  .eq("session_id", sessionId)
   .single();
 ```
 
 **When Used**:
+
 - Initial data creation (INSERT)
 - Real-time subscriptions (changes across devices)
 - Authoritative queries (leaderboards, match history)
@@ -53,24 +56,27 @@ const { data, error } = await supabase
 **Purpose**: Fast, distributed blob storage with strong consistency
 
 **Stores** (After Phase 3.2):
+
 - `sessions`: Session state + metadata (SessionBlobData)
 - `participants`: Participant state + profiles (ParticipantBlobData)
 - `lobby-snapshots`: Crash recovery data (LobbySnapshotData)
 
 **Access Pattern**:
+
 ```typescript
-import { getStore } from '@netlify/blobs';
+import { getStore } from "@netlify/blobs";
 
 const store = getStore({
-  name: 'sessions',
-  consistency: 'strong',
+  name: "sessions",
+  consistency: "strong",
 });
 
 await store.setJSON(sessionId, sessionData);
-const data = await store.get(sessionId, { type: 'json' });
+const data = await store.get(sessionId, { type: "json" });
 ```
 
 **When Used**:
+
 - Frequent read operations (80% cache hit rate)
 - Cross-device state synchronization
 - Offline-first fallback
@@ -81,31 +87,34 @@ const data = await store.get(sessionId, { type: 'json' });
 **Purpose**: React state management with automatic Blobs persistence
 
 **Key Atoms**:
+
 - `sessionBlobAtom`: Session state with load/save/update/clear actions
 - `participantBlobAtom`: Participant state with load/save/update/clear actions
 - Computed atoms: `currentSessionPhaseAtom`, `currentParticipantPreferencesAtom`, etc.
 
 **Access Pattern**:
+
 ```typescript
-import { useAtom } from 'jotai';
-import { sessionBlobAtom } from '@/atoms';
+import { useAtom } from "jotai";
+import { sessionBlobAtom } from "@/atoms";
 
 function Component() {
   const [session, setSession] = useAtom(sessionBlobAtom);
-  
+
   // Load on mount
   useEffect(() => {
-    setSession({ type: 'load', sessionId });
+    setSession({ type: "load", sessionId });
   }, []);
-  
+
   // Update (optimistic)
   const updatePhase = () => {
-    setSession({ type: 'update', data: { phase: 'lobby' } });
+    setSession({ type: "update", data: { phase: "lobby" } });
   };
 }
 ```
 
 **When Used**:
+
 - React component state
 - Optimistic UI updates
 - Derived/computed values
@@ -116,18 +125,19 @@ function Component() {
 **Purpose**: Short-term caching layer (5-minute TTL)
 
 **Implementation**:
+
 ```typescript
 class BlobCache {
   private cache: Cache | null = null;
   private memoryCache: Map<string, CacheEntry<any>> = new Map();
-  
+
   async get<T>(key: string): Promise<T | null> {
     // 1. Check memory cache (instant)
     const memoryCached = this.memoryCache.get(key);
     if (memoryCached && !this.isExpired(memoryCached)) {
       return memoryCached.data;
     }
-    
+
     // 2. Check Cache API (fast)
     if (this.cache) {
       const response = await this.cache.match(key);
@@ -135,7 +145,7 @@ class BlobCache {
         return await response.json();
       }
     }
-    
+
     return null;
   }
 }
@@ -144,6 +154,7 @@ class BlobCache {
 **TTL**: 5 minutes (300,000ms)
 
 **When Used**:
+
 - Before every Blobs read
 - After every Blobs write (cache warming)
 - Reducing network requests
@@ -153,11 +164,13 @@ class BlobCache {
 **Purpose**: Persistent browser storage for offline resilience
 
 **Keys**:
+
 - `device_id`: Stable cross-device identifier
 - `session:${sessionId}`: Session data backup
 - `participant:${participantId}`: Participant data backup
 
 **Access Pattern**:
+
 ```typescript
 // Save
 localStorage.setItem(`session:${sessionId}`, JSON.stringify(sessionData));
@@ -168,6 +181,7 @@ const sessionData = stored ? JSON.parse(stored) : null;
 ```
 
 **When Used**:
+
 - Network offline scenarios
 - Cache API unavailable (private browsing)
 - Device ID persistence
@@ -220,6 +234,7 @@ User Action: Click "Create Session" on Homepage
 ```
 
 **Data Created**:
+
 - Supabase: 1 Session row, 1 Participant row
 - Netlify Blobs: 1 session blob
 - Browser Cache: 1 session cache entry
@@ -274,6 +289,7 @@ User Action: Enter session code, select role/name/flag
 ```
 
 **Data Created**:
+
 - Supabase: 1 Participant row
 - Netlify Blobs: 1 participant blob, 1 lobby snapshot (30s later)
 - Browser Cache: 1 participant cache entry
@@ -315,6 +331,7 @@ User Action: Host clicks "Create Room" in GameSetup
 ```
 
 **Data Created**:
+
 - Daily.co: 1 video room
 - Supabase: 1 DailyRoom row
 - Netlify Blobs: Session blob updated (merged)
@@ -329,103 +346,122 @@ User Action: Host clicks "Create Room" in GameSetup
 
 ```typescript
 // Save to all layers simultaneously
-async function saveSessionBlob(sessionData: SessionBlobData): Promise<BlobResult<SessionBlobData>> {
+async function saveSessionBlob(
+  sessionData: SessionBlobData,
+): Promise<BlobResult<SessionBlobData>> {
   try {
     // 1. Write to Netlify Blobs (authoritative)
-    const store = getStore({ name: 'sessions', consistency: 'strong' });
+    const store = getStore({ name: "sessions", consistency: "strong" });
     await store.setJSON(sessionData.session_id, sessionData);
-    
+
     // 2. Warm cache (Browser Cache API)
     await blobCache.set(`session:${sessionData.session_id}`, sessionData);
-    
+
     // 3. Backup to localStorage
-    localStorage.setItem(`session:${sessionData.session_id}`, JSON.stringify(sessionData));
-    
-    return { success: true, data: sessionData, source: 'blobs' };
+    localStorage.setItem(
+      `session:${sessionData.session_id}`,
+      JSON.stringify(sessionData),
+    );
+
+    return { success: true, data: sessionData, source: "blobs" };
   } catch (error) {
     // Fallback: Save to localStorage only
-    localStorage.setItem(`session:${sessionData.session_id}`, JSON.stringify(sessionData));
+    localStorage.setItem(
+      `session:${sessionData.session_id}`,
+      JSON.stringify(sessionData),
+    );
     return { success: false, error: error.message };
   }
 }
 ```
 
 **Layers Written** (on success):
+
 1. Netlify Blobs (primary)
 2. Browser Cache API (5min TTL)
 3. localStorage (persistent backup)
 
 **Layers Written** (on failure):
+
 1. localStorage (offline fallback)
 
 ### Pattern 2: 5-Layer Fallback Chain (Read)
 
 ```typescript
-async function getSessionBlob(sessionId: string, useCache = true): Promise<BlobResult<SessionBlobData>> {
+async function getSessionBlob(
+  sessionId: string,
+  useCache = true,
+): Promise<BlobResult<SessionBlobData>> {
   // Layer 1: Memory cache (instant, 5min TTL)
   if (useCache) {
     const cached = blobCache.getMemory(`session:${sessionId}`);
     if (cached) {
-      return { success: true, data: cached, source: 'memory', cached: true };
+      return { success: true, data: cached, source: "memory", cached: true };
     }
   }
-  
+
   // Layer 2: Browser Cache API (fast, 5min TTL)
   if (useCache) {
     const cached = await blobCache.get(`session:${sessionId}`);
     if (cached) {
-      return { success: true, data: cached, source: 'cache-api', cached: true };
+      return { success: true, data: cached, source: "cache-api", cached: true };
     }
   }
-  
+
   // Layer 3: Netlify Blobs (authoritative, network request)
   try {
-    const store = getStore({ name: 'sessions', consistency: 'strong' });
-    const data = await store.get(sessionId, { type: 'json' });
-    
+    const store = getStore({ name: "sessions", consistency: "strong" });
+    const data = await store.get(sessionId, { type: "json" });
+
     if (data) {
       // Warm cache on successful read
       await blobCache.set(`session:${sessionId}`, data);
-      return { success: true, data, source: 'blobs', cached: false };
+      return { success: true, data, source: "blobs", cached: false };
     }
   } catch (error) {
-    Logger.warn('Blobs fetch failed, trying localStorage');
+    Logger.warn("Blobs fetch failed, trying localStorage");
   }
-  
+
   // Layer 4: localStorage (offline fallback)
   const stored = localStorage.getItem(`session:${sessionId}`);
   if (stored) {
     const data = JSON.parse(stored);
-    return { success: true, data, source: 'localStorage', cached: false };
+    return { success: true, data, source: "localStorage", cached: false };
   }
-  
+
   // Layer 5: Supabase (last resort - slower, full query)
   try {
     const { data: session } = await supabase
-      .from('Sessions')
-      .select('*, Participants(*)')
-      .eq('session_id', sessionId)
+      .from("Sessions")
+      .select("*, Participants(*)")
+      .eq("session_id", sessionId)
       .single();
-    
+
     if (session) {
       // Rebuild blob data from Supabase
       const sessionBlobData = buildSessionBlobFromDb(session);
-      
+
       // Save to all layers for future reads
       await saveSessionBlob(sessionBlobData);
-      
-      return { success: true, data: sessionBlobData, source: 'supabase', cached: false };
+
+      return {
+        success: true,
+        data: sessionBlobData,
+        source: "supabase",
+        cached: false,
+      };
     }
   } catch (error) {
-    Logger.error('Supabase fallback failed');
+    Logger.error("Supabase fallback failed");
   }
-  
+
   // Layer 6: Error (no data found)
-  return { success: false, error: 'Session not found in any storage layer' };
+  return { success: false, error: "Session not found in any storage layer" };
 }
 ```
 
 **Read Priority**:
+
 1. Memory (instant, 0ms latency)
 2. Cache API (fast, ~5ms latency)
 3. Netlify Blobs (network, ~50-100ms)
@@ -437,28 +473,29 @@ async function getSessionBlob(sessionId: string, useCache = true): Promise<BlobR
 ```typescript
 // Jotai atom write function
 async (get, set, action: SessionBlobAction) => {
-  if (action.type === 'update') {
+  if (action.type === "update") {
     const currentSession = get(_sessionBlobBaseAtom);
-    
+
     // Step 1: Update local state IMMEDIATELY (optimistic)
     const updatedSession = { ...currentSession, ...action.data };
     set(_sessionBlobBaseAtom, updatedSession);
     // UI re-renders instantly with new state
-    
+
     // Step 2: Async save to Blobs (network operation)
     const result = await updateSessionBlob(sessionId, action.data);
-    
+
     // Step 3: Handle errors (optional rollback)
     if (!result.success && action.rollbackOnError) {
       set(_sessionBlobBaseAtom, currentSession); // Revert
       set(sessionBlobErrorAtom, result.error);
-      Logger.warn('Rolled back optimistic update');
+      Logger.warn("Rolled back optimistic update");
     }
   }
-}
+};
 ```
 
 **Timeline**:
+
 - 0ms: User clicks button
 - 1ms: Atom state updated (optimistic)
 - 2ms: React re-renders with new state
@@ -466,6 +503,7 @@ async (get, set, action: SessionBlobAction) => {
 - 51ms: Cache warmed, localStorage backup saved
 
 **Benefits**:
+
 - Instant UI feedback
 - No loading spinners for updates
 - Automatic rollback on failure
@@ -481,16 +519,16 @@ async (get, set, action: SessionBlobAction) => {
 useEffect(() => {
   const loadSession = async () => {
     if (!sessionId) return;
-    
+
     // Trigger Jotai atom load
     setSession({ type: 'load', sessionId, useCache: true });
-    
+
     // Atom internally calls:
-    // 1. Check memory cache → 2. Check Cache API → 
+    // 1. Check memory cache → 2. Check Cache API →
     // 3. Fetch from Blobs → 4. Fallback to localStorage →
     // 5. Query Supabase (if needed)
   };
-  
+
   loadSession();
 }, [sessionId]);
 
@@ -501,6 +539,7 @@ return <GameSetupForm data={session.data} />;
 ```
 
 **Load Time**:
+
 - Cache hit: 5-10ms
 - Blobs hit: 50-100ms
 - localStorage hit: 10-20ms
@@ -512,34 +551,34 @@ return <GameSetupForm data={session.data} />;
 // Lobby.tsx - Subscribe to participant changes
 useEffect(() => {
   const subscription = supabase
-    .channel('participants-channel')
+    .channel("participants-channel")
     .on(
-      'postgres_changes',
+      "postgres_changes",
       {
-        event: '*', // INSERT, UPDATE, DELETE
-        schema: 'public',
-        table: 'Participants',
+        event: "*", // INSERT, UPDATE, DELETE
+        schema: "public",
+        table: "Participants",
         filter: `session_id=eq.${sessionId}`,
       },
       (payload) => {
-        Logger.log('Participant changed:', payload);
-        
+        Logger.log("Participant changed:", payload);
+
         // Update local state
         setParticipants((prev) => {
           // Merge changes
         });
-        
+
         // Update participant blob (if it's our participant)
         if (payload.new.participant_id === myParticipantId) {
           setParticipant({
-            type: 'update',
+            type: "update",
             data: { lobby_presence: payload.new.lobby_presence },
           });
         }
-      }
+      },
     )
     .subscribe();
-  
+
   return () => {
     subscription.unsubscribe();
   };
@@ -547,6 +586,7 @@ useEffect(() => {
 ```
 
 **Real-Time Flow**:
+
 1. User A updates presence in database
 2. Supabase broadcasts change via WebSocket
 3. User B receives change (~100ms latency)
@@ -561,22 +601,22 @@ useEffect(() => {
   const heartbeatInterval = setInterval(async () => {
     // 1. Update Supabase (source of truth)
     await supabase
-      .from('Participants')
+      .from("Participants")
       .update({ lastHeartbeat: new Date().toISOString() })
-      .eq('participant_id', participantId);
-    
+      .eq("participant_id", participantId);
+
     // 2. Update participant blob (via Jotai atom)
     setParticipant({
-      type: 'update',
+      type: "update",
       data: {
         last_heartbeat: Date.now(),
-        lobby_presence: 'active',
+        lobby_presence: "active",
       },
     });
-    
-    Logger.log('Heartbeat sent');
+
+    Logger.log("Heartbeat sent");
   }, 30000); // 30 seconds
-  
+
   return () => clearInterval(heartbeatInterval);
 }, [participantId]);
 ```
@@ -584,6 +624,7 @@ useEffect(() => {
 **Sync Frequency**: 30 seconds
 
 **Purpose**:
+
 - Detect disconnected participants
 - Update presence status
 - Keep blobs fresh
@@ -607,12 +648,13 @@ localStorage stores copy (persistent)
 ```
 
 **Code Flow**:
+
 ```typescript
 // 1. Query Supabase
 const { data: session } = await supabase
-  .from('Sessions')
-  .select('*, Participants(*)')
-  .eq('session_id', sessionId)
+  .from("Sessions")
+  .select("*, Participants(*)")
+  .eq("session_id", sessionId)
   .single();
 
 // 2. Transform to blob format
@@ -623,7 +665,7 @@ const sessionBlobData: SessionBlobData = {
   phase: session.phase,
   game_state: session.game_state,
   segments_configured: [], // from SegmentConfig table
-  active_participant_ids: session.Participants.map(p => p.participant_id),
+  active_participant_ids: session.Participants.map((p) => p.participant_id),
   participant_count: session.Participants.length,
   metadata: {
     created_at: session.created_at,
@@ -649,12 +691,13 @@ React components re-render automatically
 ```
 
 **Code Flow**:
+
 ```typescript
 // 1. Component triggers atom load
 const [session, setSession] = useAtom(sessionBlobAtom);
 
 useEffect(() => {
-  setSession({ type: 'load', sessionId, useCache: true });
+  setSession({ type: "load", sessionId, useCache: true });
 }, [sessionId]);
 
 // 2. Atom calls blobsManager
@@ -686,11 +729,12 @@ Atom updates state + saves to Blobs
 ```
 
 **Code Flow**:
+
 ```typescript
 // Component 1: GameSetup (read/write)
 function GameSetup() {
   const [session, setSession] = useAtom(sessionBlobAtom);
-  
+
   const addSegment = (segment) => {
     setSession({
       type: 'update',
@@ -701,7 +745,7 @@ function GameSetup() {
     // Optimistic: UI updates instantly
     // Async: Blobs save in background
   };
-  
+
   return <div>{session.data?.segments_configured.length} segments</div>;
 }
 
@@ -709,7 +753,7 @@ function GameSetup() {
 function Lobby() {
   const phase = useAtomValue(currentSessionPhaseAtom);
   // Only re-renders when phase changes (not other session updates)
-  
+
   return <div>Phase: {phase}</div>;
 }
 ```
@@ -737,6 +781,7 @@ Future reads served from cache (5min)
 ```
 
 **Code Flow**:
+
 ```typescript
 // Read with cache
 const result = await getSessionBlob(sessionId, useCache: true);
@@ -760,20 +805,20 @@ await saveSessionBlob(sessionData);
 1. Visit homepage → Click "Create Session"
    - Supabase INSERT: Sessions table (phase: 'Setup')
    - Supabase INSERT: Participants table (role: 'Host')
-   
+
 2. Navigate to GameSetup
    - Query Supabase: Load session + participants
    - Save to Netlify Blobs: sessions store (SessionBlobData)
    - Cache in Browser: Cache API (5min) + localStorage
    - Jotai atom: setSession({ type: 'save', data })
-   
+
 3. Create Daily.co room
    - Call /api/createDailyRoom function
    - Daily.co API creates room
    - Supabase INSERT: DailyRooms table
    - Update Netlify Blobs: Merge daily_room_url into session blob
    - Jotai atom: setSession({ type: 'update', data: { daily_room_url } })
-   
+
 4. Navigate to Lobby
    - Supabase UPDATE: Sessions table (phase: 'Lobby')
    - Update Netlify Blobs: Merge phase: 'Lobby'
@@ -786,7 +831,7 @@ await saveSessionBlob(sessionData);
 5. Enter session code → Select role "Home"
    - Supabase SELECT: Verify session exists
    - Supabase INSERT: Participants table (role: 'Home', profile_id)
-   
+
 6. Navigate to Lobby
    - Query Supabase: Load session + all participants
    - Save to Netlify Blobs: participants store (ParticipantBlobData with device_id)
@@ -800,7 +845,7 @@ await saveSessionBlob(sessionData);
    - Supabase broadcasts INSERT event via WebSocket
    - Host receives event → Updates participants list
    - Snapshot updated: saveLobbySnapshot() includes new player
-   
+
 8. Player updates preferences (flag/team)
    - Jotai atom: setParticipant({ type: 'update', data: { flag, team } })
    - Optimistic: UI updates instantly
@@ -809,6 +854,7 @@ await saveSessionBlob(sessionData);
 ```
 
 **Data Flow Summary**:
+
 - **Created**: 1 Session, 2 Participants, 1 DailyRoom, 2 participant blobs, 1 session blob, 1+ lobby snapshots
 - **Cached**: 2 devices × (session cache + participant cache) = 4 cache entries
 - **Backed up**: 2 devices × (session localStorage + participant localStorage) = 4 localStorage items
@@ -822,13 +868,13 @@ await saveSessionBlob(sessionData);
    - All React state lost (Jotai atoms cleared)
    - Supabase subscriptions disconnected
    - Memory cache cleared
-   
+
 2. Lobby.tsx useEffect runs
    - Check for lobby snapshot (< 2 min old)
    - Netlify Blobs: getLobbySnapshot(sessionId)
      → Cache hit: 5ms latency
      → Blobs hit: 50ms latency
-   
+
 3. Snapshot recovery
    - IF snapshot age < 2 minutes:
      - Load snapshot data
@@ -837,7 +883,7 @@ await saveSessionBlob(sessionData);
    - ELSE:
      - Query Supabase: Load full session + participants
      - Rebuild state from database
-   
+
 4. Load participant preferences
    - Jotai atom: setParticipant({ type: 'load', participantId })
    - getParticipantBlob(participantId):
@@ -845,7 +891,7 @@ await saveSessionBlob(sessionData);
      → Check Netlify Blobs
      → Fallback to localStorage
    - Restore: flag, team, audio/video settings
-   
+
 5. Resume normal operations
    - Reconnect Supabase subscription
    - Restart heartbeat (30s interval)
@@ -853,6 +899,7 @@ await saveSessionBlob(sessionData);
 ```
 
 **Recovery Time**:
+
 - Cache hit: ~50ms (instant UX)
 - Blobs hit: ~200ms (fast UX)
 - Supabase hit: ~1000ms (acceptable UX)
@@ -865,14 +912,14 @@ await saveSessionBlob(sessionData);
    - Supabase subscriptions fail
    - Heartbeat fails (silent error)
    - Netlify Blobs writes fail
-   
+
 2. User updates preferences
    - Jotai atom: setParticipant({ type: 'update', data: { flag } })
    - Optimistic: UI updates instantly ✅
    - Async: Netlify Blobs write fails ❌
    - Fallback: localStorage write succeeds ✅
    - No error shown (silent degradation)
-   
+
 3. User refreshes page (still offline)
    - Jotai atoms cleared
    - Attempt snapshot load: FAILS (network error)
@@ -880,7 +927,7 @@ await saveSessionBlob(sessionData);
      → participant data restored ✅
      → session data restored ✅
    - UI renders with last known state
-   
+
 4. Network reconnects
    - Next heartbeat succeeds
    - Next Jotai atom update:
@@ -890,6 +937,7 @@ await saveSessionBlob(sessionData);
 ```
 
 **Offline Capabilities**:
+
 - ✅ Read last cached state
 - ✅ Update local state (optimistic)
 - ✅ Persist to localStorage
@@ -902,33 +950,35 @@ await saveSessionBlob(sessionData);
 
 ### Read Latency (Average)
 
-| Source              | Latency | Cache Hit Rate |
-|---------------------|---------|----------------|
-| Memory Cache        | 0-1ms   | 40%            |
-| Browser Cache API   | 5-10ms  | 30%            |
-| Netlify Blobs       | 50-100ms| 20%            |
-| localStorage        | 10-20ms | 5%             |
-| Supabase            | 200-500ms| 5%            |
+| Source            | Latency   | Cache Hit Rate |
+| ----------------- | --------- | -------------- |
+| Memory Cache      | 0-1ms     | 40%            |
+| Browser Cache API | 5-10ms    | 30%            |
+| Netlify Blobs     | 50-100ms  | 20%            |
+| localStorage      | 10-20ms   | 5%             |
+| Supabase          | 200-500ms | 5%             |
 
 **Total Cache Hit Rate**: 70% served in < 10ms
 
 ### Write Latency (Average)
 
-| Operation           | Latency | Notes                    |
-|---------------------|---------|--------------------------|
-| Jotai Atom Update   | 1-2ms   | Optimistic (instant UI)  |
-| Netlify Blobs Write | 50-100ms| Async (background)       |
-| Cache Warming       | 5-10ms  | After Blobs write        |
-| localStorage Backup | 10-20ms | Synchronous (blocking)   |
-| Supabase UPDATE     | 200-500ms| For authoritative data  |
+| Operation           | Latency   | Notes                   |
+| ------------------- | --------- | ----------------------- |
+| Jotai Atom Update   | 1-2ms     | Optimistic (instant UI) |
+| Netlify Blobs Write | 50-100ms  | Async (background)      |
+| Cache Warming       | 5-10ms    | After Blobs write       |
+| localStorage Backup | 10-20ms   | Synchronous (blocking)  |
+| Supabase UPDATE     | 200-500ms | For authoritative data  |
 
 ### Network Request Reduction
 
 **Without Blobs** (direct Supabase):
+
 - Lobby page load: 5 Supabase queries (session, participants, dailyroom, profiles)
 - Total latency: ~1000-2000ms
 
 **With Blobs** (current architecture):
+
 - Lobby page load: 1 Netlify Blobs read (70% cache hit)
 - Total latency: ~5-100ms (10-20× faster)
 
@@ -939,6 +989,7 @@ await saveSessionBlob(sessionData);
 ## Appendix: Storage Schemas
 
 ### SessionBlobData
+
 ```typescript
 {
   session_id: string;
@@ -960,6 +1011,7 @@ await saveSessionBlob(sessionData);
 ```
 
 ### ParticipantBlobData
+
 ```typescript
 {
   participant_id: string;
@@ -991,6 +1043,7 @@ await saveSessionBlob(sessionData);
 ```
 
 ### LobbySnapshotData
+
 ```typescript
 {
   session_id: string;
