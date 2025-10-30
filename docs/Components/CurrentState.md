@@ -78,6 +78,17 @@
 - **Key Features**: Code input, validation, quick join
 - **Size**: ~6KB
 
+### QuestionManager.tsx
+
+- **Status**: ✅ Active, NEW
+- **Purpose**: CRUD interface for quiz questions
+- **Used In**: GameSetup page
+- **Key Features**: Add/delete questions, segment filtering, answer validation, correct answer marking
+- **Dependencies**: Supabase Questions table, Framer Motion
+- **Size**: ~18KB
+- **Database**: Reads/writes to Questions table with RLS
+- **Validation**: Minimum 2 answers, open-ended detection (WDYK/AUCT), difficulty selection
+
 ### RejoinModal.tsx
 
 - **Status**: ✅ Active

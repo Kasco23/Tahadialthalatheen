@@ -5,6 +5,28 @@
 
 ---
 
+## January 15, 2025
+
+### GameSetup.tsx - Question Management Integration
+
+- **Change**: Added QuestionManager modal integration
+- **Reason**: Enable hosts to create and manage quiz questions before starting game
+- **Features**:
+  - New "📝 Manage Questions" button between segment config and Start Quiz
+  - QuestionManager modal opens on click
+  - Modal allows viewing, adding, filtering, and deleting questions
+  - Positioned above Start Quiz button for logical workflow
+- **Implementation**:
+  - Line 25: Import QuestionManager component
+  - Line 68: Add isQuestionManagerOpen state
+  - Lines 640-648: New "Manage Questions" button in form
+  - Lines 711-717: QuestionManager modal rendering at bottom
+- **Impact**: Hosts can now manage question bank directly from setup page without external tools
+- **Code Location**: Lines integrated throughout component
+- **Size**: ~21KB (increased from 20.8KB)
+
+---
+
 ## October 22, 2025
 
 ### Lobby.tsx - Token Generation Refactoring

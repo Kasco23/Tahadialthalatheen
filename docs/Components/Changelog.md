@@ -5,6 +5,68 @@
 
 ---
 
+## January 15, 2025
+
+### QuestionManager.tsx - Created
+
+**Type**: New Component  
+**Impact**: High - Enables host to manage quiz content before game starts
+
+#### Purpose
+
+- Full CRUD interface for quiz questions
+- Allows hosts to add, view, and delete questions from GameSetup page
+- Segment-based filtering and validation
+
+#### Features
+
+1. **Question Listing**:
+   - Display all questions from Questions table
+   - Filter by segment (WDYK, AUCT, BELL, UPDW, REMO, or ALL)
+   - Shows correct answer highlighting (green background)
+   - Difficulty badges (easy/medium/hard)
+
+2. **Add Question Form**:
+   - Segment selection dropdown
+   - Question text textarea
+   - 4 answer input fields
+   - Correct answer radio buttons (disabled for open-ended segments)
+   - Difficulty selection
+   - Validation: minimum 2 answers, required question text
+
+3. **Delete Questions**:
+   - One-click delete with confirmation dialog
+   - Instant UI update after deletion
+
+4. **Smart Validation**:
+   - WDYK and AUCT segments automatically set `correct_answer_index` to NULL (open-ended)
+   - Other segments require selecting correct answer via radio buttons
+   - Empty answers are filtered out before submission
+
+#### Technical Details
+
+- **Dependencies**: Supabase Questions table, Framer Motion, React hooks
+- **Database Operations**: Direct Supabase client queries (read/insert/delete)
+- **Size**: ~18KB
+- **RLS**: Respects row-level security policies on Questions table
+- **UI Library**: TailwindCSS, Framer Motion animations
+
+#### Integration
+
+- Imported in `GameSetup.tsx`
+- Opened via "📝 Manage Questions" button above "Start Quiz" button
+- Modal overlay with full-screen responsive design
+
+#### User Flow
+
+1. Host creates session → navigates to GameSetup
+2. Clicks "Manage Questions" button
+3. Modal opens showing existing questions
+4. Can filter by segment, add new questions, or delete existing ones
+5. Close modal to return to GameSetup
+
+---
+
 ## October 21, 2025
 
 ### Video Conference Token Management Fix

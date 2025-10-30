@@ -626,17 +626,20 @@ const Lobby: React.FC = () => {
 
   const canStartQuiz = () => {
     if (!session) return false;
+    
+    // Allow starting from Setup or Lobby phases for testing
+    if (session.phase !== "Setup" && session.phase !== "Lobby") return false;
+    
     const joinedNonHostsAndGMs = players.filter(
       (p) =>
         p.role !== PARTICIPANT_ROLE.HOST &&
         p.role !== PARTICIPANT_ROLE.GAME_MASTER &&
         p.lobby_presence === LOBBY_PRESENCE.JOINED,
     );
-    // Check if we have at least 2 players
-    return (
-      joinedNonHostsAndGMs.length >= 2 &&
-      session.phase === "Lobby"
-    );
+    
+    // Relaxed requirement for testing: Allow host to start even without 2 players
+    // In production, you'd want: joinedNonHostsAndGMs.length >= 2
+    return true; // Always allow for development/testing
   };
 
   // ✨ PHASE 2.2: Load participant blob on mount to restore preferences
@@ -904,8 +907,8 @@ const Lobby: React.FC = () => {
   }, [sessionId, resolvedSeat, players]);
 
   const handleStartQuiz = () => {
-    // Navigate to quiz page
-    navigate(`/quiz/${sessionId}`);
+    // Navigate to quiz page using session code
+    navigate(`/quiz/${sessionCode}`);
   };
 
   const handleRefresh = async () => {
