@@ -525,6 +525,198 @@ export type Database = {
           },
         ];
       };
+      Questions: {
+        Row: {
+          question_id: string;
+          segment_code: string;
+          question_text: string;
+          answers: string[];
+          correct_answer_index: number | null;
+          difficulty: "easy" | "medium" | "hard";
+          metadata: Json;
+          api_source: "manual" | "transfermarkt";
+          api_params: Json | null;
+          total_answers_available: number | null;
+          answers_truncated: boolean;
+          created_at: string;
+        };
+        Insert: {
+          question_id?: string;
+          segment_code: string;
+          question_text: string;
+          answers: string[];
+          correct_answer_index?: number | null;
+          difficulty?: "easy" | "medium" | "hard";
+          metadata?: Json;
+          api_source?: "manual" | "transfermarkt";
+          api_params?: Json | null;
+          total_answers_available?: number | null;
+          answers_truncated?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          question_id?: string;
+          segment_code?: string;
+          question_text?: string;
+          answers?: string[];
+          correct_answer_index?: number | null;
+          difficulty?: "easy" | "medium" | "hard";
+          metadata?: Json;
+          api_source?: "manual" | "transfermarkt";
+          api_params?: Json | null;
+          total_answers_available?: number | null;
+          answers_truncated?: boolean;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      question_bank: {
+        Row: {
+          id: string;
+          user_id: string;
+          question_id: string;
+          folder_name: string | null;
+          tags: string[];
+          is_favorite: boolean;
+          notes: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          question_id: string;
+          folder_name?: string | null;
+          tags?: string[];
+          is_favorite?: boolean;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          question_id?: string;
+          folder_name?: string | null;
+          tags?: string[];
+          is_favorite?: boolean;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "question_bank_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "Profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "question_bank_question_id_fkey";
+            columns: ["question_id"];
+            isOneToOne: false;
+            referencedRelation: "Questions";
+            referencedColumns: ["question_id"];
+          },
+        ];
+      };
+      player_question_history: {
+        Row: {
+          id: string;
+          user_id: string;
+          question_id: string;
+          session_id: string | null;
+          answered_correctly: boolean;
+          time_taken_seconds: number | null;
+          points_earned: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          question_id: string;
+          session_id?: string | null;
+          answered_correctly: boolean;
+          time_taken_seconds?: number | null;
+          points_earned?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          question_id?: string;
+          session_id?: string | null;
+          answered_correctly?: boolean;
+          time_taken_seconds?: number | null;
+          points_earned?: number;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "player_question_history_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "Profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "player_question_history_question_id_fkey";
+            columns: ["question_id"];
+            isOneToOne: false;
+            referencedRelation: "Questions";
+            referencedColumns: ["question_id"];
+          },
+          {
+            foreignKeyName: "player_question_history_session_id_fkey";
+            columns: ["session_id"];
+            isOneToOne: false;
+            referencedRelation: "Sessions";
+            referencedColumns: ["session_id"];
+          },
+        ];
+      };
+      generated_questions_metadata: {
+        Row: {
+          id: string;
+          question_id: string;
+          generator_function: string;
+          api_endpoint: string;
+          cache_hit: boolean;
+          generation_time_ms: number | null;
+          data_freshness: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          question_id: string;
+          generator_function: string;
+          api_endpoint: string;
+          cache_hit?: boolean;
+          generation_time_ms?: number | null;
+          data_freshness?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          question_id?: string;
+          generator_function?: string;
+          api_endpoint?: string;
+          cache_hit?: boolean;
+          generation_time_ms?: number | null;
+          data_freshness?: string | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "generated_questions_metadata_question_id_fkey";
+            columns: ["question_id"];
+            isOneToOne: true;
+            referencedRelation: "Questions";
+            referencedColumns: ["question_id"];
+          },
+        ];
+      };
     };
     Views: {
       UserInbox: {
@@ -586,6 +778,40 @@ export type Database = {
           rank: number | null;
         };
       };
+      question_performance_stats: {
+        Row: {
+          question_id: string;
+          question_text: string;
+          segment: string;
+          api_source: string;
+          total_attempts: number;
+          correct_answers: number;
+          correct_percentage: number | null;
+          avg_time_seconds: number | null;
+          fastest_time_seconds: number | null;
+          slowest_time_seconds: number | null;
+        };
+      };
+      user_question_bank_detailed: {
+        Row: {
+          bank_id: string;
+          user_id: string;
+          folder_name: string | null;
+          tags: string[];
+          is_favorite: boolean;
+          notes: string | null;
+          added_to_bank_at: string;
+          question_id: string;
+          question_text: string;
+          segment: string;
+          api_source: string;
+          total_answers_available: number | null;
+          answers_truncated: boolean;
+          generator_function: string | null;
+          cache_hit: boolean | null;
+          data_freshness: string | null;
+        };
+      };
     };
     Functions: {
       verify_host_password: {
@@ -605,6 +831,10 @@ export type Database = {
           p_losses?: number;
         };
         Returns: void;
+      };
+      get_question_difficulty: {
+        Args: { question_uuid: string };
+        Returns: string;
       };
     };
     Enums: {
