@@ -206,17 +206,8 @@ Output JSON:`;
 
       Logger.log("AI parse result:", result);
 
-      // Parse the AI output and create structured question
-      // For demo purposes, we'll use a simple parser
-      // In production, you might want more sophisticated parsing
-      const generatedText = 
-        Array.isArray(result) && 
-        result[0] && 
-        typeof result[0] === "object" && 
-        "generated_text" in result[0] &&
-        typeof result[0].generated_text === "string"
-          ? result[0].generated_text
-          : "";
+      // Extract generated text from AI response
+      const generatedText = extractGeneratedText(result);
       const parsed = parseAIResponse(questionIdea, generatedText);
 
       setParsedQuestion(parsed);
@@ -237,11 +228,32 @@ Output JSON:`;
     }
   };
 
+  // Helper function to safely extract generated text from AI response
+  const extractGeneratedText = (result: unknown): string => {
+    if (!Array.isArray(result)) return "";
+    
+    const firstResult = result[0];
+    if (!firstResult || typeof firstResult !== "object") return "";
+    
+    if ("generated_text" in firstResult && 
+        typeof firstResult.generated_text === "string") {
+      return firstResult.generated_text;
+    }
+    
+    return "";
+  };
+
   // Simple parser to extract structure from the question
+  // Note: aiResponse parameter is reserved for future enhancement where we'll parse
+  // the AI's structured output. Currently using rule-based parsing as fallback.
   const parseAIResponse = (
     originalQuestion: string,
-    _aiResponse: string,
+    aiResponse: string,
   ): ParsedQuestion => {
+    // TODO: Parse aiResponse when AI returns structured JSON format
+    // For now, using keyword-based parsing on originalQuestion
+    void aiResponse; // Explicitly mark as intentionally unused for now
+    
     // Fallback parsing logic when AI response is not perfect
     const lowerQuestion = originalQuestion.toLowerCase();
 
