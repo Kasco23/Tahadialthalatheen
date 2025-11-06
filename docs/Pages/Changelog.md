@@ -5,6 +5,59 @@
 
 ---
 
+## November 6, 2025
+
+### CreateQuestions.tsx - Created (AI Integration)
+
+- **Purpose**: AI-powered question creation using browser-based machine learning
+- **Features**:
+  - Natural language question input with textarea
+  - AI parsing using @huggingface/transformers library
+  - distilgpt2 model (~80MB) loaded from CDN at runtime
+  - Automatic segment detection (WDYK, AUCT, BELL, UPDW, REMO)
+  - Intent extraction (transfers, titles, scorers, managers)
+  - League filtering (top 5 European leagues)
+  - WebGPU acceleration with WASM/ONNX fallback
+  - Device capability checking with user-friendly messages
+  - Model loading progress indicator
+  - Parsed question preview and save to localStorage
+  - "Fetch Answers" button (placeholder for future API integration)
+- **Dependencies**: 
+  - @huggingface/transformers v3.7.6
+  - StadiumBackground, Alert, Logger
+- **Impact**: 
+  - Enables AI-assisted question authoring for hosts
+  - Zero server dependency - all processing in browser
+  - No API costs - model runs locally
+  - Mobile-friendly with fallback support
+- **Size**: ~11KB gzipped (11.32 KB uncompressed)
+
+### GameSetup.tsx - AI Button Integration
+
+- **Change**: Replaced "📝 Manage Questions" button with "🤖 Create with AI" button
+- **Reason**: Shift from manual question management to AI-powered creation
+- **Implementation**:
+  - Removed QuestionManager modal and state (lines 25, 68, 711-717)
+  - Added "Create with AI" button that routes to `/create-questions` (line 648)
+  - Cleaned up imports and unused QuestionManager references
+- **Impact**: 
+  - Cleaner UI with single AI-focused entry point
+  - Improved workflow: GameSetup → AI Creation → Quiz
+  - Reduced component size from 23KB to 20KB
+- **Code Location**: Lines 646-652 (new button), removed lines throughout
+
+### App.tsx - AI Route Added
+
+- **Change**: Added `/create-questions` route with lazy loading
+- **Reason**: Support new AI question creation page
+- **Implementation**:
+  - Line 22: Added CreateQuestions lazy import
+  - Line 50: Added Route element between gamesetup and join routes
+- **Impact**: Seamless navigation to AI page from GameSetup
+- **Code Location**: Lines 22, 50
+
+---
+
 ## January 15, 2025
 
 ### GameSetup.tsx - Question Management Integration

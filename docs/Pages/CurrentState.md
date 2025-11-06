@@ -1,7 +1,7 @@
 # Pages - Current State
 
-**Last Updated**: October 21, 2025  
-**Total Active Pages**: 13
+**Last Updated**: November 6, 2025  
+**Total Active Pages**: 14
 
 ---
 
@@ -83,17 +83,19 @@
 
 ### GameSetup.tsx
 
-- **Status**: ✅ Active (Enhanced - Phase 2.1)
+- **Status**: ✅ Active (Enhanced - Phase 2.1 + AI Integration)
 - **Route**: `/gamesetup/:sessionCode`
 - **Route Protection**: Host only
 - **Purpose**: Configure quiz segments and create Daily.co room with comprehensive Blobs persistence
 - **Dependencies**: Supabase, Daily.co, blobsManager.ts, sessionState
 - **Key Features**:
   - Set question counts for 5 segments (WDYK, AUCT, BELL, UPDW, REMO)
+  - **🤖 NEW**: AI-powered question creation via "Create with AI" button
+  - Routes to `/create-questions` for AI-assisted question authoring
   - Create Daily.co video room with token system
-  - **✨ NEW**: Comprehensive session data persistence to Netlify Blobs
-  - **✨ NEW**: Session state restoration from Blobs on mount (page refresh recovery)
-  - **✨ NEW**: Multi-layer caching (Browser Cache API + memory + Blobs + localStorage)
+  - **✨ PHASE 2.1**: Comprehensive session data persistence to Netlify Blobs
+  - **✨ PHASE 2.1**: Session state restoration from Blobs on mount (page refresh recovery)
+  - **✨ PHASE 2.1**: Multi-layer caching (Browser Cache API + memory + Blobs + localStorage)
   - Update legacy session state for backward compatibility
   - Host presence tracking with heartbeat mechanism
   - Real-time participant count from Lobby
@@ -112,7 +114,40 @@
   - Cache hit rate: 80%+ (target)
   - Reduced Supabase queries via cached Blobs data
   - Instant state restoration on page refresh
-- **Size**: ~23KB (increased due to Blobs integration)
+- **Size**: ~20KB (optimized with AI route extraction)
+
+### CreateQuestions.tsx
+
+- **Status**: ✅ Active (NEW - AI Integration)
+- **Route**: `/create-questions`
+- **Purpose**: AI-powered question creation using browser-based LLM
+- **Dependencies**: @huggingface/transformers, StadiumBackground, Alert
+- **Key Features**:
+  - Natural language question input (textarea)
+  - AI parsing with distilgpt2 model (~80MB, CDN-loaded)
+  - Automatic segment type detection (WDYK, AUCT, BELL, UPDW, REMO)
+  - Intent extraction (transfers, titles, scorers, etc.)
+  - League filtering (Premier League, La Liga, Serie A, Bundesliga, Ligue 1)
+  - WebGPU acceleration support with WASM/ONNX fallback
+  - Device capability checks with friendly error messages
+  - Progress indicator for model loading
+  - Parsed question preview and editing
+  - Save to localStorage for Question Manager integration
+  - "Fetch Answers" placeholder (future API integration)
+- **AI/ML Stack**:
+  - Library: @huggingface/transformers v3.7.6
+  - Model: onnx-community/distilgpt2 (~80MB)
+  - Runtime: Browser-based (WebGPU or WASM)
+  - No server dependency, zero API costs
+- **Browser Support**:
+  - ✅ Chrome/Edge (WebGPU accelerated)
+  - ✅ Firefox/Safari (WASM fallback)
+  - ❌ Older browsers without WebAssembly
+- **Performance**:
+  - Model load time: 10-30s (first time, then cached)
+  - Inference time: 2-5s per question
+  - Mobile-friendly with WASM fallback
+- **Size**: ~11KB gzipped
 
 ### Lobby.tsx
 
