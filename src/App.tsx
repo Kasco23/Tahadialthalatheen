@@ -20,6 +20,7 @@ const FlagSelection = lazy(() => import("./pages/FlagSelection"));
 const TeamSelection = lazy(() => import("./pages/TeamSelection"));
 const Inbox = lazy(() => import("./pages/Inbox"));
 const Leaderboard = lazy(() => import("./pages/Leaderboard"));
+const CreateQuestions = lazy(() => import("./pages/CreateQuestions"));
 
 function App() {
   // ✨ PHASE 2.4: Initialize device ID on app startup
@@ -47,6 +48,7 @@ function App() {
               <Route path="/select-flag" element={<FlagSelection />} />
               <Route path="/select-team" element={<TeamSelection />} />
               <Route path="/gamesetup/:sessionCode" element={<GameSetup />} />
+              <Route path="/create-questions" element={<CreateQuestions />} />
               <Route path="/join" element={<JoinPage />} />
               <Route path="/lobby/:sessionCode/:seat?" element={<Lobby />} />
               <Route path="/quiz/:sessionCode" element={<Quiz />} />

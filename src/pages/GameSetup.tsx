@@ -22,7 +22,6 @@ import { updateSessionState } from "../lib/sessionState";
 import { StadiumBackground } from "../components/StadiumBackground";
 import { InviteFriendsModal } from "../components/InviteFriendsModal";
 import { UsernameSetupBanner } from "../components/UsernameSetupBanner";
-import { QuestionManager } from "../components/QuestionManager";
 import {
   saveSessionBlob,
   getSessionBlob,
@@ -65,7 +64,6 @@ const GameSetup: React.FC = () => {
     REMO: 4, // Remontada
   });
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
-  const [isQuestionManagerOpen, setIsQuestionManagerOpen] = useState(false);
 
   // Update atoms when sessionId is resolved
   useEffect(() => {
@@ -642,14 +640,14 @@ const GameSetup: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Manage Questions Button */}
+                  {/* Create with AI Button */}
                   <div className="pt-4">
                     <button
                       type="button"
-                      onClick={() => setIsQuestionManagerOpen(true)}
-                      className="w-full py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold rounded-xl shadow-lg transition-all duration-300 hover:shadow-2xl hover:scale-105 text-base"
+                      onClick={() => navigate("/create-questions")}
+                      className="w-full py-3 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-bold rounded-xl shadow-lg transition-all duration-300 hover:shadow-2xl hover:scale-105 text-base"
                     >
-                      📝 Manage Questions
+                      🤖 Create with AI
                     </button>
                   </div>
 
@@ -712,15 +710,6 @@ const GameSetup: React.FC = () => {
             isOpen={isInviteModalOpen}
             onClose={() => setIsInviteModalOpen(false)}
             sessionCode={sessionCode}
-            sessionId={sessionId}
-          />
-        )}
-
-        {/* Question Manager Modal */}
-        {sessionId && (
-          <QuestionManager
-            isOpen={isQuestionManagerOpen}
-            onClose={() => setIsQuestionManagerOpen(false)}
             sessionId={sessionId}
           />
         )}

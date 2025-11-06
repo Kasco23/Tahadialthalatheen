@@ -22,7 +22,6 @@ interface QuestionManagerProps {
 export const QuestionManager: React.FC<QuestionManagerProps> = ({
   isOpen,
   onClose,
-  sessionId,
 }) => {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -99,7 +98,7 @@ export const QuestionManager: React.FC<QuestionManagerProps> = ({
 
     setIsLoading(true);
     try {
-      const { data, error } = await (
+      const { error } = await (
         await import("../lib/supabaseClient")
       ).supabase
         .from("Questions")

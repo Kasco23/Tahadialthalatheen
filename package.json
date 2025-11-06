@@ -36,6 +36,7 @@
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@heroicons/react": "^2.2.0",
+    "@huggingface/transformers": "^3.7.6",
     "@mendable/firecrawl-js": "^4.4.1",
     "@mui/material": "^7.3.4",
     "@netlify/blobs": "^10.2.0",

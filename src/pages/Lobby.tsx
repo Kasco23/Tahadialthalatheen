@@ -654,15 +654,8 @@ const Lobby: React.FC = () => {
     // Allow starting from Setup or Lobby phases for testing
     if (session.phase !== "Setup" && session.phase !== "Lobby") return false;
 
-    const joinedNonHostsAndGMs = players.filter(
-      (p) =>
-        p.role !== PARTICIPANT_ROLE.HOST &&
-        p.role !== PARTICIPANT_ROLE.GAME_MASTER &&
-        p.lobby_presence === LOBBY_PRESENCE.JOINED,
-    );
-
     // Relaxed requirement for testing: Allow host to start even without 2 players
-    // In production, you'd want: joinedNonHostsAndGMs.length >= 2
+    // In production, you'd want to check: players.filter(p => ...).length >= 2
     return true; // Always allow for development/testing
   };
 
