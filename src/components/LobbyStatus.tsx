@@ -26,6 +26,21 @@ interface ParticipantInfo {
   } | null;
 }
 
+interface RawParticipantData {
+  participant_id: string;
+  role: string;
+  lobby_presence: string;
+  Profiles?: {
+    name?: string | null;
+    flag?: string | null;
+    team?: string | null;
+  } | Array<{
+    name?: string | null;
+    flag?: string | null;
+    team?: string | null;
+  }> | null;
+}
+
 interface DailyRoomInfo {
   room_url: string;
   ready?: boolean;
@@ -71,7 +86,7 @@ const LobbyStatus: React.FC<LobbyStatusProps> = ({
         } else {
           // Normalize the data - Profiles could be object or array
           const normalizedParticipants = (participantsData || []).map(
-            (p: any) => {
+            (p: RawParticipantData): ParticipantInfo => {
               const profileData = Array.isArray(p.Profiles)
                 ? p.Profiles[0]
                 : p.Profiles;

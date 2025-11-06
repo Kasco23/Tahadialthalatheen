@@ -25,6 +25,26 @@ interface PlayerData {
   team_logo_url?: string;
 }
 
+interface RawPlayerData {
+  participant_id: string;
+  session_id: string;
+  role: string;
+  profile_id?: string | null;
+  score?: number;
+  Profiles?: {
+    name?: string | null;
+    flag?: string | null;
+    team?: string | null;
+  } | Array<{
+    name?: string | null;
+    flag?: string | null;
+    team?: string | null;
+  }> | null;
+  name?: string;
+  flag?: string;
+  team_logo_url?: string;
+}
+
 interface SegmentScore {
   segment_code: string;
   player1_score: number;
@@ -127,7 +147,7 @@ const Results: React.FC = () => {
           setError("Failed to load player data");
         } else {
           // Normalize the data - Profiles could be object or array
-          const normalizedPlayers = (playersData || []).map((p: any) => {
+          const normalizedPlayers = (playersData || []).map((p: RawPlayerData): PlayerData => {
             const profileData = Array.isArray(p.Profiles)
               ? p.Profiles[0]
               : p.Profiles;
@@ -137,7 +157,7 @@ const Results: React.FC = () => {
               // Add legacy fields for backward compatibility
               name: profileData?.name || "Guest",
               flag: profileData?.flag || "xx",
-              team_logo_url: profileData?.team || null,
+              team_logo_url: profileData?.team || undefined,
             };
           });
           setPlayers(normalizedPlayers);

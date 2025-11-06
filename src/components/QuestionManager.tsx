@@ -10,7 +10,7 @@ interface Question {
   answers: string[];
   correct_answer_index: number | null;
   difficulty: "easy" | "medium" | "hard";
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 interface QuestionManagerProps {
@@ -49,6 +49,7 @@ export const QuestionManager: React.FC<QuestionManagerProps> = ({
     if (isOpen) {
       fetchQuestions();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, selectedSegment]);
 
   const fetchQuestions = async () => {

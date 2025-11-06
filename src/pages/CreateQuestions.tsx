@@ -209,10 +209,14 @@ Output JSON:`;
       // Parse the AI output and create structured question
       // For demo purposes, we'll use a simple parser
       // In production, you might want more sophisticated parsing
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const generatedText = Array.isArray(result) && result[0] && typeof result[0] === "object" && "generated_text" in result[0]
-        ? String((result[0] as any).generated_text)
-        : "";
+      const generatedText = 
+        Array.isArray(result) && 
+        result[0] && 
+        typeof result[0] === "object" && 
+        "generated_text" in result[0] &&
+        typeof result[0].generated_text === "string"
+          ? result[0].generated_text
+          : "";
       const parsed = parseAIResponse(questionIdea, generatedText);
 
       setParsedQuestion(parsed);
