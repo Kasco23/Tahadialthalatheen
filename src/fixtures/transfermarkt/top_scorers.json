@@ -1,0 +1,33 @@
+[
+  {
+    "question": "Who was the top scorer in Premier League 2022-23?",
+    "answer": "Erling Haaland",
+    "options": ["Erling Haaland", "Harry Kane", "Ivan Toney", "Callum Wilson"],
+    "difficulty": "medium",
+    "metadata": {
+      "goals": 36,
+      "assists": 8,
+      "club": "Manchester City"
+    }
+  },
+  {
+    "question": "Which player scored the most goals in La Liga 2022-23?",
+    "answer": "Robert Lewandowski",
+    "options": ["Robert Lewandowski", "Karim Benzema", "Vinicius Jr", "Antoine Griezmann"],
+    "difficulty": "medium",
+    "metadata": {
+      "goals": 23,
+      "club": "Barcelona"
+    }
+  },
+  {
+    "question": "Who led Serie A in goals during 2022-23?",
+    "answer": "Victor Osimhen",
+    "options": ["Victor Osimhen", "Lautaro Martinez", "Ciro Immobile", "Rafael Leao"],
+    "difficulty": "hard",
+    "metadata": {
+      "goals": 26,
+      "club": "Napoli"
+    }
+  }
+]

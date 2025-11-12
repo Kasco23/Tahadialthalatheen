@@ -56,6 +56,13 @@
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
+# Cache AI model files with range request support
+[[headers]]
+  for = "/models/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+    Accept-Ranges = "bytes"
+
 # ---------------------------------- Redirects ---------------------------------
 # SPA fallback
 [[redirects]]

@@ -7,8 +7,9 @@
     "node": ">=22"
   },
   "scripts": {
-    "dev": "vite",
-    "dev:netlify": "netlify dev",
+    "dev": "netlify dev",
+    "dev:vite": "vite",
+    "dev:functions": "netlify functions:serve",
     "build": "tsc -b && vite build",
     "build:prod": "pnpm build && node scripts/size-check.mjs",
     "test": "vitest run",
@@ -122,6 +123,7 @@
     "tailwindcss": "^4.1.15",
     "ts-jest": "^29.4.5",
     "ts-node": "^10.9.2",
+    "tsx": "^4.20.6",
     "typescript-eslint": "^8.46.2",
     "vite-bundle-analyzer": "^1.2.3",
     "vite-plugin-bundlesize": "^0.3.0",

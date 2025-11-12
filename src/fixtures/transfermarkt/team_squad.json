@@ -1,0 +1,64 @@
+[
+  {
+    "question": "Name 5 players from Manchester City's 2024-25 squad",
+    "answer": "Multiple correct answers (e.g., Haaland, De Bruyne, Rodri, Foden, Ederson)",
+    "difficulty": "medium",
+    "category": "Squads",
+    "metadata": {
+      "team": "Manchester City",
+      "season": "2024-25",
+      "validAnswers": ["Haaland", "De Bruyne", "Rodri", "Foden", "Ederson", "Grealish", "Kovacic", "Bernardo Silva", "Doku", "Walker"]
+    }
+  },
+  {
+    "question": "List 3 defenders from Liverpool's 2024-25 squad",
+    "answer": "Multiple correct answers (e.g., Van Dijk, Konaté, Robertson)",
+    "difficulty": "medium",
+    "category": "Squads",
+    "metadata": {
+      "team": "Liverpool",
+      "position": "Defender",
+      "season": "2024-25",
+      "note": "Trent Alexander-Arnold played for Liverpool in 2024-25 before joining Real Madrid in June 2025",
+      "validAnswers": ["Van Dijk", "Konaté", "Joe Gomez", "Robertson", "Tsimikas", "Quansah", "Conor Bradley"]
+    }
+  },
+  {
+    "question": "Name the primary goalkeeper for Real Madrid in 2024-25",
+    "answer": "Thibaut Courtois",
+    "options": ["Thibaut Courtois", "Andriy Lunin", "Kepa Arrizabalaga", "Alisson Becker"],
+    "difficulty": "easy",
+    "category": "Squads",
+    "metadata": {
+      "team": "Real Madrid",
+      "season": "2024-25",
+      "position": "Goalkeeper",
+      "note": "Lunin is backup goalkeeper"
+    }
+  },
+  {
+    "question": "Name 4 forwards in Arsenal's 2024-25 squad",
+    "answer": "Multiple correct answers (e.g., Saka, Jesus, Martinelli, Havertz)",
+    "difficulty": "medium",
+    "category": "Squads",
+    "metadata": {
+      "team": "Arsenal",
+      "season": "2024-25",
+      "position": "Forward",
+      "validAnswers": ["Saka", "Jesus", "Martinelli", "Havertz", "Trossard", "Sterling"]
+    }
+  },
+  {
+    "question": "Which English defender joined Real Madrid from Liverpool in 2025?",
+    "answer": "Trent Alexander-Arnold",
+    "options": ["Trent Alexander-Arnold", "Joe Gomez", "Jarell Quansah", "Conor Bradley"],
+    "difficulty": "easy",
+    "category": "Transfers",
+    "metadata": {
+      "fromClub": "Liverpool",
+      "toClub": "Real Madrid",
+      "date": "June 1, 2025",
+      "position": "Right-Back"
+    }
+  }
+]

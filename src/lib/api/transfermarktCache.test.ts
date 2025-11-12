@@ -12,8 +12,8 @@ import {
   getPlayerJerseyNumbersCached,
   searchClubCached,
   getClubPlayersCached,
-  searchCompetitionCached,
-  getCompetitionClubsCached,
+  // searchCompetitionCached,
+  // getCompetitionClubsCached,
   invalidateCache,
   getCacheStats,
   CacheTTL,
@@ -38,7 +38,7 @@ async function testCaching() {
     // ========================================================================
     console.log("2️⃣ Testing cache HIT (second call)...");
     const start2 = Date.now();
-    const search2 = await searchPlayerCached("Thierry Henry");
+    await searchPlayerCached("Thierry Henry");
     const time2 = Date.now() - start2;
     console.log(`✅ Second call completed in ${time2}ms (from cache)`);
     console.log(
@@ -64,7 +64,7 @@ async function testCaching() {
     const henryId = search1.results[0].id;
     console.log(`4️⃣ Testing player profile caching for ID ${henryId}...`);
     const start4 = Date.now();
-    const profile1 = await getPlayerProfileCached(henryId);
+    await getPlayerProfileCached(henryId);
     const time4 = Date.now() - start4;
     console.log(`✅ First profile call: ${time4}ms`);
 
@@ -81,7 +81,7 @@ async function testCaching() {
     // ========================================================================
     console.log(`5️⃣ Testing transfer history caching...`);
     const start6 = Date.now();
-    const transfers1 = await getPlayerTransfersCached(henryId);
+    await getPlayerTransfersCached(henryId);
     const time6 = Date.now() - start6;
     console.log(`✅ First transfers call: ${time6}ms`);
 
@@ -98,7 +98,7 @@ async function testCaching() {
     // ========================================================================
     console.log(`6️⃣ Testing stats caching...`);
     const start8 = Date.now();
-    const stats1 = await getPlayerStatsCached(henryId);
+    await getPlayerStatsCached(henryId);
     const time8 = Date.now() - start8;
     console.log(`✅ First stats call: ${time8}ms`);
 
@@ -116,7 +116,7 @@ async function testCaching() {
     // ========================================================================
     console.log(`7️⃣ Testing achievements caching...`);
     const start10 = Date.now();
-    const achievements1 = await getPlayerAchievementsCached(henryId);
+    await getPlayerAchievementsCached(henryId);
     const time10 = Date.now() - start10;
     console.log(`✅ First achievements call: ${time10}ms`);
 
@@ -133,9 +133,9 @@ async function testCaching() {
     // ========================================================================
     console.log(`8️⃣ Testing jersey numbers caching...`);
     const start12 = Date.now();
-    const jerseys1 = await getPlayerJerseyNumbersCached(henryId);
+    await getPlayerJerseyNumbersCached(henryId);
     const time12 = Date.now() - start12;
-    console.log(`✅ First jerseys call: ${time12}ms`);
+    console.log(`✅ First jersey numbers call: ${time12}ms`);
 
     const start13 = Date.now();
     const jerseys2 = await getPlayerJerseyNumbersCached(henryId);
@@ -166,17 +166,17 @@ async function testCaching() {
     // Test 10: Club Players Caching
     // ========================================================================
     const arsenalId = clubSearch1.results[0].id;
-    console.log(`🔟 Testing club players caching for ID ${arsenalId}...`);
-    const start16 = Date.now();
-    const squad1 = await getClubPlayersCached(arsenalId, "2023");
-    const time16 = Date.now() - start16;
-    console.log(`✅ First squad call: ${time16}ms`);
+    console.log(`🔟 Testing club players caching...`);
+    const start18 = Date.now();
+    await getClubPlayersCached(arsenalId, "2023");
+    const time18 = Date.now() - start18;
+    console.log(`✅ First squad call: ${time18}ms`);
 
     const start17 = Date.now();
     const squad2 = await getClubPlayersCached(arsenalId, "2023");
     const time17 = Date.now() - start17;
     console.log(
-      `✅ Second squad call: ${time17}ms (${Math.round((time16 / time17) * 100) / 100}x faster)`,
+      `✅ Second squad call: ${time17}ms (${Math.round((time18 / time17) * 100) / 100}x faster)`,
     );
     console.log(`   → Found ${squad2.players.length} players\n`);
 
@@ -199,14 +199,14 @@ async function testCaching() {
 
     // Verify cache was cleared
     console.log("1️⃣3️⃣ Verifying cache invalidation...");
-    const start18 = Date.now();
-    const search4 = await searchPlayerCached("Thierry Henry");
-    const time18 = Date.now() - start18;
+    const start19 = Date.now();
+    await searchPlayerCached("Thierry Henry");
+    const time19 = Date.now() - start19;
     console.log(
-      `✅ Search after invalidation: ${time18}ms (should be slower, fresh API call)`,
+      `✅ Search after invalidation: ${time19}ms (should be slower, fresh API call)`,
     );
     console.log(
-      `   → Invalidation working: ${time18 > 100 ? "✅ YES" : "❌ NO"}\n`,
+      `   → Invalidation working: ${time19 > 100 ? "✅ YES" : "❌ NO"}\n`,
     );
 
     // ========================================================================

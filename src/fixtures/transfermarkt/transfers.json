@@ -1,0 +1,52 @@
+[
+  {
+    "question": "Which club did Declan Rice join in 2023?",
+    "answer": "Arsenal",
+    "options": [
+      "Arsenal",
+      "Manchester City",
+      "Chelsea",
+      "Liverpool"
+    ],
+    "difficulty": "easy",
+    "category": "Transfers",
+    "metadata": {
+      "fee": "£105M",
+      "fromClub": "West Ham United",
+      "date": "July 2023"
+    }
+  },
+  {
+    "question": "Where did Harry Kane transfer to in 2023?",
+    "answer": "Bayern Munich",
+    "options": [
+      "Bayern Munich",
+      "Real Madrid",
+      "Paris Saint-Germain",
+      "Manchester United"
+    ],
+    "difficulty": "easy",
+    "category": "Transfers",
+    "metadata": {
+      "fee": "€100M",
+      "fromClub": "Tottenham Hotspur",
+      "date": "August 2023"
+    }
+  },
+  {
+    "question": "Which Saudi club signed Cristiano Ronaldo in 2023?",
+    "answer": "Al-Nassr",
+    "options": [
+      "Al-Nassr",
+      "Al-Hilal",
+      "Al-Ittihad",
+      "Al-Ahli"
+    ],
+    "difficulty": "easy",
+    "category": "Transfers",
+    "metadata": {
+      "fromClub": "Manchester United (free agent)",
+      "date": "January 2023"
+    }
+  }
+]

@@ -1,0 +1,73 @@
+[
+  {
+    "question": "Who won the Premier League Golden Boot in 2023-24?",
+    "answer": "Erling Haaland",
+    "options": ["Erling Haaland", "Cole Palmer", "Alexander Isak", "Ollie Watkins"],
+    "difficulty": "medium",
+    "category": "Premier League",
+    "metadata": {
+      "season": "2023-24",
+      "goals": 27,
+      "source": "Premier League official statistics"
+    }
+  },
+  {
+    "question": "Which club signed Jude Bellingham in 2023?",
+    "answer": "Real Madrid",
+    "options": ["Real Madrid", "Barcelona", "Bayern Munich", "Liverpool"],
+    "difficulty": "easy",
+    "category": "Transfers",
+    "metadata": {
+      "transferFee": "€103M",
+      "fromClub": "Borussia Dortmund",
+      "date": "June 2023"
+    }
+  },
+  {
+    "question": "Which team won the Champions League in 2023?",
+    "answer": "Manchester City",
+    "options": ["Manchester City", "Inter Milan", "Real Madrid", "Bayern Munich"],
+    "difficulty": "easy",
+    "category": "Champions League",
+    "metadata": {
+      "season": "2022-23",
+      "final": "Manchester City 1-0 Inter Milan"
+    }
+  },
+  {
+    "question": "Who is the all-time top scorer in La Liga history?",
+    "answer": "Lionel Messi",
+    "options": ["Lionel Messi", "Cristiano Ronaldo", "Telmo Zarra", "Hugo Sánchez"],
+    "difficulty": "medium",
+    "category": "La Liga",
+    "metadata": {
+      "goals": 474,
+      "club": "FC Barcelona",
+      "years": "2004-2021"
+    }
+  },
+  {
+    "question": "Which player holds the record for most Premier League assists?",
+    "answer": "Ryan Giggs",
+    "options": ["Ryan Giggs", "Cesc Fàbregas", "Frank Lampard", "Kevin De Bruyne"],
+    "difficulty": "hard",
+    "category": "Premier League",
+    "metadata": {
+      "assists": 162,
+      "club": "Manchester United",
+      "years": "1992-2014"
+    }
+  },
+  {
+    "question": "Who won the 2024 Ballon d'Or?",
+    "answer": "Rodri",
+    "options": ["Rodri", "Vinicius Junior", "Jude Bellingham", "Erling Haaland"],
+    "difficulty": "easy",
+    "category": "Awards",
+    "metadata": {
+      "year": 2024,
+      "club": "Manchester City",
+      "nationality": "Spain"
+    }
+  }
+]
