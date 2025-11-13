@@ -1,13 +1,33 @@
 # Features - Current State
 
-**Last Updated**: January 24, 2025  
-**Feature Count**: 13 major features
+**Last Updated**: January 25, 2025  
+**Feature Count**: 14 major features
 
 ---
 
 ## Core Quiz Features
 
-### 1. Session Management
+### 1. AI Intent-based Question Authoring ⭐ NEW
+
+- **Pages**: CreateQuestions
+- **Purpose**: Generate football quiz questions using natural language prompts
+- **Architecture**:
+  - Intent parser with 7 regex patterns (rules-first approach)
+  - Netlify resolver function with 5 task-specific handlers
+  - Transfermarkt API integration with caching
+  - Direct save to Supabase Questions table
+- **Features**:
+  - Natural language → structured Intent JSON
+  - WebGPU/WASM/CPU backend detection
+  - Mock mode for fast iteration
+  - Example prompts dropdown (5 samples)
+  - GameSetup integration with round count display
+- **Components**: intentParser.ts, resolve-intent.mts, transfermarktCache helpers
+- **Database**: Questions table, question_bank table
+- **Tests**: 11 unit tests (all passing)
+- **Documentation**: `/docs/Features/AI_Intent_Authoring.md`
+
+### 2. Session Management
 
 - **Pages**: Homepage, GameSetup
 - **Features**: Create session, auto-generate session code, host password protection

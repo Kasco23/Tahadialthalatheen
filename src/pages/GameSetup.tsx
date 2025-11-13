@@ -642,6 +642,27 @@ const GameSetup: React.FC = () => {
                     </div>
                   </div>
 
+                  {/* Create Questions with AI Button */}
+                  {import.meta.env.VITE_ENABLE_AI_AUTHORING === "true" && (
+                    <div className="pt-4">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          navigate("/create-questions", {
+                            state: {
+                              sessionId,
+                              sessionCode,
+                              roundCounts: segments,
+                            },
+                          })
+                        }
+                        className="w-full py-3 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-bold rounded-xl shadow-lg transition-all duration-300 hover:shadow-2xl hover:scale-105 text-base"
+                      >
+                        🤖 Create Questions with AI
+                      </button>
+                    </div>
+                  )}
+
                   {/* Manage Questions Button */}
                   <div className="pt-4">
                     <button
