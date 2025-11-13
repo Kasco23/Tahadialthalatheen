@@ -79,7 +79,7 @@
 # ---------------------------- Dev server (netlify dev) -------------------------
 [dev]
   framework   = "vite"
-  command     = "pnpm run dev"
+  command     = "pnpm run dev:vite"
   port        = 3000            # external port exposed locally
   targetPort  = 5173            # Vite's internal dev port
   autoLaunch  = false

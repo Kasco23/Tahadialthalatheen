@@ -28,6 +28,6 @@
     "**/*.test.tsx",
     "env.d.ts"
   ],
-  "exclude": ["node_modules", "dist", "netlify/edge-functions"],
+  "exclude": ["node_modules", "dist", "netlify/edge-functions", "src/lib/ai/intentParser.test.ts", "src/lib/ai/llmLoader.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

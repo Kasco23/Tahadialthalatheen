@@ -48,10 +48,15 @@ interface Intent {
   };
   limit?: number;
   metadata?: {
-    method: "rules" | "wasm-llm";
+    method: "rules" | "wasm-llm" | "ai-backend";
     confidence: number;
     fallback?: boolean;
+    originalPrompt?: string;
   };
+  // NEW: Support AI-first intent format
+  rawPrompt?: string;
+  method?: "ai-backend";
+  confidence?: number;
 }
 
 interface ResolveIntentRequest {
@@ -75,6 +80,106 @@ interface DBReadyQuestion {
 }
 
 // ============================================================================
+// Validation Helpers
+// ============================================================================
+
+interface ValidationResult {
+  valid: boolean;
+  error?: string;
+  suggestion?: string;
+}
+
+function validateIntent(intent: Intent): ValidationResult {
+  // Check required fields
+  if (!intent.segment || !intent.task) {
+    return {
+      valid: false,
+      error: "Intent must have 'segment' and 'task' fields",
+    };
+  }
+
+  // Check segment is valid
+  const validSegments: SegmentCode[] = ["WDYK", "BELL", "REMO", "UPDW", "AUCTION"];
+  if (!validSegments.includes(intent.segment)) {
+    return {
+      valid: false,
+      error: `Invalid segment: ${intent.segment}`,
+      suggestion: `Must be one of: ${validSegments.join(", ")}`,
+    };
+  }
+
+  // Task-specific validation
+  if (!intent.constraints) {
+    return {
+      valid: false,
+      error: "Intent must have 'constraints' object",
+      suggestion: "Try phrasing your request more specifically (e.g., include player name, team, season)",
+    };
+  }
+
+  // Validate based on task
+  switch (intent.task) {
+    case "club_squad_by_season":
+      if (!intent.constraints.clubName || !intent.constraints.season) {
+        return {
+          valid: false,
+          error: "Club squad queries require 'clubName' and 'season'",
+          suggestion: "Try: 'List Manchester United squad from 2007/08 season'",
+        };
+      }
+      break;
+
+    case "player_stats_in_competition_season":
+      if (!intent.constraints.playerName || !intent.constraints.competition) {
+        return {
+          valid: false,
+          error: "Player stats queries require 'playerName' and 'competition'",
+          suggestion: "Try: 'How many goals did Messi score in Champions League 2014/15?'",
+        };
+      }
+      break;
+
+    case "achievement_by_year":
+      if (!intent.constraints.trophy || !intent.constraints.year) {
+        return {
+          valid: false,
+          error: "Achievement queries require 'trophy' and 'year'",
+          suggestion: "Try: 'Who won the Ballon d\\'Or in 2023?'",
+        };
+      }
+      break;
+
+    case "players_with_titles_multiple_countries":
+      if (!intent.constraints.leagues || !Array.isArray(intent.constraints.leagues)) {
+        return {
+          valid: false,
+          error: "Multi-country title queries require 'leagues' array",
+          suggestion: "Try: 'Find players who won La Liga with Barcelona and Serie A with Juventus'",
+        };
+      }
+      break;
+  }
+
+  return { valid: true };
+}
+
+const MAX_ANSWERS = 100; // Cap for WDYK questions
+
+function truncateAnswers(answers: string[], maxCount: number = MAX_ANSWERS): {
+  truncated: string[];
+  wasTruncated: boolean;
+  total: number;
+} {
+  const total = answers.length;
+  const truncated = answers.slice(0, maxCount);
+  return {
+    truncated,
+    wasTruncated: total > maxCount,
+    total,
+  };
+}
+
+// ============================================================================
 // Main Handler
 // ============================================================================
 
@@ -90,11 +195,65 @@ export default async (req: Request, context: Context) => {
   try {
     // Parse request body
     const body: ResolveIntentRequest = await req.json();
-    const { intent, useMocks = false } = body;
+    const { useMocks = false } = body;
+    let { intent } = body;
 
-    if (!intent || !intent.segment || !intent.task) {
+    // ========================================================================
+    // AI-FIRST INTENT ADAPTER
+    // ========================================================================
+    // NEW: Check if this is the new AI-first intent format (has rawPrompt)
+    // If so, use a simple keyword-based parser to convert to old format
+    // TODO: Replace this with actual AI (OpenAI/Claude API) for production
+    if ('rawPrompt' in intent && intent.rawPrompt) {
+      console.log(`🤖 AI-first intent detected, converting from: "${intent.rawPrompt}"`);
+      
+      const rawPrompt = intent.rawPrompt.toLowerCase();
+      
+      // Simple keyword-based detection for demo
+      if (rawPrompt.includes("la liga") && (rawPrompt.includes("top scorer") || rawPrompt.includes("scorer"))) {
+        // Convert to old format for BELL segment
+        intent = {
+          segment: "BELL" as SegmentCode,
+          task: "top_scorers_by_competition",
+          constraints: {
+            competition: "La Liga",
+            season: "2023/24", // Default to last season
+            limit: 10
+          },
+          metadata: {
+            method: "ai-backend" as const,
+            confidence: 0.8,
+            originalPrompt: intent.rawPrompt
+          }
+        };
+        console.log(`✅ Converted to structured intent:`, intent);
+      } else {
+        // Generic fallback
+        intent = {
+          segment: "WDYK" as SegmentCode,
+          task: "general_query",
+          constraints: {
+            rawPrompt: intent.rawPrompt
+          },
+          metadata: {
+            method: "ai-backend" as const,
+            confidence: 0.5,
+            originalPrompt: intent.rawPrompt
+          }
+        };
+        console.log(`⚠️ Generic intent fallback:`, intent);
+      }
+    }
+    // ========================================================================
+
+    // Validate intent structure
+    const validation = validateIntent(intent);
+    if (!validation.valid) {
       return new Response(
-        JSON.stringify({ error: "Invalid intent structure" }),
+        JSON.stringify({
+          error: validation.error,
+          suggestion: validation.suggestion,
+        }),
         { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
@@ -118,10 +277,34 @@ export default async (req: Request, context: Context) => {
     );
   } catch (error: unknown) {
     console.error("❌ Error resolving intent:", error);
+    
+    // Parse user-friendly error messages
+    let errorMessage = "Internal server error";
+    let userSuggestion: string | undefined;
+
+    if (error instanceof Error) {
+      if (error.message.includes("not found") || error.message.includes("No results")) {
+        errorMessage = "Couldn't find data matching your request";
+        userSuggestion = "Try a different player name, team, or season";
+      } else if (error.message.includes("rate limit")) {
+        errorMessage = "API rate limit reached";
+        userSuggestion = "Please wait a moment and try again";
+      } else if (error.message.includes("timeout")) {
+        errorMessage = "Request timed out";
+        userSuggestion = "The data source is slow right now. Try again in a moment";
+      } else if (error.message.includes("Not enough")) {
+        errorMessage = error.message; // Already user-friendly
+        userSuggestion = "Try broadening your search criteria";
+      } else {
+        errorMessage = error.message;
+      }
+    }
+
     return new Response(
       JSON.stringify({
-        error: error instanceof Error ? error.message : "Internal server error",
-        details: error instanceof Error ? error.stack : undefined,
+        error: errorMessage,
+        suggestion: userSuggestion,
+        debug: error instanceof Error ? error.stack : undefined,
       }),
       { status: 500, headers: { "Content-Type": "application/json" } }
     );
@@ -181,26 +364,39 @@ async function resolvePlayersWithTitlesMultipleCountries(
   // TODO: Implement proper resolution using getPlayerAchievementsCached
   // For now, return structure with known examples
   
-  const answers = [
+  const allAnswers = [
     "Zlatan Ibrahimović",
     "David Alaba",
     "Arjen Robben",
     "Thiago Alcântara",
     "Samuel Eto'o",
+    "Clarence Seedorf",
+    "Gerard Piqué",
+    "Xabi Alonso",
+    "Pepe Reina",
+    "Deco",
   ];
+
+  // Apply truncation if needed
+  const { truncated, wasTruncated, total } = truncateAnswers(allAnswers);
+
+  // Validate minimum answer count
+  if (truncated.length < 3) {
+    throw new Error(`Not enough players found matching this filter (found ${total}, need at least 3). Try broadening your search criteria.`);
+  }
 
   return {
     segment_code: "WDYK",
     question_text: `Name players who won league titles in at least ${minCountries} different ${leagues === "top5" ? "top 5 European" : ""} countries`,
-    answers,
+    answers: truncated,
     correct_answer_index: null, // Multiple correct answers
     api_source: "transfermarkt",
     api_params: {
       intent,
       resolved_ids: { task: "multi_country_titles", leagues, minCountries },
     },
-    total_answers_available: answers.length,
-    answers_truncated: false,
+    total_answers_available: total,
+    answers_truncated: wasTruncated,
   };
 }
 
