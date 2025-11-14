@@ -224,7 +224,7 @@ function CreateQuestions() {
           user_id: user.id,
           question_id: insertedQuestion.question_id,
           folder_name: "AI Generated",
-          tags: [question.segment_code, parsedIntent?.taskType || "ai-generated"],
+          tags: [question.segment_code, parsedIntent?.task || "ai-generated"],
           notes: `Generated from prompt: "${userPrompt}"`,
         });
 
@@ -509,16 +509,16 @@ function CreateQuestions() {
                 </div>
                 <div className="bg-linear-to-br from-purple-50 to-purple-100 p-4 rounded-xl border border-purple-200">
                   <div className="text-sm font-semibold text-purple-700 mb-1">Task</div>
-                  <div className="text-2xl font-bold text-purple-900">{parsedIntent.taskType || "AI Will Determine"}</div>
+                  <div className="text-2xl font-bold text-purple-900">{parsedIntent.task || "AI Will Determine"}</div>
                 </div>
                 <div className="bg-linear-to-br from-green-50 to-green-100 p-4 rounded-xl border border-green-200">
                   <div className="text-sm font-semibold text-green-700 mb-1">Method</div>
-                  <div className="text-2xl font-bold text-green-900">{parsedIntent.method}</div>
+                  <div className="text-2xl font-bold text-green-900">{parsedIntent.metadata?.method || parsedIntent.method || "Unknown"}</div>
                 </div>
                 <div className="bg-linear-to-br from-amber-50 to-amber-100 p-4 rounded-xl border border-amber-200">
                   <div className="text-sm font-semibold text-amber-700 mb-1">Confidence</div>
                   <div className="text-2xl font-bold text-amber-900">
-                    {((parsedIntent.confidence || 0) * 100).toFixed(1)}%
+                    {((parsedIntent.metadata?.confidence || 0) * 100).toFixed(1)}%
                   </div>
                 </div>
               </div>

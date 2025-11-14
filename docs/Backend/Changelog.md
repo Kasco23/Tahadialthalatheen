@@ -1,6 +1,25 @@
 # Backend - Changelog
 
-**Last Updated**: January 24, 2025
+**Last Updated**: November 13, 2025
+
+---
+
+## November 13, 2025
+
+### generate-wdyk-final-losers.mts - Created
+
+- **Type**: Created
+- **Purpose**: Generate a WDYK question aggregating all players from the losing squads of the UEFA Champions League, Europa League, and Europa Conference League finals for a season.
+- **Reason**: Implements requested "losing European Cup Final last season" quiz question using live squad data without paid APIs or external datasets.
+- **Implementation**:
+  - Hard‑coded 2023/24 losing finalists mapping (Borussia Dortmund, Bayer 04 Leverkusen, Fiorentina) for MVP.
+  - Fetch + cache via `searchClubCached` and `getClubPlayersCached` helpers; aggregates unique player names.
+  - Truncates answers at 150, tracks `totalPlayers` and `truncated` flag.
+  - Persists question to `Questions` and metadata to `generated_questions_metadata` (api_source='transfermarkt', queryType='european_finals_losers').
+  - Structured JSON response with finals mapping and per‑club player counts.
+- **Error Handling**: 405 (method), 422 (unsupported season), 500 (internal errors); logs failures per club fetch.
+- **Impact**: Enables immediate finals-based gameplay; establishes extensible pattern for multi-club aggregation.
+- **Next Steps**: Add additional seasons; enrich metadata with starter/bench/sub appearance details once endpoint available.
 
 ---
 

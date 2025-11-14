@@ -1,7 +1,7 @@
 # Backend - Current State
 
-**Last Updated**: January 24, 2025  
-**Total Active Functions**: 8 Serverless + 3 Edge Functions + 5 Planned = 16 total
+**Last Updated**: November 13, 2025  
+**Total Active Functions**: 9 Serverless + 3 Edge Functions + 5 Planned = 17 total
 
 ---
 
@@ -222,6 +222,27 @@
 6. **Question Generation**: generate-remontada-question, generate-bell-question, generate-wdyk-question, generate-auction-question, generate-updw-question (planned)
 
 ---
+
+## Question Generator Functions
+
+### generate-wdyk-final-losers.mts
+
+- **Status**: ✅ Active
+- **Runtime**: Netlify Functions (Node.js) - Runtime API v2
+- **Endpoint**: `/.netlify/functions/generate-wdyk-final-losers`
+- **Method**: POST
+- **Purpose**: Generate WDYK (Who Do You Know) question listing all players from the losing squads of the three major European finals (UCL, UEL, UECL) for a given season.
+- **Request Body**: `{ season?: string, generatedBy: string, sessionId?: string }`
+- **Response**: `{ questionId: string, question: string, answers: string[], metadata: { season: string, finals: { ucl, uel, uecl }, clubs: Record<string, { clubId, playerCount }>, totalPlayers: number, truncated: boolean } }`
+- **Key Features**:
+  - Hard‑coded season → losing finalists mapping (MVP) for 2023/24
+  - Aggregates unique player names across all three losing clubs
+  - Truncates answer list at 150 entries (stores metadata for total count)
+  - Inserts question + generation metadata into Supabase (`Questions`, `generated_questions_metadata`)
+  - Cache-first player/club retrieval via existing Transfermarkt cache helpers
+- **Environment Variables**: `VITE_SUPABASE_DATABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`
+- **Size**: ~4KB
+- **Used By**: (Planned) AI question authoring console / GameSetup tooling
 
 ## Planned Serverless Functions (Question Generators)
 

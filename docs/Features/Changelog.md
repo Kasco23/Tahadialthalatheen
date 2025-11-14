@@ -1,6 +1,23 @@
 # Features - Changelog
 
-**Last Updated**: January 25, 2025
+**Last Updated**: November 13, 2025
+
+## November 13, 2025
+
+### WDYK European Finals Losing Squads Question (Backend Function)
+
+- **Type**: Created (Backend capability; UI trigger pending)
+- **Purpose**: Supply a high-value WDYK question where players must name footballers from the losing squads of UCL, UEL, and UECL finals for a given season (MVP: 2023/24).
+- **Reason**: Fulfills first official WDYK question request without paid APIs or external datasets.
+- **Implementation**:
+  - Added Netlify function `generate-wdyk-final-losers.mts` aggregating unique player names across three losing finalists (Dortmund, Leverkusen, Fiorentina for 23/24).
+  - Cache-first retrieval via existing Transfermarkt helpers; truncation logic (150 answers) with metadata (totalPlayers, truncated flag).
+  - Persists question and metadata (api_source, queryType, finals mapping, per-club counts) to Supabase tables.
+- **Security**: Supabase service role key remains server-side only.
+- **Impact**: Enables finals-themed gameplay; foundational pattern for future multi-club aggregate question types.
+- **Next Steps**: Expand season mapping, enrich with lineup role data (starter/bench/sub minutes), add UI action in AI authoring console.
+
+---
 
 ## January 25, 2025
 

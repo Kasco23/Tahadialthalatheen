@@ -136,3 +136,9 @@ export function isModelLoaded(): boolean {
 export function getBackend(): string | null {
   return modelBackend;
 }
+
+// Test-only helper to reset model state for negative path validation
+export function __resetModelForTests(): void {
+  modelLoaded = false;
+  modelBackend = null;
+}

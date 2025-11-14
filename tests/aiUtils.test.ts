@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll } from "vitest";
-import { loadModel, parseIntent, isModelLoaded, getBackend } from "../src/lib/aiUtils";
+import { loadModel, parseIntent, isModelLoaded, getBackend, __resetModelForTests } from "../src/lib/aiUtils";
 
 describe("AI Utils - Intent Parser", () => {
   beforeAll(async () => {
@@ -133,11 +133,11 @@ describe("AI Utils - Intent Parser", () => {
 
   describe("Error Handling", () => {
     it("should throw if model not loaded", async () => {
-      // Create a new instance without loading model
-      const { parseIntent: parseIntentUnloaded } = await import("../src/lib/aiUtils");
-
-      // Reset model state by reimporting
-      await expect(parseIntentUnloaded("test")).rejects.toThrow("Model not loaded");
+      // Reset shared module state to simulate fresh import without loadModel
+      __resetModelForTests();
+      await expect(parseIntent("test")).rejects.toThrow("Model not loaded");
+      // Restore model for subsequent tests if any (not strictly needed here)
+      await loadModel("wasm");
     });
   });
 });

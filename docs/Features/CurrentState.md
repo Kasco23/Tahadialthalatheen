@@ -1,6 +1,6 @@
 # Features - Current State
 
-**Last Updated**: January 25, 2025  
+**Last Updated**: November 13, 2025  
 **Feature Count**: 14 major features
 
 ---
@@ -187,6 +187,13 @@
 - **Implementation Plan**: 14 phases across 12 implementation sessions + 2 documentation sessions
 - **Current Phase**: Phase 1.1 - Create TransfermarktClient API wrapper
 - **Estimated Completion**: ~20-30 hours total
+
+#### November 13, 2025 Update – Finals Losing Squads Variant (WDYK)
+
+- Added active backend function `generate-wdyk-final-losers.mts` (MVP) generating WDYK question: all players from losing squads of UCL, UEL, UECL finals for 2023/24 season.
+- Uses existing cache helpers to aggregate club rosters; truncates at 150 answers with metadata.
+- Establishes extensible pattern for season expansion and lineup role enrichment (starter/bench/sub) in future phases.
+- Will integrate into AI Intent Authoring console & GameSetup tooling after UI trigger is added.
 
 ---
 

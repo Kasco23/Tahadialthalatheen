@@ -1,8 +1,23 @@
 # 🎉 Get Your FREE AI Token (No Credit Card!)
 
-## ✅ You're Using 100% FREE AI!
+## ✅ You're Using 100% FREE AI
 
 Your app now uses **Hugging Face Inference API** with **Llama 3.3 70B** via the **Groq provider** - completely FREE!
+
+### What You Get (FREE Tier):
+- **$0.10/month in credits** (auto-renews monthly)
+- **~500-1000 requests per month** (50-100 football questions!)
+- **No credit card required** - Can't accidentally spend money!
+- **Multiple fast providers** - Groq, Cerebras, SambaNova, etc.
+- **Serverless inference** - Zero RAM consumption on your machine!
+
+### How It's FREE:
+1. **Every Hugging Face account** gets $0.10 monthly credits
+2. **Requests stop automatically** when credits exhausted
+3. **Credits reset monthly** - Fresh $0.10 every month!
+4. **No upgrade pressure** - Free tier is permanent
+
+**Perfect for:** Personal projects, friend parties, testing, learning!
 
 ---
 

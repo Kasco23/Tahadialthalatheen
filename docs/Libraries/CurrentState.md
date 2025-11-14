@@ -1,7 +1,7 @@
 # Libraries - Current State
 
-**Last Updated**: January 24, 2025  
-**Total Active Libraries**: 27+
+**Last Updated**: November 13, 2025  
+**Total Active Libraries**: 30+
 
 ---
 
@@ -179,6 +179,58 @@
   - `getLeaderboardMatches(limit)`: Get top matches
 - **Dependencies**: Supabase, Logger
 - **Used In**: Results.tsx, Profile.tsx (StatisticsTab), Leaderboard.tsx
+
+---
+
+## AI & Question Generation
+
+### ai/intentParser.ts
+
+- **Status**: ✅ Active
+- **Purpose**: Rules-first NLP parser for football quiz question intent extraction
+- **Size**: ~12KB
+- **Key Functions**:
+  - `parseIntent(prompt)`: Extract structured intent from natural language prompt
+  - `validateIntent(intent)`: Validate intent has required fields (segment, task, params)
+  - `initParser()`: Initialize parser (no-op in rules-only mode, reserved for future model integration)
+  - `__resetModelForTests()`: Test-only helper to reset parser state
+- **Supported Segments**: WDYK, BELL, REMO, UPDW, AUCT (via 7 regex patterns)
+- **Pattern Examples**:
+  - Squad: "Name the 2023 Barcelona squad" → WDYK + player_squad_list
+  - Multi-country titles: "Players who won the league in 3+ countries" → REMO + multi_country_titles
+  - Player stats: "Top scorers in UCL 2023" → BELL + player_stats_by_competition
+  - Achievements: "Players with World Cup Golden Boot" → UPDW + achievements_by_year
+- **Architecture**: Deterministic regex-based extraction with optional LLM fallback (placeholder for future)
+- **Testing**: 11 unit tests (all passing) covering pattern matching, error handling, validation
+- **Dependencies**: None (pure regex/string manipulation)
+- **Used In**: CreateQuestions.tsx (AI authoring workflow), resolve-intent.mts (backend resolver)
+- **Part Of**: AI Intent-based Question Authoring feature (January 25, 2025)
+
+### ai/aiUtils.ts
+
+- **Status**: ✅ Active
+- **Purpose**: High-level AI utility functions for generic task parsing
+- **Size**: ~8KB
+- **Key Functions**:
+  - `loadModel()`: Placeholder for future transformers.js integration
+  - `parseIntent(prompt, options?)`: Parse generic prompts (generate_questions, top_scorers, transfers, team_squad, general_query)
+  - `__resetModelForTests()`: Test-only helper to simulate model state reset
+- **Model State**: Simulated model loading/unloading for testing infrastructure
+- **Dependencies**: None (placeholder architecture)
+- **Used In**: Generic AI workflows (not quiz-specific); intentParser.ts preferred for question authoring
+
+### ai/llmLoader.ts
+
+- **Status**: ✅ Active
+- **Purpose**: Optional transformers.js loading module with graceful fallback
+- **Size**: ~2KB
+- **Key Function**: `loadModel()` - Attempts to load transformers.js, returns null on failure
+- **Features**:
+  - WebGPU detection
+  - Graceful degradation (WebGPU → WASM → CPU)
+  - No-throw design (returns null instead of errors)
+- **Dependencies**: @xenova/transformers (optional peer dependency)
+- **Used In**: aiUtils.ts (future local inference path)
 
 ---
 
