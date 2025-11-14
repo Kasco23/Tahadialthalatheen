@@ -2,7 +2,12 @@
   {
     "question": "Who won the Premier League Golden Boot in 2023-24?",
     "answer": "Erling Haaland",
-    "options": ["Erling Haaland", "Cole Palmer", "Alexander Isak", "Ollie Watkins"],
+    "options": [
+      "Erling Haaland",
+      "Cole Palmer",
+      "Alexander Isak",
+      "Ollie Watkins"
+    ],
     "difficulty": "medium",
     "category": "Premier League",
     "metadata": {
@@ -26,7 +31,12 @@
   {
     "question": "Which team won the Champions League in 2023?",
     "answer": "Manchester City",
-    "options": ["Manchester City", "Inter Milan", "Real Madrid", "Bayern Munich"],
+    "options": [
+      "Manchester City",
+      "Inter Milan",
+      "Real Madrid",
+      "Bayern Munich"
+    ],
     "difficulty": "easy",
     "category": "Champions League",
     "metadata": {
@@ -37,7 +47,12 @@
   {
     "question": "Who is the all-time top scorer in La Liga history?",
     "answer": "Lionel Messi",
-    "options": ["Lionel Messi", "Cristiano Ronaldo", "Telmo Zarra", "Hugo Sánchez"],
+    "options": [
+      "Lionel Messi",
+      "Cristiano Ronaldo",
+      "Telmo Zarra",
+      "Hugo Sánchez"
+    ],
     "difficulty": "medium",
     "category": "La Liga",
     "metadata": {
@@ -49,7 +64,12 @@
   {
     "question": "Which player holds the record for most Premier League assists?",
     "answer": "Ryan Giggs",
-    "options": ["Ryan Giggs", "Cesc Fàbregas", "Frank Lampard", "Kevin De Bruyne"],
+    "options": [
+      "Ryan Giggs",
+      "Cesc Fàbregas",
+      "Frank Lampard",
+      "Kevin De Bruyne"
+    ],
     "difficulty": "hard",
     "category": "Premier League",
     "metadata": {
@@ -61,7 +81,12 @@
   {
     "question": "Who won the 2024 Ballon d'Or?",
     "answer": "Rodri",
-    "options": ["Rodri", "Vinicius Junior", "Jude Bellingham", "Erling Haaland"],
+    "options": [
+      "Rodri",
+      "Vinicius Junior",
+      "Jude Bellingham",
+      "Erling Haaland"
+    ],
     "difficulty": "easy",
     "category": "Awards",
     "metadata": {

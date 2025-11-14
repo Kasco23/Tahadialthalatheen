@@ -1,17 +1,17 @@
 import type { Context, Config } from "@netlify/functions";
 import { createClient } from "@supabase/supabase-js";
 import type { Database, Json } from "../../src/lib/types/supabase";
-import { 
-  searchPlayerCached, 
-  getPlayerAchievementsCached 
+import {
+  searchPlayerCached,
+  getPlayerAchievementsCached,
 } from "../../src/lib/api/transfermarktCache";
 
 /**
  * Generate Up & Down Question
- * 
+ *
  * Creates difficulty-rated questions about player achievements and honors
  * Example: "Which trophy did Lionel Messi win in 2022?"
- * 
+ *
  * Request body (JSON):
  * {
  *   "playerName": string,           // Player name to search for
@@ -19,7 +19,7 @@ import {
  *   "generatedBy": string,          // UUID of the profile generating the question
  *   "difficulty": "easy" | "medium" | "hard" // Difficulty level
  * }
- * 
+ *
  * Response:
  * {
  *   "questionId": string,           // UUID of generated question
@@ -40,10 +40,10 @@ interface GenerateUpDownQuestionRequest {
 export default async (req: Request, context: Context) => {
   // Only accept POST requests
   if (req.method !== "POST") {
-    return new Response(
-      JSON.stringify({ error: "Method not allowed" }),
-      { status: 405, headers: { "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ error: "Method not allowed" }), {
+      status: 405,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
   try {
@@ -55,7 +55,7 @@ export default async (req: Request, context: Context) => {
     if (!playerName || !generatedBy) {
       return new Response(
         JSON.stringify({ error: "playerName and generatedBy are required" }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
+        { status: 400, headers: { "Content-Type": "application/json" } },
       );
     }
 
@@ -74,11 +74,11 @@ export default async (req: Request, context: Context) => {
 
     // Step 1: Search for player
     const searchData = await searchPlayerCached(playerName);
-    
+
     if (!searchData || !searchData.results || searchData.results.length === 0) {
       return new Response(
         JSON.stringify({ error: `No player found with name: ${playerName}` }),
-        { status: 404, headers: { "Content-Type": "application/json" } }
+        { status: 404, headers: { "Content-Type": "application/json" } },
       );
     }
 
@@ -89,10 +89,16 @@ export default async (req: Request, context: Context) => {
     // Step 2: Get player achievements
     const achievementsData = await getPlayerAchievementsCached(playerId);
 
-    if (!achievementsData || !achievementsData.achievements || achievementsData.achievements.length === 0) {
+    if (
+      !achievementsData ||
+      !achievementsData.achievements ||
+      achievementsData.achievements.length === 0
+    ) {
       return new Response(
-        JSON.stringify({ error: `No achievements found for player: ${player.name}` }),
-        { status: 404, headers: { "Content-Type": "application/json" } }
+        JSON.stringify({
+          error: `No achievements found for player: ${player.name}`,
+        }),
+        { status: 404, headers: { "Content-Type": "application/json" } },
       );
     }
 
@@ -100,25 +106,45 @@ export default async (req: Request, context: Context) => {
     // Easy: Major trophies (World Cup, Champions League, League titles)
     // Medium: Secondary trophies (Domestic cups, Super cups)
     // Hard: Individual awards (Golden Ball, Golden Boot, etc.)
-    
-    const majorTrophies = ["World Cup", "Champions League", "UEFA Champions League", "Copa América", 
-                          "European Championship", "Premier League", "La Liga", "Serie A", "Bundesliga"];
-    const secondaryTrophies = ["FA Cup", "Copa del Rey", "DFB-Pokal", "UEFA Super Cup", "Club World Cup"];
-    const individualAwards = ["Golden Ball", "Golden Boot", "Player of the Year", "Best Player"];
+
+    const majorTrophies = [
+      "World Cup",
+      "Champions League",
+      "UEFA Champions League",
+      "Copa América",
+      "European Championship",
+      "Premier League",
+      "La Liga",
+      "Serie A",
+      "Bundesliga",
+    ];
+    const secondaryTrophies = [
+      "FA Cup",
+      "Copa del Rey",
+      "DFB-Pokal",
+      "UEFA Super Cup",
+      "Club World Cup",
+    ];
+    const individualAwards = [
+      "Golden Ball",
+      "Golden Boot",
+      "Player of the Year",
+      "Best Player",
+    ];
 
     let filteredAchievements = achievementsData.achievements;
-    
+
     if (difficulty === "easy") {
-      filteredAchievements = achievementsData.achievements.filter(ach => 
-        majorTrophies.some(trophy => ach.title?.includes(trophy))
+      filteredAchievements = achievementsData.achievements.filter((ach) =>
+        majorTrophies.some((trophy) => ach.title?.includes(trophy)),
       );
     } else if (difficulty === "medium") {
-      filteredAchievements = achievementsData.achievements.filter(ach => 
-        secondaryTrophies.some(trophy => ach.title?.includes(trophy))
+      filteredAchievements = achievementsData.achievements.filter((ach) =>
+        secondaryTrophies.some((trophy) => ach.title?.includes(trophy)),
       );
     } else if (difficulty === "hard") {
-      filteredAchievements = achievementsData.achievements.filter(ach => 
-        individualAwards.some(award => ach.title?.includes(award))
+      filteredAchievements = achievementsData.achievements.filter((ach) =>
+        individualAwards.some((award) => ach.title?.includes(award)),
       );
     }
 
@@ -129,10 +155,10 @@ export default async (req: Request, context: Context) => {
 
     if (filteredAchievements.length < 4) {
       return new Response(
-        JSON.stringify({ 
-          error: `Insufficient achievements for ${player.name} at ${difficulty} difficulty (${filteredAchievements.length} found)` 
+        JSON.stringify({
+          error: `Insufficient achievements for ${player.name} at ${difficulty} difficulty (${filteredAchievements.length} found)`,
         }),
-        { status: 422, headers: { "Content-Type": "application/json" } }
+        { status: 422, headers: { "Content-Type": "application/json" } },
       );
     }
 
@@ -140,16 +166,17 @@ export default async (req: Request, context: Context) => {
     const randomIndex = Math.floor(Math.random() * filteredAchievements.length);
     const correctAchievement = filteredAchievements[randomIndex];
     const correctAnswer = correctAchievement.title;
-    
+
     // Extract year from first detail entry if available
-    const achievementYear = correctAchievement.details?.[0]?.season?.name || "his career";
+    const achievementYear =
+      correctAchievement.details?.[0]?.season?.name || "his career";
 
     // Generate question
     const questionText = `Which trophy did ${player.name} win in ${achievementYear}?`;
 
     // Step 5: Generate wrong answers from other achievements or common trophies
     const wrongAnswers: string[] = [];
-    
+
     // Try to use other achievements from the same player
     for (const ach of filteredAchievements) {
       const achYear = ach.details?.[0]?.season?.name;
@@ -162,10 +189,17 @@ export default async (req: Request, context: Context) => {
     // If not enough wrong answers, add generic common trophies
     if (wrongAnswers.length < 3) {
       const genericTrophies = [
-        "UEFA Europa League", "FA Cup", "Copa del Rey", "DFB-Pokal",
-        "League Cup", "UEFA Super Cup", "FIFA Club World Cup"
-      ].filter(trophy => trophy !== correctAnswer && !wrongAnswers.includes(trophy));
-      
+        "UEFA Europa League",
+        "FA Cup",
+        "Copa del Rey",
+        "DFB-Pokal",
+        "League Cup",
+        "UEFA Super Cup",
+        "FIFA Club World Cup",
+      ].filter(
+        (trophy) => trophy !== correctAnswer && !wrongAnswers.includes(trophy),
+      );
+
       wrongAnswers.push(...genericTrophies.slice(0, 3 - wrongAnswers.length));
     }
 
@@ -180,7 +214,7 @@ export default async (req: Request, context: Context) => {
     for (let i = allAnswers.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [allAnswers[i], allAnswers[j]] = [allAnswers[j], allAnswers[i]];
-      
+
       // Track correct answer position
       if (i === currentCorrectIndex) currentCorrectIndex = j;
       else if (j === currentCorrectIndex) currentCorrectIndex = i;
@@ -200,12 +234,12 @@ export default async (req: Request, context: Context) => {
         playerTransfermarktId: player.id,
         queryType: "player_achievements",
         correctTrophy: correctAnswer,
-        year: achievementYear
+        year: achievementYear,
       },
       total_answers_available: filteredAchievements.length,
-      answers_truncated: filteredAchievements.length > 4
+      answers_truncated: filteredAchievements.length > 4,
     };
-    
+
     const { data: questionData, error: questionError } = await supabase
       .from("Questions")
       .insert(insertData as any)
@@ -230,9 +264,9 @@ export default async (req: Request, context: Context) => {
       generator_function: "generate-updown-question",
       api_endpoint: "/players/{id}/achievements",
       cache_hit: true,
-      generation_time_ms: generationTime
+      generation_time_ms: generationTime,
     };
-    
+
     const { error: metadataError } = await supabase
       .from("generated_questions_metadata")
       .insert(metadataInsert as any);
@@ -256,28 +290,27 @@ export default async (req: Request, context: Context) => {
           year: achievementYear,
           totalAchievements: filteredAchievements.length,
           generationTime: `${generationTime}ms`,
-          cached: true
-        }
+          cached: true,
+        },
       }),
       {
         status: 201,
-        headers: { "Content-Type": "application/json" }
-      }
+        headers: { "Content-Type": "application/json" },
+      },
     );
-
   } catch (error) {
     console.error("Error generating up-down question:", error);
-    
+
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         error: "Internal server error",
-        details: error instanceof Error ? error.message : "Unknown error"
+        details: error instanceof Error ? error.message : "Unknown error",
       }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+      { status: 500, headers: { "Content-Type": "application/json" } },
     );
   }
 };
 
 export const config: Config = {
-  path: "/api/generate-updown-question"
+  path: "/api/generate-updown-question",
 };

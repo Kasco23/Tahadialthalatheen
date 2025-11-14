@@ -1,17 +1,17 @@
 import type { Context, Config } from "@netlify/functions";
 import { createClient } from "@supabase/supabase-js";
 import type { Database, Json } from "../../src/lib/types/supabase";
-import { 
-  searchClubCached, 
-  getClubPlayersCached 
+import {
+  searchClubCached,
+  getClubPlayersCached,
 } from "../../src/lib/api/transfermarktCache";
 
 /**
  * Generate WDYK (Who Do You Know) Question
- * 
+ *
  * Creates open-ended list questions about club squads
  * Example: "Name players from Manchester United's 2023 squad"
- * 
+ *
  * Request body (JSON):
  * {
  *   "clubName": string,             // Club name to search for
@@ -19,7 +19,7 @@ import {
  *   "generatedBy": string,          // UUID of the profile generating the question
  *   "season": string                // Season year (optional, e.g., "2023")
  * }
- * 
+ *
  * Response:
  * {
  *   "questionId": string,           // UUID of generated question
@@ -40,10 +40,10 @@ interface GenerateWDYKQuestionRequest {
 export default async (req: Request, context: Context) => {
   // Only accept POST requests
   if (req.method !== "POST") {
-    return new Response(
-      JSON.stringify({ error: "Method not allowed" }),
-      { status: 405, headers: { "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ error: "Method not allowed" }), {
+      status: 405,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
   try {
@@ -55,7 +55,7 @@ export default async (req: Request, context: Context) => {
     if (!clubName || !generatedBy) {
       return new Response(
         JSON.stringify({ error: "clubName and generatedBy are required" }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
+        { status: 400, headers: { "Content-Type": "application/json" } },
       );
     }
 
@@ -74,11 +74,11 @@ export default async (req: Request, context: Context) => {
 
     // Step 1: Search for club
     const searchData = await searchClubCached(clubName);
-    
+
     if (!searchData || !searchData.results || searchData.results.length === 0) {
       return new Response(
         JSON.stringify({ error: `No club found with name: ${clubName}` }),
-        { status: 404, headers: { "Content-Type": "application/json" } }
+        { status: 404, headers: { "Content-Type": "application/json" } },
       );
     }
 
@@ -89,24 +89,28 @@ export default async (req: Request, context: Context) => {
     // Step 2: Get club players
     const playersData = await getClubPlayersCached(clubId, season);
 
-    if (!playersData || !playersData.players || playersData.players.length === 0) {
+    if (
+      !playersData ||
+      !playersData.players ||
+      playersData.players.length === 0
+    ) {
       return new Response(
         JSON.stringify({ error: `No players found for club: ${club.name}` }),
-        { status: 404, headers: { "Content-Type": "application/json" } }
+        { status: 404, headers: { "Content-Type": "application/json" } },
       );
     }
 
     // Step 3: Extract player names (filter out duplicates)
     const playerNames = playersData.players
-      .map(player => player.name)
+      .map((player) => player.name)
       .filter((name, index, self) => self.indexOf(name) === index); // Remove duplicates
 
     if (playerNames.length < 10) {
       return new Response(
-        JSON.stringify({ 
-          error: `Insufficient players for ${club.name} (${playerNames.length} found, need at least 10)` 
+        JSON.stringify({
+          error: `Insufficient players for ${club.name} (${playerNames.length} found, need at least 10)`,
         }),
-        { status: 422, headers: { "Content-Type": "application/json" } }
+        { status: 422, headers: { "Content-Type": "application/json" } },
       );
     }
 
@@ -133,12 +137,12 @@ export default async (req: Request, context: Context) => {
         clubId,
         clubTransfermarktId: club.id,
         queryType: "club_squad",
-        season: season || "current"
+        season: season || "current",
       },
       total_answers_available: totalAnswersAvailable,
-      answers_truncated: answersTruncated
+      answers_truncated: answersTruncated,
     };
-    
+
     const { data: questionData, error: questionError } = await supabase
       .from("Questions")
       .insert(insertData as any)
@@ -163,9 +167,9 @@ export default async (req: Request, context: Context) => {
       generator_function: "generate-wdyk-question",
       api_endpoint: "/clubs/{id}/players",
       cache_hit: true,
-      generation_time_ms: generationTime
+      generation_time_ms: generationTime,
     };
-    
+
     const { error: metadataError } = await supabase
       .from("generated_questions_metadata")
       .insert(metadataInsert as any);
@@ -187,28 +191,27 @@ export default async (req: Request, context: Context) => {
           totalPlayers: totalAnswersAvailable,
           answersTruncated,
           generationTime: `${generationTime}ms`,
-          cached: true
-        }
+          cached: true,
+        },
       }),
       {
         status: 201,
-        headers: { "Content-Type": "application/json" }
-      }
+        headers: { "Content-Type": "application/json" },
+      },
     );
-
   } catch (error) {
     console.error("Error generating WDYK question:", error);
-    
+
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         error: "Internal server error",
-        details: error instanceof Error ? error.message : "Unknown error"
+        details: error instanceof Error ? error.message : "Unknown error",
       }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+      { status: 500, headers: { "Content-Type": "application/json" } },
     );
   }
 };
 
 export const config: Config = {
-  path: "/api/generate-wdyk-question"
+  path: "/api/generate-wdyk-question",
 };

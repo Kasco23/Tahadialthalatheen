@@ -7,7 +7,18 @@
     "metadata": {
       "team": "Manchester City",
       "season": "2024-25",
-      "validAnswers": ["Haaland", "De Bruyne", "Rodri", "Foden", "Ederson", "Grealish", "Kovacic", "Bernardo Silva", "Doku", "Walker"]
+      "validAnswers": [
+        "Haaland",
+        "De Bruyne",
+        "Rodri",
+        "Foden",
+        "Ederson",
+        "Grealish",
+        "Kovacic",
+        "Bernardo Silva",
+        "Doku",
+        "Walker"
+      ]
     }
   },
   {
@@ -20,13 +31,26 @@
       "position": "Defender",
       "season": "2024-25",
       "note": "Trent Alexander-Arnold played for Liverpool in 2024-25 before joining Real Madrid in June 2025",
-      "validAnswers": ["Van Dijk", "Konaté", "Joe Gomez", "Robertson", "Tsimikas", "Quansah", "Conor Bradley"]
+      "validAnswers": [
+        "Van Dijk",
+        "Konaté",
+        "Joe Gomez",
+        "Robertson",
+        "Tsimikas",
+        "Quansah",
+        "Conor Bradley"
+      ]
     }
   },
   {
     "question": "Name the primary goalkeeper for Real Madrid in 2024-25",
     "answer": "Thibaut Courtois",
-    "options": ["Thibaut Courtois", "Andriy Lunin", "Kepa Arrizabalaga", "Alisson Becker"],
+    "options": [
+      "Thibaut Courtois",
+      "Andriy Lunin",
+      "Kepa Arrizabalaga",
+      "Alisson Becker"
+    ],
     "difficulty": "easy",
     "category": "Squads",
     "metadata": {
@@ -45,13 +69,25 @@
       "team": "Arsenal",
       "season": "2024-25",
       "position": "Forward",
-      "validAnswers": ["Saka", "Jesus", "Martinelli", "Havertz", "Trossard", "Sterling"]
+      "validAnswers": [
+        "Saka",
+        "Jesus",
+        "Martinelli",
+        "Havertz",
+        "Trossard",
+        "Sterling"
+      ]
     }
   },
   {
     "question": "Which English defender joined Real Madrid from Liverpool in 2025?",
     "answer": "Trent Alexander-Arnold",
-    "options": ["Trent Alexander-Arnold", "Joe Gomez", "Jarell Quansah", "Conor Bradley"],
+    "options": [
+      "Trent Alexander-Arnold",
+      "Joe Gomez",
+      "Jarell Quansah",
+      "Conor Bradley"
+    ],
     "difficulty": "easy",
     "category": "Transfers",
     "metadata": {

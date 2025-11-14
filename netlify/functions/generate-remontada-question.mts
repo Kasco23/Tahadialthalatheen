@@ -1,23 +1,23 @@
 import type { Context, Config } from "@netlify/functions";
 import { createClient } from "@supabase/supabase-js";
 import type { Database, Json } from "../../src/lib/types/supabase";
-import { 
-  searchPlayerCached, 
-  getPlayerTransfersCached 
+import {
+  searchPlayerCached,
+  getPlayerTransfersCached,
 } from "../../src/lib/api/transfermarktCache";
 
 /**
  * Generate Remontada Question
- * 
+ *
  * Creates career path timeline questions using Transfermarkt player transfer data
- * 
+ *
  * Request body (JSON):
  * {
  *   "playerName": string,          // Player name to search for
  *   "sessionId": string,            // UUID of the session (optional, for tracking)
  *   "generatedBy": string           // UUID of the profile generating the question
  * }
- * 
+ *
  * Response:
  * {
  *   "questionId": string,           // UUID of generated question
@@ -43,10 +43,10 @@ interface TransferClub {
 export default async (req: Request, context: Context) => {
   // Only accept POST requests
   if (req.method !== "POST") {
-    return new Response(
-      JSON.stringify({ error: "Method not allowed" }),
-      { status: 405, headers: { "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ error: "Method not allowed" }), {
+      status: 405,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
   try {
@@ -58,7 +58,7 @@ export default async (req: Request, context: Context) => {
     if (!playerName || !generatedBy) {
       return new Response(
         JSON.stringify({ error: "playerName and generatedBy are required" }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
+        { status: 400, headers: { "Content-Type": "application/json" } },
       );
     }
 
@@ -77,11 +77,11 @@ export default async (req: Request, context: Context) => {
 
     // Step 1: Search for player
     const searchData = await searchPlayerCached(playerName);
-    
+
     if (!searchData || !searchData.results || searchData.results.length === 0) {
       return new Response(
         JSON.stringify({ error: `No player found with name: ${playerName}` }),
-        { status: 404, headers: { "Content-Type": "application/json" } }
+        { status: 404, headers: { "Content-Type": "application/json" } },
       );
     }
 
@@ -94,39 +94,47 @@ export default async (req: Request, context: Context) => {
 
     if (!transferData?.transfers || transferData.transfers.length === 0) {
       return new Response(
-        JSON.stringify({ error: `No transfer data found for player: ${player.name}` }),
-        { status: 404, headers: { "Content-Type": "application/json" } }
+        JSON.stringify({
+          error: `No transfer data found for player: ${player.name}`,
+        }),
+        { status: 404, headers: { "Content-Type": "application/json" } },
       );
     }
 
     // Step 3: Extract clubs from transfers (chronological order)
     const clubs: TransferClub[] = [];
-    
+
     for (const transfer of transferData.transfers) {
       // Add "from" club (clubFrom property)
-      if (transfer.clubFrom?.name && !clubs.some(c => c.name === transfer.clubFrom.name)) {
+      if (
+        transfer.clubFrom?.name &&
+        !clubs.some((c) => c.name === transfer.clubFrom.name)
+      ) {
         clubs.push({
           name: transfer.clubFrom.name,
           season: transfer.season,
-          date: transfer.date
+          date: transfer.date,
         });
       }
       // Add "to" club (clubTo property)
-      if (transfer.clubTo?.name && !clubs.some(c => c.name === transfer.clubTo.name)) {
+      if (
+        transfer.clubTo?.name &&
+        !clubs.some((c) => c.name === transfer.clubTo.name)
+      ) {
         clubs.push({
           name: transfer.clubTo.name,
           season: transfer.season,
-          date: transfer.date
+          date: transfer.date,
         });
       }
     }
 
     if (clubs.length < 4) {
       return new Response(
-        JSON.stringify({ 
-          error: `Insufficient transfer history for ${player.name} (${clubs.length} clubs found, need at least 4)` 
+        JSON.stringify({
+          error: `Insufficient transfer history for ${player.name} (${clubs.length} clubs found, need at least 4)`,
         }),
-        { status: 422, headers: { "Content-Type": "application/json" } }
+        { status: 422, headers: { "Content-Type": "application/json" } },
       );
     }
 
@@ -141,29 +149,41 @@ export default async (req: Request, context: Context) => {
 
     // Step 5: Create answers array (correct answer + 3 random wrong clubs)
     const wrongClubs = clubs
-      .filter(c => c.name !== correctClub.name && c.name !== previousClub.name && c.name !== nextClub.name)
+      .filter(
+        (c) =>
+          c.name !== correctClub.name &&
+          c.name !== previousClub.name &&
+          c.name !== nextClub.name,
+      )
       .slice(0, 3);
 
     // If not enough wrong clubs from player's history, we need at least 4 total answers
     if (wrongClubs.length < 3) {
       // Add generic wrong answers
       const genericWrongAnswers = [
-        "Real Madrid", "Barcelona", "Bayern Munich", "Manchester United",
-        "Liverpool", "Chelsea", "Paris Saint-Germain", "Juventus"
-      ].filter(club => 
-        club !== correctClub.name && 
-        club !== previousClub.name && 
-        club !== nextClub.name &&
-        !clubs.some(c => c.name === club)
+        "Real Madrid",
+        "Barcelona",
+        "Bayern Munich",
+        "Manchester United",
+        "Liverpool",
+        "Chelsea",
+        "Paris Saint-Germain",
+        "Juventus",
+      ].filter(
+        (club) =>
+          club !== correctClub.name &&
+          club !== previousClub.name &&
+          club !== nextClub.name &&
+          !clubs.some((c) => c.name === club),
       );
-      
+
       while (wrongClubs.length < 3 && genericWrongAnswers.length > 0) {
         wrongClubs.push({ name: genericWrongAnswers.shift()! });
       }
     }
 
     // Shuffle answers and track correct position
-    const allAnswers = [correctClub.name, ...wrongClubs.map(c => c.name)];
+    const allAnswers = [correctClub.name, ...wrongClubs.map((c) => c.name)];
     const correctAnswerIndex = 0; // Will shuffle and update this
 
     // Fisher-Yates shuffle
@@ -171,7 +191,7 @@ export default async (req: Request, context: Context) => {
     for (let i = allAnswers.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [allAnswers[i], allAnswers[j]] = [allAnswers[j], allAnswers[i]];
-      
+
       // Track correct answer position
       if (i === currentCorrectIndex) currentCorrectIndex = j;
       else if (j === currentCorrectIndex) currentCorrectIndex = i;
@@ -189,12 +209,12 @@ export default async (req: Request, context: Context) => {
         playerName,
         playerId,
         playerTransfermarktId: player.id,
-        queryType: "career_path_timeline"
+        queryType: "career_path_timeline",
       },
       total_answers_available: clubs.length,
-      answers_truncated: clubs.length > 4
+      answers_truncated: clubs.length > 4,
     };
-    
+
     const { data: questionData, error: questionError } = await supabase
       .from("Questions")
       .insert(insertData as any) // Type cast needed due to Supabase type inference limitations
@@ -220,9 +240,9 @@ export default async (req: Request, context: Context) => {
       generator_function: "generate-remontada-question",
       api_endpoint: "/players/{id}/transfers",
       cache_hit: true,
-      generation_time_ms: generationTime
+      generation_time_ms: generationTime,
     };
-    
+
     const { error: metadataError } = await supabase
       .from("generated_questions_metadata")
       .insert(metadataInsert as any); // Type cast needed due to Supabase type inference limitations
@@ -243,28 +263,27 @@ export default async (req: Request, context: Context) => {
           playerName: player.name,
           totalClubs: clubs.length,
           generationTime: `${generationTime}ms`,
-          cached: true
-        }
+          cached: true,
+        },
       }),
       {
         status: 201,
-        headers: { "Content-Type": "application/json" }
-      }
+        headers: { "Content-Type": "application/json" },
+      },
     );
-
   } catch (error) {
     console.error("Error generating remontada question:", error);
-    
+
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         error: "Internal server error",
-        details: error instanceof Error ? error.message : "Unknown error"
+        details: error instanceof Error ? error.message : "Unknown error",
       }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+      { status: 500, headers: { "Content-Type": "application/json" } },
     );
   }
 };
 
 export const config: Config = {
-  path: "/api/generate-remontada-question"
+  path: "/api/generate-remontada-question",
 };

@@ -1,16 +1,16 @@
 import type { Context, Config } from "@netlify/functions";
 import { createClient } from "@supabase/supabase-js";
 import type { Database, Json } from "../../src/lib/types/supabase";
-import { 
-  searchPlayerCached, 
-  getPlayerStatsCached 
+import {
+  searchPlayerCached,
+  getPlayerStatsCached,
 } from "../../src/lib/api/transfermarktCache";
 
 /**
  * Generate Bellegoal Question
- * 
+ *
  * Creates quick buzzer questions using player statistics (goals, assists, appearances)
- * 
+ *
  * Request body (JSON):
  * {
  *   "playerName": string,          // Player name to search for
@@ -18,7 +18,7 @@ import {
  *   "generatedBy": string,          // UUID of the profile generating the question
  *   "statType": "goals" | "assists" | "appearances" // Type of statistic to query
  * }
- * 
+ *
  * Response:
  * {
  *   "questionId": string,           // UUID of generated question
@@ -39,10 +39,10 @@ interface GenerateBellQuestionRequest {
 export default async (req: Request, context: Context) => {
   // Only accept POST requests
   if (req.method !== "POST") {
-    return new Response(
-      JSON.stringify({ error: "Method not allowed" }),
-      { status: 405, headers: { "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ error: "Method not allowed" }), {
+      status: 405,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
   try {
@@ -54,7 +54,7 @@ export default async (req: Request, context: Context) => {
     if (!playerName || !generatedBy) {
       return new Response(
         JSON.stringify({ error: "playerName and generatedBy are required" }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
+        { status: 400, headers: { "Content-Type": "application/json" } },
       );
     }
 
@@ -73,11 +73,11 @@ export default async (req: Request, context: Context) => {
 
     // Step 1: Search for player
     const searchData = await searchPlayerCached(playerName);
-    
+
     if (!searchData || !searchData.results || searchData.results.length === 0) {
       return new Response(
         JSON.stringify({ error: `No player found with name: ${playerName}` }),
-        { status: 404, headers: { "Content-Type": "application/json" } }
+        { status: 404, headers: { "Content-Type": "application/json" } },
       );
     }
 
@@ -90,8 +90,10 @@ export default async (req: Request, context: Context) => {
 
     if (!statsData || !statsData.stats || statsData.stats.length === 0) {
       return new Response(
-        JSON.stringify({ error: `No statistics found for player: ${player.name}` }),
-        { status: 404, headers: { "Content-Type": "application/json" } }
+        JSON.stringify({
+          error: `No statistics found for player: ${player.name}`,
+        }),
+        { status: 404, headers: { "Content-Type": "application/json" } },
       );
     }
 
@@ -99,9 +101,12 @@ export default async (req: Request, context: Context) => {
     // Find total career stats (competition with id "total" or sum all competitions)
     let totalStat = 0;
     let statLabel = "";
-    
+
     for (const stat of statsData.stats) {
-      if (stat.competitionId === "total" || stat.competitionName?.toLowerCase().includes("total")) {
+      if (
+        stat.competitionId === "total" ||
+        stat.competitionName?.toLowerCase().includes("total")
+      ) {
         // Use total row if available
         if (statType === "goals") {
           totalStat = stat.goals || 0;
@@ -137,10 +142,10 @@ export default async (req: Request, context: Context) => {
 
     if (totalStat === 0) {
       return new Response(
-        JSON.stringify({ 
-          error: `No ${statType} data found for ${player.name}` 
+        JSON.stringify({
+          error: `No ${statType} data found for ${player.name}`,
         }),
-        { status: 422, headers: { "Content-Type": "application/json" } }
+        { status: 422, headers: { "Content-Type": "application/json" } },
       );
     }
 
@@ -149,19 +154,22 @@ export default async (req: Request, context: Context) => {
 
     // Step 5: Create answers array (correct answer + 3 plausible wrong answers)
     const correctAnswer = totalStat.toString();
-    
+
     // Generate plausible wrong answers (±10%, ±20%, ±30% of correct value)
     const wrongAnswers = [
-      Math.floor(totalStat * 0.9).toString(),   // 10% lower
-      Math.floor(totalStat * 1.15).toString(),  // 15% higher
-      Math.floor(totalStat * 0.75).toString(),  // 25% lower
-    ].filter(answer => answer !== correctAnswer); // Remove if accidentally matches correct
+      Math.floor(totalStat * 0.9).toString(), // 10% lower
+      Math.floor(totalStat * 1.15).toString(), // 15% higher
+      Math.floor(totalStat * 0.75).toString(), // 25% lower
+    ].filter((answer) => answer !== correctAnswer); // Remove if accidentally matches correct
 
     // Ensure we have exactly 3 unique wrong answers
     const uniqueWrong = [...new Set(wrongAnswers)];
     while (uniqueWrong.length < 3) {
       const variation = Math.floor(totalStat * (0.5 + Math.random() * 0.8));
-      if (!uniqueWrong.includes(variation.toString()) && variation.toString() !== correctAnswer) {
+      if (
+        !uniqueWrong.includes(variation.toString()) &&
+        variation.toString() !== correctAnswer
+      ) {
         uniqueWrong.push(variation.toString());
       }
     }
@@ -174,7 +182,7 @@ export default async (req: Request, context: Context) => {
     for (let i = allAnswers.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [allAnswers[i], allAnswers[j]] = [allAnswers[j], allAnswers[i]];
-      
+
       // Track correct answer position
       if (i === currentCorrectIndex) currentCorrectIndex = j;
       else if (j === currentCorrectIndex) currentCorrectIndex = i;
@@ -194,12 +202,12 @@ export default async (req: Request, context: Context) => {
         playerTransfermarktId: player.id,
         queryType: "player_statistics",
         statType,
-        correctValue: totalStat
+        correctValue: totalStat,
       },
       total_answers_available: 4, // Fixed 4 answers for BELL questions
-      answers_truncated: false
+      answers_truncated: false,
     };
-    
+
     const { data: questionData, error: questionError } = await supabase
       .from("Questions")
       .insert(insertData as any)
@@ -224,9 +232,9 @@ export default async (req: Request, context: Context) => {
       generator_function: "generate-bell-question",
       api_endpoint: "/players/{id}/stats",
       cache_hit: true,
-      generation_time_ms: generationTime
+      generation_time_ms: generationTime,
     };
-    
+
     const { error: metadataError } = await supabase
       .from("generated_questions_metadata")
       .insert(metadataInsert as any);
@@ -248,28 +256,27 @@ export default async (req: Request, context: Context) => {
           statType,
           correctValue: totalStat,
           generationTime: `${generationTime}ms`,
-          cached: true
-        }
+          cached: true,
+        },
       }),
       {
         status: 201,
-        headers: { "Content-Type": "application/json" }
-      }
+        headers: { "Content-Type": "application/json" },
+      },
     );
-
   } catch (error) {
     console.error("Error generating bell question:", error);
-    
+
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         error: "Internal server error",
-        details: error instanceof Error ? error.message : "Unknown error"
+        details: error instanceof Error ? error.message : "Unknown error",
       }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+      { status: 500, headers: { "Content-Type": "application/json" } },
     );
   }
 };
 
 export const config: Config = {
-  path: "/api/generate-bell-question"
+  path: "/api/generate-bell-question",
 };

@@ -17,7 +17,8 @@ declare global {
 async function demo() {
   console.log("🚀 Transfermarkt API Live Demo (opt-in)\n");
   try {
-    const searchResults = await transfermarktClient.searchPlayer("Thierry Henry");
+    const searchResults =
+      await transfermarktClient.searchPlayer("Thierry Henry");
     const henry = searchResults.results[0];
     await transfermarktClient.getPlayerProfile(henry.id);
     await transfermarktClient.getPlayerTransfers(henry.id);

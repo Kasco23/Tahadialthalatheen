@@ -2,12 +2,7 @@
   {
     "question": "Which club did Declan Rice join in 2023?",
     "answer": "Arsenal",
-    "options": [
-      "Arsenal",
-      "Manchester City",
-      "Chelsea",
-      "Liverpool"
-    ],
+    "options": ["Arsenal", "Manchester City", "Chelsea", "Liverpool"],
     "difficulty": "easy",
     "category": "Transfers",
     "metadata": {
@@ -36,12 +31,7 @@
   {
     "question": "Which Saudi club signed Cristiano Ronaldo in 2023?",
     "answer": "Al-Nassr",
-    "options": [
-      "Al-Nassr",
-      "Al-Hilal",
-      "Al-Ittihad",
-      "Al-Ahli"
-    ],
+    "options": ["Al-Nassr", "Al-Hilal", "Al-Ittihad", "Al-Ahli"],
     "difficulty": "easy",
     "category": "Transfers",
     "metadata": {

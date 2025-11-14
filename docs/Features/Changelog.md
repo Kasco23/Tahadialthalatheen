@@ -1,6 +1,33 @@
 # Features - Changelog
 
-**Last Updated**: November 13, 2025
+**Last Updated**: November 14, 2025
+
+## November 14, 2025
+
+### AI/LLM Question Builder - Completely Removed
+
+- **Type**: Removed
+- **Purpose**: Remove all AI-related question generation features from the project
+- **Reason**: Project direction change - exploring alternative quiz creation approach
+- **Files Removed**:
+  - **Backend Functions**: `answer-football-question.mts`, `generate-ai-question.mts`, `resolve-intent.mts`
+  - **Frontend Pages**: `CreateQuestions.tsx`, `DebugLLM.tsx`, `AskFootball.tsx`
+  - **Libraries**: `src/lib/ai/` directory (intentParser.ts, llmLoader.ts, unifiedLLM.ts, webGpuLLM.ts)
+  - **Components**: `LLMConsole.tsx`
+  - **Utilities**: `aiUtils.ts`
+  - **Tests**: `aiUtils.test.ts`, `resolveIntent.test.ts`, AI-related tests
+  - **Documentation**: `AI_QA.md`, `AI_RELEASE_STATUS.md`, `FREE_AI_SETUP.md`, `HUGGINGFACE_FREE_TIER_GUIDE.md`, `AI_Intent_Authoring.md`, `GET_FREE_AI_TOKEN.md`
+  - **Context**: `netlify/ai/` directory
+- **Dependencies Removed**:
+  - `@huggingface/inference`
+  - `@xenova/transformers`
+- **Configuration Changes**:
+  - Removed AI routes from `App.tsx` (`/create-questions`, `/ask`, `/dev/llm`)
+  - Removed AI model caching headers from `netlify.toml`
+  - Cleaned up `tsconfig.json` exclusions
+- **Impact**: Reduced bundle size, simplified codebase, removed external AI API dependencies
+
+---
 
 ## November 13, 2025
 

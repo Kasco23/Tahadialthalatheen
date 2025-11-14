@@ -4,9 +4,7 @@
  */
 
 // Live cache demonstration script. Converted to opt-in to avoid network calls in default test run.
-import {
-  searchPlayerCached,
-} from "./transfermarktCache";
+import { searchPlayerCached } from "./transfermarktCache";
 import { describe, it } from "vitest";
 
 declare global {

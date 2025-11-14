@@ -20,10 +20,6 @@ const FlagSelection = lazy(() => import("./pages/FlagSelection"));
 const TeamSelection = lazy(() => import("./pages/TeamSelection"));
 const Inbox = lazy(() => import("./pages/Inbox"));
 const Leaderboard = lazy(() => import("./pages/Leaderboard"));
-const CreateQuestions = lazy(() => import("./pages/CreateQuestions"));
-const AskFootball = lazy(() => import("./pages/AskFootball"));
-// Debug / experimental LLM console (only loaded if routed)
-const DebugLLM = lazy(() => import("./pages/DebugLLM"));
 
 function App() {
   // ✨ PHASE 2.4: Initialize device ID on app startup
@@ -48,8 +44,6 @@ function App() {
               <Route path="/profile" element={<Profile />} />
               <Route path="/inbox" element={<Inbox />} />
               <Route path="/leaderboard" element={<Leaderboard />} />
-              <Route path="/create-questions" element={<CreateQuestions />} />
-              <Route path="/ask" element={<AskFootball />} />
               <Route path="/select-flag" element={<FlagSelection />} />
               <Route path="/select-team" element={<TeamSelection />} />
               <Route path="/gamesetup/:sessionCode" element={<GameSetup />} />
@@ -58,9 +52,6 @@ function App() {
               <Route path="/quiz/:sessionCode" element={<Quiz />} />
               <Route path="/results/:sessionCode" element={<Results />} />
               <Route path="/results" element={<Results />} />
-              {import.meta.env.DEV && (
-                <Route path="/dev/llm" element={<DebugLLM />} />
-              )}
             </Routes>
           </Suspense>
         </Router>

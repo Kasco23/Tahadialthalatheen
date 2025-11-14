@@ -1,7 +1,10 @@
 import type { Context, Config } from "@netlify/functions";
 import { createClient } from "@supabase/supabase-js";
 import type { Database, Json } from "../../src/lib/types/supabase";
-import { searchClubCached, getClubPlayersCached } from "../../src/lib/api/transfermarktCache";
+import {
+  searchClubCached,
+  getClubPlayersCached,
+} from "../../src/lib/api/transfermarktCache";
 
 /**
  * Request body schema for generating European finals losing squad questions.
@@ -20,13 +23,16 @@ interface GenerateFinalLosersRequest {
 /**
  * Hardcoded mapping of supported seasons to their losing finalists.
  * Each entry contains the club names that lost the UCL, UEL, and UECL finals.
- * 
+ *
  * To add a new season:
  * 1. Verify the losing finalists from official UEFA records
  * 2. Use exact club names as they appear in Transfermarkt
  * 3. Add entry in chronological order
  */
-const FINAL_LOSERS_BY_SEASON: Record<string, { ucl: string; uel: string; uecl: string }> = {
+const FINAL_LOSERS_BY_SEASON: Record<
+  string,
+  { ucl: string; uel: string; uecl: string }
+> = {
   "2022/23": {
     ucl: "Inter", // lost to Manchester City
     uel: "AS Roma", // lost to Sevilla
@@ -43,17 +49,18 @@ const FINAL_LOSERS_BY_SEASON: Record<string, { ucl: string; uel: string; uecl: s
  * Validates UUID v4 format
  */
 function isValidUUID(uuid: string): boolean {
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  const uuidRegex =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   return uuidRegex.test(uuid);
 }
 
 /**
  * Netlify serverless function to generate WDYK (Who Do You Know) questions
  * based on European competition finals losing squads.
- * 
+ *
  * This function aggregates all players from the losing teams of the UEFA Champions League,
  * Europa League, and Europa Conference League finals for a given season.
- * 
+ *
  * @endpoint /.netlify/functions/generate-wdyk-final-losers
  * @method POST
  */
@@ -73,21 +80,22 @@ export default async (req: Request, _ctx: Context) => {
     // Validate required fields
     if (!generatedBy) {
       return new Response(
-        JSON.stringify({ 
+        JSON.stringify({
           error: "generatedBy is required",
-          details: "Must provide the UUID of the profile generating this question"
-        }), 
-        { status: 400, headers: { "Content-Type": "application/json" } }
+          details:
+            "Must provide the UUID of the profile generating this question",
+        }),
+        { status: 400, headers: { "Content-Type": "application/json" } },
       );
     }
 
     if (!isValidUUID(generatedBy)) {
       return new Response(
-        JSON.stringify({ 
+        JSON.stringify({
           error: "Invalid generatedBy format",
-          details: "generatedBy must be a valid UUID v4"
-        }), 
-        { status: 400, headers: { "Content-Type": "application/json" } }
+          details: "generatedBy must be a valid UUID v4",
+        }),
+        { status: 400, headers: { "Content-Type": "application/json" } },
       );
     }
 
@@ -96,12 +104,13 @@ export default async (req: Request, _ctx: Context) => {
     if (!mapping) {
       const supportedSeasons = Object.keys(FINAL_LOSERS_BY_SEASON).join(", ");
       return new Response(
-        JSON.stringify({ 
+        JSON.stringify({
           error: `Season ${season} not supported`,
           supportedSeasons,
-          details: "To add a new season, update FINAL_LOSERS_BY_SEASON mapping in the function code with verified UEFA final results"
+          details:
+            "To add a new season, update FINAL_LOSERS_BY_SEASON mapping in the function code with verified UEFA final results",
         }),
-        { status: 422, headers: { "Content-Type": "application/json" } }
+        { status: 422, headers: { "Content-Type": "application/json" } },
       );
     }
 
@@ -115,7 +124,10 @@ export default async (req: Request, _ctx: Context) => {
     // Fetch players from all three losing clubs
     const losingClubs = [mapping.ucl, mapping.uel, mapping.uecl];
     const uniquePlayers: Set<string> = new Set();
-    const clubMetadata: Record<string, { clubId?: string; playerCount: number }> = {};
+    const clubMetadata: Record<
+      string,
+      { clubId?: string; playerCount: number }
+    > = {};
 
     for (const clubName of losingClubs) {
       try {
@@ -125,10 +137,16 @@ export default async (req: Request, _ctx: Context) => {
           continue;
         }
         const club = searchRes.results[0];
-        const playersRes = await getClubPlayersCached(club.id, season.split("/")[0]);
-        const names = playersRes.players.map(p => p.name);
-        names.forEach(n => uniquePlayers.add(n));
-        clubMetadata[club.name] = { clubId: club.id, playerCount: names.length };
+        const playersRes = await getClubPlayersCached(
+          club.id,
+          season.split("/")[0],
+        );
+        const names = playersRes.players.map((p) => p.name);
+        names.forEach((n) => uniquePlayers.add(n));
+        clubMetadata[club.name] = {
+          clubId: club.id,
+          playerCount: names.length,
+        };
       } catch (e) {
         console.error(`Failed to fetch players for ${clubName}:`, e);
         // Continue with other clubs - partial data is acceptable
@@ -138,11 +156,12 @@ export default async (req: Request, _ctx: Context) => {
     const answers = Array.from(uniquePlayers);
     if (answers.length === 0) {
       return new Response(
-        JSON.stringify({ 
+        JSON.stringify({
           error: "No players resolved",
-          details: "Failed to fetch squad data for any of the losing finalist clubs. This may be a temporary API issue."
-        }), 
-        { status: 500, headers: { "Content-Type": "application/json" } }
+          details:
+            "Failed to fetch squad data for any of the losing finalist clubs. This may be a temporary API issue.",
+        }),
+        { status: 500, headers: { "Content-Type": "application/json" } },
       );
     }
 
@@ -213,7 +232,7 @@ export default async (req: Request, _ctx: Context) => {
           truncated: answers.length > 150,
         },
       }),
-      { status: 201, headers: { "Content-Type": "application/json" } }
+      { status: 201, headers: { "Content-Type": "application/json" } },
     );
   } catch (error) {
     console.error("Error generating final losers question:", error);
@@ -222,7 +241,7 @@ export default async (req: Request, _ctx: Context) => {
         error: "Internal server error",
         details: error instanceof Error ? error.message : "Unknown error",
       }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+      { status: 500, headers: { "Content-Type": "application/json" } },
     );
   }
 };
