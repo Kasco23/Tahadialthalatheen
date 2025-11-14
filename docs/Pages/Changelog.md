@@ -5,6 +5,66 @@
 
 ---
 
+## November 14, 2025
+
+### QuestionBuilder.tsx - Created
+
+- **Type**: New Page
+- **Purpose**: Structured data explorer for finding football data to create quiz questions
+- **Route**: `/question-builder`
+- **Reason**: Help users research and discover data for question creation without dealing with raw JSON
+- **Features**:
+  - Three-category system: Competitions, Clubs, Players
+  - Smart filtering with sensible defaults (Season: 2025)
+  - Competition search with Top 5/Top 10 leagues filtering
+  - Club search with country filtering
+  - Player search with position and nationality filtering
+  - Clean table displays with formatted data
+  - Currency formatting for market values
+  - Empty states and result counts
+  - Top 5 leagues: Premier League, La Liga, Serie A, Bundesliga, Ligue 1 (based on UEFA ranking)
+  - Top 10 leagues: Top 5 + Portugal, Netherlands, Belgium, Russia, Turkey
+- **Backend**: Uses transfermarkt-proxy.mts for API calls
+- **Dependencies**: React Router, Netlify Functions
+- **Impact**: Users can easily search and filter football data to create informed quiz questions
+- **Size**: ~15KB
+
+### TransfermarktAPI.tsx - Created
+
+- **Type**: New Page
+- **Purpose**: Production-like API testing interface for Transfermarkt integration
+- **Route**: `/transfermarkt-api`
+- **Reason**: Enable comprehensive testing of all Transfermarkt API endpoints with real responses
+- **Features**:
+  - Three-tabbed interface for organized endpoint testing (Competitions, Clubs, Players)
+  - Real-time API calls via Netlify Functions proxy (CORS-free)
+  - Live response display with status codes and formatted JSON
+  - Competition endpoints: search competitions, get competition clubs
+  - Club endpoints: search clubs, get club profile, get club players
+  - Player endpoints: search players, profile, market value, transfers, jersey numbers, stats, injuries, achievements
+  - Empty input fields (no mock data or placeholders)
+  - Loading states and error handling
+  - Responsive two-column layout (inputs + response panel)
+- **Backend**: Created `transfermarkt-proxy.mts` Netlify function to proxy requests
+- **Dependencies**: React Router, Netlify Functions
+- **Impact**: Developers can now test all Transfermarkt API endpoints without CORS issues
+- **Size**: ~12KB
+
+### transfermarkt-proxy.mts - Created
+
+- **Type**: New Netlify Function
+- **Purpose**: Proxy Transfermarkt API requests to avoid CORS issues
+- **Endpoint**: `/.netlify/functions/transfermarkt-proxy?endpoint={path}`
+- **Reason**: Browser direct calls to Transfermarkt API blocked by CORS policy
+- **Features**:
+  - Proxies all requests to `https://transfermarkt-api-jftx.onrender.com`
+  - Adds proper CORS headers for browser access
+  - Error handling with detailed error messages
+  - Supports all HTTP methods
+- **Impact**: Frontend can make API calls without CORS restrictions
+
+---
+
 ## January 15, 2025
 
 ### GameSetup.tsx - Question Management Integration

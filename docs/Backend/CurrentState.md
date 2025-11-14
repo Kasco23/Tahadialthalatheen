@@ -1,7 +1,7 @@
 # Backend - Current State
 
-**Last Updated**: January 24, 2025  
-**Total Active Functions**: 8 Serverless + 3 Edge Functions + 5 Planned = 16 total
+**Last Updated**: November 14, 2025  
+**Total Active Functions**: 9 Serverless + 3 Edge Functions = 12 total
 
 ---
 
@@ -95,6 +95,25 @@
 - **Environment Variables**: `SUPABASE_DATABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`
 - **Size**: ~2KB
 - **Used By**: Lobby.tsx via mutations.ts markPlayerReady()
+
+### transfermarkt-proxy.mts
+
+- **Status**: ✅ Active
+- **Runtime**: Netlify Functions (Node.js) - Runtime API v2
+- **Endpoint**: `/.netlify/functions/transfermarkt-proxy`
+- **Method**: GET
+- **Purpose**: Proxy requests to Transfermarkt API to avoid CORS issues
+- **Query Parameters**: `endpoint` (the API path to proxy, e.g., `/players/search/Messi`)
+- **Response**: Proxied JSON response from Transfermarkt API
+- **Key Features**:
+  - Proxies all requests to `https://transfermarkt-api-jftx.onrender.com`
+  - Adds CORS headers for browser access
+  - Error handling with detailed messages
+  - Supports all HTTP methods
+  - No authentication required
+- **External API**: Transfermarkt API on Render.com
+- **Size**: ~2KB
+- **Used By**: TransfermarktAPI.tsx page
 
 ### get-active-profile.ts
 

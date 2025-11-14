@@ -1,6 +1,32 @@
 # Backend - Changelog
 
-**Last Updated**: January 24, 2025
+**Last Updated**: November 14, 2025
+
+---
+
+## November 14, 2025
+
+### transfermarkt-proxy.mts - Created
+
+- **Type**: New Netlify Serverless Function
+- **Purpose**: Proxy requests to Transfermarkt API to avoid CORS policy issues
+- **Reason**: Browser direct calls to `https://transfermarkt-api-jftx.onrender.com` blocked by CORS
+- **Endpoint**: `/.netlify/functions/transfermarkt-proxy?endpoint={path}`
+- **Method**: GET (supports all methods via req.method)
+- **Request**: Query parameter `endpoint` (e.g., `/players/search/Messi?page_number=1`)
+- **Response**: Proxied JSON response from Transfermarkt API
+- **Key Features**:
+  - Proxies all requests to external Transfermarkt API
+  - Adds proper CORS headers (`Access-Control-Allow-Origin: *`)
+  - Passes through request method
+  - Error handling with detailed error messages
+  - No authentication required (public API proxy)
+  - Logging for debugging
+- **Environment Variables**: None (uses public API)
+- **Size**: ~2KB
+- **Used By**: TransfermarktAPI.tsx testing page
+- **Impact**: Enables frontend to test Transfermarkt API endpoints without CORS restrictions
+- **Runtime**: Netlify Functions v2
 
 ---
 
