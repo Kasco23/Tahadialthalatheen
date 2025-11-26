@@ -47,6 +47,23 @@ TypeScript, React (Vite), Tailwind, Supabase, Daily.co (video), Socket.io. Tests
 - Deno >= 2.5 (for Edge Functions)
 - pnpm
 
+**First-time setup**:
+
+```bash
+# Install nvm if you don't have it
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+
+# Install and use Node.js 20.19.6
+nvm install 20.19.6
+nvm use 20.19.6
+nvm alias default 20.19.6
+
+# Install dependencies
+pnpm install
+```
+
+**Note for VS Code users**: The project includes `.nvmrc` and will auto-switch to Node 20.19.6 when you `cd` into the directory (if nvm is properly configured in your `~/.zshrc`).
+
 **Install and run**:
 
 ```bash
