@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@config "../tailwind.config.js";
 
 /* Modal and UI Animations */
 @keyframes fadeIn {

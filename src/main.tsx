@@ -4,7 +4,12 @@ import { Provider } from "jotai";
 import "./index.css";
 import App from "./App";
 
-createRoot(document.getElementById("root")!).render(
+const rootElement = document.getElementById("root");
+if (!rootElement) {
+  throw new Error("Root element not found");
+}
+
+createRoot(rootElement).render(
   <StrictMode>
     <Provider>
       <App />

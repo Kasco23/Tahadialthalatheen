@@ -43,7 +43,7 @@ TypeScript, React (Vite), Tailwind, Supabase, Daily.co (video), Socket.io. Tests
 
 **Requirements**:
 
-- Node.js >= 22
+- Node.js >= 20.19.6 (LTS "Iron")
 - Deno >= 2.5 (for Edge Functions)
 - pnpm
 

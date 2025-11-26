@@ -32,6 +32,47 @@ export const useSessionData = (
   useEffect(() => {
     let isCancelled = false;
 
+    const fetchDailyRoomData = async (sessionId: string) => {
+      try {
+        const roomData = await getDailyRoom(sessionId);
+        if (!isCancelled) {
+          setDailyRoom(roomData);
+        }
+      } catch (roomError) {
+        // Daily room might not exist yet - this is not necessarily an error
+        Logger.warn("Daily room not found:", roomError);
+        if (!isCancelled) {
+          setDailyRoom(null);
+        }
+      }
+    };
+
+    const handleSessionError = (sessionError: unknown) => {
+      if (isCancelled) return;
+      
+      setError(
+        sessionError instanceof Error
+          ? sessionError.message
+          : "Failed to fetch session data",
+      );
+      setSessionId(null);
+      setDailyRoom(null);
+    };
+
+    const resolveSessionData = async (sessionCode: string) => {
+      const resolvedSessionId = await getSessionIdByCode(sessionCode);
+      
+      if (isCancelled) return null;
+      
+      setSessionId(resolvedSessionId);
+      
+      if (resolvedSessionId) {
+        await fetchDailyRoomData(resolvedSessionId);
+      }
+      
+      return resolvedSessionId;
+    };
+
     const fetchSessionData = async () => {
       if (!memoizedSessionCode) {
         setLoading(false);
@@ -41,39 +82,9 @@ export const useSessionData = (
       try {
         setLoading(true);
         setError(null);
-
-        // First resolve session ID
-        const resolvedSessionId = await getSessionIdByCode(memoizedSessionCode);
-
-        if (isCancelled) return;
-
-        setSessionId(resolvedSessionId);
-
-        // Now fetch Daily room data with the resolved session ID
-        if (resolvedSessionId) {
-          try {
-            const roomData = await getDailyRoom(resolvedSessionId);
-            if (!isCancelled) {
-              setDailyRoom(roomData);
-            }
-          } catch (roomError) {
-            // Daily room might not exist yet - this is not necessarily an error
-            Logger.warn("Daily room not found:", roomError);
-            if (!isCancelled) {
-              setDailyRoom(null);
-            }
-          }
-        }
+        await resolveSessionData(memoizedSessionCode);
       } catch (sessionError) {
-        if (!isCancelled) {
-          setError(
-            sessionError instanceof Error
-              ? sessionError.message
-              : "Failed to fetch session data",
-          );
-          setSessionId(null);
-          setDailyRoom(null);
-        }
+        handleSessionError(sessionError);
       } finally {
         if (!isCancelled) {
           setLoading(false);

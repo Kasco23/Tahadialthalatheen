@@ -21,25 +21,31 @@ env:
 
 jobs:
   generate-map:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    # Security: Only run on successful workflows from non-PR events
+    if: |
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event != 'pull_request_target' &&
+      github.event.workflow_run.event != 'pull_request'
     runs-on: ubuntu-latest
 
     steps:
       # Checkout the exact SHA that the successful workflow built
+      # Security: Only runs on push events to minimal branch (see workflow_run trigger)
       - name: Checkout repo
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
+          persist-credentials: true
 
       # pnpm 10
       - uses: pnpm/action-setup@fe02b34f77f8bc703788d5817da081398fad5dd2 # v4.0.0
         with:
-          version: 10.16.1
+          version: 10.19.0
 
-      # Node 22
+      # Node 20.19.6
       - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
         with:
-          node-version: 22
+          node-version: 20.19.6
           cache: pnpm
 
       - name: Install dependencies (pnpm)

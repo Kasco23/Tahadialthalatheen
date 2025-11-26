@@ -1,15 +1,15 @@
 # ================================================
 # Netlify configuration for Tahadialthalatheen (minimal)
-# - Node 22 LTS  - pnpm 8/10 - Vite build
+# - Node 20.19.6 LTS (Iron)  - pnpm 10 - Vite build
 # ================================================
 
 [build]
-  # Corepack is pre-enabled on the Node 22 image, but leaving it explicit is harmless
+  # Corepack is pre-enabled on the Node 20 image, but leaving it explicit is harmless
   command = "corepack enable && pnpm install --frozen-lockfile && pnpm run build"
   publish = "dist"
 
 [build.environment]
-  NODE_VERSION   = "22"
+  NODE_VERSION   = "20.19.6"
   # stick to the major you want; Netlify auto-installs the version below
   PNPM_VERSION   = "10"          # or "8" if you prefer the current LTS of pnpm
   # Let pnpm include devDependencies during production build (Vite plugins, ESLint, etc.)
