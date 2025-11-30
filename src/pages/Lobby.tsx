@@ -1207,13 +1207,13 @@ const Lobby: React.FC = () => {
                     </button>
                   )}
                   <button
-                    onClick={handleRefresh}
+                    onClick={() => void handleRefresh()}
                     className="w-full px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-lg transition-colors duration-200 border border-blue-400/50"
                   >
                     🔄 Refresh
                   </button>
                   <button
-                    onClick={handleLeaveLobby}
+                    onClick={() => void handleLeaveLobby()}
                     className="w-full px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-bold rounded-lg transition-colors duration-200 border border-red-400/50"
                   >
                     🚪 Leave Lobby
@@ -1256,7 +1256,7 @@ const Lobby: React.FC = () => {
       {/* Invite Friends Button - Fixed Position */}
       {sessionId && sessionCode && (
         <button
-          onClick={() => setIsInviteModalOpen(true)}
+          onClick={() => { setIsInviteModalOpen(true); }}
           className="fixed bottom-6 right-6 z-40 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-4 px-6 rounded-full shadow-2xl transition-all duration-300 hover:shadow-blue-500/50 hover:scale-110 flex items-center gap-2"
         >
           <svg
@@ -1280,7 +1280,7 @@ const Lobby: React.FC = () => {
       {sessionId && sessionCode && (
         <InviteFriendsModal
           isOpen={isInviteModalOpen}
-          onClose={() => setIsInviteModalOpen(false)}
+          onClose={() => { setIsInviteModalOpen(false); }}
           sessionCode={sessionCode}
           sessionId={sessionId}
         />

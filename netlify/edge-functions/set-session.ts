@@ -31,8 +31,29 @@ export default async (req: Request, _context: Context) => {
       );
     }
 
-    // Parse request body
-    const body = await req.json();
+    // Parse request body with error handling for dev mode
+    let body;
+    try {
+      const clonedReq = req.clone();
+      body = await clonedReq.json();
+    } catch (cloneError) {
+      console.warn("Failed to read cloned request body, trying original:", cloneError);
+      try {
+        body = await req.json();
+      } catch (finalError) {
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: "Failed to parse request body",
+          }),
+          {
+            status: 400,
+            headers: { "Content-Type": "application/json" },
+          },
+        );
+      }
+    }
+    
     const { key, data } = body;
 
     if (!key) {

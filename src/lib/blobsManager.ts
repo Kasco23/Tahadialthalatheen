@@ -141,6 +141,33 @@ export interface LobbySnapshotData {
 }
 
 /**
+ * Quiz Chosen Questions data stored in Blobs
+ * Represents the selected questions for a quiz session
+ */
+export interface QuizQuestionsBlob {
+  session_id: string;
+  session_code: string;
+  created_at: string;
+  last_updated: string;
+  
+  // Questions grouped by segment
+  questions: Array<{
+    question_id: string;
+    segment_code: string;
+    question_text: string;
+    question_type: "list" | "buzz";
+    answers: string | string[];
+    total_answers_available?: number;
+    display_order: number;
+  }>;
+  
+  // Current quiz progress
+  current_segment: string | null;
+  current_question_index: number;
+  completed_segments: string[];
+}
+
+/**
  * Blob operation result with error handling
  */
 export interface BlobResult<T> {
@@ -746,6 +773,215 @@ export async function getLobbySnapshot(
     };
   } catch (error) {
     Logger.error(`[getLobbySnapshot] Error:`, error);
+
+    return {
+      success: false,
+      data: null,
+      error: error instanceof Error ? error.message : "Unknown error",
+      cached: false,
+      source: "blob",
+    };
+  }
+}
+
+// ============================================================================
+// Quiz Questions Blob Operations
+// ============================================================================
+
+/**
+ * Save quiz questions to Blobs
+ * Stores the selected questions for a quiz session
+ */
+export async function saveQuizQuestions(
+  sessionCode: string,
+  sessionId: string,
+  questions: Array<{
+    question_id: string;
+    segment_code: string;
+    question_text: string;
+    question_type: "list" | "buzz";
+    answers: string | string[];
+    total_answers_available?: number;
+    display_order: number;
+  }>,
+): Promise<BlobResult<QuizQuestionsBlob>> {
+  const cacheKey = `quiz:${sessionCode}`;
+
+  try {
+    const dataToSave: QuizQuestionsBlob = {
+      session_id: sessionId,
+      session_code: sessionCode,
+      created_at: new Date().toISOString(),
+      last_updated: new Date().toISOString(),
+      questions,
+      current_segment: null,
+      current_question_index: 0,
+      completed_segments: [],
+    };
+
+    const response = await fetch("/session-state", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sessionId: `quiz:${sessionCode}`,
+        state: dataToSave,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+
+    if (result.success) {
+      // Update cache
+      await cache.set(cacheKey, dataToSave);
+
+      Logger.log(
+        `[saveQuizQuestions] Saved ${questions.length} questions for session ${sessionCode}`,
+      );
+
+      return {
+        success: true,
+        data: dataToSave,
+        error: null,
+        cached: false,
+        source: "blob",
+      };
+    }
+
+    return {
+      success: false,
+      data: null,
+      error: "Failed to save quiz questions to blobs",
+      cached: false,
+      source: "blob",
+    };
+  } catch (error) {
+    Logger.error(
+      `[saveQuizQuestions] Error saving questions for session ${sessionCode}:`,
+      error,
+    );
+
+    return {
+      success: false,
+      data: null,
+      error: error instanceof Error ? error.message : "Unknown error",
+      cached: false,
+      source: "blob",
+    };
+  }
+}
+
+/**
+ * Get quiz questions from Blobs with caching
+ */
+export async function getQuizQuestions(
+  sessionCode: string,
+  useCache = true,
+): Promise<BlobResult<QuizQuestionsBlob>> {
+  const cacheKey = `quiz:${sessionCode}`;
+
+  // Check cache first
+  if (useCache) {
+    const cached = await cache.get<QuizQuestionsBlob>(cacheKey);
+    if (cached) {
+      Logger.log(`[getQuizQuestions] Cache hit for session ${sessionCode}`);
+      return {
+        success: true,
+        data: cached,
+        error: null,
+        cached: true,
+        source: "cache",
+      };
+    }
+  }
+
+  try {
+    const response = await fetch(
+      `/session-state?sessionId=${encodeURIComponent(`quiz:${sessionCode}`)}`,
+      {
+        method: "GET",
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+
+    if (result.success && result.state) {
+      const quizData = result.state as QuizQuestionsBlob;
+
+      // Update cache
+      await cache.set(cacheKey, quizData);
+
+      Logger.log(
+        `[getQuizQuestions] Loaded ${quizData.questions.length} questions for session ${sessionCode}`,
+      );
+
+      return {
+        success: true,
+        data: quizData,
+        error: null,
+        cached: false,
+        source: "blob",
+      };
+    }
+
+    return {
+      success: false,
+      data: null,
+      error: "Quiz questions not found",
+      cached: false,
+      source: "blob",
+    };
+  } catch (error) {
+    Logger.error(
+      `[getQuizQuestions] Error loading questions for session ${sessionCode}:`,
+      error,
+    );
+
+    return {
+      success: false,
+      data: null,
+      error: error instanceof Error ? error.message : "Unknown error",
+      cached: false,
+      source: "blob",
+    };
+  }
+}
+
+/**
+ * Delete quiz questions from Blobs
+ * Useful for cleanup after quiz completion
+ */
+export async function deleteQuizQuestions(
+  sessionCode: string,
+): Promise<BlobResult<void>> {
+  const cacheKey = `quiz:${sessionCode}`;
+
+  try {
+    // Note: Edge function doesn't have DELETE method yet
+    // For now, we'll just invalidate the cache
+    await cache.invalidate(cacheKey);
+
+    Logger.log(`[deleteQuizQuestions] Invalidated cache for session ${sessionCode}`);
+
+    return {
+      success: true,
+      data: null,
+      error: null,
+      cached: false,
+      source: "blob",
+    };
+  } catch (error) {
+    Logger.error(
+      `[deleteQuizQuestions] Error deleting questions for session ${sessionCode}:`,
+      error,
+    );
 
     return {
       success: false,

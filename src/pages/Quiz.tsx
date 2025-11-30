@@ -1,6 +1,6 @@
 import { Logger } from "../lib/logger";
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useAtom } from "jotai";
 import { useSession } from "../lib/sessionHooks";
 import {
@@ -14,6 +14,7 @@ import {
   activatePowerup,
   getSessionIdByCode,
 } from "../lib/mutations";
+import { getQuizQuestions } from "../lib/blobsManager";
 import { dailyUserNameAtom } from "../atoms";
 import { VideoRoom } from "../components/VideoRoom";
 import type { Tables, SegmentCode } from "../lib/types";
@@ -30,6 +31,7 @@ import type { Tables, SegmentCode } from "../lib/types";
 
 const Quiz: React.FC = () => {
   const { sessionCode } = useParams<{ sessionCode: string }>();
+  const navigate = useNavigate();
   const [sessionId, setSessionId] = useState<string | null>(null);
   const { session, loading: sessionLoading } = useSession(sessionId);
   const { strikes, loading: strikesLoading } = useStrikes(sessionId);
@@ -41,6 +43,17 @@ const Quiz: React.FC = () => {
   const [currentSegment, setCurrentSegment] = useState<SegmentCode>("WDYK");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [questions, setQuestions] = useState<Array<{
+    question_id: string;
+    segment_code: string;
+    display_order: number;
+    question_text: string;
+    question_type: "list" | "buzz";
+    answers: string | string[];
+    total_answers_available?: number;
+  }>>([]);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [showAnswers, setShowAnswers] = useState(false);
 
   // Get participant name
   const participantName =
@@ -69,6 +82,32 @@ const Quiz: React.FC = () => {
     }
   }, [sessionCode]);
 
+  // Fetch questions from Netlify Blobs
+  useEffect(() => {
+    const fetchQuestions = async () => {
+      if (!sessionCode) return;
+
+      setLoading(true);
+      const result = await getQuizQuestions(sessionCode);
+      
+      if (result.success && result.data) {
+        setQuestions(result.data.questions);
+        Logger.log(`✅ Loaded ${result.data.questions.length} questions from Netlify Blobs`);
+      } else {
+        Logger.error("Failed to load questions:", result.error);
+        setError("No questions found. Please go back and select questions.");
+        
+        // Redirect back to GameSetup after 3 seconds
+        setTimeout(() => {
+          navigate(`/gamesetup/${sessionCode}`);
+        }, 3000);
+      }
+      setLoading(false);
+    };
+
+    void fetchQuestions();
+  }, [sessionCode]);
+
   // Segment definitions
   const segments = {
     WDYK: { name: "What Do You Know", description: "Open-ended questions" },
@@ -78,8 +117,59 @@ const Quiz: React.FC = () => {
     REMO: { name: "Remontada", description: "Career path questions" },
   };
 
-  const players = participants.filter((p) => p.role !== "Host");
+  // Add placeholder participants if testing solo
+  const realPlayers = participants.filter((p) => p.role !== "Host");
+  const placeholderParticipants: typeof realPlayers = realPlayers.length === 0 ? [
+    {
+      participant_id: "placeholder-1",
+      name: "Player 1 (Test)",
+      role: "Home",
+      flag: "gb-eng",
+      team_logo_url: "https://tmssl.akamaized.net/images/wappen/head/11.png",
+      session_id: sessionId || "",
+      lobby_presence: "joined",
+      video_presence: false,
+      powerup_pass_used: false,
+      powerup_alhabeed: false,
+      powerup_bellegoal: false,
+      powerup_slippyg: false,
+      profile_id: null,
+      password: null,
+      isReady: true,
+      join_at: new Date().toISOString(),
+      lastHeartbeat: new Date().toISOString(),
+      disconnect_at: null,
+    } as typeof realPlayers[0],
+    {
+      participant_id: "placeholder-2",
+      name: "Player 2 (Test)",
+      role: "Away",
+      flag: "es",
+      team_logo_url: "https://tmssl.akamaized.net/images/wappen/head/418.png",
+      session_id: sessionId || "",
+      lobby_presence: "joined",
+      video_presence: false,
+      powerup_pass_used: false,
+      powerup_alhabeed: false,
+      powerup_bellegoal: false,
+      powerup_slippyg: false,
+      profile_id: null,
+      password: null,
+      isReady: true,
+      join_at: new Date().toISOString(),
+      lastHeartbeat: new Date().toISOString(),
+      disconnect_at: null,
+    } as typeof realPlayers[0],
+  ] : [];
+  
+  const players = realPlayers.length > 0 ? realPlayers : placeholderParticipants;
   const host = participants.find((p) => p.role === "Host");
+  
+  // Get questions for current segment
+  const currentSegmentQuestions = questions.filter(
+    (q) => q.segment_code === currentSegment
+  );
+  const currentQuestion = currentSegmentQuestions[currentQuestionIndex] || null;
 
   // Get remaining questions for current segment
   const getCurrentSegmentConfig = () => {
@@ -229,6 +319,108 @@ const Quiz: React.FC = () => {
             })}
           </div>
         </div>
+
+        {/* Question Display Section */}
+        {currentQuestion && (
+          <div className="bg-white rounded-xl p-6 shadow-lg mb-8">
+            <div className="flex justify-between items-start mb-4">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="px-3 py-1 bg-blue-500 text-white text-sm font-bold rounded-full">
+                    Question {currentQuestionIndex + 1} of {currentSegmentQuestions.length}
+                  </span>
+                  <span className="px-3 py-1 bg-purple-500 text-white text-sm font-bold rounded-full">
+                    {currentQuestion.question_type === "list" ? "📚 List" : "🔔 Buzz"}
+                  </span>
+                </div>
+                <h3 className="text-2xl font-bold text-gray-800 mb-4">
+                  {currentQuestion.question_text}
+                </h3>
+              </div>
+              <button
+                onClick={() => { setShowAnswers(!showAnswers); }}
+                className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white font-bold rounded-lg transition-colors"
+              >
+                {showAnswers ? "🙈 Hide Answers" : "👁️ Show Answers"}
+              </button>
+            </div>
+
+            {/* Answers Section (Host View) */}
+            {showAnswers && (
+              <div className="mt-4 p-4 bg-green-50 rounded-lg border-2 border-green-300">
+                <h4 className="text-lg font-bold text-green-800 mb-3">
+                  ✅ Correct Answers:
+                </h4>
+                {currentQuestion.question_type === "list" ? (
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                    {(Array.isArray(currentQuestion.answers) 
+                      ? currentQuestion.answers 
+                      : JSON.parse(currentQuestion.answers as string)
+                    ).map((answer: string, idx: number) => (
+                      <div
+                        key={idx}
+                        className="px-3 py-2 bg-white rounded-lg border border-green-300 text-gray-800 font-medium"
+                      >
+                        {idx + 1}. {answer}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="px-4 py-3 bg-white rounded-lg border border-green-300">
+                    <p className="text-gray-800 font-bold text-lg">
+                      {typeof currentQuestion.answers === "string" 
+                        ? currentQuestion.answers 
+                        : (currentQuestion.answers as string[])[0]}
+                    </p>
+                  </div>
+                )}
+                {currentQuestion.total_answers_available && (
+                  <p className="text-sm text-green-700 mt-2">
+                    Total answers available: {currentQuestion.total_answers_available}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Question Navigation */}
+            <div className="flex justify-between items-center mt-6 pt-4 border-t">
+              <button
+                onClick={() => { 
+                  setCurrentQuestionIndex(Math.max(0, currentQuestionIndex - 1)); 
+                  setShowAnswers(false);
+                }}
+                disabled={currentQuestionIndex === 0}
+                className="px-4 py-2 bg-gray-500 hover:bg-gray-600 disabled:bg-gray-300 text-white font-bold rounded-lg disabled:cursor-not-allowed"
+              >
+                ← Previous
+              </button>
+              <span className="text-gray-600 font-medium">
+                {currentQuestionIndex + 1} / {currentSegmentQuestions.length}
+              </span>
+              <button
+                onClick={() => { 
+                  setCurrentQuestionIndex(Math.min(currentSegmentQuestions.length - 1, currentQuestionIndex + 1)); 
+                  setShowAnswers(false);
+                }}
+                disabled={currentQuestionIndex === currentSegmentQuestions.length - 1}
+                className="px-4 py-2 bg-gray-500 hover:bg-gray-600 disabled:bg-gray-300 text-white font-bold rounded-lg disabled:cursor-not-allowed"
+              >
+                Next →
+              </button>
+            </div>
+          </div>
+        )}
+
+        {!currentQuestion && (
+          <div className="bg-yellow-50 border-2 border-yellow-300 rounded-xl p-6 text-center mb-8">
+            <p className="text-xl text-yellow-800 font-bold">
+              📝 No questions available for this segment
+            </p>
+            <p className="text-yellow-700 mt-2">
+              Go back to Game Setup to select questions for {segments[currentSegment].name}
+            </p>
+          </div>
+        )}
 
         {/* Players Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">

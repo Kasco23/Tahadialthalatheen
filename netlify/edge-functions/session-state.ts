@@ -39,25 +39,6 @@ import { getStore } from "@netlify/blobs";
  */
 export default async (req: Request, context: Context) => {
   try {
-    // Check if we're in a development environment where Blobs might not be available
-    const isDev = context.deploy?.context === "dev" || !context.site?.id;
-
-    if (isDev) {
-      // In development, return a graceful response
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error:
-            "Netlify Blobs not available in local development. Use 'netlify dev' or deploy to test.",
-          dev: true,
-        }),
-        {
-          status: 503,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
-    }
-
     const method = req.method;
 
     // Parse request data
@@ -68,9 +49,34 @@ export default async (req: Request, context: Context) => {
       const url = new URL(req.url);
       sessionId = url.searchParams.get("sessionId");
     } else {
-      const body = await req.json();
-      sessionId = body.sessionId;
-      stateData = body.state;
+      // For POST/PUT/DELETE, we need to parse the body
+      try {
+        // Clone the request to avoid body lock issues in dev mode
+        const clonedReq = req.clone();
+        const body = await clonedReq.json();
+        sessionId = body.sessionId;
+        stateData = body.state;
+      } catch (bodyError) {
+        // If body reading fails (e.g., in dev mode), try to get from original request
+        console.warn("Failed to read cloned request body, trying original:", bodyError);
+        try {
+          const body = await req.json();
+          sessionId = body.sessionId;
+          stateData = body.state;
+        } catch (finalError) {
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: "Failed to parse request body. Body may have been consumed already.",
+              dev: context.deploy?.context === "dev",
+            }),
+            {
+              status: 400,
+              headers: { "Content-Type": "application/json" },
+            },
+          );
+        }
+      }
     }
 
     // Validate sessionId

@@ -527,46 +527,28 @@ export type Database = {
       };
       Questions: {
         Row: {
+          answers: Json;
           question_id: string;
-          segment_code: string;
           question_text: string;
-          answers: string[];
-          correct_answer_index: number | null;
-          difficulty: "easy" | "medium" | "hard";
-          metadata: Json;
-          api_source: "manual" | "transfermarkt";
-          api_params: Json | null;
+          question_type: string;
+          segment_code: string;
           total_answers_available: number | null;
-          answers_truncated: boolean;
-          created_at: string;
         };
         Insert: {
+          answers?: Json;
           question_id?: string;
-          segment_code: string;
           question_text: string;
-          answers: string[];
-          correct_answer_index?: number | null;
-          difficulty?: "easy" | "medium" | "hard";
-          metadata?: Json;
-          api_source?: "manual" | "transfermarkt";
-          api_params?: Json | null;
+          question_type: string;
+          segment_code: string;
           total_answers_available?: number | null;
-          answers_truncated?: boolean;
-          created_at?: string;
         };
         Update: {
+          answers?: Json;
           question_id?: string;
-          segment_code?: string;
           question_text?: string;
-          answers?: string[];
-          correct_answer_index?: number | null;
-          difficulty?: "easy" | "medium" | "hard";
-          metadata?: Json;
-          api_source?: "manual" | "transfermarkt";
-          api_params?: Json | null;
+          question_type?: string;
+          segment_code?: string;
           total_answers_available?: number | null;
-          answers_truncated?: boolean;
-          created_at?: string;
         };
         Relationships: [];
       };
@@ -965,6 +947,53 @@ export type CompositeTypes<
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never;
+
+// ============================================================================
+// Specialized Question Types for Type Safety
+// ============================================================================
+
+export type QuestionRow = Database["public"]["Tables"]["Questions"]["Row"];
+export type QuestionInsert =
+  Database["public"]["Tables"]["Questions"]["Insert"];
+export type QuestionUpdate =
+  Database["public"]["Tables"]["Questions"]["Update"];
+
+// Type-safe question variants based on question_type
+export type ListQuestion = QuestionRow & {
+  question_type: "list";
+  answers: string[]; // Must be an array for list questions
+};
+
+export type BuzzQuestion = QuestionRow & {
+  question_type: "buzz";
+  answers: string; // Must be a single string for buzz questions
+};
+
+export type Question = ListQuestion | BuzzQuestion;
+
+// Segment codes for the 5 quiz segments
+export type SegmentCode = "WDYK" | "AUCT" | "BELL" | "UPDW" | "REMO";
+
+// Question type
+export type QuestionType = "list" | "buzz";
+
+// Difficulty levels
+export type DifficultyLevel = "easy" | "medium" | "hard";
+
+// API source
+export type ApiSource = "manual" | "transfermarkt";
+
+// Segment configuration mapping
+export const SEGMENT_CONFIG: Record<
+  SegmentCode,
+  { name: string; type: QuestionType }
+> = {
+  WDYK: { name: "What Do You Know", type: "list" },
+  AUCT: { name: "Auction", type: "list" },
+  BELL: { name: "Bell Round", type: "buzz" },
+  UPDW: { name: "Upside-Down", type: "buzz" },
+  REMO: { name: "Remontada", type: "buzz" },
+};
 
 export const Constants = {
   public: {

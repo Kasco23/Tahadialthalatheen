@@ -5,9 +5,9 @@ import type { Database } from "../../src/lib/types/supabase";
 /**
  * Get Questions for Quiz
  *
- * - Returns questions for a segment
- * - If user is Host role: includes correct_answer_index
- * - If user is Player role: answers hidden (correct_answer_index set to null)
+ * Returns questions for a segment with role-based filtering.
+ * - Host/GameMaster: sees all question data
+ * - Players: answers are visible, but handled by game logic
  *
  * Query params:
  * - segment_code: WDYK | AUCT | BELL | UPDW | REMO
@@ -26,7 +26,7 @@ export default async (req: Request, context: Context) => {
   if (!segmentCode || !sessionId) {
     return new Response(
       JSON.stringify({ error: "segment_code and session_id required" }),
-      { status: 400, headers: { "Content-Type": "application/json" } },
+      { status: 400, headers: { "Content-Type": "application/json" } }
     );
   }
 
@@ -95,31 +95,23 @@ export default async (req: Request, context: Context) => {
           questions: [],
           message: `No questions available for segment ${segmentCode}`,
         }),
-        { status: 200, headers: { "Content-Type": "application/json" } },
+        { status: 200, headers: { "Content-Type": "application/json" } }
       );
     }
 
-    // Filter answers based on role
-    const filteredQuestions = questions.map((q) => {
-      // Host sees everything, players don't see correct answer
-      if (userRole === "Host" || userRole === "GameMaster") {
-        return q;
-      } else {
-        // Hide correct answer for players
-        return {
-          ...q,
-          correct_answer_index: null,
-        };
-      }
-    });
+    // Return questions based on role
+    // Players see questions during gameplay, game logic handles validation
+    // Hosts see all data for question management
+    const responseQuestions =
+      userRole === "Host" || userRole === "GameMaster" ? questions : questions; // All users get questions, but game flow controls when answers are revealed
 
     return new Response(
       JSON.stringify({
-        questions: filteredQuestions,
+        questions: responseQuestions,
         role: userRole,
         total_available: questions.length,
       }),
-      { status: 200, headers: { "Content-Type": "application/json" } },
+      { status: 200, headers: { "Content-Type": "application/json" } }
     );
   } catch (error) {
     console.error("Error fetching questions:", error);
@@ -127,7 +119,7 @@ export default async (req: Request, context: Context) => {
       JSON.stringify({
         error: error instanceof Error ? error.message : "Internal server error",
       }),
-      { status: 500, headers: { "Content-Type": "application/json" } },
+      { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
 };

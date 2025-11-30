@@ -15,6 +15,9 @@ export default defineConfig({
       algorithm: "brotliCompress",
     }),
   ],
+  resolve: {
+    dedupe: ["react", "react-dom"],
+  },
   build: {
     chunkSizeWarningLimit: 800,
     rollupOptions: {

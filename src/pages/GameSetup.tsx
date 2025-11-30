@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import { useAtom } from "jotai";
 import {
   setSegmentConfig,
@@ -22,10 +22,11 @@ import { updateSessionState } from "../lib/sessionState";
 import { StadiumBackground } from "../components/StadiumBackground";
 import { InviteFriendsModal } from "../components/InviteFriendsModal";
 import { UsernameSetupBanner } from "../components/UsernameSetupBanner";
-import { QuestionManager } from "../components/QuestionManager";
+import { QuestionSelectorModal } from "../components/QuestionSelectorModal";
 import {
   saveSessionBlob,
   getSessionBlob,
+  saveQuizQuestions,
   type SessionBlobData,
 } from "../lib/blobsManager";
 
@@ -47,10 +48,10 @@ const GameSetup: React.FC = () => {
   const [roomInfo, setRoomInfo] = useState<{ room_url: string } | null>(null);
   const [participantCount, setParticipantCount] = useState(0);
   const [hostParticipantId, setHostParticipantId] = useState<string | null>(
-    () => localStorage.getItem("hostParticipantId"),
+    () => localStorage.getItem("hostParticipantId")
   );
   const [presenceHelper, setPresenceHelper] = useState<PresenceHelper | null>(
-    null,
+    null
   );
   const [heartbeat, setHeartbeat] = useState<NodeJS.Timeout | null>(null);
   const [notice, setNotice] = useState<{
@@ -58,14 +59,23 @@ const GameSetup: React.FC = () => {
     message: string;
   } | null>(null);
   const [segments, setSegments] = useState({
-    WDYK: 4, // What Do You Know
-    AUCT: 2, // Auction
-    BELL: 10, // Bell
-    UPDW: 10, // Up Down
-    REMO: 4, // Remontada
+    WDYK: 0, // What Do You Know
+    AUCT: 0, // Auction
+    BELL: 0, // Bell
+    UPDW: 0, // Up Down
+    REMO: 0, // Remontada
   });
+  const [selectedQuestions, setSelectedQuestions] = useState<
+    Record<SegmentCode, string[]>
+  >({
+    WDYK: [],
+    AUCT: [],
+    BELL: [],
+    UPDW: [],
+    REMO: [],
+  });
+  const [activeSegmentModal, setActiveSegmentModal] = useState<SegmentCode | null>(null);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
-  const [isQuestionManagerOpen, setIsQuestionManagerOpen] = useState(false);
 
   // Update atoms when sessionId is resolved
   useEffect(() => {
@@ -225,7 +235,7 @@ const GameSetup: React.FC = () => {
             acc[config.segment_code] = config.questions_count;
             return acc;
           },
-          {} as Record<SegmentCode, number>,
+          {} as Record<SegmentCode, number>
         );
 
         // Update local state with fetched config
@@ -243,43 +253,25 @@ const GameSetup: React.FC = () => {
 
   // (removed duplicate effect)
 
-  const handleSegmentChange = async (
-    segment: keyof typeof segments,
-    value: string,
+  const handleQuestionSelectionChange = (
+    segment: SegmentCode,
+    questionIds: string[]
   ) => {
-    const numValue = parseInt(value) || 0;
-
-    // Validate range (1-50 questions per segment)
-    if (numValue < 0 || numValue > 50) {
-      setNotice({
-        type: "error",
-        message: "Question count must be between 1 and 50",
-      });
-      return;
-    }
-
+    setSelectedQuestions((prev) => ({
+      ...prev,
+      [segment]: questionIds,
+    }));
+    
+    // Auto-update segment count based on selection
     setSegments((prev) => ({
       ...prev,
-      [segment]: numValue,
+      [segment]: questionIds.length,
     }));
-
-    // If session exists, update the config in Supabase immediately
-    if (sessionId) {
-      try {
-        await setSegmentConfig(sessionId, [
-          {
-            segment_code: segment as SegmentCode,
-            questions_count: numValue,
-          },
-        ]);
-      } catch (error) {
-        Logger.error("Failed to update segment config:", error);
-        setNotice({
-          type: "error",
-          message: "Failed to save segment configuration",
-        });
-      }
-    }
+    
+    Logger.log(`Question selections updated for ${segment}`, { 
+      count: questionIds.length,
+      questionIds 
+    });
   };
 
   const handleCreateDailyRoom = async () => {
@@ -298,12 +290,22 @@ const GameSetup: React.FC = () => {
 
     // Validate segment configuration
     const hasInvalidSegments = Object.entries(segments).some(
-      ([, count]) => count < 1 || count > 50,
+      ([, count]) => count < 0 || count > 50
     );
     if (hasInvalidSegments) {
       setNotice({
         type: "error",
-        message: "All segments must have between 1 and 50 questions.",
+        message: "All segments must have between 0 and 50 questions.",
+      });
+      return;
+    }
+
+    // Check if at least one segment has questions
+    const totalQuestions = Object.values(segments).reduce((sum, count) => sum + count, 0);
+    if (totalQuestions === 0) {
+      setNotice({
+        type: "error",
+        message: "Please select questions for at least one segment before creating the room.",
       });
       return;
     }
@@ -316,6 +318,8 @@ const GameSetup: React.FC = () => {
         questions_count: count,
       }));
       await setSegmentConfig(sessionId, segmentConfigs);
+
+      Logger.log("✅ Segment configuration saved");
 
       // Use the already-created session code from DB (in route params)
       const created = await createDailyRoom(sessionId, sessionCode);
@@ -396,7 +400,7 @@ const GameSetup: React.FC = () => {
     }
   };
 
-  const handleStartQuiz = () => {
+  const handleStartQuiz = async () => {
     if (!sessionId) {
       setNotice({
         type: "error",
@@ -413,6 +417,105 @@ const GameSetup: React.FC = () => {
       });
       return;
     }
+    
+    // Fetch full question data and save to Netlify Blobs
+    try {
+      setIsLoading(true);
+      
+      // Get all selected question IDs with their segment codes
+      const questionIdsWithSegments = Object.entries(selectedQuestions).flatMap(
+        ([segment, questionIds]) =>
+          questionIds.map((questionId) => ({
+            questionId,
+            segmentCode: segment as SegmentCode,
+          }))
+      );
+      
+      if (questionIdsWithSegments.length === 0) {
+        setNotice({
+          type: "error",
+          message: "Please select at least one question before starting the quiz.",
+        });
+        setIsLoading(false);
+        return;
+      }
+      
+      // Fetch full question data from the Questions table
+      const { data: questionsData, error: questionsError } = await supabase
+        .from("Questions")
+        .select("question_id, question_text, question_type, answers, total_answers_available, segment_code")
+        .in(
+          "question_id",
+          questionIdsWithSegments.map((q) => q.questionId)
+        );
+      
+      if (questionsError) {
+        Logger.error("Error fetching questions:", questionsError);
+        setNotice({
+          type: "error",
+          message: "Failed to fetch question data. Please try again.",
+        });
+        setIsLoading(false);
+        return;
+      }
+      
+      if (!questionsData || questionsData.length === 0) {
+        setNotice({
+          type: "error",
+          message: "No questions found. Please select questions again.",
+        });
+        setIsLoading(false);
+        return;
+      }
+      
+      // Prepare questions with display order based on segment and selection order
+      const questionsWithOrder = questionsData.map((question, index) => {
+        // Find the corresponding segment code from selected questions
+        const selectedQuestion = questionIdsWithSegments.find(
+          (q) => q.questionId === question.question_id
+        );
+        
+        return {
+          question_id: question.question_id,
+          segment_code: selectedQuestion?.segmentCode || question.segment_code,
+          question_text: question.question_text,
+          question_type: question.question_type as "list" | "buzz",
+          answers: question.answers,
+          total_answers_available: question.total_answers_available || undefined,
+          display_order: index,
+        };
+      });
+      
+      // Save to Netlify Blobs
+      const result = await saveQuizQuestions(
+        sessionCode!,
+        sessionId,
+        questionsWithOrder
+      );
+      
+      if (!result.success) {
+        setNotice({
+          type: "error",
+          message: result.error || "Failed to save questions. Please try again.",
+        });
+        setIsLoading(false);
+        return;
+      }
+      
+      Logger.log(`✅ Saved ${questionsWithOrder.length} questions to Netlify Blobs`);
+      
+    } catch (error) {
+      Logger.error("Error saving questions:", error);
+      setNotice({
+        type: "error",
+        message: "Failed to save questions",
+      });
+      setIsLoading(false);
+      return;
+    } finally {
+      setIsLoading(false);
+    }
+    
     // Navigate to the quiz with the session code
     navigate(`/quiz/${sessionCode}`);
   };
@@ -424,7 +527,7 @@ const GameSetup: React.FC = () => {
         setIsDailyRoomCreated(true);
       }
     },
-    [isDailyRoomCreated],
+    [isDailyRoomCreated]
   );
 
   const handleEndSession = async () => {
@@ -434,7 +537,7 @@ const GameSetup: React.FC = () => {
     }
 
     const confirmed = confirm(
-      "Are you sure you want to end this session? This action cannot be undone.",
+      "Are you sure you want to end this session? This action cannot be undone."
     );
     if (confirmed) {
       try {
@@ -536,131 +639,155 @@ const GameSetup: React.FC = () => {
                 >
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold text-gray-700 flex items-center gap-2 border-b pb-2">
-                      <span>📋</span> Quiz Segments
+                      <span>📋</span> Select Questions by Segment
                     </h3>
+                    <p className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg border border-blue-200">
+                      💡 Click each segment to choose questions. The question count updates automatically.
+                    </p>
 
                     <div className="space-y-3">
-                      <div className="grid grid-cols-2 gap-4 items-center">
-                        <label
-                          htmlFor="wdyk"
-                          className="text-sm font-medium text-gray-700"
-                        >
-                          WDYK (What Do You Know)
-                        </label>
-                        <input
-                          type="number"
-                          id="wdyk"
-                          min="1"
-                          max="50"
-                          value={segments.WDYK}
-                          onChange={(e) => {
-                            handleSegmentChange("WDYK", e.target.value);
-                          }}
-                          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
-                        />
-                      </div>
+                      {/* WDYK */}
+                      <button
+                        type="button"
+                        onClick={() => setActiveSegmentModal("WDYK")}
+                        className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 border-2 border-blue-300 rounded-lg transition-all hover:shadow-md"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="text-2xl">🧠</span>
+                          <div className="text-left">
+                            <div className="font-semibold text-gray-800">WDYK - What Do You Know</div>
+                            <div className="text-xs text-gray-600">List question format</div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className={`px-4 py-2 rounded-full font-bold ${segments.WDYK > 0 ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-600'}`}>
+                            {segments.WDYK} questions
+                          </span>
+                          <span className="text-gray-400">→</span>
+                        </div>
+                      </button>
 
-                      <div className="grid grid-cols-2 gap-4 items-center">
-                        <label
-                          htmlFor="auct"
-                          className="text-sm font-medium text-gray-700"
-                        >
-                          AUCT (Auction)
-                        </label>
-                        <input
-                          type="number"
-                          id="auct"
-                          min="1"
-                          max="50"
-                          value={segments.AUCT}
-                          onChange={(e) =>
-                            handleSegmentChange("AUCT", e.target.value)
-                          }
-                          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
-                        />
-                      </div>
+                      {/* AUCT */}
+                      <button
+                        type="button"
+                        onClick={() => setActiveSegmentModal("AUCT")}
+                        className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-orange-50 to-orange-100 hover:from-orange-100 hover:to-orange-200 border-2 border-orange-300 rounded-lg transition-all hover:shadow-md"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="text-2xl">🔨</span>
+                          <div className="text-left">
+                            <div className="font-semibold text-gray-800">AUCT - Auction</div>
+                            <div className="text-xs text-gray-600">Bidding format</div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className={`px-4 py-2 rounded-full font-bold ${segments.AUCT > 0 ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-600'}`}>
+                            {segments.AUCT} questions
+                          </span>
+                          <span className="text-gray-400">→</span>
+                        </div>
+                      </button>
 
-                      <div className="grid grid-cols-2 gap-4 items-center">
-                        <label
-                          htmlFor="bell"
-                          className="text-sm font-medium text-gray-700"
-                        >
-                          BELL (Bell)
-                        </label>
-                        <input
-                          type="number"
-                          id="bell"
-                          min="1"
-                          max="50"
-                          value={segments.BELL}
-                          onChange={(e) =>
-                            handleSegmentChange("BELL", e.target.value)
-                          }
-                          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
-                        />
-                      </div>
+                      {/* BELL */}
+                      <button
+                        type="button"
+                        onClick={() => setActiveSegmentModal("BELL")}
+                        className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-yellow-50 to-yellow-100 hover:from-yellow-100 hover:to-yellow-200 border-2 border-yellow-300 rounded-lg transition-all hover:shadow-md"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="text-2xl">🔔</span>
+                          <div className="text-left">
+                            <div className="font-semibold text-gray-800">BELL - Bell Round</div>
+                            <div className="text-xs text-gray-600">First to answer</div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className={`px-4 py-2 rounded-full font-bold ${segments.BELL > 0 ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-600'}`}>
+                            {segments.BELL} questions
+                          </span>
+                          <span className="text-gray-400">→</span>
+                        </div>
+                      </button>
 
-                      <div className="grid grid-cols-2 gap-4 items-center">
-                        <label
-                          htmlFor="updw"
-                          className="text-sm font-medium text-gray-700"
-                        >
-                          UPDW (Up Down)
-                        </label>
-                        <input
-                          type="number"
-                          id="updw"
-                          min="1"
-                          max="50"
-                          value={segments.UPDW}
-                          onChange={(e) =>
-                            handleSegmentChange("UPDW", e.target.value)
-                          }
-                          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
-                        />
-                      </div>
+                      {/* UPDW */}
+                      <button
+                        type="button"
+                        onClick={() => setActiveSegmentModal("UPDW")}
+                        className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 border-2 border-purple-300 rounded-lg transition-all hover:shadow-md"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="text-2xl">🔄</span>
+                          <div className="text-left">
+                            <div className="font-semibold text-gray-800">UPDW - Upside-Down</div>
+                            <div className="text-xs text-gray-600">Order matters</div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className={`px-4 py-2 rounded-full font-bold ${segments.UPDW > 0 ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-600'}`}>
+                            {segments.UPDW} questions
+                          </span>
+                          <span className="text-gray-400">→</span>
+                        </div>
+                      </button>
 
-                      <div className="grid grid-cols-2 gap-4 items-center">
-                        <label
-                          htmlFor="remo"
-                          className="text-sm font-medium text-gray-700"
-                        >
-                          REMO (Remontada)
-                        </label>
-                        <input
-                          type="number"
-                          id="remo"
-                          min="1"
-                          max="50"
-                          value={segments.REMO}
-                          onChange={(e) =>
-                            handleSegmentChange("REMO", e.target.value)
-                          }
-                          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
-                        />
-                      </div>
+                      {/* REMO */}
+                      <button
+                        type="button"
+                        onClick={() => setActiveSegmentModal("REMO")}
+                        className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-red-50 to-red-100 hover:from-red-100 hover:to-red-200 border-2 border-red-300 rounded-lg transition-all hover:shadow-md"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="text-2xl">⚡</span>
+                          <div className="text-left">
+                            <div className="font-semibold text-gray-800">REMO - Remontada</div>
+                            <div className="text-xs text-gray-600">Comeback round</div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className={`px-4 py-2 rounded-full font-bold ${segments.REMO > 0 ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-600'}`}>
+                            {segments.REMO} questions
+                          </span>
+                          <span className="text-gray-400">→</span>
+                        </div>
+                      </button>
                     </div>
                   </div>
 
-                  {/* Manage Questions Button */}
+                  {/* Manage Questions Link */}
                   <div className="pt-4">
-                    <button
-                      type="button"
-                      onClick={() => setIsQuestionManagerOpen(true)}
-                      className="w-full py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold rounded-xl shadow-lg transition-all duration-300 hover:shadow-2xl hover:scale-105 text-base"
+                    <Link
+                      to="/quiz-admin"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block w-full py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold rounded-xl shadow-lg transition-all duration-300 hover:shadow-2xl hover:scale-105 text-base text-center"
                     >
-                      📝 Manage Questions
-                    </button>
+                      📝 Manage Questions (New Tab)
+                    </Link>
                   </div>
+
+                  {/* Test Mode Indicator */}
+                  {isDailyRoomCreated && participantCount === 1 && (
+                    <div className="mb-4 bg-yellow-500/20 border-2 border-yellow-400 rounded-lg p-3">
+                      <div className="flex items-center gap-2 text-yellow-900">
+                        <span className="text-xl">🧪</span>
+                        <div className="text-sm">
+                          <div className="font-bold">Test Mode Active</div>
+                          <div className="text-xs text-yellow-800">
+                            You can start the quiz solo for testing
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Start Quiz Button */}
                   <div className="pt-4">
                     <button
                       type="submit"
-                      disabled={!isDailyRoomCreated || participantCount < 2}
+                      disabled={!isDailyRoomCreated}
                       className="w-full py-4 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 disabled:from-gray-400 disabled:to-gray-500 text-black font-bold rounded-xl shadow-lg transition-all duration-300 hover:shadow-2xl hover:scale-105 disabled:cursor-not-allowed disabled:hover:scale-100 text-lg"
                     >
-                      🚀 Start Quiz
+                      🚀 Start Quiz {participantCount === 1 ? "(Solo Test)" : ""}
                     </button>
                   </div>
                 </form>
@@ -686,7 +813,7 @@ const GameSetup: React.FC = () => {
         {/* Invite Friends Button - Fixed Position */}
         {sessionId && sessionCode && (
           <button
-            onClick={() => setIsInviteModalOpen(true)}
+            onClick={() => { setIsInviteModalOpen(true); }}
             className="fixed bottom-6 right-6 z-40 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-4 px-6 rounded-full shadow-2xl transition-all duration-300 hover:shadow-blue-500/50 hover:scale-110 flex items-center gap-2"
           >
             <svg
@@ -710,18 +837,22 @@ const GameSetup: React.FC = () => {
         {sessionId && sessionCode && (
           <InviteFriendsModal
             isOpen={isInviteModalOpen}
-            onClose={() => setIsInviteModalOpen(false)}
+            onClose={() => { setIsInviteModalOpen(false); }}
             sessionCode={sessionCode}
             sessionId={sessionId}
           />
         )}
 
-        {/* Question Manager Modal */}
-        {sessionId && (
-          <QuestionManager
-            isOpen={isQuestionManagerOpen}
-            onClose={() => setIsQuestionManagerOpen(false)}
-            sessionId={sessionId}
+        {/* Question Selector Modals */}
+        {activeSegmentModal && (
+          <QuestionSelectorModal
+            isOpen={!!activeSegmentModal}
+            onClose={() => setActiveSegmentModal(null)}
+            segment={activeSegmentModal}
+            selectedQuestions={selectedQuestions[activeSegmentModal]}
+            onSelectionChange={(questionIds) =>
+              handleQuestionSelectionChange(activeSegmentModal, questionIds)
+            }
           />
         )}
       </div>

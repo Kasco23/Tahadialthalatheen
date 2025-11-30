@@ -1361,3 +1361,137 @@ export async function getAvailableSeats(sessionCode: string): Promise<{
 
   return { availableSeats, occupiedSeats };
 }
+
+/**
+ * Save selected questions for a session
+ * 
+ * @param sessionId - The session ID
+ * @param selections - Record of segment codes to arrays of question IDs
+ * @returns Success status
+ */
+export async function saveSessionQuestions(
+  sessionId: string,
+  selections: Record<SegmentCode, string[]>,
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    // First, delete any existing selections for this session
+    const { error: deleteError } = await supabase
+      .from("SessionQuestions")
+      .delete()
+      .eq("session_id", sessionId);
+
+    if (deleteError) {
+      Logger.error("Failed to clear existing session questions:", deleteError);
+      return { success: false, error: deleteError.message };
+    }
+
+    // Build array of session questions to insert
+    const sessionQuestions: Array<{
+      session_id: string;
+      question_id: string;
+      segment_code: SegmentCode;
+      display_order: number;
+    }> = [];
+
+    Object.entries(selections).forEach(([segmentCode, questionIds]) => {
+      questionIds.forEach((questionId, index) => {
+        sessionQuestions.push({
+          session_id: sessionId,
+          question_id: questionId,
+          segment_code: segmentCode as SegmentCode,
+          display_order: index + 1,
+        });
+      });
+    });
+
+    // Insert the new selections
+    if (sessionQuestions.length > 0) {
+      const { error: insertError } = await supabase
+        .from("SessionQuestions")
+        .insert(sessionQuestions);
+
+      if (insertError) {
+        Logger.error("Failed to save session questions:", insertError);
+        return { success: false, error: insertError.message };
+      }
+    }
+
+    Logger.log("✅ Session questions saved successfully", {
+      sessionId,
+      totalQuestions: sessionQuestions.length,
+    });
+
+    return { success: true };
+  } catch (error) {
+    Logger.error("Unexpected error saving session questions:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
+}
+
+/**
+ * Get selected questions for a session
+ * 
+ * @param sessionId - The session ID
+ * @returns Array of selected questions with full question data
+ */
+export async function getSessionQuestions(sessionId: string): Promise<{
+  success: boolean;
+  data?: Array<{
+    question_id: string;
+    segment_code: SegmentCode;
+    display_order: number;
+    question_text: string;
+    question_type: "list" | "buzz";
+    answers: string | string[];
+    total_answers_available?: number;
+  }>;
+  error?: string;
+}> {
+  try {
+    const { data, error } = await supabase
+      .from("SessionQuestions")
+      .select(
+        `
+        question_id,
+        segment_code,
+        display_order,
+        Questions (
+          question_text,
+          question_type,
+          answers,
+          total_answers_available
+        )
+      `,
+      )
+      .eq("session_id", sessionId)
+      .order("segment_code")
+      .order("display_order");
+
+    if (error) {
+      Logger.error("Failed to fetch session questions:", error);
+      return { success: false, error: error.message };
+    }
+
+    // Flatten the data structure
+    const formattedData = (data || []).map((item: any) => ({
+      question_id: item.question_id,
+      segment_code: item.segment_code,
+      display_order: item.display_order,
+      question_text: item.Questions.question_text,
+      question_type: item.Questions.question_type,
+      answers: item.Questions.answers,
+      total_answers_available: item.Questions.total_answers_available,
+    }));
+
+    return { success: true, data: formattedData };
+  } catch (error) {
+    Logger.error("Unexpected error fetching session questions:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
+}
