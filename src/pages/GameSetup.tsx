@@ -74,7 +74,8 @@ const GameSetup: React.FC = () => {
     UPDW: [],
     REMO: [],
   });
-  const [activeSegmentModal, setActiveSegmentModal] = useState<SegmentCode | null>(null);
+  const [activeSegmentModal, setActiveSegmentModal] =
+    useState<SegmentCode | null>(null);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
 
   // Update atoms when sessionId is resolved
@@ -261,16 +262,16 @@ const GameSetup: React.FC = () => {
       ...prev,
       [segment]: questionIds,
     }));
-    
+
     // Auto-update segment count based on selection
     setSegments((prev) => ({
       ...prev,
       [segment]: questionIds.length,
     }));
-    
-    Logger.log(`Question selections updated for ${segment}`, { 
+
+    Logger.log(`Question selections updated for ${segment}`, {
       count: questionIds.length,
-      questionIds 
+      questionIds,
     });
   };
 
@@ -301,11 +302,15 @@ const GameSetup: React.FC = () => {
     }
 
     // Check if at least one segment has questions
-    const totalQuestions = Object.values(segments).reduce((sum, count) => sum + count, 0);
+    const totalQuestions = Object.values(segments).reduce(
+      (sum, count) => sum + count,
+      0
+    );
     if (totalQuestions === 0) {
       setNotice({
         type: "error",
-        message: "Please select questions for at least one segment before creating the room.",
+        message:
+          "Please select questions for at least one segment before creating the room.",
       });
       return;
     }
@@ -417,11 +422,11 @@ const GameSetup: React.FC = () => {
       });
       return;
     }
-    
+
     // Fetch full question data and save to Netlify Blobs
     try {
       setIsLoading(true);
-      
+
       // Get all selected question IDs with their segment codes
       const questionIdsWithSegments = Object.entries(selectedQuestions).flatMap(
         ([segment, questionIds]) =>
@@ -430,25 +435,28 @@ const GameSetup: React.FC = () => {
             segmentCode: segment as SegmentCode,
           }))
       );
-      
+
       if (questionIdsWithSegments.length === 0) {
         setNotice({
           type: "error",
-          message: "Please select at least one question before starting the quiz.",
+          message:
+            "Please select at least one question before starting the quiz.",
         });
         setIsLoading(false);
         return;
       }
-      
+
       // Fetch full question data from the Questions table
       const { data: questionsData, error: questionsError } = await supabase
         .from("Questions")
-        .select("question_id, question_text, question_type, answers, total_answers_available, segment_code")
+        .select(
+          "question_id, question_text, question_type, answers, total_answers_available, segment_code"
+        )
         .in(
           "question_id",
           questionIdsWithSegments.map((q) => q.questionId)
         );
-      
+
       if (questionsError) {
         Logger.error("Error fetching questions:", questionsError);
         setNotice({
@@ -458,7 +466,7 @@ const GameSetup: React.FC = () => {
         setIsLoading(false);
         return;
       }
-      
+
       if (!questionsData || questionsData.length === 0) {
         setNotice({
           type: "error",
@@ -467,43 +475,46 @@ const GameSetup: React.FC = () => {
         setIsLoading(false);
         return;
       }
-      
+
       // Prepare questions with display order based on segment and selection order
       const questionsWithOrder = questionsData.map((question, index) => {
         // Find the corresponding segment code from selected questions
         const selectedQuestion = questionIdsWithSegments.find(
           (q) => q.questionId === question.question_id
         );
-        
+
         return {
           question_id: question.question_id,
           segment_code: selectedQuestion?.segmentCode || question.segment_code,
           question_text: question.question_text,
           question_type: question.question_type as "list" | "buzz",
           answers: question.answers,
-          total_answers_available: question.total_answers_available || undefined,
+          total_answers_available:
+            question.total_answers_available || undefined,
           display_order: index,
         };
       });
-      
+
       // Save to Netlify Blobs
       const result = await saveQuizQuestions(
         sessionCode!,
         sessionId,
         questionsWithOrder
       );
-      
+
       if (!result.success) {
         setNotice({
           type: "error",
-          message: result.error || "Failed to save questions. Please try again.",
+          message:
+            result.error || "Failed to save questions. Please try again.",
         });
         setIsLoading(false);
         return;
       }
-      
-      Logger.log(`✅ Saved ${questionsWithOrder.length} questions to Netlify Blobs`);
-      
+
+      Logger.log(
+        `✅ Saved ${questionsWithOrder.length} questions to Netlify Blobs`
+      );
     } catch (error) {
       Logger.error("Error saving questions:", error);
       setNotice({
@@ -515,7 +526,7 @@ const GameSetup: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-    
+
     // Navigate to the quiz with the session code
     navigate(`/quiz/${sessionCode}`);
   };
@@ -642,7 +653,8 @@ const GameSetup: React.FC = () => {
                       <span>📋</span> Select Questions by Segment
                     </h3>
                     <p className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg border border-blue-200">
-                      💡 Click each segment to choose questions. The question count updates automatically.
+                      💡 Click each segment to choose questions. The question
+                      count updates automatically.
                     </p>
 
                     <div className="space-y-3">
@@ -655,12 +667,18 @@ const GameSetup: React.FC = () => {
                         <div className="flex items-center gap-3">
                           <span className="text-2xl">🧠</span>
                           <div className="text-left">
-                            <div className="font-semibold text-gray-800">WDYK - What Do You Know</div>
-                            <div className="text-xs text-gray-600">List question format</div>
+                            <div className="font-semibold text-gray-800">
+                              WDYK - What Do You Know
+                            </div>
+                            <div className="text-xs text-gray-600">
+                              List question format
+                            </div>
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
-                          <span className={`px-4 py-2 rounded-full font-bold ${segments.WDYK > 0 ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-600'}`}>
+                          <span
+                            className={`px-4 py-2 rounded-full font-bold ${segments.WDYK > 0 ? "bg-green-500 text-white" : "bg-gray-300 text-gray-600"}`}
+                          >
                             {segments.WDYK} questions
                           </span>
                           <span className="text-gray-400">→</span>
@@ -676,12 +694,18 @@ const GameSetup: React.FC = () => {
                         <div className="flex items-center gap-3">
                           <span className="text-2xl">🔨</span>
                           <div className="text-left">
-                            <div className="font-semibold text-gray-800">AUCT - Auction</div>
-                            <div className="text-xs text-gray-600">Bidding format</div>
+                            <div className="font-semibold text-gray-800">
+                              AUCT - Auction
+                            </div>
+                            <div className="text-xs text-gray-600">
+                              Bidding format
+                            </div>
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
-                          <span className={`px-4 py-2 rounded-full font-bold ${segments.AUCT > 0 ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-600'}`}>
+                          <span
+                            className={`px-4 py-2 rounded-full font-bold ${segments.AUCT > 0 ? "bg-green-500 text-white" : "bg-gray-300 text-gray-600"}`}
+                          >
                             {segments.AUCT} questions
                           </span>
                           <span className="text-gray-400">→</span>
@@ -697,12 +721,18 @@ const GameSetup: React.FC = () => {
                         <div className="flex items-center gap-3">
                           <span className="text-2xl">🔔</span>
                           <div className="text-left">
-                            <div className="font-semibold text-gray-800">BELL - Bell Round</div>
-                            <div className="text-xs text-gray-600">First to answer</div>
+                            <div className="font-semibold text-gray-800">
+                              BELL - Bell Round
+                            </div>
+                            <div className="text-xs text-gray-600">
+                              First to answer
+                            </div>
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
-                          <span className={`px-4 py-2 rounded-full font-bold ${segments.BELL > 0 ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-600'}`}>
+                          <span
+                            className={`px-4 py-2 rounded-full font-bold ${segments.BELL > 0 ? "bg-green-500 text-white" : "bg-gray-300 text-gray-600"}`}
+                          >
                             {segments.BELL} questions
                           </span>
                           <span className="text-gray-400">→</span>
@@ -718,12 +748,18 @@ const GameSetup: React.FC = () => {
                         <div className="flex items-center gap-3">
                           <span className="text-2xl">🔄</span>
                           <div className="text-left">
-                            <div className="font-semibold text-gray-800">UPDW - Upside-Down</div>
-                            <div className="text-xs text-gray-600">Order matters</div>
+                            <div className="font-semibold text-gray-800">
+                              UPDW - Upside-Down
+                            </div>
+                            <div className="text-xs text-gray-600">
+                              Order matters
+                            </div>
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
-                          <span className={`px-4 py-2 rounded-full font-bold ${segments.UPDW > 0 ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-600'}`}>
+                          <span
+                            className={`px-4 py-2 rounded-full font-bold ${segments.UPDW > 0 ? "bg-green-500 text-white" : "bg-gray-300 text-gray-600"}`}
+                          >
                             {segments.UPDW} questions
                           </span>
                           <span className="text-gray-400">→</span>
@@ -739,12 +775,18 @@ const GameSetup: React.FC = () => {
                         <div className="flex items-center gap-3">
                           <span className="text-2xl">⚡</span>
                           <div className="text-left">
-                            <div className="font-semibold text-gray-800">REMO - Remontada</div>
-                            <div className="text-xs text-gray-600">Comeback round</div>
+                            <div className="font-semibold text-gray-800">
+                              REMO - Remontada
+                            </div>
+                            <div className="text-xs text-gray-600">
+                              Comeback round
+                            </div>
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
-                          <span className={`px-4 py-2 rounded-full font-bold ${segments.REMO > 0 ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-600'}`}>
+                          <span
+                            className={`px-4 py-2 rounded-full font-bold ${segments.REMO > 0 ? "bg-green-500 text-white" : "bg-gray-300 text-gray-600"}`}
+                          >
                             {segments.REMO} questions
                           </span>
                           <span className="text-gray-400">→</span>
@@ -787,7 +829,8 @@ const GameSetup: React.FC = () => {
                       disabled={!isDailyRoomCreated}
                       className="w-full py-4 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 disabled:from-gray-400 disabled:to-gray-500 text-black font-bold rounded-xl shadow-lg transition-all duration-300 hover:shadow-2xl hover:scale-105 disabled:cursor-not-allowed disabled:hover:scale-100 text-lg"
                     >
-                      🚀 Start Quiz {participantCount === 1 ? "(Solo Test)" : ""}
+                      🚀 Start Quiz{" "}
+                      {participantCount === 1 ? "(Solo Test)" : ""}
                     </button>
                   </div>
                 </form>
@@ -813,7 +856,9 @@ const GameSetup: React.FC = () => {
         {/* Invite Friends Button - Fixed Position */}
         {sessionId && sessionCode && (
           <button
-            onClick={() => { setIsInviteModalOpen(true); }}
+            onClick={() => {
+              setIsInviteModalOpen(true);
+            }}
             className="fixed bottom-6 right-6 z-40 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-4 px-6 rounded-full shadow-2xl transition-all duration-300 hover:shadow-blue-500/50 hover:scale-110 flex items-center gap-2"
           >
             <svg
@@ -837,7 +882,9 @@ const GameSetup: React.FC = () => {
         {sessionId && sessionCode && (
           <InviteFriendsModal
             isOpen={isInviteModalOpen}
-            onClose={() => { setIsInviteModalOpen(false); }}
+            onClose={() => {
+              setIsInviteModalOpen(false);
+            }}
             sessionCode={sessionCode}
             sessionId={sessionId}
           />

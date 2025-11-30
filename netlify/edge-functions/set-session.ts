@@ -27,7 +27,7 @@ export default async (req: Request, _context: Context) => {
         {
           status: 405,
           headers: { "Content-Type": "application/json" },
-        },
+        }
       );
     }
 
@@ -37,7 +37,10 @@ export default async (req: Request, _context: Context) => {
       const clonedReq = req.clone();
       body = await clonedReq.json();
     } catch (cloneError) {
-      console.warn("Failed to read cloned request body, trying original:", cloneError);
+      console.warn(
+        "Failed to read cloned request body, trying original:",
+        cloneError
+      );
       try {
         body = await req.json();
       } catch (finalError) {
@@ -49,11 +52,11 @@ export default async (req: Request, _context: Context) => {
           {
             status: 400,
             headers: { "Content-Type": "application/json" },
-          },
+          }
         );
       }
     }
-    
+
     const { key, data } = body;
 
     if (!key) {
@@ -62,7 +65,7 @@ export default async (req: Request, _context: Context) => {
         {
           status: 400,
           headers: { "Content-Type": "application/json" },
-        },
+        }
       );
     }
 
@@ -76,7 +79,7 @@ export default async (req: Request, _context: Context) => {
         {
           status: 400,
           headers: { "Content-Type": "application/json" },
-        },
+        }
       );
     }
 
@@ -104,7 +107,7 @@ export default async (req: Request, _context: Context) => {
         {
           status: 400,
           headers: { "Content-Type": "application/json" },
-        },
+        }
       );
     }
 
@@ -131,7 +134,7 @@ export default async (req: Request, _context: Context) => {
       {
         status: 500,
         headers: { "Content-Type": "application/json" },
-      },
+      }
     );
   }
 };

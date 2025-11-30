@@ -45,7 +45,7 @@ const segmentDescriptions: Record<SegmentCode, string> = {
 
 /**
  * QuestionSelectorModal Component
- * 
+ *
  * Modal for selecting questions for a specific segment.
  * Updates selection and automatically adjusts segment question count.
  */
@@ -77,7 +77,7 @@ export const QuestionSelectorModal: React.FC<QuestionSelectorModalProps> = ({
       try {
         // Try Netlify function first, fallback to direct Supabase query
         let questions: Question[] = [];
-        
+
         try {
           const response = await fetch(
             `/.netlify/functions/list-questions?segment_code=${segment}&limit=100`
@@ -90,7 +90,9 @@ export const QuestionSelectorModal: React.FC<QuestionSelectorModalProps> = ({
             }
           }
         } catch (fetchError) {
-          Logger.warn("Netlify function not available, using direct Supabase query");
+          Logger.warn(
+            "Netlify function not available, using direct Supabase query"
+          );
         }
 
         // Fallback to direct Supabase query if function fails
@@ -199,7 +201,9 @@ export const QuestionSelectorModal: React.FC<QuestionSelectorModalProps> = ({
               </span>
               <span
                 className={`text-xl font-bold ${
-                  localSelections.length > 0 ? "text-green-600" : "text-gray-400"
+                  localSelections.length > 0
+                    ? "text-green-600"
+                    : "text-gray-400"
                 }`}
               >
                 {localSelections.length}
@@ -252,7 +256,9 @@ export const QuestionSelectorModal: React.FC<QuestionSelectorModalProps> = ({
           ) : (
             <div className="space-y-3">
               {availableQuestions.map((question) => {
-                const isSelected = localSelections.includes(question.question_id);
+                const isSelected = localSelections.includes(
+                  question.question_id
+                );
 
                 return (
                   <label
@@ -288,7 +294,8 @@ export const QuestionSelectorModal: React.FC<QuestionSelectorModalProps> = ({
                         {question.question_type === "list" &&
                           question.total_answers_available && (
                             <span className="text-xs text-gray-500">
-                              {question.total_answers_available} answers available
+                              {question.total_answers_available} answers
+                              available
                             </span>
                           )}
                       </div>

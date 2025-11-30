@@ -361,7 +361,7 @@ const Lobby: React.FC = () => {
         try {
           const response = await createDailyToken(
             sessionCode,
-            tokenUsername, // Use username for token (safe, no spaces)
+            tokenUsername // Use username for token (safe, no spaces)
           );
 
           // Update token atom
@@ -371,7 +371,7 @@ const Lobby: React.FC = () => {
           if (response.room_url && response.room_url !== dailyRoom.room_url) {
             Logger.log(
               "Updating room URL from token response:",
-              response.room_url,
+              response.room_url
             );
             setDailyRoomUrl(response.room_url);
           }
@@ -392,7 +392,7 @@ const Lobby: React.FC = () => {
           {
             hasTokenUsername: !!tokenUsername,
             hasDisplayName: !!participantName,
-          },
+          }
         );
       }
     };
@@ -465,7 +465,7 @@ const Lobby: React.FC = () => {
           (
             payload: RealtimePostgresChangesPayload<
               Database["public"]["Tables"]["Participants"]["Row"]
-            >,
+            >
           ) => {
             Logger.log("Participant update:", payload);
 
@@ -483,19 +483,19 @@ const Lobby: React.FC = () => {
                   player.participant_id ===
                   (updatedParticipant.participant_id || "")
                     ? { ...player, ...updatedParticipant }
-                    : player,
-                ),
+                    : player
+                )
               );
             } else if (payload.eventType === "DELETE") {
               setPlayers((prev) =>
                 prev.filter(
                   (player) =>
                     player.participant_id !==
-                    (payload.old?.participant_id || ""),
-                ),
+                    (payload.old?.participant_id || "")
+                )
               );
             }
-          },
+          }
         )
         .subscribe((status) => {
           Logger.log("Participants subscription status:", status);
@@ -521,7 +521,7 @@ const Lobby: React.FC = () => {
               flag,
               team
             )
-          `,
+          `
           )
           .eq("session_id", sessionId)
           .order("join_at", { ascending: true });
@@ -537,7 +537,7 @@ const Lobby: React.FC = () => {
 
             // ✨ PHASE 2.2: Save participant blobs for all players
             Logger.log(
-              `💾 Saving participant blobs for ${playersData.length} players`,
+              `💾 Saving participant blobs for ${playersData.length} players`
             );
             const deviceId = getDeviceId();
 
@@ -595,12 +595,12 @@ const Lobby: React.FC = () => {
               const result = await saveParticipantBlob(participantBlobData);
               if (result.success) {
                 Logger.log(
-                  `✅ Saved blob for participant ${player.participant_id}`,
+                  `✅ Saved blob for participant ${player.participant_id}`
                 );
               } else {
                 Logger.warn(
                   `⚠️ Failed to save blob for ${player.participant_id}:`,
-                  result.error,
+                  result.error
                 );
               }
             });
@@ -685,7 +685,7 @@ const Lobby: React.FC = () => {
     const loadParticipantPreferences = async () => {
       Logger.log("🔍 Loading participant preferences from Blobs...");
       const result = await getParticipantBlob(
-        currentParticipant.participant_id,
+        currentParticipant.participant_id
       );
 
       if (result.success && result.data) {
@@ -807,7 +807,7 @@ const Lobby: React.FC = () => {
       markParticipantDisconnected(currentParticipant.participant_id).catch(
         (err) => {
           Logger.error("Failed to mark participant as disconnected:", err);
-        },
+        }
       );
     };
   }, [sessionId, sessionCode, resolvedSeat, players]);
@@ -903,7 +903,7 @@ const Lobby: React.FC = () => {
 
       // Also mark in database (may not complete if page unloads fast)
       markParticipantDisconnected(currentParticipant.participant_id).catch(
-        (err) => Logger.error("Failed to mark disconnected on unload:", err),
+        (err) => Logger.error("Failed to mark disconnected on unload:", err)
       );
     };
 
@@ -917,7 +917,7 @@ const Lobby: React.FC = () => {
         Logger.log("User returned to lobby tab");
         updateParticipantHeartbeat(
           currentParticipant.participant_id,
-          sessionId,
+          sessionId
         );
       }
     };
@@ -956,7 +956,7 @@ const Lobby: React.FC = () => {
               flag,
               team
             )
-          `,
+          `
         )
         .eq("session_id", sessionId);
 
@@ -1114,7 +1114,7 @@ const Lobby: React.FC = () => {
                   👥 Participants (
                   {
                     players.filter(
-                      (p) => p.role !== PARTICIPANT_ROLE.GAME_MASTER,
+                      (p) => p.role !== PARTICIPANT_ROLE.GAME_MASTER
                     ).length
                   }
                   )
@@ -1130,7 +1130,7 @@ const Lobby: React.FC = () => {
                     const player = players.find(
                       (p) =>
                         p.role === requiredRole &&
-                        p.lobby_presence !== LOBBY_PRESENCE.NOT_JOINED,
+                        p.lobby_presence !== LOBBY_PRESENCE.NOT_JOINED
                     );
 
                     if (player) {
@@ -1256,7 +1256,9 @@ const Lobby: React.FC = () => {
       {/* Invite Friends Button - Fixed Position */}
       {sessionId && sessionCode && (
         <button
-          onClick={() => { setIsInviteModalOpen(true); }}
+          onClick={() => {
+            setIsInviteModalOpen(true);
+          }}
           className="fixed bottom-6 right-6 z-40 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-4 px-6 rounded-full shadow-2xl transition-all duration-300 hover:shadow-blue-500/50 hover:scale-110 flex items-center gap-2"
         >
           <svg
@@ -1280,7 +1282,9 @@ const Lobby: React.FC = () => {
       {sessionId && sessionCode && (
         <InviteFriendsModal
           isOpen={isInviteModalOpen}
-          onClose={() => { setIsInviteModalOpen(false); }}
+          onClose={() => {
+            setIsInviteModalOpen(false);
+          }}
           sessionCode={sessionCode}
           sessionId={sessionId}
         />

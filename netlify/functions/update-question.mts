@@ -89,7 +89,7 @@ export default async (req: Request, context: Context) => {
         validatedQuestion.total_answers_available;
 
     // Update question in database
-    const { data, error} = await supabase
+    const { data, error } = await supabase
       .from("Questions")
       .update(updateData)
       .eq("question_id", validatedQuestion.question_id)

@@ -58,7 +58,10 @@ export default async (req: Request, context: Context) => {
         stateData = body.state;
       } catch (bodyError) {
         // If body reading fails (e.g., in dev mode), try to get from original request
-        console.warn("Failed to read cloned request body, trying original:", bodyError);
+        console.warn(
+          "Failed to read cloned request body, trying original:",
+          bodyError
+        );
         try {
           const body = await req.json();
           sessionId = body.sessionId;
@@ -67,13 +70,14 @@ export default async (req: Request, context: Context) => {
           return new Response(
             JSON.stringify({
               success: false,
-              error: "Failed to parse request body. Body may have been consumed already.",
+              error:
+                "Failed to parse request body. Body may have been consumed already.",
               dev: context.deploy?.context === "dev",
             }),
             {
               status: 400,
               headers: { "Content-Type": "application/json" },
-            },
+            }
           );
         }
       }
@@ -89,7 +93,7 @@ export default async (req: Request, context: Context) => {
         {
           status: 400,
           headers: { "Content-Type": "application/json" },
-        },
+        }
       );
     }
 
@@ -117,7 +121,7 @@ export default async (req: Request, context: Context) => {
             {
               status: 404,
               headers: { "Content-Type": "application/json" },
-            },
+            }
           );
         }
 
@@ -129,7 +133,7 @@ export default async (req: Request, context: Context) => {
           {
             status: 200,
             headers: { "Content-Type": "application/json" },
-          },
+          }
         );
       }
 
@@ -144,7 +148,7 @@ export default async (req: Request, context: Context) => {
             {
               status: 400,
               headers: { "Content-Type": "application/json" },
-            },
+            }
           );
         }
 
@@ -177,7 +181,7 @@ export default async (req: Request, context: Context) => {
           {
             status: 200,
             headers: { "Content-Type": "application/json" },
-          },
+          }
         );
       }
 
@@ -192,7 +196,7 @@ export default async (req: Request, context: Context) => {
             {
               status: 400,
               headers: { "Content-Type": "application/json" },
-            },
+            }
           );
         }
 
@@ -218,7 +222,7 @@ export default async (req: Request, context: Context) => {
           {
             status: 200,
             headers: { "Content-Type": "application/json" },
-          },
+          }
         );
       }
 
@@ -235,7 +239,7 @@ export default async (req: Request, context: Context) => {
           {
             status: 200,
             headers: { "Content-Type": "application/json" },
-          },
+          }
         );
       }
 
@@ -248,7 +252,7 @@ export default async (req: Request, context: Context) => {
           {
             status: 405,
             headers: { "Content-Type": "application/json" },
-          },
+          }
         );
     }
   } catch (error) {
@@ -261,7 +265,7 @@ export default async (req: Request, context: Context) => {
       {
         status: 500,
         headers: { "Content-Type": "application/json" },
-      },
+      }
     );
   }
 };

@@ -16,11 +16,36 @@ const SEGMENT_CONFIG: Record<
   SegmentCode,
   { name: string; type: "list" | "buzz"; color: string; icon: string }
 > = {
-  WDYK: { name: "What Do You Know", type: "list", color: "from-purple-600 to-purple-700", icon: "🧠" },
-  AUCT: { name: "Auction", type: "list", color: "from-yellow-600 to-amber-700", icon: "🔨" },
-  BELL: { name: "Bell Round", type: "buzz", color: "from-red-600 to-rose-700", icon: "🔔" },
-  UPDW: { name: "Upside-Down", type: "buzz", color: "from-blue-600 to-cyan-700", icon: "🔄" },
-  REMO: { name: "Remontada", type: "buzz", color: "from-green-600 to-emerald-700", icon: "⚡" },
+  WDYK: {
+    name: "What Do You Know",
+    type: "list",
+    color: "from-purple-600 to-purple-700",
+    icon: "🧠",
+  },
+  AUCT: {
+    name: "Auction",
+    type: "list",
+    color: "from-yellow-600 to-amber-700",
+    icon: "🔨",
+  },
+  BELL: {
+    name: "Bell Round",
+    type: "buzz",
+    color: "from-red-600 to-rose-700",
+    icon: "🔔",
+  },
+  UPDW: {
+    name: "Upside-Down",
+    type: "buzz",
+    color: "from-blue-600 to-cyan-700",
+    icon: "🔄",
+  },
+  REMO: {
+    name: "Remontada",
+    type: "buzz",
+    color: "from-green-600 to-emerald-700",
+    icon: "⚡",
+  },
 };
 
 interface Question {
@@ -152,12 +177,12 @@ export const QuizCreator: React.FC<QuizCreatorProps> = ({
           <Target className="w-6 h-6 text-green-600" />
           <h3 className="text-xl font-bold text-gray-800">Select Segment</h3>
         </div>
-        
+
         <div className="grid grid-cols-5 gap-3">
           {(Object.keys(SEGMENT_CONFIG) as SegmentCode[]).map((code) => {
             const config = SEGMENT_CONFIG[code];
             const isSelected = segmentCode === code;
-            
+
             return (
               <motion.button
                 key={code}
@@ -166,9 +191,10 @@ export const QuizCreator: React.FC<QuizCreatorProps> = ({
                 onClick={() => handleSegmentChange(code)}
                 className={`
                   relative px-4 py-6 rounded-xl font-bold text-white transition-all
-                  ${isSelected 
-                    ? `bg-linear-to-br ${config.color} shadow-xl ring-4 ring-white ring-offset-2` 
-                    : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                  ${
+                    isSelected
+                      ? `bg-linear-to-br ${config.color} shadow-xl ring-4 ring-white ring-offset-2`
+                      : "bg-gray-200 text-gray-600 hover:bg-gray-300"
                   }
                 `}
               >
@@ -236,7 +262,9 @@ export const QuizCreator: React.FC<QuizCreatorProps> = ({
       >
         <label className="block mb-4">
           <span className="text-lg font-bold text-gray-800 flex items-center gap-2">
-            <span className="text-2xl">{questionType === "list" ? "📚" : "🎯"}</span>
+            <span className="text-2xl">
+              {questionType === "list" ? "📚" : "🎯"}
+            </span>
             {questionType === "list" ? "Answers (List)" : "Answer (Single)"}
           </span>
         </label>
@@ -257,7 +285,9 @@ export const QuizCreator: React.FC<QuizCreatorProps> = ({
                     className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all"
                     placeholder={`Answer ${index + 1}`}
                     value={answer}
-                    onChange={(e) => handleListAnswerChange(index, e.target.value)}
+                    onChange={(e) =>
+                      handleListAnswerChange(index, e.target.value)
+                    }
                   />
                   {listAnswers.length > 2 && (
                     <motion.button
@@ -273,7 +303,7 @@ export const QuizCreator: React.FC<QuizCreatorProps> = ({
                 </motion.div>
               ))}
             </AnimatePresence>
-            
+
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
@@ -283,10 +313,11 @@ export const QuizCreator: React.FC<QuizCreatorProps> = ({
               <Plus className="w-5 h-5" />
               Add Answer
             </motion.button>
-            
+
             <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-3 mt-4">
               <p className="text-sm text-blue-800">
-                💡 <strong>Tip:</strong> Add at least 2 answers. Players will recall answers from memory during gameplay.
+                💡 <strong>Tip:</strong> Add at least 2 answers. Players will
+                recall answers from memory during gameplay.
               </p>
             </div>
           </div>
@@ -301,7 +332,8 @@ export const QuizCreator: React.FC<QuizCreatorProps> = ({
             />
             <div className="bg-orange-50 border-2 border-orange-200 rounded-xl p-3 mt-4">
               <p className="text-sm text-orange-800">
-                ⚡ <strong>Buzz-in Mode:</strong> Single correct answer. First player to buzz in gets to answer!
+                ⚡ <strong>Buzz-in Mode:</strong> Single correct answer. First
+                player to buzz in gets to answer!
               </p>
             </div>
           </div>
@@ -344,9 +376,10 @@ export const QuizCreator: React.FC<QuizCreatorProps> = ({
         whileTap={{ scale: 0.98 }}
         className={`
           w-full py-4 rounded-2xl font-bold text-lg text-white shadow-xl transition-all
-          ${isFormValid() && !isSubmitting
-            ? "bg-linear-to-r from-green-600 to-emerald-600 hover:shadow-2xl cursor-pointer"
-            : "bg-gray-300 text-gray-500 cursor-not-allowed"
+          ${
+            isFormValid() && !isSubmitting
+              ? "bg-linear-to-r from-green-600 to-emerald-600 hover:shadow-2xl cursor-pointer"
+              : "bg-gray-300 text-gray-500 cursor-not-allowed"
           }
         `}
         onClick={handleSubmit}

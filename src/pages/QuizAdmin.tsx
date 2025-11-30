@@ -20,8 +20,10 @@ export const QuizAdmin: React.FC = () => {
     <div className="min-h-screen bg-linear-to-b from-green-950 via-green-900 to-green-950 relative overflow-hidden">
       {/* Stadium Background Pattern */}
       <div className="absolute inset-0 opacity-10">
-        <div className="absolute inset-0" style={{
-          backgroundImage: `repeating-linear-gradient(
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `repeating-linear-gradient(
             0deg,
             transparent,
             transparent 50px,
@@ -34,13 +36,17 @@ export const QuizAdmin: React.FC = () => {
             transparent 50px,
             rgba(255, 255, 255, 0.05) 50px,
             rgba(255, 255, 255, 0.05) 51px
-          )`
-        }} />
+          )`,
+          }}
+        />
       </div>
 
       {/* Floodlight Effect */}
       <div className="absolute top-0 left-1/4 w-64 h-64 bg-yellow-500/10 rounded-full blur-3xl animate-pulse" />
-      <div className="absolute top-0 right-1/4 w-64 h-64 bg-yellow-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+      <div
+        className="absolute top-0 right-1/4 w-64 h-64 bg-yellow-500/10 rounded-full blur-3xl animate-pulse"
+        style={{ animationDelay: "1s" }}
+      />
 
       <div className="container mx-auto px-4 py-12 relative z-10">
         {/* Header - Stadium Style */}
@@ -58,7 +64,8 @@ export const QuizAdmin: React.FC = () => {
             <Trophy className="w-12 h-12 text-yellow-400 drop-shadow-glow" />
           </div>
           <p className="text-green-200 text-lg font-medium">
-            Manage questions for all quiz segments • Build your football knowledge empire
+            Manage questions for all quiz segments • Build your football
+            knowledge empire
           </p>
         </motion.div>
 
@@ -128,20 +135,27 @@ export const QuizAdmin: React.FC = () => {
             className="bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl border-4 border-green-600/30 overflow-hidden"
           >
             {/* Section Header */}
-            <div className={`
+            <div
+              className={`
               p-6 border-b-4
-              ${activeTab === "create" 
-                ? "bg-linear-to-r from-green-600 to-emerald-600 border-green-700" 
-                : "bg-linear-to-r from-blue-600 to-cyan-600 border-blue-700"
+              ${
+                activeTab === "create"
+                  ? "bg-linear-to-r from-green-600 to-emerald-600 border-green-700"
+                  : "bg-linear-to-r from-blue-600 to-cyan-600 border-blue-700"
               }
-            `}>
+            `}
+            >
               <div className="flex items-center gap-3 text-white">
                 {activeTab === "create" ? (
                   <>
                     <Target className="w-8 h-8" />
                     <div>
-                      <h2 className="text-2xl font-bold">New Question Builder</h2>
-                      <p className="text-white/80">Create engaging quiz questions for your matches</p>
+                      <h2 className="text-2xl font-bold">
+                        New Question Builder
+                      </h2>
+                      <p className="text-white/80">
+                        Create engaging quiz questions for your matches
+                      </p>
                     </div>
                   </>
                 ) : (
@@ -149,7 +163,9 @@ export const QuizAdmin: React.FC = () => {
                     <BookOpen className="w-8 h-8" />
                     <div>
                       <h2 className="text-2xl font-bold">Question Library</h2>
-                      <p className="text-white/80">Browse, filter, and manage your question collection</p>
+                      <p className="text-white/80">
+                        Browse, filter, and manage your question collection
+                      </p>
                     </div>
                   </>
                 )}
@@ -178,7 +194,10 @@ export const QuizAdmin: React.FC = () => {
           transition={{ delay: 0.8 }}
           className="mt-12 text-center text-green-200 text-sm"
         >
-          <p>⚽ Powered by Tahadialthalatheen Quiz Engine • Built for football lovers by football lovers</p>
+          <p>
+            ⚽ Powered by Tahadialthalatheen Quiz Engine • Built for football
+            lovers by football lovers
+          </p>
         </motion.div>
       </div>
     </div>

@@ -36,7 +36,7 @@ export interface ActiveSession {
 
 // 1. Create Session (Host PC → GameSetup)
 export async function createSession(
-  hostProfileId: string,
+  hostProfileId: string
 ): Promise<{ sessionId: string; sessionCode: string }> {
   // Input validation
   if (!hostProfileId || hostProfileId.trim().length === 0) {
@@ -85,7 +85,7 @@ export async function createSession(
         .delete()
         .eq("session_id", sessionData.session_id);
       throw new Error(
-        `Failed to create participant: ${participantError.message}`,
+        `Failed to create participant: ${participantError.message}`
       );
     }
 
@@ -122,7 +122,7 @@ export async function getActiveSessions(): Promise<ActiveSession[]> {
       ended_at,
       Participants(role, lobby_presence, profile_id, Profiles!profile_id(name)),
       DailyRooms(room_url)
-    `,
+    `
     )
     // Show any session that hasn't ended yet
     .is("ended_at", null)
@@ -167,7 +167,7 @@ export async function getActiveSessions(): Promise<ActiveSession[]> {
     const playerCount = participants.filter(
       (p) =>
         (p.role === "Home" || p.role === "Away") &&
-        p.lobby_presence === "Joined",
+        p.lobby_presence === "Joined"
     ).length;
     const hasDailyRoom = !!(
       session.DailyRooms && session.DailyRooms.length > 0
@@ -214,7 +214,7 @@ export async function joinAsPlayerWithCode(
   _name: string, // Deprecated - now using Profiles.name
   _flag: string, // Deprecated - now using Profiles.flag
   _logoUrl: string, // Deprecated - now using Profiles.team
-  profileId?: string,
+  profileId?: string
 ): Promise<{ participantId: string; role: string }> {
   const sessionId = await getSessionIdByCode(sessionCode);
 
@@ -285,7 +285,7 @@ export async function joinAsPlayerWithCode(
 
   if (playersError) {
     throw new Error(
-      `Failed to determine player roles: ${playersError.message || String(playersError)}`,
+      `Failed to determine player roles: ${playersError.message || String(playersError)}`
     );
   }
 
@@ -343,7 +343,7 @@ export async function joinAsPlayerWithCode(
 // 2. Add Segment Config (GameSetup)
 export async function setSegmentConfig(
   sessionId: string,
-  configs: SegmentConfigInput[],
+  configs: SegmentConfigInput[]
 ): Promise<void> {
   const configsWithSessionId = configs.map((config) => ({
     session_id: sessionId,
@@ -365,7 +365,7 @@ export async function setSegmentConfig(
 // 3. Create Daily Room (GameSetup → Netlify Function)
 export async function createDailyRoom(
   sessionId: string,
-  sessionCode: string,
+  sessionCode: string
 ): Promise<CreateDailyRoomResponse> {
   try {
     Logger.debug("Creating Daily room with:", { sessionId, sessionCode });
@@ -424,7 +424,7 @@ export async function createDailyRoom(
         const errorData = await response.json();
         Logger.error("Daily room creation error details:", errorData);
         throw new Error(
-          `HTTP error! status: ${response.status}, details: ${JSON.stringify(errorData)}`,
+          `HTTP error! status: ${response.status}, details: ${JSON.stringify(errorData)}`
         );
       } catch (_parseError) {
         // If we can't parse JSON, get text from the cloned response
@@ -432,7 +432,7 @@ export async function createDailyRoom(
           const errorText = await responseClone.text();
           Logger.error("Daily room creation error (raw):", errorText);
           throw new Error(
-            `HTTP error! status: ${response.status}, response: ${errorText}`,
+            `HTTP error! status: ${response.status}, response: ${errorText}`
           );
         } catch (_textError) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -457,14 +457,14 @@ export async function createDailyRoom(
     return data;
   } catch (error) {
     throw new Error(
-      `Failed to create Daily room: ${error instanceof Error ? error.message : "Unknown error"}`,
+      `Failed to create Daily room: ${error instanceof Error ? error.message : "Unknown error"}`
     );
   }
 }
 
 // Helper function to get Daily room data
 export async function getDailyRoom(
-  sessionId: string,
+  sessionId: string
 ): Promise<{ room_url: string; ready: boolean } | null> {
   try {
     const { data, error } = await supabase
@@ -489,7 +489,7 @@ export async function joinAsHost(
   sessionCode: string,
   hostProfileId: string,
   flag?: string,
-  logoUrl?: string,
+  logoUrl?: string
 ): Promise<{ participantId: string; role: string }> {
   // Get the session and verify host_profile_id matches
   const { data: sessionRow, error: sessionError } = await supabase
@@ -500,7 +500,7 @@ export async function joinAsHost(
 
   if (sessionError || !sessionRow) {
     throw new Error(
-      `Session not found: ${sessionError?.message || "No session with that code"}`,
+      `Session not found: ${sessionError?.message || "No session with that code"}`
     );
   }
 
@@ -557,7 +557,7 @@ export async function joinAsHost(
 
   // If no existing host found, this is an error - host should be created during session creation
   throw new Error(
-    "No host participant found for this session. Host should be created during session setup.",
+    "No host participant found for this session. Host should be created during session setup."
   );
 }
 
@@ -566,7 +566,7 @@ export async function joinAsGameMaster(
   sessionCode: string,
   gameMasterName: string,
   flag?: string,
-  logoUrl?: string,
+  logoUrl?: string
 ): Promise<string> {
   // Get the session ID
   const { data: sessionRow, error: sessionError } = await supabase
@@ -577,7 +577,7 @@ export async function joinAsGameMaster(
 
   if (sessionError || !sessionRow) {
     throw new Error(
-      `Session not found: ${sessionError?.message || "No session with that code"}`,
+      `Session not found: ${sessionError?.message || "No session with that code"}`
     );
   }
 
@@ -593,7 +593,7 @@ export async function joinAsGameMaster(
 
   if (findError) {
     throw new Error(
-      `Failed to check for existing GameMaster: ${findError.message}`,
+      `Failed to check for existing GameMaster: ${findError.message}`
     );
   }
 
@@ -645,7 +645,7 @@ export async function joinAsPlayer(
   sessionId: string,
   name: string,
   flag: string,
-  logoUrl: string,
+  logoUrl: string
 ): Promise<string> {
   // Check existing players to determine role
   const { data: existingPlayers, error: countError } = await supabase
@@ -697,7 +697,7 @@ export async function joinAsPlayer(
 // 6. Update Presence (Lobby & Call)
 export async function updateLobbyPresence(
   participantId: string,
-  status: LobbyPresence,
+  status: LobbyPresence
 ): Promise<void> {
   const updateData: TablesUpdate<"Participants"> = { lobby_presence: status };
 
@@ -728,7 +728,7 @@ export async function leaveLobby(participantId: string): Promise<void> {
 // Helper function to leave the lobby by role and session (role-based lookup)
 export async function leaveLobbyByRole(
   sessionId: string,
-  role: string,
+  role: string
 ): Promise<void> {
   // Find participant by session and role (use maybeSingle to handle not found gracefully)
   const { data: participant, error: findError } = await supabase
@@ -745,7 +745,7 @@ export async function leaveLobbyByRole(
 
   if (!participant) {
     Logger.warn(
-      `No participant found with role ${role} in session ${sessionId}`,
+      `No participant found with role ${role} in session ${sessionId}`
     );
     return; // Don't throw, just log and return
   }
@@ -769,7 +769,7 @@ export async function leaveLobbyByRole(
  */
 export async function createDailyToken(
   sessionCode: string,
-  userName: string,
+  userName: string
 ): Promise<{ token: string; room_url?: string }> {
   try {
     Logger.log("Creating Daily token via Netlify Function:", {
@@ -795,7 +795,7 @@ export async function createDailyToken(
         .catch(() => ({ error: "Unknown error" }));
       Logger.error("Daily token creation failed:", errorData);
       throw new Error(
-        `Failed to create Daily token: ${response.status} - ${JSON.stringify(errorData)}`,
+        `Failed to create Daily token: ${response.status} - ${JSON.stringify(errorData)}`
       );
     }
 
@@ -809,14 +809,14 @@ export async function createDailyToken(
   } catch (error) {
     Logger.error("Error creating Daily token:", error);
     throw new Error(
-      `Failed to create Daily token: ${error instanceof Error ? error.message : "Unknown error"}`,
+      `Failed to create Daily token: ${error instanceof Error ? error.message : "Unknown error"}`
     );
   }
 }
 
 export async function updateVideoPresence(
   participantId: string,
-  connected: boolean,
+  connected: boolean
 ): Promise<void> {
   const { error } = await supabase
     .from("Participants")
@@ -832,7 +832,7 @@ export async function updateVideoPresence(
 export async function updatePhase(
   sessionId: string,
   phase: SessionPhase,
-  gameState?: GameState,
+  gameState?: GameState
 ): Promise<void> {
   const updateData: TablesUpdate<"Sessions"> = { phase };
 
@@ -855,7 +855,7 @@ export async function updateScore(
   sessionId: string,
   participantId: string,
   segmentCode: SegmentCode,
-  points: number,
+  points: number
 ): Promise<void> {
   // First try to get existing score
   const { data: existingScore, error: selectError } = await supabase
@@ -883,7 +883,7 @@ export async function updateScore(
     },
     {
       onConflict: "session_id,participant_id,segment_code",
-    },
+    }
   );
 
   if (error) {
@@ -894,7 +894,7 @@ export async function updateScore(
 // 9. Use Powerup (Quiz)
 export async function activatePowerup(
   participantId: string,
-  powerup: Powerup,
+  powerup: Powerup
 ): Promise<void> {
   const powerupColumnMap = {
     pass: "powerup_pass_used",
@@ -918,7 +918,7 @@ export async function activatePowerup(
 // 10. End Session
 export async function endSession(
   sessionId: string,
-  sessionCode?: string,
+  sessionCode?: string
 ): Promise<void> {
   const { error } = await supabase
     .from("Sessions")
@@ -940,7 +940,7 @@ export async function endSession(
 // 11. Increment Strike (WDYK only)
 export async function incrementStrike(
   sessionId: string,
-  participantId: string,
+  participantId: string
 ): Promise<number> {
   // First get current strikes count
   const { data: existingStrike, error: selectError } = await supabase
@@ -968,7 +968,7 @@ export async function incrementStrike(
     },
     {
       onConflict: "session_id,participant_id,segment_code",
-    },
+    }
   );
 
   if (error) {
@@ -981,7 +981,7 @@ export async function incrementStrike(
 // 12. Reset Strikes (WDYK only)
 export async function resetStrikes(
   sessionId: string,
-  participantId: string,
+  participantId: string
 ): Promise<void> {
   const { error } = await supabase.from("Strikes").upsert(
     {
@@ -992,7 +992,7 @@ export async function resetStrikes(
     },
     {
       onConflict: "session_id,participant_id,segment_code",
-    },
+    }
   );
 
   if (error) {
@@ -1002,7 +1002,7 @@ export async function resetStrikes(
 
 // 13. Get Segment Config for Session
 export async function getSegmentConfig(
-  sessionId: string,
+  sessionId: string
 ): Promise<SegmentConfigInput[]> {
   const { data, error } = await supabase
     .from("SegmentConfig")
@@ -1027,7 +1027,7 @@ export interface ExistingPreset {
 export async function checkExistingPreset(
   _name: string,
   _sessionCode?: string,
-  _role?: string,
+  _role?: string
 ): Promise<ExistingPreset | null> {
   // Note: flag and team_logo_url are now stored in Profiles table
   // This function now returns null as presets are handled via profile_id
@@ -1060,7 +1060,7 @@ function extractErrorMessage(err: unknown): string {
  */
 export async function updateParticipantHeartbeat(
   participantId: string,
-  sessionId?: string,
+  sessionId?: string
 ): Promise<void> {
   const updateData: TablesUpdate<"Participants"> = {
     lastHeartbeat: new Date().toISOString(),
@@ -1095,7 +1095,7 @@ export async function updateParticipantHeartbeat(
  * @param participantId - The participant ID to mark as disconnected
  */
 export async function markParticipantDisconnected(
-  participantId: string,
+  participantId: string
 ): Promise<void> {
   const { error } = await supabase
     .from("Participants")
@@ -1132,7 +1132,7 @@ export async function getSessionParticipants(sessionId: string): Promise<
   const { data, error } = await supabase
     .from("Participants")
     .select(
-      "participant_id, role, lobby_presence, profile_id, Profiles!profile_id(name)",
+      "participant_id, role, lobby_presence, profile_id, Profiles!profile_id(name)"
     )
     .eq("session_id", sessionId)
     .order("join_at", { ascending: true });
@@ -1165,7 +1165,7 @@ export async function getSessionParticipants(sessionId: string): Promise<
  */
 export async function setParticipantPassword(
   participantId: string,
-  password: string,
+  password: string
 ): Promise<void> {
   // Use the new participantAuth module which handles hashing via database function
   const { setParticipantPassword: setPassword } = await import(
@@ -1182,7 +1182,7 @@ export async function setParticipantPassword(
  */
 export async function verifyParticipantPassword(
   participantId: string,
-  password: string,
+  password: string
 ): Promise<{
   valid: boolean;
   participant?: {
@@ -1207,7 +1207,7 @@ export async function verifyParticipantPassword(
   const { data, error } = await supabase
     .from("Participants")
     .select(
-      "participant_id, role, session_id, profile_id, Profiles!profile_id(name)",
+      "participant_id, role, session_id, profile_id, Profiles!profile_id(name)"
     )
     .eq("participant_id", participantId)
     .single();
@@ -1245,7 +1245,7 @@ export async function updateParticipantConfig(
     name?: string;
     flag?: string;
     team_logo_url?: string;
-  },
+  }
 ): Promise<void> {
   // Get the profile_id from participant
   const { data: participant, error: fetchError } = await supabase
@@ -1292,7 +1292,7 @@ export async function rejoinAsParticipant(
     name?: string;
     flag?: string;
     team_logo_url?: string;
-  },
+  }
 ): Promise<{
   participantId: string;
   role: string;
@@ -1352,11 +1352,11 @@ export async function getAvailableSeats(sessionCode: string): Promise<{
   }
 
   const occupiedSeats = (participants || []).map(
-    (p) => p.role as ParticipantRole,
+    (p) => p.role as ParticipantRole
   );
   const allSeats: ParticipantRole[] = ["Home", "Away"];
   const availableSeats = allSeats.filter(
-    (seat) => !occupiedSeats.includes(seat),
+    (seat) => !occupiedSeats.includes(seat)
   );
 
   return { availableSeats, occupiedSeats };
@@ -1364,14 +1364,14 @@ export async function getAvailableSeats(sessionCode: string): Promise<{
 
 /**
  * Save selected questions for a session
- * 
+ *
  * @param sessionId - The session ID
  * @param selections - Record of segment codes to arrays of question IDs
  * @returns Success status
  */
 export async function saveSessionQuestions(
   sessionId: string,
-  selections: Record<SegmentCode, string[]>,
+  selections: Record<SegmentCode, string[]>
 ): Promise<{ success: boolean; error?: string }> {
   try {
     // First, delete any existing selections for this session
@@ -1433,7 +1433,7 @@ export async function saveSessionQuestions(
 
 /**
  * Get selected questions for a session
- * 
+ *
  * @param sessionId - The session ID
  * @returns Array of selected questions with full question data
  */
@@ -1464,7 +1464,7 @@ export async function getSessionQuestions(sessionId: string): Promise<{
           answers,
           total_answers_available
         )
-      `,
+      `
       )
       .eq("session_id", sessionId)
       .order("segment_code")

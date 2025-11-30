@@ -19,7 +19,7 @@ interface QuestionSelectorProps {
 
 /**
  * QuestionSelector Component
- * 
+ *
  * Allows hosts to manually select specific questions for each quiz segment.
  * Ensures the number of selected questions matches the configured count per segment.
  */
@@ -60,7 +60,7 @@ export const QuestionSelector: React.FC<QuestionSelectorProps> = ({
       try {
         // Use Supabase directly for better development experience
         const { supabase } = await import("../lib/supabaseClient");
-        
+
         const { data, error: fetchError } = await supabase
           .from("Questions")
           .select("*")
@@ -141,7 +141,9 @@ export const QuestionSelector: React.FC<QuestionSelectorProps> = ({
   };
 
   // Get selection status for display
-  const getSelectionStatus = (segment: SegmentCode): {
+  const getSelectionStatus = (
+    segment: SegmentCode
+  ): {
     selected: number;
     required: number;
     isComplete: boolean;
@@ -231,8 +233,8 @@ export const QuestionSelector: React.FC<QuestionSelectorProps> = ({
                           : "text-orange-600"
                     }`}
                   >
-                    {status.isComplete ? "✅" : "⚠️"} Selected: {status.selected}{" "}
-                    / {status.required}
+                    {status.isComplete ? "✅" : "⚠️"} Selected:{" "}
+                    {status.selected} / {status.required}
                   </p>
                 </div>
               </div>

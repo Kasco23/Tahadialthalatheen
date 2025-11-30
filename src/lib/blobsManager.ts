@@ -149,7 +149,7 @@ export interface QuizQuestionsBlob {
   session_code: string;
   created_at: string;
   last_updated: string;
-  
+
   // Questions grouped by segment
   questions: Array<{
     question_id: string;
@@ -160,7 +160,7 @@ export interface QuizQuestionsBlob {
     total_answers_available?: number;
     display_order: number;
   }>;
-  
+
   // Current quiz progress
   current_segment: string | null;
   current_question_index: number;
@@ -249,7 +249,7 @@ class BlobCache {
     } catch (error) {
       Logger.warn(
         `[BlobCache] Failed to cache to Cache API for key ${key}:`,
-        error,
+        error
       );
     }
   }
@@ -263,7 +263,7 @@ class BlobCache {
     } catch (error) {
       Logger.warn(
         `[BlobCache] Failed to invalidate cache for key ${key}:`,
-        error,
+        error
       );
     }
   }
@@ -290,7 +290,7 @@ const cache = new BlobCache();
  */
 export async function getSessionBlob(
   sessionId: string,
-  useCache = true,
+  useCache = true
 ): Promise<BlobResult<SessionBlobData>> {
   const cacheKey = `session:${sessionId}`;
 
@@ -314,7 +314,7 @@ export async function getSessionBlob(
       `/session-state?sessionId=${encodeURIComponent(sessionId)}`,
       {
         method: "GET",
-      },
+      }
     );
 
     if (!response.ok) {
@@ -362,7 +362,7 @@ export async function getSessionBlob(
   } catch (error) {
     Logger.error(
       `[getSessionBlob] Error fetching session ${sessionId}:`,
-      error,
+      error
     );
 
     return {
@@ -379,7 +379,7 @@ export async function getSessionBlob(
  * Save session data to Blobs with cache invalidation
  */
 export async function saveSessionBlob(
-  sessionData: SessionBlobData,
+  sessionData: SessionBlobData
 ): Promise<BlobResult<SessionBlobData>> {
   const cacheKey = `session:${sessionData.session_id}`;
 
@@ -428,7 +428,7 @@ export async function saveSessionBlob(
   } catch (error) {
     Logger.error(
       `[saveSessionBlob] Error saving session ${sessionData.session_id}:`,
-      error,
+      error
     );
 
     return {
@@ -446,7 +446,7 @@ export async function saveSessionBlob(
  */
 export async function updateSessionBlob(
   sessionId: string,
-  updates: Partial<SessionBlobData>,
+  updates: Partial<SessionBlobData>
 ): Promise<BlobResult<SessionBlobData>> {
   const cacheKey = `session:${sessionId}`;
 
@@ -494,7 +494,7 @@ export async function updateSessionBlob(
   } catch (error) {
     Logger.error(
       `[updateSessionBlob] Error updating session ${sessionId}:`,
-      error,
+      error
     );
 
     return {
@@ -516,7 +516,7 @@ export async function updateSessionBlob(
  */
 export async function getParticipantBlob(
   participantId: string,
-  useCache = true,
+  useCache = true
 ): Promise<BlobResult<ParticipantBlobData>> {
   const cacheKey = `participant:${participantId}`;
 
@@ -540,7 +540,7 @@ export async function getParticipantBlob(
       `/api/get-active-profile?userId=${encodeURIComponent(participantId)}`,
       {
         method: "GET",
-      },
+      }
     );
 
     if (!response.ok) {
@@ -574,7 +574,7 @@ export async function getParticipantBlob(
   } catch (error) {
     Logger.error(
       `[getParticipantBlob] Error fetching participant ${participantId}:`,
-      error,
+      error
     );
 
     // Try localStorage fallback
@@ -593,7 +593,7 @@ export async function getParticipantBlob(
     } catch (localError) {
       Logger.warn(
         "[getParticipantBlob] localStorage fallback failed:",
-        localError,
+        localError
       );
     }
 
@@ -611,7 +611,7 @@ export async function getParticipantBlob(
  * Save participant data to Blobs with localStorage backup
  */
 export async function saveParticipantBlob(
-  participantData: ParticipantBlobData,
+  participantData: ParticipantBlobData
 ): Promise<BlobResult<ParticipantBlobData>> {
   const cacheKey = `participant:${participantData.participant_id}`;
 
@@ -619,7 +619,7 @@ export async function saveParticipantBlob(
   try {
     localStorage.setItem(
       `participant:${participantData.participant_id}`,
-      JSON.stringify(participantData),
+      JSON.stringify(participantData)
     );
   } catch (error) {
     Logger.warn("[saveParticipantBlob] localStorage save failed:", error);
@@ -670,7 +670,7 @@ export async function saveParticipantBlob(
   } catch (error) {
     Logger.error(
       `[saveParticipantBlob] Error saving participant ${participantData.participant_id}:`,
-      error,
+      error
     );
 
     // Return success if localStorage save succeeded (offline mode)
@@ -692,7 +692,7 @@ export async function saveParticipantBlob(
  * Save lobby snapshot for quick recovery
  */
 export async function saveLobbySnapshot(
-  snapshotData: LobbySnapshotData,
+  snapshotData: LobbySnapshotData
 ): Promise<BlobResult<LobbySnapshotData>> {
   try {
     const dataToSave = {
@@ -738,14 +738,14 @@ export async function saveLobbySnapshot(
  * Get lobby snapshot for recovery
  */
 export async function getLobbySnapshot(
-  sessionId: string,
+  sessionId: string
 ): Promise<BlobResult<LobbySnapshotData>> {
   try {
     const response = await fetch(
       `/session-state?sessionId=${encodeURIComponent(`snapshot:${sessionId}`)}`,
       {
         method: "GET",
-      },
+      }
     );
 
     if (!response.ok) {
@@ -803,7 +803,7 @@ export async function saveQuizQuestions(
     answers: string | string[];
     total_answers_available?: number;
     display_order: number;
-  }>,
+  }>
 ): Promise<BlobResult<QuizQuestionsBlob>> {
   const cacheKey = `quiz:${sessionCode}`;
 
@@ -839,7 +839,7 @@ export async function saveQuizQuestions(
       await cache.set(cacheKey, dataToSave);
 
       Logger.log(
-        `[saveQuizQuestions] Saved ${questions.length} questions for session ${sessionCode}`,
+        `[saveQuizQuestions] Saved ${questions.length} questions for session ${sessionCode}`
       );
 
       return {
@@ -861,7 +861,7 @@ export async function saveQuizQuestions(
   } catch (error) {
     Logger.error(
       `[saveQuizQuestions] Error saving questions for session ${sessionCode}:`,
-      error,
+      error
     );
 
     return {
@@ -879,7 +879,7 @@ export async function saveQuizQuestions(
  */
 export async function getQuizQuestions(
   sessionCode: string,
-  useCache = true,
+  useCache = true
 ): Promise<BlobResult<QuizQuestionsBlob>> {
   const cacheKey = `quiz:${sessionCode}`;
 
@@ -903,7 +903,7 @@ export async function getQuizQuestions(
       `/session-state?sessionId=${encodeURIComponent(`quiz:${sessionCode}`)}`,
       {
         method: "GET",
-      },
+      }
     );
 
     if (!response.ok) {
@@ -919,7 +919,7 @@ export async function getQuizQuestions(
       await cache.set(cacheKey, quizData);
 
       Logger.log(
-        `[getQuizQuestions] Loaded ${quizData.questions.length} questions for session ${sessionCode}`,
+        `[getQuizQuestions] Loaded ${quizData.questions.length} questions for session ${sessionCode}`
       );
 
       return {
@@ -941,7 +941,7 @@ export async function getQuizQuestions(
   } catch (error) {
     Logger.error(
       `[getQuizQuestions] Error loading questions for session ${sessionCode}:`,
-      error,
+      error
     );
 
     return {
@@ -959,7 +959,7 @@ export async function getQuizQuestions(
  * Useful for cleanup after quiz completion
  */
 export async function deleteQuizQuestions(
-  sessionCode: string,
+  sessionCode: string
 ): Promise<BlobResult<void>> {
   const cacheKey = `quiz:${sessionCode}`;
 
@@ -968,7 +968,9 @@ export async function deleteQuizQuestions(
     // For now, we'll just invalidate the cache
     await cache.invalidate(cacheKey);
 
-    Logger.log(`[deleteQuizQuestions] Invalidated cache for session ${sessionCode}`);
+    Logger.log(
+      `[deleteQuizQuestions] Invalidated cache for session ${sessionCode}`
+    );
 
     return {
       success: true,
@@ -980,7 +982,7 @@ export async function deleteQuizQuestions(
   } catch (error) {
     Logger.error(
       `[deleteQuizQuestions] Error deleting questions for session ${sessionCode}:`,
-      error,
+      error
     );
 
     return {
@@ -1002,12 +1004,12 @@ export async function deleteQuizQuestions(
  * Call this periodically to keep authoritative data in sync
  */
 export async function syncSessionWithSupabase(
-  sessionId: string,
+  sessionId: string
 ): Promise<BlobResult<SessionBlobData>> {
   // This would be implemented to fetch from Supabase and update blob
   // Left as a hook for future implementation
   Logger.log(
-    `[syncSessionWithSupabase] Syncing session ${sessionId} with Supabase`,
+    `[syncSessionWithSupabase] Syncing session ${sessionId} with Supabase`
   );
 
   return {
