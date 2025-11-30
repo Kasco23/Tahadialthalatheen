@@ -224,6 +224,11 @@ const Quiz: React.FC = () => {
   const handleIncrementStrike = async (participantId: string) => {
     setLoading(true);
     try {
+      // Skip database operations for placeholder test participants
+      if (participantId.startsWith("placeholder-")) {
+        Logger.log(`Skipping strike increment for test participant ${participantId}`);
+        return;
+      }
       await incrementStrike(sessionId!, participantId);
     } catch (error) {
       Logger.error("Error incrementing strike:", error);
@@ -238,6 +243,11 @@ const Quiz: React.FC = () => {
   const handleResetStrikes = async (participantId: string) => {
     setLoading(true);
     try {
+      // Skip database operations for placeholder test participants
+      if (participantId.startsWith("placeholder-")) {
+        Logger.log(`Skipping strike reset for test participant ${participantId}`);
+        return;
+      }
       await resetStrikes(sessionId!, participantId);
     } catch (error) {
       Logger.error("Error resetting strikes:", error);

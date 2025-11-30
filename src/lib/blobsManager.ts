@@ -311,7 +311,7 @@ export async function getSessionBlob(
   // Fetch from Netlify Blobs via Edge Function
   try {
     const response = await fetch(
-      `/session-state?sessionId=${encodeURIComponent(sessionId)}`,
+      `/.netlify/edge-functions/session-state?sessionId=${encodeURIComponent(sessionId)}`,
       {
         method: "GET",
       }
@@ -390,7 +390,7 @@ export async function saveSessionBlob(
       last_updated: new Date().toISOString(),
     };
 
-    const response = await fetch("/session-state", {
+    const response = await fetch("/.netlify/edge-functions/session-state", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -451,7 +451,7 @@ export async function updateSessionBlob(
   const cacheKey = `session:${sessionId}`;
 
   try {
-    const response = await fetch("/session-state", {
+    const response = await fetch("/.netlify/edge-functions/session-state", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -701,7 +701,7 @@ export async function saveLobbySnapshot(
     };
 
     // Store in session-state edge function with snapshot prefix
-    const response = await fetch("/session-state", {
+    const response = await fetch("/.netlify/edge-functions/session-state", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -742,7 +742,7 @@ export async function getLobbySnapshot(
 ): Promise<BlobResult<LobbySnapshotData>> {
   try {
     const response = await fetch(
-      `/session-state?sessionId=${encodeURIComponent(`snapshot:${sessionId}`)}`,
+      `/.netlify/edge-functions/session-state?sessionId=${encodeURIComponent(`snapshot:${sessionId}`)}`,
       {
         method: "GET",
       }
@@ -819,7 +819,7 @@ export async function saveQuizQuestions(
       completed_segments: [],
     };
 
-    const response = await fetch("/session-state", {
+    const response = await fetch("/.netlify/edge-functions/session-state", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -900,7 +900,7 @@ export async function getQuizQuestions(
 
   try {
     const response = await fetch(
-      `/session-state?sessionId=${encodeURIComponent(`quiz:${sessionCode}`)}`,
+      `/.netlify/edge-functions/session-state?sessionId=${encodeURIComponent(`quiz:${sessionCode}`)}`,
       {
         method: "GET",
       }
