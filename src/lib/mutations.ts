@@ -956,7 +956,7 @@ export async function incrementStrike(
   // If strike record exists, increment by 1 and update
   if (existingStrike && !selectError) {
     newStrikesCount = existingStrike.strikes + 1;
-    
+
     const { error: updateError } = await supabase
       .from("Strikes")
       .update({ strikes: newStrikesCount })
@@ -967,14 +967,12 @@ export async function incrementStrike(
     }
   } else {
     // Insert new strike record
-    const { error: insertError } = await supabase
-      .from("Strikes")
-      .insert({
-        session_id: sessionId,
-        participant_id: participantId,
-        segment_code: "WDYK",
-        strikes: newStrikesCount,
-      });
+    const { error: insertError } = await supabase.from("Strikes").insert({
+      session_id: sessionId,
+      participant_id: participantId,
+      segment_code: "WDYK",
+      strikes: newStrikesCount,
+    });
 
     if (insertError) {
       throw new Error(`Failed to insert strike: ${insertError.message}`);
@@ -1010,14 +1008,12 @@ export async function resetStrikes(
     }
   } else {
     // Insert new record with 0 strikes
-    const { error: insertError } = await supabase
-      .from("Strikes")
-      .insert({
-        session_id: sessionId,
-        participant_id: participantId,
-        segment_code: "WDYK",
-        strikes: 0,
-      });
+    const { error: insertError } = await supabase.from("Strikes").insert({
+      session_id: sessionId,
+      participant_id: participantId,
+      segment_code: "WDYK",
+      strikes: 0,
+    });
 
     if (insertError) {
       throw new Error(`Failed to insert strike reset: ${insertError.message}`);

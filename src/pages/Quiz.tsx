@@ -226,7 +226,9 @@ const Quiz: React.FC = () => {
     try {
       // Skip database operations for placeholder test participants
       if (participantId.startsWith("placeholder-")) {
-        Logger.log(`Skipping strike increment for test participant ${participantId}`);
+        Logger.log(
+          `Skipping strike increment for test participant ${participantId}`
+        );
         return;
       }
       await incrementStrike(sessionId!, participantId);
@@ -245,7 +247,9 @@ const Quiz: React.FC = () => {
     try {
       // Skip database operations for placeholder test participants
       if (participantId.startsWith("placeholder-")) {
-        Logger.log(`Skipping strike reset for test participant ${participantId}`);
+        Logger.log(
+          `Skipping strike reset for test participant ${participantId}`
+        );
         return;
       }
       await resetStrikes(sessionId!, participantId);
