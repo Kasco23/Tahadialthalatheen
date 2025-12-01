@@ -102,12 +102,25 @@ export interface ParticipantBlobData {
   preferred_flag: string | null;
   preferred_team: string | null;
   audio_enabled: boolean;
-  video_enabled: boolean;
+ video_enabled: boolean;
 
   // Metadata
   created_at: string;
   last_updated: string;
   session_history: string[]; // Recent session IDs
+  active_games?: Array<{
+    session_id: string;
+    session_code: string;
+    role: "Host" | "Home" | "Away" | "GameMaster" | "Guest";
+    lobby_presence: "NotJoined" | "Joined" | "Disconnected";
+    phase?: string;
+    game_state?: string;
+    host_name?: string | null;
+    participant_count?: number;
+    has_daily_room?: boolean;
+    invited?: boolean;
+    last_seen_at?: string;
+  }>;
 
   // Custom extensible data
   metadata?: Record<string, unknown>;

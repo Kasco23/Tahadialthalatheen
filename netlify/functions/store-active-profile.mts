@@ -39,6 +39,19 @@ interface ParticipantBlobData {
   created_at: string;
   last_updated: string;
   session_history: string[];
+  active_games?: Array<{
+    session_id: string;
+    session_code: string;
+    role: "Host" | "Home" | "Away" | "GameMaster" | "Guest";
+    lobby_presence: "NotJoined" | "Joined" | "Disconnected";
+    phase?: string;
+    game_state?: string;
+    host_name?: string | null;
+    participant_count?: number;
+    has_daily_room?: boolean;
+    invited?: boolean;
+    last_seen_at?: string;
+  }>;
   metadata?: Record<string, unknown>;
 }
 
@@ -115,6 +128,7 @@ const buildParticipantRecord = (
     created_at: profileData.created_at ?? now,
     last_updated: profileData.last_updated ?? now,
     session_history: profileData.session_history ?? [],
+    active_games: profileData.active_games ?? [],
     metadata: {
       ...profileData.metadata,
       source: metadataSource ?? "supabase",

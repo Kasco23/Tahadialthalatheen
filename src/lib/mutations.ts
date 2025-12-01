@@ -11,6 +11,11 @@ import type {
   SegmentConfigInput,
   CreateDailyRoomResponse,
 } from "./types";
+import {
+  fetchProfileActiveGames,
+  persistActiveGamesToBlob,
+  updateActiveGamePresenceInBlob,
+} from "./activeGames";
 
 // Type for participant data with Profile JOIN
 type ParticipantWithProfile = {
@@ -88,6 +93,17 @@ export async function createSession(
         `Failed to create participant: ${participantError.message}`
       );
     }
+
+    // Mirror host active games into Netlify Blobs for quick access
+    fetchProfileActiveGames(hostProfileId)
+      .then((games) =>
+        persistActiveGamesToBlob(hostProfileId, games).catch((err) =>
+          Logger.warn("Persist active games (host) failed:", err)
+        )
+      )
+      .catch((err) =>
+        Logger.warn("Failed to refresh active games after creation:", err)
+      );
 
     Logger.log("Session created successfully:", {
       sessionId: sessionData.session_id,
@@ -697,7 +713,8 @@ export async function joinAsPlayer(
 // 6. Update Presence (Lobby & Call)
 export async function updateLobbyPresence(
   participantId: string,
-  status: LobbyPresence
+  status: LobbyPresence,
+  opts?: { sessionId?: string; profileId?: string }
 ): Promise<void> {
   const updateData: TablesUpdate<"Participants"> = { lobby_presence: status };
 
@@ -717,6 +734,29 @@ export async function updateLobbyPresence(
 
   if (error) {
     throw new Error(`Failed to update lobby presence: ${error.message}`);
+  }
+
+  // Keep participant blob in sync for Active Games
+  try {
+    let sessionId = opts?.sessionId;
+    let profileId = opts?.profileId;
+
+    if (!sessionId || !profileId) {
+      const { data: participantRow } = await supabase
+        .from("Participants")
+        .select("session_id, profile_id")
+        .eq("participant_id", participantId)
+        .maybeSingle();
+
+      sessionId = sessionId ?? participantRow?.session_id ?? undefined;
+      profileId = profileId ?? (participantRow?.profile_id as string | undefined);
+    }
+
+    if (sessionId && profileId) {
+      await updateActiveGamePresenceInBlob(profileId, sessionId, status);
+    }
+  } catch (err) {
+    Logger.warn("Failed to mirror presence to blob:", err);
   }
 }
 

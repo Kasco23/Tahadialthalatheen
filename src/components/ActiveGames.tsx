@@ -1,17 +1,19 @@
 import { Logger } from "../lib/logger";
-import { useState, useEffect } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  getActiveSessions,
-  joinAsPlayerWithCode,
-  type ActiveSession,
-} from "../lib/mutations";
 import { useAuth } from "../contexts/AuthContext";
 import { supabase } from "../lib/supabaseClient";
 import UsernameRequiredModal from "./UsernameRequiredModal";
 import { useUsernameCheck } from "../hooks/useUsernameCheck";
-
-const REFRESH_INTERVAL_MS = 30000; // 30 seconds
+import {
+  fetchProfileActiveGames,
+  persistActiveGamesToBlob,
+  updateActiveGamePresenceInBlob,
+  type ActiveGameEntry,
+} from "../lib/activeGames";
+import { getParticipantBlob } from "../lib/blobsManager";
+import { getSessionIdByCode } from "../lib/mutations";
+import type { ParticipantRole } from "../lib/types";
 
 interface ActiveGamesSidebarProps {
   isOpen: boolean;
@@ -22,46 +24,132 @@ const ActiveGamesSidebar: React.FC<ActiveGamesSidebarProps> = ({
   isOpen,
   onClose,
 }) => {
-  const [activeSessions, setActiveSessions] = useState<ActiveSession[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [activeSessions, setActiveSessions] = useState<ActiveGameEntry[]>([]);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { requireUsername, showModal, hideUsernameModal } = useUsernameCheck();
 
-  useEffect(() => {
-    const fetchActiveSessions = async () => {
-      try {
-        setLoading(true);
-        const sessions = await getActiveSessions();
+  const hydrateActiveGames = useCallback(async (cancelState: { current: boolean }) => {
+    if (!user) return;
+
+    const setIfMounted = (sessions: ActiveGameEntry[]) => {
+      if (!cancelState.current) {
         setActiveSessions(sessions);
-        setError(null);
-      } catch (err) {
-        Logger.error("Failed to fetch active sessions:", err);
-        setError(
-          err instanceof Error ? err.message : "Failed to load active games",
-        );
-      } finally {
-        setLoading(false);
       }
     };
 
-    fetchActiveSessions();
+    try {
+      setLoading(true);
+      setError(null);
 
-    // Refresh every 30 seconds
-    const interval = setInterval(fetchActiveSessions, REFRESH_INTERVAL_MS);
+      // Stage 1: hydrate from blob cache for instant UI
+      const cached = await getParticipantBlob(user.id);
+      if (cached.success && cached.data?.active_games) {
+        setIfMounted(cached.data.active_games as ActiveGameEntry[]);
+      }
+
+      // Stage 2: fetch fresh from Supabase
+      const sessions = await fetchProfileActiveGames(user.id);
+      setIfMounted(sessions);
+
+      // Stage 3: persist to blobs for next time
+      await persistActiveGamesToBlob(user.id, sessions, profile);
+    } catch (err) {
+      Logger.error("Failed to load active games:", err);
+      if (!cancelState.current) {
+        setError(
+          err instanceof Error ? err.message : "Failed to load active games",
+        );
+      }
+    } finally {
+      if (!cancelState.current) {
+        setLoading(false);
+      }
+    }
+  }, [profile, user]);
+
+  useEffect(() => {
+    if (!isOpen || !user) return;
+    const cancelState = { current: false };
+
+    const load = async () => {
+      await hydrateActiveGames(cancelState);
+    };
+
+    load();
 
     return () => {
-      clearInterval(interval);
+      cancelState.current = true;
     };
-  }, []);
+  }, [hydrateActiveGames, isOpen, user]);
 
-  const handleQuickJoin = async (sessionCode: string) => {
+  const ensureParticipantForRole = async (
+    sessionId: string,
+    sessionCode: string,
+    role: ParticipantRole,
+  ) => {
+    if (!user) return null;
+
+    // Find participant for this user and session
+    const { data: participantRow, error: participantErr } = await supabase
+      .from("Participants")
+      .select("participant_id, role, lobby_presence")
+      .eq("session_id", sessionId)
+      .eq("profile_id", user.id)
+      .maybeSingle();
+
+    if (participantErr) {
+      Logger.warn("Could not resolve participant for quick join:", participantErr);
+    }
+
+    if (participantRow?.participant_id) {
+      // Update presence to Joined
+      await supabase
+        .from("Participants")
+        .update({
+          lobby_presence: "Joined",
+          join_at: new Date().toISOString(),
+          disconnect_at: null,
+        })
+        .eq("participant_id", participantRow.participant_id);
+
+      await updateActiveGamePresenceInBlob(user.id, sessionId, "Joined");
+
+      return { participantId: participantRow.participant_id, role };
+    }
+
+    // Create participant entry with requested role
+    const { data: created, error: createErr } = await supabase
+      .from("Participants")
+      .insert({
+        session_id: sessionId,
+        role,
+        lobby_presence: "Joined",
+        join_at: new Date().toISOString(),
+        disconnect_at: null,
+        profile_id: user.id,
+      })
+      .select("participant_id")
+      .single();
+
+    if (createErr) {
+      Logger.error("Failed to create participant for quick join:", createErr);
+      throw new Error("Unable to join session");
+    }
+
+    await updateActiveGamePresenceInBlob(user.id, sessionId, "Joined");
+
+    return { participantId: created.participant_id, role };
+  };
+
+  const handleQuickJoin = async (session: ActiveGameEntry) => {
     try {
       // Check if user is authenticated
       if (!user) {
         // Not authenticated - navigate to join page with session code pre-filled
-        navigate(`/join?sessionCode=${sessionCode}&role=player`);
+        navigate(`/join?sessionCode=${session.session_code}&role=player`);
         return;
       }
 
@@ -70,96 +158,39 @@ const ActiveGamesSidebar: React.FC<ActiveGamesSidebarProps> = ({
         return;
       }
 
-      // Fetch session to check if user is the host
-      const { data: sessionData, error: sessionError } = await supabase
-        .from("Sessions")
-        .select("session_id, host_profile_id")
-        .eq("session_code", sessionCode.toUpperCase())
-        .single();
+      const resolvedSessionId =
+        session.session_id || (await getSessionIdByCode(session.session_code));
+      const resolvedRole = (session.role || "Guest") as ParticipantRole;
+      const { role, participantId } =
+        (await ensureParticipantForRole(
+          resolvedSessionId,
+          session.session_code,
+          resolvedRole,
+        )) || {};
 
-      if (sessionError || !sessionData) {
-        Logger.error("Failed to fetch session:", sessionError);
-        navigate(`/join?sessionCode=${sessionCode}&role=player`);
+      if (!role || !participantId) {
+        navigate(`/join?sessionCode=${session.session_code}`);
         return;
       }
-
-      const isHost = sessionData.host_profile_id === user.id;
-
-      // Fetch user profile
-      const { data: profileData, error: profileError } = await supabase
-        .from("Profiles")
-        .select("name, flag, team")
-        .eq("id", user.id)
-        .single();
-
-      if (profileError || !profileData) {
-        Logger.error("Failed to fetch profile for quick join:", profileError);
-        navigate(`/join?sessionCode=${sessionCode}&role=player`);
-        return;
-      }
-
-      if (isHost) {
-        // User is the host - create or update host participant
-        const { data: existingHost } = await supabase
-          .from("Participants")
-          .select("participant_id")
-          .eq("session_id", sessionData.session_id)
-          .eq("profile_id", user.id)
-          .eq("role", "Host")
-          .maybeSingle();
-
-        if (existingHost) {
-          // Update existing host presence
-          await supabase
-            .from("Participants")
-            .update({
-              lobby_presence: "Joined",
-              join_at: new Date().toISOString(),
-              disconnect_at: null,
-            })
-            .eq("participant_id", existingHost.participant_id);
-        } else {
-          // Create new host participant
-          // Note: name, flag, and team are fetched from Profiles table via JOIN
-          await supabase.from("Participants").insert({
-            session_id: sessionData.session_id,
-            role: "Host",
-            lobby_presence: "Joined",
-            join_at: new Date().toISOString(),
-            profile_id: user.id,
-          });
-        }
-
-        Logger.info("Host joined session");
-        navigate(`/lobby/${sessionCode}/host`);
-        return;
-      }
-
-      // Not host - join as player using available seat
-      // Note: name/flag/team parameters are deprecated, only profile_id is used
-      const { participantId, role } = await joinAsPlayerWithCode(
-        sessionCode,
-        "", // Deprecated: name now from Profiles table
-        "", // Deprecated: flag now from Profiles table
-        "", // Deprecated: team now from Profiles table
-        user.id,
-      );
-
-      Logger.info(
-        `Quick join successful - Participant ${participantId} joined as ${role}`,
-      );
 
       // Navigate directly to lobby
-      const seat = role === "Home" ? "2" : "3";
-      navigate(`/lobby/${sessionCode}/${seat}`);
+      const seat =
+        role === "Host"
+          ? "host"
+          : role === "Home"
+            ? "2"
+            : role === "Away"
+              ? "3"
+              : "2";
+      navigate(`/lobby/${session.session_code}/${seat}`);
     } catch (err) {
       Logger.error("Quick join error:", err);
       // Fallback to normal join flow
-      navigate(`/join?sessionCode=${sessionCode}`);
+      navigate(`/join?sessionCode=${session.session_code}`);
     }
   };
 
-  const getPhaseColor = (phase: string) => {
+  const getPhaseColor = (phase?: string) => {
     switch (phase) {
       case "Setup":
         return "bg-yellow-100 text-yellow-800";
@@ -173,6 +204,16 @@ const ActiveGamesSidebar: React.FC<ActiveGamesSidebarProps> = ({
         return "bg-gray-100 text-gray-800";
     }
   };
+
+  if (!user) {
+    return (
+      <div className="bg-green-900/20 backdrop-blur-md rounded-xl shadow-lg p-6 border border-green-500/30">
+        <p className="text-green-100">
+          Sign in to see your active games and invites.
+        </p>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -260,7 +301,7 @@ const ActiveGamesSidebar: React.FC<ActiveGamesSidebarProps> = ({
             ) : (
               activeSessions.map((session) => (
                 <div
-                  key={session.session_id}
+                  key={session.session_id || session.session_code}
                   className="bg-black/30 backdrop-blur-sm border border-green-500/30 rounded-lg p-4 hover:bg-black/40 hover:border-green-400/50 transition-all duration-200 shadow-lg"
                 >
                   <div className="flex items-start justify-between mb-3">
@@ -272,22 +313,27 @@ const ActiveGamesSidebar: React.FC<ActiveGamesSidebarProps> = ({
                         <span
                           className={`px-2 py-0.5 rounded-full text-xs font-bold ${getPhaseColor(session.phase)}`}
                         >
-                          {session.phase}
+                          {session.phase || "Lobby"}
                         </span>
+                        {session.invited && (
+                          <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800">
+                            Invited
+                          </span>
+                        )}
                       </div>
 
                       <div className="space-y-1.5 text-sm">
                         <div className="flex items-center gap-2">
                           <span className="text-green-400">👤</span>
                           <span className="text-green-100 font-medium">
-                            {session.host_name}
+                            {session.host_name || "Host"}
                           </span>
                         </div>
 
                         <div className="flex items-center gap-2">
                           <span className="text-green-400">👥</span>
                           <span className="text-green-100">
-                            {session.participant_count}/2 players
+                            {session.participant_count ?? 0}/2 players
                           </span>
                         </div>
 
@@ -315,7 +361,7 @@ const ActiveGamesSidebar: React.FC<ActiveGamesSidebarProps> = ({
 
                   <button
                     onClick={() => {
-                      handleQuickJoin(session.session_code);
+                      handleQuickJoin(session);
                       onClose();
                     }}
                     className="w-full px-4 py-2.5 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"

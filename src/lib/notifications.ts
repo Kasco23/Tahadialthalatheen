@@ -4,7 +4,12 @@
  */
 
 import { supabase } from "./supabaseClient";
-import type { Tables, Views, NotificationType } from "./types";
+import type {
+  Tables,
+  Views,
+  NotificationType,
+  ParticipantRole,
+} from "./types";
 import { Logger } from "./logger";
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 
@@ -315,7 +320,28 @@ export async function createSessionInvite(
   senderName: string,
   sessionCode: string,
   sessionId: string,
+  preferredRole?: ParticipantRole,
 ): Promise<Notification> {
+  // Determine target role for the invite (prefers an open seat)
+  let resolvedRole: ParticipantRole = preferredRole || "Home";
+  if (!preferredRole) {
+    const { data: seatRows, error: seatErr } = await supabase
+      .from("Participants")
+      .select("role")
+      .eq("session_id", sessionId);
+
+    if (!seatErr && seatRows) {
+      const roles = seatRows.map((r) => r.role);
+      if (!roles.includes("Home")) {
+        resolvedRole = "Home";
+      } else if (!roles.includes("Away")) {
+        resolvedRole = "Away";
+      } else {
+        resolvedRole = "Guest";
+      }
+    }
+  }
+
   return createNotification(
     recipientId,
     senderId,
@@ -327,6 +353,7 @@ export async function createSessionInvite(
       sessionCode,
       sessionId,
       inviteType: "session",
+      role: resolvedRole,
     },
   );
 }
