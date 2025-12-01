@@ -79,7 +79,7 @@ export class PresenceHelper {
           if (this.onPresenceChange && presenceState) {
             this.onPresenceChange(this.formatPresenceState(presenceState));
           }
-        },
+        }
       )
       .on(
         "presence",
@@ -91,7 +91,7 @@ export class PresenceHelper {
           if (this.onPresenceChange && presenceState) {
             this.onPresenceChange(this.formatPresenceState(presenceState));
           }
-        },
+        }
       );
 
     // Subscribe and track this user's presence
@@ -202,7 +202,7 @@ export class PresenceHelper {
    * Private method to format presence state
    */
   private formatPresenceState(
-    rawState: Record<string, unknown[]>,
+    rawState: Record<string, unknown[]>
   ): PresenceState {
     const formatted: PresenceState = {};
 
@@ -223,7 +223,7 @@ export class PresenceHelper {
    */
   private async updateDatabasePresence(
     userId: string,
-    isConnected: boolean,
+    isConnected: boolean
   ): Promise<void> {
     try {
       if (isConnected) {
@@ -241,7 +241,7 @@ export class PresenceHelper {
    */
   static createHeartbeat(
     presenceHelper: PresenceHelper,
-    intervalMs: number = 30000,
+    intervalMs: number = 30000
   ): NodeJS.Timeout {
     return setInterval(() => {
       presenceHelper.updateActivity();

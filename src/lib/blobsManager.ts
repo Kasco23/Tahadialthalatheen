@@ -102,7 +102,7 @@ export interface ParticipantBlobData {
   preferred_flag: string | null;
   preferred_team: string | null;
   audio_enabled: boolean;
- video_enabled: boolean;
+  video_enabled: boolean;
 
   // Metadata
   created_at: string;
@@ -423,10 +423,7 @@ export async function getSessionBlob(
       source: "blob",
     };
   } catch (error) {
-    Logger.warn(
-      `[getSessionBlob] Error fetching session ${sessionId}:`,
-      error
-    );
+    Logger.warn(`[getSessionBlob] Error fetching session ${sessionId}:`, error);
 
     markBlobServiceDisabled(
       error instanceof Error ? error.message : "Blob session fetch failed"

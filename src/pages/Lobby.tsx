@@ -215,7 +215,9 @@ const Lobby: React.FC = () => {
   // This prevents Daily.co token issues with names containing spaces
   const [tokenUsername, setTokenUsername] = useState<string>("");
 
-  const seatRoleFromParticipantRole = (role?: string | null): SeatRole | null => {
+  const seatRoleFromParticipantRole = (
+    role?: string | null
+  ): SeatRole | null => {
     switch (role) {
       case PARTICIPANT_ROLE.HOST:
         return "host";
@@ -229,7 +231,7 @@ const Lobby: React.FC = () => {
   };
 
   const participantRoleFromSeatRole = (
-    seatRole?: SeatRole | null,
+    seatRole?: SeatRole | null
   ): ParticipantRole | null => {
     switch (seatRole) {
       case "host":
@@ -262,7 +264,7 @@ const Lobby: React.FC = () => {
 
   const currentParticipant = useMemo(
     () => participantFromProfile ?? participantFromSeat ?? null,
-    [participantFromSeat, participantFromProfile],
+    [participantFromSeat, participantFromProfile]
   );
 
   const derivedSeat = useMemo(() => {
@@ -273,7 +275,9 @@ const Lobby: React.FC = () => {
   }, [resolvedSeat, currentParticipant?.role]);
 
   const userRole = useMemo<SeatRole | null>(() => {
-    const roleFromProfile = seatRoleFromParticipantRole(currentParticipant?.role);
+    const roleFromProfile = seatRoleFromParticipantRole(
+      currentParticipant?.role
+    );
     if (roleFromProfile) return roleFromProfile;
     if (resolvedSeat) return SEAT_TO_ROLE[resolvedSeat];
     return null;
@@ -678,10 +682,7 @@ const Lobby: React.FC = () => {
                   );
                 }
               } catch (error) {
-                Logger.warn(
-                  `⚠️ Error saving participant blob:`,
-                  error
-                );
+                Logger.warn(`⚠️ Error saving participant blob:`, error);
               }
             }
           }
@@ -839,11 +840,9 @@ const Lobby: React.FC = () => {
     return () => {
       clearInterval(heartbeatInterval);
       // Mark as disconnected when leaving
-      markParticipantDisconnected(participantId).catch(
-        (err) => {
-          Logger.error("Failed to mark participant as disconnected:", err);
-        }
-      );
+      markParticipantDisconnected(participantId).catch((err) => {
+        Logger.error("Failed to mark participant as disconnected:", err);
+      });
     };
   }, [sessionId, sessionCode, participantId]);
 

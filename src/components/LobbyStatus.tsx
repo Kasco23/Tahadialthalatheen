@@ -62,7 +62,7 @@ const LobbyStatus: React.FC<LobbyStatusProps> = ({
                 flag,
                 team
               )
-            `,
+            `
             )
             .eq("session_id", sessionId);
 
@@ -79,7 +79,7 @@ const LobbyStatus: React.FC<LobbyStatusProps> = ({
                 ...p,
                 Profiles: profileData || null,
               };
-            },
+            }
           );
           setParticipants(normalizedParticipants);
         }
@@ -102,7 +102,7 @@ const LobbyStatus: React.FC<LobbyStatusProps> = ({
         // Notify parent about lobby updates
         if (onLobbyUpdate) {
           const count = (participantsData || []).filter(
-            (p) => p.session_presence === "Joined",
+            (p) => p.session_presence === "Joined"
           ).length;
           onLobbyUpdate({
             participantCount: count,
@@ -132,7 +132,7 @@ const LobbyStatus: React.FC<LobbyStatusProps> = ({
           },
           () => {
             fetchLobbyData();
-          },
+          }
         )
         .subscribe();
 
@@ -148,7 +148,7 @@ const LobbyStatus: React.FC<LobbyStatusProps> = ({
           },
           () => {
             fetchLobbyData();
-          },
+          }
         )
         .subscribe();
 
@@ -175,10 +175,10 @@ const LobbyStatus: React.FC<LobbyStatusProps> = ({
 
   // Filter out GameMaster from displayed participants and counts
   const displayParticipants = participants.filter((p) =>
-    ["Host", "Home", "Away"].includes(p.role),
+    ["Host", "Home", "Away"].includes(p.role)
   );
   const activeParticipantCount = displayParticipants.filter(
-    (p) => p.session_presence === "Joined",
+    (p) => p.session_presence === "Joined"
   ).length;
   const totalSlots = DISPLAY_PARTICIPANT_SLOTS; // Host + 2 Players (excludes GameMaster)
 
@@ -308,7 +308,10 @@ const LobbyStatus: React.FC<LobbyStatusProps> = ({
                 )}
                 {participant.Profiles?.team && (
                   <img
-                    src={getTeamLogoUrl(participant.Profiles.team) || participant.Profiles.team}
+                    src={
+                      getTeamLogoUrl(participant.Profiles.team) ||
+                      participant.Profiles.team
+                    }
                     alt="Team Logo"
                     className="w-6 h-6 rounded object-contain"
                     onError={(e) => {

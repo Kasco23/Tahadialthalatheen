@@ -79,7 +79,7 @@ export const VideoCall: React.FC<VideoCallProps> = ({
           // Find current participant in players list
           const currentPlayer = players.find(
             (p) =>
-              p.Profiles?.name?.toLowerCase() === participantName.toLowerCase(),
+              p.Profiles?.name?.toLowerCase() === participantName.toLowerCase()
           );
 
           if (currentPlayer?.participant_id) {
@@ -107,7 +107,7 @@ export const VideoCall: React.FC<VideoCallProps> = ({
     // Use room URL and token from atoms (already created in Lobby)
     if (!roomUrl || !token) {
       setCallError(
-        "No Daily room or token available. Host needs to create a room first.",
+        "No Daily room or token available. Host needs to create a room first."
       );
       return;
     }
@@ -120,7 +120,7 @@ export const VideoCall: React.FC<VideoCallProps> = ({
 
     if (isMockRoom) {
       setCallError(
-        "🚧 Video calls are disabled in development mode. Use 'netlify dev' for full functionality.",
+        "🚧 Video calls are disabled in development mode. Use 'netlify dev' for full functionality."
       );
       return;
     }
@@ -147,7 +147,7 @@ export const VideoCall: React.FC<VideoCallProps> = ({
     } catch (error) {
       Logger.error("Failed to join Daily room:", error);
       setCallError(
-        error instanceof Error ? error.message : "Failed to join video call",
+        error instanceof Error ? error.message : "Failed to join video call"
       );
     }
   };
