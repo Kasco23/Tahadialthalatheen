@@ -17,7 +17,7 @@ export interface ActiveGameEntry {
   session_id: string;
   session_code: string;
   role: ParticipantRole;
-  lobby_presence: LobbyPresence;
+  session_presence: LobbyPresence;
   phase?: SessionPhase;
   game_state?: GameState;
   host_profile_id?: string | null;
@@ -42,7 +42,7 @@ export async function fetchProfileActiveGames(
   // Step 1: fetch participant rows for the profile
   const { data: participantRows, error: participantErr } = await supabase
     .from("Participants")
-    .select("session_id, role, lobby_presence")
+    .select("session_id, role, session_presence")
     .eq("profile_id", profileId);
 
   if (participantErr) {
@@ -53,7 +53,7 @@ export async function fetchProfileActiveGames(
 
   const participantMap = new Map<
     string,
-    { role: ParticipantRole; lobby_presence: LobbyPresence }
+    { role: ParticipantRole; session_presence: LobbyPresence }
   >();
   const sessionIds = unique(
     (participantRows || [])
@@ -65,7 +65,7 @@ export async function fetchProfileActiveGames(
     if (p.session_id) {
       participantMap.set(p.session_id, {
         role: (p.role as ParticipantRole) || "Guest",
-        lobby_presence: (p.lobby_presence as LobbyPresence) || "NotJoined",
+        session_presence: (p.session_presence as LobbyPresence) || "NotJoined",
       });
     }
   });
@@ -80,7 +80,7 @@ export async function fetchProfileActiveGames(
     host_profile_id?: string | null;
     Participants?: Array<{
       role: string;
-      lobby_presence: string;
+      session_presence: string;
       profile_id?: string | null;
       Profiles?: { name?: string | null } | null;
     }> | null;
@@ -101,7 +101,7 @@ export async function fetchProfileActiveGames(
         host_profile_id,
         Participants (
           role,
-          lobby_presence,
+          session_presence,
           profile_id,
           Profiles!profile_id ( name )
         ),
@@ -133,7 +133,7 @@ export async function fetchProfileActiveGames(
     const playerCount = participants.filter(
       (p) =>
         (p.role === "Home" || p.role === "Away") &&
-        p.lobby_presence === "Joined",
+        p.session_presence === "Joined",
     ).length;
 
     if (!participant) {
@@ -146,7 +146,7 @@ export async function fetchProfileActiveGames(
       phase: row.phase,
       game_state: row.game_state,
       role: participant.role,
-      lobby_presence: participant.lobby_presence,
+      session_presence: participant.session_presence,
       host_profile_id: row.host_profile_id,
       host_name: hostName,
       participant_count: playerCount,
@@ -186,7 +186,7 @@ export async function fetchProfileActiveGames(
           role: ((meta.role as ParticipantRole | undefined) || "Home") as
             | ParticipantRole
             | "Home",
-          lobby_presence: "NotJoined",
+          session_presence: "NotJoined",
           invited: true,
           last_seen_at: invite.created_at || new Date().toISOString(),
         });
@@ -213,7 +213,7 @@ export async function persistActiveGamesToBlob(
     const existing = await getParticipantBlob(profileId);
     const now = new Date().toISOString();
     const data = existing.success ? existing.data : null;
-    const primaryJoined = games.find((g) => g.lobby_presence === "Joined");
+    const primaryJoined = games.find((g) => g.session_presence === "Joined");
 
     const record: ParticipantBlobData = {
       participant_id: data?.participant_id ?? profileId,
@@ -228,7 +228,7 @@ export async function persistActiveGamesToBlob(
       current_session_code:
         data?.current_session_code ?? primaryJoined?.session_code ?? null,
       role: data?.role ?? primaryJoined?.role ?? "Guest",
-      lobby_presence: data?.lobby_presence ?? "NotJoined",
+      session_presence: data?.session_presence ?? "NotJoined",
       video_presence: data?.video_presence ?? false,
       last_heartbeat: data?.last_heartbeat ?? now,
       join_at: data?.join_at ?? null,
@@ -281,7 +281,7 @@ export async function updateActiveGamePresenceInBlob(
     if (idx >= 0) {
       games[idx] = {
         ...games[idx],
-        lobby_presence: presence,
+        session_presence: presence,
         last_seen_at: now,
       };
     } else {
@@ -289,7 +289,7 @@ export async function updateActiveGamePresenceInBlob(
         session_id: sessionId,
         session_code: sessionId,
         role: "Guest",
-        lobby_presence: presence,
+        session_presence: presence,
         last_seen_at: now,
       });
     }

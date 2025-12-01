@@ -4,7 +4,7 @@ import { Flag } from "./Flag";
 export interface RejoinParticipant {
   participant_id: string;
   role: string;
-  lobby_presence: string;
+  session_presence: string;
   Profiles?: {
     name?: string | null;
     flag?: string | null;
@@ -131,7 +131,7 @@ const RejoinModal: React.FC<RejoinModalProps> = ({
                         </div>
                         <div className="text-sm text-gray-500">
                           {participant.role}
-                          {participant.lobby_presence === "Joined" && (
+                          {participant.session_presence === "Joined" && (
                             <span className="ml-2 text-green-600">
                               🟢 Online
                             </span>

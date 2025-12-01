@@ -75,7 +75,7 @@ describe("Mutations", () => {
       // Verify update was called with timestamps
       expect(mockUpdate).toHaveBeenCalledWith(
         expect.objectContaining({
-          lobby_presence: "Joined",
+          session_presence: "Joined",
           join_at: expect.any(String),
           disconnect_at: null,
         }),
@@ -87,7 +87,7 @@ describe("Mutations", () => {
   });
 
   // Note: This is a compilation test only.
-  // Integration tests that create actual sessions and check lobby_presence
+  // Integration tests that create actual sessions and check session_presence
   // would require a test database setup and are beyond the scope of this fix.
   // The manual testing should verify:
   // 1. createSession creates host with "NotJoined" status
@@ -96,8 +96,8 @@ describe("Mutations", () => {
   it("should create session and join as host flow", () => {
     // This test validates the function signatures and imports
     // Manual verification needed:
-    // - Create session → host has lobby_presence: "NotJoined"
-    // - Call joinAsHost → host has lobby_presence: "Joined"
+    // - Create session → host has session_presence: "NotJoined"
+    // - Call joinAsHost → host has session_presence: "Joined"
     expect(true).toBe(true); // Placeholder for manual testing
   });
 });

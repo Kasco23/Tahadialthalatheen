@@ -87,8 +87,6 @@ export const VideoCall: React.FC<VideoCallProps> = ({
               .from("Participants")
               .update({ video_presence: false })
               .eq("participant_id", currentPlayer.participant_id);
-
-            Logger.log("Video presence cleared on unmount");
           }
         } catch (error) {
           Logger.error("Failed to update video presence on unmount:", error);

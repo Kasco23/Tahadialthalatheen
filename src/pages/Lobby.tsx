@@ -25,7 +25,7 @@ import { Flag } from "../components/Flag";
 import { LobbyLogo } from "../components/LobbyLogo";
 import { StadiumBackground } from "../components/StadiumBackground";
 import {
-  LOBBY_PRESENCE,
+  SESSION_PRESENCE,
   PARTICIPANT_ROLE,
   ROLE_DISPLAY_LABELS,
   ROLE_TO_SEAT,
@@ -91,7 +91,7 @@ const ParticipantCard: React.FC<ParticipantCardProps> = ({
   return (
     <div
       className={`bg-white/5 backdrop-blur-sm rounded-lg p-4 border-2 transition-all duration-300 ${
-        player.lobby_presence === LOBBY_PRESENCE.JOINED
+        player.session_presence === SESSION_PRESENCE.JOINED
           ? "border-green-400 bg-green-500/10"
           : "border-red-400 bg-red-500/10"
       }`}
@@ -116,9 +116,9 @@ const ParticipantCard: React.FC<ParticipantCardProps> = ({
           </div>
         </div>
         <div
-          className={`text-lg ${player.lobby_presence === LOBBY_PRESENCE.JOINED ? "animate-pulse text-green-500" : "text-red-500"}`}
+          className={`text-lg ${player.session_presence === SESSION_PRESENCE.JOINED ? "animate-pulse text-green-500" : "text-red-500"}`}
         >
-          {player.lobby_presence === LOBBY_PRESENCE.JOINED ? "🟢" : "🔴"}
+          {player.session_presence === SESSION_PRESENCE.JOINED ? "🟢" : "🔴"}
         </div>
       </div>
 
@@ -128,7 +128,7 @@ const ParticipantCard: React.FC<ParticipantCardProps> = ({
           <span className="text-xs text-blue-200">Lobby:</span>
           <span
             className={`text-xs font-medium ${
-              player.lobby_presence === LOBBY_PRESENCE.JOINED
+              player.session_presence === SESSION_PRESENCE.JOINED
                 ? "text-green-400"
                 : "text-red-400"
             }`}
@@ -367,15 +367,6 @@ const Lobby: React.FC = () => {
       currentParticipant.Profiles?.name || currentParticipant.name;
     const profileUsername = currentParticipant.Profiles?.username || null;
 
-    Logger.log("Setting participant data from participant/profile:", {
-      displayName: profileName,
-      tokenUsername: profileUsername,
-      participantId: currentParticipant.participant_id,
-      role: currentParticipant.role,
-      hasUsername: !!profileUsername,
-      hasName: !!profileName,
-    });
-
     // Use username for Daily token (no spaces, safe for tokens)
     // If username is null/empty, sanitize name by removing spaces
     // Use name for display in UI
@@ -508,7 +499,6 @@ const Lobby: React.FC = () => {
     Logger.log("Subscribing to session state for:", sessionId);
 
     const unsubscribe = subscribeToSessionState(sessionId, (state) => {
-      Logger.log("Session state updated:", state);
       setSessionState(state);
 
       // Update dailyRoomUrl atom if room was just created
@@ -550,8 +540,6 @@ const Lobby: React.FC = () => {
               Database["public"]["Tables"]["Participants"]["Row"]
             >
           ) => {
-            Logger.log("Participant update:", payload);
-
             if (!isMounted) return;
 
             if (payload.eventType === "INSERT") {
@@ -580,9 +568,7 @@ const Lobby: React.FC = () => {
             }
           }
         )
-        .subscribe((status) => {
-          Logger.log("Participants subscription status:", status);
-        });
+        .subscribe();
 
       return channel;
     };
@@ -618,54 +604,58 @@ const Lobby: React.FC = () => {
             setPlayers(playersData);
             setError(null);
 
-            // ✨ PHASE 2.2: Save participant blobs for all players
-            Logger.log(
-              `💾 Saving participant blobs for ${playersData.length} players`
-            );
+            // ✨ PHASE 2.2: Save participant blobs for all players (debounced)
+            // Only save if we're the host or this is our participant
+            const ourParticipantId = localStorage.getItem("participant_id");
             const deviceId = getDeviceId();
 
-            playersData.forEach(async (player) => {
+            // Save only our own participant blob to reduce noise
+            const ourPlayer = playersData.find(
+              (p) => p.participant_id === ourParticipantId
+            );
+
+            if (ourPlayer) {
               const participantBlobData: ParticipantBlobData = {
-                participant_id: player.participant_id,
-                profile_id: player.profile_id,
-                name: player.Profiles?.name || "Unknown",
-                username: player.Profiles?.username || null,
-                flag: player.Profiles?.flag || "sa",
-                team: player.Profiles?.team || null,
-                team_logo_url: player.Profiles?.team
-                  ? getTeamLogoUrl(player.Profiles.team)
+                participant_id: ourPlayer.participant_id,
+                profile_id: ourPlayer.profile_id,
+                name: ourPlayer.Profiles?.name || "Unknown",
+                username: ourPlayer.Profiles?.username || null,
+                flag: ourPlayer.Profiles?.flag || "sa",
+                team: ourPlayer.Profiles?.team || null,
+                team_logo_url: ourPlayer.Profiles?.team
+                  ? getTeamLogoUrl(ourPlayer.Profiles.team)
                   : null,
 
                 current_session_id: sessionId,
                 current_session_code: sessionCode || null,
-                role: player.role as
+                role: ourPlayer.role as
                   | "Host"
                   | "Home"
                   | "Away"
                   | "GameMaster"
                   | "Guest",
 
-                lobby_presence: player.lobby_presence as
+                session_presence: ourPlayer.session_presence as
                   | "NotJoined"
                   | "Joined"
                   | "Disconnected",
-                video_presence: player.video_presence || false,
+                video_presence: ourPlayer.video_presence || false,
                 last_heartbeat:
-                  player.lastHeartbeat || new Date().toISOString(),
+                  ourPlayer.lastHeartbeat || new Date().toISOString(),
 
-                join_at: player.join_at || new Date().toISOString(),
-                disconnect_at: player.disconnect_at || null,
+                join_at: ourPlayer.join_at || new Date().toISOString(),
+                disconnect_at: ourPlayer.disconnect_at || null,
 
                 device_id: deviceId,
                 last_device_sync: new Date().toISOString(),
 
-                preferred_flag: player.Profiles?.flag || null,
-                preferred_team: player.Profiles?.team || null,
+                preferred_flag: ourPlayer.Profiles?.flag || null,
+                preferred_team: ourPlayer.Profiles?.team || null,
 
                 audio_enabled: true, // Default values
                 video_enabled: true,
 
-                created_at: player.join_at || new Date().toISOString(),
+                created_at: ourPlayer.join_at || new Date().toISOString(),
                 last_updated: new Date().toISOString(),
                 session_history: [sessionId],
 
@@ -675,18 +665,25 @@ const Lobby: React.FC = () => {
                 },
               };
 
-              const result = await saveParticipantBlob(participantBlobData);
-              if (result.success) {
-                Logger.log(
-                  `✅ Saved blob for participant ${player.participant_id}`
-                );
-              } else {
+              try {
+                const result = await saveParticipantBlob(participantBlobData);
+                if (result.success) {
+                  Logger.log(
+                    `✅ Saved blob for participant ${ourPlayer.participant_id}`
+                  );
+                } else {
+                  Logger.warn(
+                    `⚠️ Failed to save blob for ${ourPlayer.participant_id}:`,
+                    result.error
+                  );
+                }
+              } catch (error) {
                 Logger.warn(
-                  `⚠️ Failed to save blob for ${player.participant_id}:`,
-                  result.error
+                  `⚠️ Error saving participant blob:`,
+                  error
                 );
               }
-            });
+            }
           }
         }
       } catch (err) {
@@ -714,9 +711,9 @@ const Lobby: React.FC = () => {
 
   const getPresenceStatus = (p: ParticipantRow) => {
     const lobbyPresence =
-      p.lobby_presence === LOBBY_PRESENCE.JOINED
+      p.session_presence === SESSION_PRESENCE.JOINED
         ? "🟢 Online"
-        : p.lobby_presence === LOBBY_PRESENCE.DISCONNECTED
+        : p.session_presence === SESSION_PRESENCE.DISCONNECTED
           ? "🟠 Disconnected"
           : "🔴 Not Joined";
     const videoPresence = p.video_presence ? "📹 In Call" : "📵 Not in Call";
@@ -747,22 +744,13 @@ const Lobby: React.FC = () => {
     if (!currentParticipant) return;
 
     const loadParticipantPreferences = async () => {
-      Logger.log("🔍 Loading participant preferences from Blobs...");
       const result = await getParticipantBlob(
         currentParticipant.participant_id
       );
 
       if (result.success && result.data) {
-        Logger.log("✅ Participant preferences loaded from Blobs", {
-          source: result.source,
-          preferred_flag: result.data.preferred_flag,
-          preferred_team: result.data.preferred_team,
-        });
-
         // Could restore audio/video preferences here if needed
-        // For now, just log that preferences are available
-      } else {
-        Logger.log("ℹ️ No participant preferences found in Blobs");
+        // Preferences are available in result.data
       }
     };
 
@@ -800,7 +788,7 @@ const Lobby: React.FC = () => {
           | "GameMaster"
           | "Guest",
 
-        lobby_presence: participant.lobby_presence as
+        session_presence: participant.session_presence as
           | "NotJoined"
           | "Joined"
           | "Disconnected",
@@ -835,16 +823,16 @@ const Lobby: React.FC = () => {
       }
     };
 
-    // Send initial heartbeat to DB
+    // Send initial heartbeat to DB (silently)
     updateParticipantHeartbeat(participantId, sessionId);
 
-    // Update initial participant blob
+    // Update initial participant blob (silently)
     updateCurrentParticipantBlob();
 
     // Set up interval to send heartbeat every 30 seconds
     const heartbeatInterval = setInterval(() => {
       updateParticipantHeartbeat(participantId, sessionId);
-      updateCurrentParticipantBlob(); // ✨ Also update blob
+      updateCurrentParticipantBlob(); // Also update blob
     }, 30000); // 30 seconds
 
     // Cleanup on unmount or when dependencies change
@@ -875,7 +863,7 @@ const Lobby: React.FC = () => {
           role: p.role,
           flag: p.Profiles?.flag || "sa",
           team: p.Profiles?.team || null,
-          lobby_presence: p.lobby_presence,
+          session_presence: p.session_presence,
           video_presence: p.video_presence || false,
           join_at: p.join_at || null,
         })),
@@ -886,14 +874,10 @@ const Lobby: React.FC = () => {
       };
 
       const result = await saveLobbySnapshot(snapshotData);
-      if (result.success) {
-        Logger.log("📸 Lobby snapshot saved", {
-          participant_count: players.length,
-          source: result.source,
-        });
-      } else {
+      if (!result.success) {
         Logger.warn("⚠️ Failed to save lobby snapshot:", result.error);
       }
+      // Success is silent to reduce console noise
     };
 
     // Save initial snapshot
@@ -934,15 +918,43 @@ const Lobby: React.FC = () => {
       );
     };
 
+    // Set initial presence to Joined when lobby loads
+    const setInitialPresence = async () => {
+      try {
+        await supabase
+          .from("Participants")
+          .update({ session_presence: "Joined" })
+          .eq("participant_id", participantId);
+      } catch (err) {
+        Logger.warn("Failed to set initial presence:", err);
+      }
+    };
+
+    setInitialPresence();
+
     // Handle visibilitychange: Detect when user switches tabs
-    const handleVisibilityChange = () => {
+    const handleVisibilityChange = async () => {
       if (document.hidden) {
-        // User switched away - could mark as "Away" status
-        Logger.log("User switched away from lobby tab");
+        // User switched away - mark as Disconnected
+        try {
+          await supabase
+            .from("Participants")
+            .update({ session_presence: "Disconnected" })
+            .eq("participant_id", participantId);
+        } catch (err) {
+          Logger.error("Failed to update presence on hide:", err);
+        }
       } else {
-        // User returned - send heartbeat immediately
-        Logger.log("User returned to lobby tab");
-        updateParticipantHeartbeat(participantId, sessionId);
+        // User returned - mark as Joined and send heartbeat
+        try {
+          await supabase
+            .from("Participants")
+            .update({ session_presence: "Joined" })
+            .eq("participant_id", participantId);
+          await updateParticipantHeartbeat(participantId, sessionId);
+        } catch (err) {
+          Logger.error("Failed to update presence on show:", err);
+        }
       }
     };
 
@@ -989,7 +1001,6 @@ const Lobby: React.FC = () => {
         setError("Failed to refresh participants");
       } else {
         setPlayers((pData as ParticipantRow[]) || []);
-        Logger.log("Participants refreshed with Profiles data:", pData);
       }
     } finally {
       setLoading(false);
@@ -1149,7 +1160,7 @@ const Lobby: React.FC = () => {
                     const player = players.find(
                       (p) =>
                         p.role === requiredRole &&
-                        p.lobby_presence !== LOBBY_PRESENCE.NOT_JOINED
+                        p.session_presence !== SESSION_PRESENCE.NOT_JOINED
                     );
 
                     if (player) {

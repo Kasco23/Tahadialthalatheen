@@ -73,7 +73,6 @@ export class PresenceHelper {
         "presence",
         { event: "join" },
         ({ key, newPresences }: PresencePayload) => {
-          Logger.log("User joined:", { key, newPresences });
           if (!this.channel) return;
 
           const presenceState = this.channel.presenceState();
@@ -86,7 +85,6 @@ export class PresenceHelper {
         "presence",
         { event: "leave" },
         ({ key, leftPresences }: PresencePayload) => {
-          Logger.log("User left:", { key, leftPresences });
           if (!this.channel) return;
 
           const presenceState = this.channel.presenceState();
@@ -105,7 +103,7 @@ export class PresenceHelper {
           flag: user.flag,
           timestamp: new Date().toISOString(),
           is_active: true,
-          lobby_presence: "Joined",
+          session_presence: "Joined",
           join_at: new Date().toISOString(),
           disconnect_at: null,
         };

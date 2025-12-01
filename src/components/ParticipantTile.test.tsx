@@ -31,7 +31,7 @@ describe("ParticipantTile", () => {
         role: "Home",
         flag: "us",
         team_logo_url: "",
-        lobby_presence: "Joined",
+        session_presence: "Joined",
         video_presence: false,
         join_at: new Date().toISOString(),
         disconnect_at: null,

@@ -112,7 +112,7 @@ const callNetlifyApi = async (
 type ParticipantWithProfile = {
   participant_id: string;
   role: string;
-  lobby_presence?: string;
+  session_presence?: string;
   profile_id: string | null;
   Profiles: Array<{ name: string }> | { name: string } | null;
 };
@@ -167,7 +167,7 @@ export async function createSession(
       .insert({
         session_id: sessionData.session_id,
         role: "Host" as ParticipantRole,
-        lobby_presence: "Joined" as LobbyPresence, // Creator is immediately joined
+        session_presence: "Joined" as LobbyPresence, // Creator is immediately joined
         profile_id: hostProfileId, // Link to creator's profile
         join_at: new Date().toISOString(),
       });
@@ -226,7 +226,7 @@ export async function getActiveSessions(): Promise<ActiveSession[]> {
       game_state,
       created_at,
       ended_at,
-      Participants(role, lobby_presence, profile_id, Profiles!profile_id(name)),
+      Participants(role, session_presence, profile_id, Profiles!profile_id(name)),
       DailyRooms(room_url)
     `
     )
@@ -253,7 +253,7 @@ export async function getActiveSessions(): Promise<ActiveSession[]> {
     ended_at?: string | null;
     Participants?: Array<{
       role: string;
-      lobby_presence: string;
+      session_presence: string;
       profile_id?: string;
       Profiles?: ProfileData;
     }> | null;
@@ -269,11 +269,11 @@ export async function getActiveSessions(): Promise<ActiveSession[]> {
     const hostParticipant = participants.find((p) => p.role === "Host");
     const hostName = hostParticipant?.Profiles?.name || "Unknown Host";
 
-    // Only count Home and Away roles that have lobby_presence "Joined"
+    // Only count Home and Away roles that have session_presence "Joined"
     const playerCount = participants.filter(
       (p) =>
         (p.role === "Home" || p.role === "Away") &&
-        p.lobby_presence === "Joined"
+        p.session_presence === "Joined"
     ).length;
     const hasDailyRoom = !!(
       session.DailyRooms && session.DailyRooms.length > 0
@@ -328,7 +328,7 @@ export async function joinAsPlayerWithCode(
   if (profileId) {
     const { data: hostCheck, error: hostError } = await supabase
       .from("Participants")
-      .select("participant_id, role, lobby_presence")
+      .select("participant_id, role, session_presence")
       .eq("session_id", sessionId)
       .eq("profile_id", profileId)
       .eq("role", "Host")
@@ -339,7 +339,7 @@ export async function joinAsPlayerWithCode(
       await supabase
         .from("Participants")
         .update({
-          lobby_presence: "Joined",
+          session_presence: "Joined",
           join_at: new Date().toISOString(),
           disconnect_at: null,
         })
@@ -370,7 +370,7 @@ export async function joinAsPlayerWithCode(
       await supabase
         .from("Participants")
         .update({
-          lobby_presence: "Joined",
+          session_presence: "Joined",
           join_at: new Date().toISOString(),
           disconnect_at: null,
         })
@@ -415,7 +415,7 @@ export async function joinAsPlayerWithCode(
     .insert({
       session_id: sessionId,
       role: assignedRole,
-      lobby_presence: "Joined",
+      session_presence: "Joined",
       join_at: new Date().toISOString(),
       disconnect_at: null,
       ...(profileId && { profile_id: profileId }),
@@ -633,13 +633,13 @@ export async function joinAsHost(
   if (existingHost) {
     // Update existing host to 'Joined' status with flag and logo
     const updateData: {
-      lobby_presence: string;
+      session_presence: string;
       join_at: string;
       disconnect_at: null;
       flag?: string;
       team_logo_url?: string;
     } = {
-      lobby_presence: "Joined",
+      session_presence: "Joined",
       join_at: new Date().toISOString(),
       disconnect_at: null,
     };
@@ -712,7 +712,7 @@ export async function joinAsGameMaster(
         name: gameMasterName,
         flag: flag || null,
         team_logo_url: logoUrl || null,
-        lobby_presence: "Joined",
+        session_presence: "Joined",
         join_at: new Date().toISOString(),
         disconnect_at: null,
       })
@@ -734,7 +734,7 @@ export async function joinAsGameMaster(
       role: "GameMaster",
       flag: flag || null,
       team_logo_url: logoUrl || null,
-      lobby_presence: "Joined",
+      session_presence: "Joined",
       join_at: new Date().toISOString(),
     })
     .select("participant_id")
@@ -787,7 +787,7 @@ export async function joinAsPlayer(
       role: role,
       flag: flag,
       team_logo_url: logoUrl,
-      lobby_presence: "Joined",
+      session_presence: "Joined",
       join_at: new Date().toISOString(),
       disconnect_at: null,
     })
@@ -807,7 +807,7 @@ export async function updateLobbyPresence(
   status: LobbyPresence,
   opts?: { sessionId?: string; profileId?: string }
 ): Promise<void> {
-  const updateData: TablesUpdate<"Participants"> = { lobby_presence: status };
+  const updateData: TablesUpdate<"Participants"> = { session_presence: status };
 
   // Set timestamps based on status
   if (status === "Joined") {
@@ -1252,7 +1252,7 @@ export async function markParticipantDisconnected(
   const { error } = await supabase
     .from("Participants")
     .update({
-      lobby_presence: "Disconnected",
+      session_presence: "Disconnected",
       video_presence: false,
       disconnect_at: new Date().toISOString(),
     } as TablesUpdate<"Participants">)
@@ -1276,14 +1276,14 @@ export async function getSessionParticipants(sessionId: string): Promise<
     participant_id: string;
     name: string;
     role: string;
-    lobby_presence: string;
+    session_presence: string;
     profile_id: string | null;
   }>
 > {
   const { data, error } = await supabase
     .from("Participants")
     .select(
-      "participant_id, role, lobby_presence, profile_id, Profiles!profile_id(name)"
+      "participant_id, role, session_presence, profile_id, Profiles!profile_id(name)"
     )
     .eq("session_id", sessionId)
     .order("join_at", { ascending: true });
@@ -1302,7 +1302,7 @@ export async function getSessionParticipants(sessionId: string): Promise<
       participant_id: p.participant_id,
       name: profileName,
       role: p.role,
-      lobby_presence: p.lobby_presence || "NotJoined",
+      session_presence: p.session_presence || "NotJoined",
       profile_id: p.profile_id,
     };
   });
@@ -1465,7 +1465,7 @@ export async function rejoinAsParticipant(
   const { error } = await supabase
     .from("Participants")
     .update({
-      lobby_presence: "Joined",
+      session_presence: "Joined",
       join_at: new Date().toISOString(),
       disconnect_at: null,
     } as TablesUpdate<"Participants">)

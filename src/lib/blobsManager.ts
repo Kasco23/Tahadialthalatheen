@@ -88,7 +88,7 @@ export interface ParticipantBlobData {
   role: "Host" | "Home" | "Away" | "GameMaster" | "Guest";
 
   // Presence & Connection
-  lobby_presence: "NotJoined" | "Joined" | "Disconnected";
+  session_presence: "NotJoined" | "Joined" | "Disconnected";
   video_presence: boolean;
   last_heartbeat: string;
   join_at: string | null;
@@ -112,7 +112,7 @@ export interface ParticipantBlobData {
     session_id: string;
     session_code: string;
     role: "Host" | "Home" | "Away" | "GameMaster" | "Guest";
-    lobby_presence: "NotJoined" | "Joined" | "Disconnected";
+    session_presence: "NotJoined" | "Joined" | "Disconnected";
     phase?: string;
     game_state?: string;
     host_name?: string | null;
@@ -142,7 +142,7 @@ export interface LobbySnapshotData {
     role: string;
     flag: string;
     team: string | null;
-    lobby_presence: string;
+    session_presence: string;
     video_presence: boolean;
     join_at: string | null;
   }>;
@@ -205,6 +205,15 @@ interface CacheEntry<T> {
 }
 
 /**
+ * Convert cache key to valid URL for Cache API
+ * Cache API only accepts HTTP/HTTPS URLs, not custom schemes
+ */
+function keyToUrl(key: string): string {
+  // Use a dummy domain with the key as path
+  return `https://cache.local/${encodeURIComponent(key)}`;
+}
+
+/**
  * Cache wrapper for Blob operations
  * Uses browser Cache API for HTTP responses, memory for JSON
  */
@@ -215,14 +224,13 @@ class BlobCache {
     // Check memory cache first
     const memEntry = this.memoryCache.get(key);
     if (memEntry && Date.now() - memEntry.timestamp < CACHE_TTL_MS) {
-      Logger.log(`[BlobCache] Memory hit for key: ${key}`);
       return memEntry.data as T;
     }
 
     // Check Cache API
     try {
       const cache = await caches.open(CACHE_NAME);
-      const response = await cache.match(key);
+      const response = await cache.match(keyToUrl(key));
 
       if (response) {
         const cachedData = await response.json();
@@ -258,7 +266,7 @@ class BlobCache {
       const response = new Response(JSON.stringify(entry), {
         headers: { "Content-Type": "application/json" },
       });
-      await cache.put(key, response);
+      await cache.put(keyToUrl(key), response);
     } catch (error) {
       Logger.warn(
         `[BlobCache] Failed to cache to Cache API for key ${key}:`,
@@ -272,7 +280,7 @@ class BlobCache {
 
     try {
       const cache = await caches.open(CACHE_NAME);
-      await cache.delete(key);
+      await cache.delete(keyToUrl(key));
     } catch (error) {
       Logger.warn(
         `[BlobCache] Failed to invalidate cache for key ${key}:`,

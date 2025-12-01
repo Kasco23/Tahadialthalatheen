@@ -39,14 +39,18 @@ export const ROLE_DISPLAY_LABELS: Record<ParticipantRole, string> = {
   GameMaster: "Game Master",
 };
 
-export type LobbyPresence = "NotJoined" | "Joined" | "Disconnected";
+export type SessionPresence = "NotJoined" | "Joined" | "Disconnected";
 
-// Constants for lobby presence states
-export const LOBBY_PRESENCE = {
+// Constants for session presence states (indicates if participant is actively in session)
+export const SESSION_PRESENCE = {
   NOT_JOINED: "NotJoined" as const,
   JOINED: "Joined" as const,
   DISCONNECTED: "Disconnected" as const,
-} satisfies Record<string, LobbyPresence>;
+} satisfies Record<string, SessionPresence>;
+
+// Legacy alias for backwards compatibility
+export const LOBBY_PRESENCE = SESSION_PRESENCE;
+export type LobbyPresence = SessionPresence;
 
 export type SessionPhase =
   | "Setup"

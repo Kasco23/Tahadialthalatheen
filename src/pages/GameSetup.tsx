@@ -534,11 +534,11 @@ const GameSetup: React.FC = () => {
   const handleLobbyUpdate = useCallback(
     (info: { participantCount: number; roomReady: boolean }) => {
       setParticipantCount(info.participantCount);
-      if (info.roomReady && !isDailyRoomCreated) {
+      if (info.roomReady) {
         setIsDailyRoomCreated(true);
       }
     },
-    [isDailyRoomCreated]
+    []
   );
 
   const handleEndSession = async () => {

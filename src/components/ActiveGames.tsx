@@ -94,7 +94,7 @@ const ActiveGamesSidebar: React.FC<ActiveGamesSidebarProps> = ({
     // Find participant for this user and session
     const { data: participantRow, error: participantErr } = await supabase
       .from("Participants")
-      .select("participant_id, role, lobby_presence")
+      .select("participant_id, role, session_presence")
       .eq("session_id", sessionId)
       .eq("profile_id", user.id)
       .maybeSingle();
@@ -108,7 +108,7 @@ const ActiveGamesSidebar: React.FC<ActiveGamesSidebarProps> = ({
       await supabase
         .from("Participants")
         .update({
-          lobby_presence: "Joined",
+          session_presence: "Joined",
           join_at: new Date().toISOString(),
           disconnect_at: null,
         })
@@ -125,7 +125,7 @@ const ActiveGamesSidebar: React.FC<ActiveGamesSidebarProps> = ({
       .insert({
         session_id: sessionId,
         role,
-        lobby_presence: "Joined",
+        session_presence: "Joined",
         join_at: new Date().toISOString(),
         disconnect_at: null,
         profile_id: user.id,

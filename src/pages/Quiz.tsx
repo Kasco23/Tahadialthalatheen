@@ -134,7 +134,7 @@ const Quiz: React.FC = () => {
             team_logo_url:
               "https://tmssl.akamaized.net/images/wappen/head/11.png",
             session_id: sessionId || "",
-            lobby_presence: "joined",
+            session_presence: "joined",
             video_presence: false,
             powerup_pass_used: false,
             powerup_alhabeed: false,
@@ -154,7 +154,7 @@ const Quiz: React.FC = () => {
             team_logo_url:
               "https://tmssl.akamaized.net/images/wappen/head/418.png",
             session_id: sessionId || "",
-            lobby_presence: "joined",
+            session_presence: "joined",
             video_presence: false,
             powerup_pass_used: false,
             powerup_alhabeed: false,

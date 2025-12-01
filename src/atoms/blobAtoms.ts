@@ -244,7 +244,7 @@ export const sessionBlobAtom = atom(
  * setParticipant({ type: 'load', participantId: 'xyz789' });
  *
  * // Update participant (optimistic)
- * setParticipant({ type: 'update', data: { lobby_presence: 'active' } });
+ * setParticipant({ type: 'update', data: { session_presence: 'active' } });
  *
  * // Save complete participant
  * setParticipant({ type: 'save', data: participantBlobData });

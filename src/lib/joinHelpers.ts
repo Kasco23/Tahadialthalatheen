@@ -15,7 +15,7 @@ export interface ExistingParticipant {
   role: string;
   flag: string | null;
   team_logo_url: string | null;
-  lobby_presence: string;
+  session_presence: string;
 }
 
 /**
@@ -42,7 +42,7 @@ export async function checkForExistingParticipants(
     // Get participants for the session
     const { data: participants, error: participantsError } = await supabase
       .from("Participants")
-      .select("participant_id, name, role, flag, team_logo_url, lobby_presence")
+      .select("participant_id, name, role, flag, team_logo_url, session_presence")
       .eq("session_id", sessionData.session_id)
       .order("join_at", { ascending: true });
 

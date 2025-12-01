@@ -75,7 +75,7 @@ const JoinSimplified: React.FC = () => {
         await supabase
           .from("Participants")
           .update({
-            lobby_presence: "Joined",
+            session_presence: "Joined",
             join_at: new Date().toISOString(),
             disconnect_at: null,
           })
@@ -103,7 +103,7 @@ const JoinSimplified: React.FC = () => {
                 name: profile?.name || "Host",
                 flag: profile?.flag || null,
                 team_logo_url: profile?.team || null,
-                lobby_presence: "Joined",
+                session_presence: "Joined",
                 join_at: new Date().toISOString(),
                 disconnect_at: null,
               })
@@ -139,7 +139,7 @@ const JoinSimplified: React.FC = () => {
               flag: profile?.flag || null,
               team_logo_url: profile?.team || null,
               role: role,
-              lobby_presence: "Joined",
+              session_presence: "Joined",
               join_at: new Date().toISOString(),
             })
             .select("participant_id")

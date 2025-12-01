@@ -52,7 +52,7 @@ describe("createSession uses DB trigger to create session_code", () => {
     expect(insertMockParticipant).toHaveBeenCalledWith({
       session_id: "new-id",
       role: "Host",
-      lobby_presence: "Joined",
+      session_presence: "Joined",
       profile_id: "user-profile-id",
       join_at: expect.any(String), // Dynamic timestamp
     });

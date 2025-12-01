@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { supabase } from "../lib/supabaseClient";
 import { getRoleIcon, DISPLAY_PARTICIPANT_SLOTS } from "../lib/roleUtils";
+import { getTeamLogoUrl } from "../lib/teamLogoHelper";
 
 interface LobbyStatusProps {
   sessionId: string;
@@ -18,7 +19,7 @@ interface LobbyStatusProps {
 interface ParticipantInfo {
   participant_id: string;
   role: string;
-  lobby_presence: string;
+  session_presence: string;
   Profiles?: {
     name?: string | null;
     flag?: string | null;
@@ -55,7 +56,7 @@ const LobbyStatus: React.FC<LobbyStatusProps> = ({
               `
               participant_id,
               role,
-              lobby_presence,
+              session_presence,
               Profiles!Participants_profile_id_fkey (
                 name,
                 flag,
@@ -101,7 +102,7 @@ const LobbyStatus: React.FC<LobbyStatusProps> = ({
         // Notify parent about lobby updates
         if (onLobbyUpdate) {
           const count = (participantsData || []).filter(
-            (p) => p.lobby_presence === "Joined",
+            (p) => p.session_presence === "Joined",
           ).length;
           onLobbyUpdate({
             participantCount: count,
@@ -156,7 +157,8 @@ const LobbyStatus: React.FC<LobbyStatusProps> = ({
         supabase.removeChannel(dailyRoomChannel);
       };
     }
-  }, [sessionId, onLobbyUpdate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionId]);
 
   const getPresenceColor = (presence: string) => {
     switch (presence) {
@@ -176,7 +178,7 @@ const LobbyStatus: React.FC<LobbyStatusProps> = ({
     ["Host", "Home", "Away"].includes(p.role),
   );
   const activeParticipantCount = displayParticipants.filter(
-    (p) => p.lobby_presence === "Joined",
+    (p) => p.session_presence === "Joined",
   ).length;
   const totalSlots = DISPLAY_PARTICIPANT_SLOTS; // Host + 2 Players (excludes GameMaster)
 
@@ -306,16 +308,19 @@ const LobbyStatus: React.FC<LobbyStatusProps> = ({
                 )}
                 {participant.Profiles?.team && (
                   <img
-                    src={participant.Profiles.team}
+                    src={getTeamLogoUrl(participant.Profiles.team) || participant.Profiles.team}
                     alt="Team Logo"
-                    className="w-6 h-6 rounded"
+                    className="w-6 h-6 rounded object-contain"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = "none";
+                    }}
                   />
                 )}
               </div>
               <span
-                className={`px-2 py-1 rounded-full text-xs font-medium ${getPresenceColor(participant.lobby_presence)}`}
+                className={`px-2 py-1 rounded-full text-xs font-medium ${getPresenceColor(participant.session_presence)}`}
               >
-                {participant.lobby_presence}
+                Status: {participant.session_presence}
               </span>
             </div>
           ))}
