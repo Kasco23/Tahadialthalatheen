@@ -87,6 +87,10 @@ export async function getActiveProfile(
     }
 
     const result = await response.json();
+    const profile = (result.profile ??
+      result.profileData ??
+      result.data ??
+      null) as Profile | null;
 
     if (!result.success) {
       if (response.status === 404) {
@@ -96,7 +100,7 @@ export async function getActiveProfile(
     }
 
     Logger.log("Active profile retrieved successfully:", { userId });
-    return result.profile;
+    return profile;
   } catch (error) {
     Logger.error("Error retrieving active profile:", error);
     return null; // Return null on error to allow fallback to database

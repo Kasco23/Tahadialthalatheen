@@ -1,5 +1,6 @@
 import type { Context, Config } from "@netlify/edge-functions";
 import { getStore } from "@netlify/blobs";
+import { resolveBlobStoreName } from "../blobs/storeName.ts";
 
 /**
  * Edge Function: Session State Management
@@ -100,7 +101,7 @@ export default async (req: Request, context: Context) => {
     // Get consolidated "sessions" store with strong consistency
     // Migrated from "session-state" in Phase 3.2
     const store = getStore({
-      name: "sessions",
+      name: resolveBlobStoreName("sessions", context?.deploy?.context),
       consistency: "strong",
     });
 

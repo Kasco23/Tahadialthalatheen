@@ -1,6 +1,7 @@
 import type { Context, Config } from "@netlify/functions";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "../../src/lib/types/supabase";
+import { resolveBlobStoreName } from "../blobs/storeName";
 
 /**
  * Record Buzzer Press (Players Only)
@@ -77,7 +78,10 @@ export default async (req: Request, context: Context) => {
 
     // Use Netlify Blobs for atomic first-writer-wins
     const { getStore } = await import("@netlify/blobs");
-    const store = getStore("quiz-buzzes");
+    const store = getStore({
+      name: resolveBlobStoreName("quiz-buzzes"),
+      consistency: "strong",
+    });
     const blobKey = `${session_id}:${question_id}:winner`;
 
     // Try to set winner atomically

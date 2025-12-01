@@ -543,15 +543,29 @@ export async function getParticipantBlob(
       }
     );
 
+    const contentType = response.headers.get("content-type") || "";
+    if (!contentType.includes("application/json")) {
+      const fallbackText = await response.text();
+      Logger.warn(
+        "[getParticipantBlob] Unexpected response:",
+        contentType,
+        fallbackText.slice(0, 120)
+      );
+      throw new Error("Netlify Functions unavailable");
+    }
+
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
 
     const result = await response.json();
+    const participantData =
+      (result.profile as ParticipantBlobData | undefined) ??
+      (result.profileData as ParticipantBlobData | undefined) ??
+      (result.data as ParticipantBlobData | undefined) ??
+      null;
 
-    if (result.success && result.profile) {
-      const participantData = result.profile as ParticipantBlobData;
-
+    if (result.success && participantData) {
       // Update cache
       await cache.set(cacheKey, participantData);
 
@@ -567,7 +581,7 @@ export async function getParticipantBlob(
     return {
       success: false,
       data: null,
-      error: "Participant not found in blobs",
+      error: result.error || "Participant not found in blobs",
       cached: false,
       source: "blob",
     };
@@ -641,6 +655,23 @@ export async function saveParticipantBlob(
       }),
     });
 
+    const contentType = response.headers.get("content-type") || "";
+    if (!contentType.includes("application/json")) {
+      const fallbackText = await response.text();
+      Logger.warn(
+        "[saveParticipantBlob] Unexpected response:",
+        contentType,
+        fallbackText.slice(0, 120)
+      );
+      return {
+        success: true,
+        data: dataToSave,
+        error: "Netlify Functions unavailable (dev mode)",
+        cached: false,
+        source: "localStorage",
+      };
+    }
+
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
@@ -648,12 +679,15 @@ export async function saveParticipantBlob(
     const result = await response.json();
 
     if (result.success) {
+      const savedRecord =
+        (result.profile as ParticipantBlobData | undefined) ?? dataToSave;
+
       // Update cache
-      await cache.set(cacheKey, dataToSave);
+      await cache.set(cacheKey, savedRecord);
 
       return {
         success: true,
-        data: dataToSave,
+        data: savedRecord,
         error: null,
         cached: false,
         source: "blob",

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 
 interface StadiumBackgroundProps {
   children: React.ReactNode;
@@ -56,6 +56,20 @@ export const StadiumBackground: React.FC<StadiumBackgroundProps> = ({
   };
 
   const colors = variants[variant];
+  const crowdShapes = useMemo(
+    () =>
+      Array.from({ length: 60 }, (_, i) => ({
+        id: i,
+        cx: i * 20 + 10,
+        opacity: 0.6 + Math.random() * 0.4,
+        ellipseCy: 180 + Math.random() * 10,
+        ellipseRx: 4 + Math.random() * 2,
+        ellipseRy: 15 + Math.random() * 5,
+        circleCy: 165 + Math.random() * 5,
+        circleR: 4 + Math.random() * 2,
+      })),
+    []
+  );
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
@@ -79,19 +93,19 @@ export const StadiumBackground: React.FC<StadiumBackgroundProps> = ({
               viewBox="0 0 1200 200"
               preserveAspectRatio="xMidYMid slice"
             >
-              {[...Array(60)].map((_, i) => (
-                <g key={i} opacity={0.6 + Math.random() * 0.4}>
+              {crowdShapes.map((shape) => (
+                <g key={shape.id} opacity={shape.opacity}>
                   <ellipse
-                    cx={i * 20 + 10}
-                    cy={180 + Math.random() * 10}
-                    rx={4 + Math.random() * 2}
-                    ry={15 + Math.random() * 5}
+                    cx={shape.cx}
+                    cy={shape.ellipseCy}
+                    rx={shape.ellipseRx}
+                    ry={shape.ellipseRy}
                     fill="#1a1a1a"
                   />
                   <circle
-                    cx={i * 20 + 10}
-                    cy={165 + Math.random() * 5}
-                    r={4 + Math.random() * 2}
+                    cx={shape.cx}
+                    cy={shape.circleCy}
+                    r={shape.circleR}
                     fill="#1a1a1a"
                   />
                 </g>

@@ -1,5 +1,6 @@
 import type { Context, Config } from "@netlify/functions";
 import { getStore } from "@netlify/blobs";
+import { resolveBlobStoreName } from "../blobs/storeName";
 
 /**
  * Netlify Serverless Function: Get Active Profile
@@ -30,7 +31,7 @@ export default async (req: Request, context: Context) => {
     // Use consolidated "participants" store with strong consistency
     // Migrated from "active-profiles" in Phase 3.2
     const store = getStore({
-      name: "participants",
+      name: resolveBlobStoreName("participants"),
       consistency: "strong",
     });
 
@@ -45,7 +46,7 @@ export default async (req: Request, context: Context) => {
 
     console.log("Profile retrieved successfully for user:", userId);
 
-    return new Response(JSON.stringify({ success: true, profileData }), {
+    return new Response(JSON.stringify({ success: true, profile: profileData }), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
