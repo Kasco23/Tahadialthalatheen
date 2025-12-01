@@ -6,7 +6,6 @@ interface SessionDataHookState {
   sessionId: string | null;
   dailyRoom: {
     room_url: string;
-    ready: boolean;
   } | null;
   loading: boolean;
   error: string | null;

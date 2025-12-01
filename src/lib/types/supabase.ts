@@ -18,21 +18,18 @@ export type Database = {
         Row: {
           active_participants: Json | null;
           host_permissions: Json | null;
-          ready: boolean | null;
           room_id: string;
           room_url: string;
         };
         Insert: {
           active_participants?: Json | null;
           host_permissions?: Json | null;
-          ready?: boolean | null;
           room_id: string;
           room_url: string;
         };
         Update: {
           active_participants?: Json | null;
           host_permissions?: Json | null;
-          ready?: boolean | null;
           room_id?: string;
           room_url?: string;
         };
@@ -50,7 +47,6 @@ export type Database = {
         Row: {
           disconnect_at: string | null;
           flag: string | null;
-          isReady: boolean | null;
           join_at: string | null;
           lastHeartbeat: string | null;
           lobby_presence: string;
@@ -70,7 +66,6 @@ export type Database = {
         Insert: {
           disconnect_at?: string | null;
           flag?: string | null;
-          isReady?: boolean | null;
           join_at?: string | null;
           lastHeartbeat?: string | null;
           lobby_presence?: string;
@@ -90,7 +85,6 @@ export type Database = {
         Update: {
           disconnect_at?: string | null;
           flag?: string | null;
-          isReady?: boolean | null;
           join_at?: string | null;
           lastHeartbeat?: string | null;
           lobby_presence?: string;

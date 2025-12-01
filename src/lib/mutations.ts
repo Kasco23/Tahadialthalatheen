@@ -17,11 +17,101 @@ import {
   updateActiveGamePresenceInBlob,
 } from "./activeGames";
 
+const resolveApiBase = (): string => {
+  if (typeof window === "undefined") return "/api";
+
+  const { hostname, port } = window.location;
+  const isLocal =
+    hostname === "localhost" || hostname === "127.0.0.1" || hostname === "[::1]";
+
+  if (isLocal && port === "5173") {
+    return "http://localhost:3000/api";
+  }
+
+  return "/api";
+};
+
+const netlifyApiBases = (): string[] => {
+  const primary = resolveApiBase();
+  const bases = [primary];
+
+  if (primary !== "/api") {
+    bases.push("/api");
+  }
+
+  return bases;
+};
+
+const netlifyFunctionBases = (): string[] => {
+  const bases = ["/.netlify/functions"];
+
+  if (typeof window !== "undefined") {
+    const { hostname, port } = window.location;
+    const isLocal =
+      hostname === "localhost" || hostname === "127.0.0.1" || hostname === "[::1]";
+
+    if (isLocal && port === "5173") {
+      bases.unshift("http://localhost:3000/.netlify/functions");
+    }
+  }
+
+  return bases;
+};
+
+const callNetlifyFunction = async (
+  path: string,
+  init: RequestInit
+): Promise<Response> => {
+  const errors: string[] = [];
+
+  for (const base of netlifyFunctionBases()) {
+    try {
+      const response = await fetch(`${base}${path}`, init);
+      if (response.ok) return response;
+      errors.push(`${base} -> ${response.status} ${response.statusText}`);
+    } catch (error) {
+      errors.push(
+        `${base} -> ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+  }
+
+  throw new Error(
+    `Netlify function unavailable. Attempts: ${errors.join(
+      " | "
+    )}. If running locally, start 'netlify dev' and open http://localhost:3000.`
+  );
+};
+
+const callNetlifyApi = async (
+  path: string,
+  init: RequestInit
+): Promise<Response> => {
+  const errors: string[] = [];
+
+  for (const base of netlifyApiBases()) {
+    try {
+      const response = await fetch(`${base}${path}`, init);
+      if (response.ok) return response;
+      errors.push(`${base} -> ${response.status} ${response.statusText}`);
+    } catch (error) {
+      errors.push(
+        `${base} -> ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+  }
+
+  throw new Error(
+    `Netlify API unavailable. Attempts: ${errors.join(
+      " | "
+    )}. If running locally, start 'netlify dev' and open http://localhost:3000.`
+  );
+};
+
 // Type for participant data with Profile JOIN
 type ParticipantWithProfile = {
   participant_id: string;
   role: string;
-  isReady?: boolean;
   lobby_presence?: string;
   profile_id: string | null;
   Profiles: Array<{ name: string }> | { name: string } | null;
@@ -406,7 +496,6 @@ export async function createDailyRoom(
       const { error } = await supabase.from("DailyRooms").upsert({
         room_id: sessionId,
         room_url: mockRoomUrl,
-        ready: true,
       });
 
       if (error) {
@@ -419,15 +508,18 @@ export async function createDailyRoom(
     }
 
     // Call Netlify function with session_code for room name
-    const response = await fetch("/api/create-daily-room", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        session_code: sessionCode,
-      }),
-    });
+    const response = await callNetlifyApi(
+      "/create-daily-room",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          session_code: sessionCode,
+        }),
+      }
+    );
 
     Logger.debug("Daily room creation response status:", response.status);
 
@@ -463,7 +555,6 @@ export async function createDailyRoom(
     const { error } = await supabase.from("DailyRooms").upsert({
       room_id: sessionId,
       room_url: data.room_url,
-      ready: true,
     });
 
     if (error) {
@@ -481,11 +572,11 @@ export async function createDailyRoom(
 // Helper function to get Daily room data
 export async function getDailyRoom(
   sessionId: string
-): Promise<{ room_url: string; ready: boolean } | null> {
+): Promise<{ room_url: string } | null> {
   try {
     const { data, error } = await supabase
       .from("DailyRooms")
-      .select("room_url, ready")
+      .select("room_url")
       .eq("room_id", sessionId)
       .maybeSingle();
 
@@ -818,7 +909,7 @@ export async function createDailyToken(
     });
 
     // Call Netlify Function to create Daily.co token
-    const response = await fetch("/.netlify/functions/create-daily-token", {
+    const response = await callNetlifyFunction("/create-daily-token", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -1151,7 +1242,7 @@ export async function updateParticipantHeartbeat(
 // 19. Mark Participant as Disconnected
 /**
  * Mark a participant as disconnected when they leave the lobby or video call.
- * Updates presence, ready status, and video state.
+ * Updates presence and video state.
  *
  * @param participantId - The participant ID to mark as disconnected
  */
@@ -1163,7 +1254,6 @@ export async function markParticipantDisconnected(
     .update({
       lobby_presence: "Disconnected",
       video_presence: false,
-      isReady: false,
       disconnect_at: new Date().toISOString(),
     } as TablesUpdate<"Participants">)
     .eq("participant_id", participantId);

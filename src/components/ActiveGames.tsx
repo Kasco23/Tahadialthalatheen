@@ -13,7 +13,7 @@ import {
 } from "../lib/activeGames";
 import { getParticipantBlob } from "../lib/blobsManager";
 import { getSessionIdByCode } from "../lib/mutations";
-import type { ParticipantRole } from "../lib/types";
+import { ROLE_TO_SEAT, type ParticipantRole } from "../lib/types";
 
 interface ActiveGamesSidebarProps {
   isOpen: boolean;
@@ -87,7 +87,6 @@ const ActiveGamesSidebar: React.FC<ActiveGamesSidebarProps> = ({
 
   const ensureParticipantForRole = async (
     sessionId: string,
-    sessionCode: string,
     role: ParticipantRole,
   ) => {
     if (!user) return null;
@@ -162,11 +161,7 @@ const ActiveGamesSidebar: React.FC<ActiveGamesSidebarProps> = ({
         session.session_id || (await getSessionIdByCode(session.session_code));
       const resolvedRole = (session.role || "Guest") as ParticipantRole;
       const { role, participantId } =
-        (await ensureParticipantForRole(
-          resolvedSessionId,
-          session.session_code,
-          resolvedRole,
-        )) || {};
+        (await ensureParticipantForRole(resolvedSessionId, resolvedRole)) || {};
 
       if (!role || !participantId) {
         navigate(`/join?sessionCode=${session.session_code}`);
@@ -174,14 +169,9 @@ const ActiveGamesSidebar: React.FC<ActiveGamesSidebarProps> = ({
       }
 
       // Navigate directly to lobby
-      const seat =
-        role === "Host"
-          ? "host"
-          : role === "Home"
-            ? "2"
-            : role === "Away"
-              ? "3"
-              : "2";
+      const seatRole =
+        role === "Host" ? "host" : role === "Home" ? "home" : "away";
+      const seat = ROLE_TO_SEAT[seatRole];
       navigate(`/lobby/${session.session_code}/${seat}`);
     } catch (err) {
       Logger.error("Quick join error:", err);

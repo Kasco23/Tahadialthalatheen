@@ -25,7 +25,6 @@ export interface BlobSessionData extends UserSessionData {
   // Additional fields for cross-device persistence
   dailyRoomToken?: string;
   dailyRoomUrl?: string;
-  isReady?: boolean;
   lastUpdated?: number; // timestamp
 }
 

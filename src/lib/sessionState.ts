@@ -23,6 +23,68 @@ export interface SessionState {
   [key: string]: unknown;
 }
 
+const edgeBases = (): string[] => {
+  const bases = ["/.netlify/edge-functions"];
+
+  if (typeof window !== "undefined") {
+    const { hostname, port } = window.location;
+    const isLocal =
+      hostname === "localhost" || hostname === "127.0.0.1" || hostname === "[::1]";
+
+    if (isLocal && port === "5173") {
+      bases.unshift("http://localhost:3000/.netlify/edge-functions");
+    }
+  }
+
+  return bases;
+};
+
+const isPlainViteDev =
+  typeof window !== "undefined" &&
+  window.location.hostname === "localhost" &&
+  window.location.port === "5173";
+
+let sessionStateDisabled = isPlainViteDev;
+let sessionStateReason: string | null = null;
+let sessionStateLogged = false;
+
+const disableSessionState = (reason: string) => {
+  sessionStateDisabled = true;
+  sessionStateReason = reason;
+  if (!sessionStateLogged) {
+    Logger.info("Session state polling disabled", { reason });
+    sessionStateLogged = true;
+  }
+};
+
+const callSessionState = async (
+  path: string,
+  init: RequestInit
+): Promise<Response | null> => {
+  if (sessionStateDisabled) return null;
+
+  const errors: string[] = [];
+
+  for (const base of edgeBases()) {
+    try {
+      const response = await fetch(`${base}${path}`, init);
+      if (response.ok || response.status === 404) return response;
+      errors.push(`${base} -> ${response.status} ${response.statusText}`);
+    } catch (error) {
+      errors.push(
+        `${base} -> ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+  }
+
+  disableSessionState(
+    errors.length
+      ? errors.join(" | ")
+      : sessionStateReason || "Edge functions unavailable"
+  );
+  return null;
+};
+
 /**
  * Get current session state
  */
@@ -30,8 +92,10 @@ export async function getSessionState(
   sessionId: string,
 ): Promise<SessionState | null> {
   try {
-    const response = await fetch(
-      `/.netlify/edge-functions/session-state?sessionId=${encodeURIComponent(sessionId)}`,
+    if (sessionStateDisabled) return null;
+
+    const response = await callSessionState(
+      `/session-state?sessionId=${encodeURIComponent(sessionId)}`,
       {
         method: "GET",
         headers: {
@@ -39,6 +103,8 @@ export async function getSessionState(
         },
       },
     );
+
+    if (!response) return null;
 
     if (response.status === 404) {
       // Session state doesn't exist yet - this is normal for new sessions
@@ -69,7 +135,7 @@ export async function updateSessionState(
   updates: Partial<SessionState>,
 ): Promise<SessionState | null> {
   try {
-    const response = await fetch(`/.netlify/edge-functions/session-state`, {
+    const response = await callSessionState(`/session-state`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -79,6 +145,8 @@ export async function updateSessionState(
         state: updates,
       }),
     });
+
+    if (!response) return null;
 
     if (!response.ok) {
       const error = await response
@@ -105,7 +173,7 @@ export async function setSessionState(
   state: SessionState,
 ): Promise<SessionState | null> {
   try {
-    const response = await fetch(`/.netlify/edge-functions/session-state`, {
+    const response = await callSessionState(`/session-state`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -115,6 +183,8 @@ export async function setSessionState(
         state,
       }),
     });
+
+    if (!response) return null;
 
     if (!response.ok) {
       const error = await response
@@ -138,7 +208,7 @@ export async function setSessionState(
  */
 export async function deleteSessionState(sessionId: string): Promise<boolean> {
   try {
-    const response = await fetch(`/.netlify/edge-functions/session-state`, {
+    const response = await callSessionState(`/session-state`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
@@ -147,6 +217,8 @@ export async function deleteSessionState(sessionId: string): Promise<boolean> {
         sessionId,
       }),
     });
+
+    if (!response) return false;
 
     if (!response.ok) {
       const error = await response
@@ -174,6 +246,13 @@ export function subscribeToSessionState(
   callback: (state: SessionState | null) => void,
   intervalMs: number = 3000,
 ): () => void {
+  if (sessionStateDisabled) {
+    Logger.info("Session state subscription skipped", {
+      reason: sessionStateReason || "Edge functions disabled in dev",
+    });
+    return () => undefined;
+  }
+
   let lastState: SessionState | null = null;
   let lastUpdated: number | undefined = undefined;
 

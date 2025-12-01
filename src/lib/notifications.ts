@@ -337,7 +337,8 @@ export async function createSessionInvite(
       } else if (!roles.includes("Away")) {
         resolvedRole = "Away";
       } else {
-        resolvedRole = "Guest";
+        // All seats filled; fall back to GameMaster for a valid ParticipantRole
+        resolvedRole = "GameMaster";
       }
     }
   }

@@ -28,7 +28,6 @@ interface ParticipantInfo {
 
 interface DailyRoomInfo {
   room_url: string;
-  ready?: boolean;
 }
 
 const LobbyStatus: React.FC<LobbyStatusProps> = ({
@@ -87,7 +86,7 @@ const LobbyStatus: React.FC<LobbyStatusProps> = ({
         // Fetch daily room info
         const { data: dailyRoomData, error: dailyRoomError } = await supabase
           .from("DailyRooms")
-          .select("room_url, ready")
+          .select("room_url")
           .eq("room_id", sessionId)
           .maybeSingle();
 

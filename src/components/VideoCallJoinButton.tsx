@@ -57,7 +57,7 @@ export const VideoCallJoinButton: React.FC<VideoCallJoinButtonProps> = ({
   const getRoomData = async () => {
     return await supabase
       .from("DailyRooms")
-      .select("room_url, ready")
+      .select("room_url")
       .eq("room_id", sessionId)
       .maybeSingle();
   };

@@ -1,10 +1,11 @@
 import { Logger } from "../lib/logger";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAtom } from "jotai";
 
 import { supabase } from "../lib/supabaseClient";
 import { useSession } from "../lib/sessionHooks";
+import { useAuth } from "../contexts/AuthContext";
 import {
   leaveLobbyByRole,
   updateParticipantHeartbeat,
@@ -27,7 +28,10 @@ import {
   LOBBY_PRESENCE,
   PARTICIPANT_ROLE,
   ROLE_DISPLAY_LABELS,
+  ROLE_TO_SEAT,
   SEAT_TO_ROLE,
+  type ParticipantRole,
+  type SeatRole,
 } from "../lib/types";
 import { resolveSeatFromUrl, setSeatInStorage } from "../lib/userSession";
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
@@ -153,6 +157,7 @@ const Lobby: React.FC = () => {
     seat?: string;
   }>();
   const navigate = useNavigate();
+  const { profile } = useAuth();
 
   // Resolve seat using priority: URL param > localStorage > null
   const resolvedSeat = resolveSeatFromUrl(seat);
@@ -170,19 +175,6 @@ const Lobby: React.FC = () => {
       navigate(`/lobby/${sessionCode}/${resolvedSeat}`, { replace: true });
     }
   }, [resolvedSeat, seat, sessionCode, navigate]);
-
-  // Map seat to role using SEAT_TO_ROLE helper
-  const userRole = resolvedSeat ? SEAT_TO_ROLE[resolvedSeat] : null;
-
-  // Log user role for debugging (will be used in future steps)
-  useEffect(() => {
-    if (userRole) {
-      Logger.log("User role resolved from seat:", {
-        seat: resolvedSeat,
-        role: userRole,
-      });
-    }
-  }, [userRole, resolvedSeat]);
 
   // Use consolidated session data hook
   const {
@@ -222,6 +214,103 @@ const Lobby: React.FC = () => {
   // Uses username from Profiles (e.g., "tareq") instead of full name (e.g., "Tareq Salah")
   // This prevents Daily.co token issues with names containing spaces
   const [tokenUsername, setTokenUsername] = useState<string>("");
+
+  const seatRoleFromParticipantRole = (role?: string | null): SeatRole | null => {
+    switch (role) {
+      case PARTICIPANT_ROLE.HOST:
+        return "host";
+      case PARTICIPANT_ROLE.HOME:
+        return "home";
+      case PARTICIPANT_ROLE.AWAY:
+        return "away";
+      default:
+        return null;
+    }
+  };
+
+  const participantRoleFromSeatRole = (
+    seatRole?: SeatRole | null,
+  ): ParticipantRole | null => {
+    switch (seatRole) {
+      case "host":
+        return PARTICIPANT_ROLE.HOST;
+      case "home":
+        return PARTICIPANT_ROLE.HOME;
+      case "away":
+        return PARTICIPANT_ROLE.AWAY;
+      default:
+        return null;
+    }
+  };
+
+  const participantRoleFromSeat = useMemo<ParticipantRole | null>(() => {
+    if (!resolvedSeat) return null;
+
+    const seatRole = SEAT_TO_ROLE[resolvedSeat];
+    return participantRoleFromSeatRole(seatRole);
+  }, [resolvedSeat]);
+
+  const participantFromSeat = useMemo(() => {
+    if (!participantRoleFromSeat) return null;
+    return players.find((p) => p.role === participantRoleFromSeat) || null;
+  }, [participantRoleFromSeat, players]);
+
+  const participantFromProfile = useMemo(() => {
+    if (!profile?.id) return null;
+    return players.find((p) => p.profile_id === profile.id) || null;
+  }, [players, profile?.id]);
+
+  const currentParticipant = useMemo(
+    () => participantFromProfile ?? participantFromSeat ?? null,
+    [participantFromSeat, participantFromProfile],
+  );
+
+  const derivedSeat = useMemo(() => {
+    const seatRole = seatRoleFromParticipantRole(currentParticipant?.role);
+    if (seatRole) return ROLE_TO_SEAT[seatRole];
+
+    return resolvedSeat || null;
+  }, [resolvedSeat, currentParticipant?.role]);
+
+  const userRole = useMemo<SeatRole | null>(() => {
+    const roleFromProfile = seatRoleFromParticipantRole(currentParticipant?.role);
+    if (roleFromProfile) return roleFromProfile;
+    if (resolvedSeat) return SEAT_TO_ROLE[resolvedSeat];
+    return null;
+  }, [resolvedSeat, currentParticipant?.role]);
+
+  const currentParticipantRef = useRef<ParticipantRow | null>(null);
+
+  useEffect(() => {
+    currentParticipantRef.current = currentParticipant;
+  }, [currentParticipant]);
+
+  const participantId = currentParticipant?.participant_id ?? null;
+
+  // When seat is missing but we can resolve it from profile/role, persist and normalize URL
+  useEffect(() => {
+    if (derivedSeat && derivedSeat !== resolvedSeat && sessionCode) {
+      setSeatInStorage(derivedSeat);
+      navigate(`/lobby/${sessionCode}/${derivedSeat}`, { replace: true });
+    }
+  }, [derivedSeat, resolvedSeat, sessionCode, navigate]);
+
+  // Log resolved role for debugging (profile match takes precedence, seat is fallback)
+  useEffect(() => {
+    if (userRole) {
+      const roleSource = seatRoleFromParticipantRole(currentParticipant?.role)
+        ? "profile"
+        : resolvedSeat
+          ? "url/storage"
+          : "unknown";
+
+      Logger.log("User role resolved:", {
+        seat: resolvedSeat ?? derivedSeat,
+        role: userRole,
+        source: roleSource,
+      });
+    }
+  }, [userRole, resolvedSeat, derivedSeat, currentParticipant?.role]);
 
   // Update atoms when session data is resolved
   useEffect(() => {
@@ -270,61 +359,44 @@ const Lobby: React.FC = () => {
     attemptSnapshotRecovery();
   }, [sessionId, sessionCode, players.length]);
 
-  // Update participant name from Profiles table based on current user's role
+  // Update participant name from Profiles table based on current user's role/profile
   useEffect(() => {
-    if (!resolvedSeat || players.length === 0) return;
+    if (!currentParticipant) return;
 
-    // Find current participant by role
-    const seatRole = SEAT_TO_ROLE[resolvedSeat];
-    let participantRole: string;
-    switch (seatRole) {
-      case "host":
-        participantRole = PARTICIPANT_ROLE.HOST;
-        break;
-      case "home":
-        participantRole = PARTICIPANT_ROLE.HOME;
-        break;
-      case "away":
-        participantRole = PARTICIPANT_ROLE.AWAY;
-        break;
-      default:
-        return;
-    }
+    const profileName =
+      currentParticipant.Profiles?.name || currentParticipant.name;
+    const profileUsername = currentParticipant.Profiles?.username || null;
 
-    const currentParticipant = players.find((p) => p.role === participantRole);
-    if (currentParticipant?.Profiles) {
-      const profileName = currentParticipant.Profiles.name;
-      const profileUsername = currentParticipant.Profiles.username;
+    Logger.log("Setting participant data from participant/profile:", {
+      displayName: profileName,
+      tokenUsername: profileUsername,
+      participantId: currentParticipant.participant_id,
+      role: currentParticipant.role,
+      hasUsername: !!profileUsername,
+      hasName: !!profileName,
+    });
 
-      Logger.log("Setting participant data from Profiles table:", {
-        displayName: profileName,
-        tokenUsername: profileUsername,
-        hasUsername: !!profileUsername,
-        hasName: !!profileName,
+    // Use username for Daily token (no spaces, safe for tokens)
+    // If username is null/empty, sanitize name by removing spaces
+    // Use name for display in UI
+    const safeTokenName =
+      profileUsername ||
+      (profileName ? profileName.replace(/\s+/g, "") : null) ||
+      "player";
+    const displayName = profileName || profileUsername || "Unknown";
+
+    // Log username changes for debugging
+    if (sessionCode && tokenUsername && tokenUsername !== safeTokenName) {
+      Logger.log("Username changed, will create new token:", {
+        old: tokenUsername,
+        new: safeTokenName,
       });
-
-      // Use username for Daily token (no spaces, safe for tokens)
-      // If username is null/empty, sanitize name by removing spaces
-      // Use name for display in UI
-      const safeTokenName =
-        profileUsername ||
-        (profileName ? profileName.replace(/\s+/g, "") : null) ||
-        "player";
-      const displayName = profileName || profileUsername || "Unknown";
-
-      // Log username changes for debugging
-      if (sessionCode && tokenUsername && tokenUsername !== safeTokenName) {
-        Logger.log("Username changed, will create new token:", {
-          old: tokenUsername,
-          new: safeTokenName,
-        });
-      }
-
-      setTokenUsername(safeTokenName);
-      setParticipantName(displayName);
-      setDailyUserName(displayName);
     }
-  }, [resolvedSeat, players, setDailyUserName, sessionCode, tokenUsername]);
+
+    setTokenUsername(safeTokenName);
+    setParticipantName(displayName);
+    setDailyUserName(displayName);
+  }, [currentParticipant, setDailyUserName, sessionCode, tokenUsername]);
 
   // Store Daily room data in atoms when available and create token
   useEffect(() => {
@@ -384,7 +456,18 @@ const Lobby: React.FC = () => {
         } catch (error) {
           Logger.error("Lobby: Failed to create Daily token:", error);
           // Show error to user
-          setError("Failed to join video call. Please try again.");
+          const message =
+            error instanceof Error
+              ? error.message
+              : "Failed to join video call. Please try again.";
+
+          if (message.includes("Netlify function unavailable")) {
+            setError(
+              "Video calling requires Netlify Functions. Start `netlify dev` and open http://localhost:3000 or deploy to Netlify."
+            );
+          } else {
+            setError(message);
+          }
         }
       } else if (dailyRoom?.room_url && (!tokenUsername || !participantName)) {
         Logger.warn(
@@ -627,7 +710,7 @@ const Lobby: React.FC = () => {
       isMounted = false;
       channel.unsubscribe();
     };
-  }, [sessionId, resolvedSeat, sessionCode]);
+  }, [sessionId, sessionCode]);
 
   const getPresenceStatus = (p: ParticipantRow) => {
     const lobbyPresence =
@@ -661,25 +744,6 @@ const Lobby: React.FC = () => {
 
   // ✨ PHASE 2.2: Load participant blob on mount to restore preferences
   useEffect(() => {
-    if (!resolvedSeat || players.length === 0) return;
-
-    const seatRole = SEAT_TO_ROLE[resolvedSeat];
-    let participantRole: string;
-    switch (seatRole) {
-      case "host":
-        participantRole = PARTICIPANT_ROLE.HOST;
-        break;
-      case "home":
-        participantRole = PARTICIPANT_ROLE.HOME;
-        break;
-      case "away":
-        participantRole = PARTICIPANT_ROLE.AWAY;
-        break;
-      default:
-        return;
-    }
-
-    const currentParticipant = players.find((p) => p.role === participantRole);
     if (!currentParticipant) return;
 
     const loadParticipantPreferences = async () => {
@@ -703,76 +767,59 @@ const Lobby: React.FC = () => {
     };
 
     loadParticipantPreferences();
-  }, [resolvedSeat, players]);
+  }, [currentParticipant]);
 
   // Heartbeat mechanism - send heartbeat every 30 seconds for current participant
   // ✨ PHASE 2.2: Enhanced with participant blob updates
   useEffect(() => {
-    if (!sessionId || !resolvedSeat || !sessionCode) return;
-
-    // Find current participant by role
-    const seatRole = SEAT_TO_ROLE[resolvedSeat];
-    let participantRole: string;
-    switch (seatRole) {
-      case "host":
-        participantRole = PARTICIPANT_ROLE.HOST;
-        break;
-      case "home":
-        participantRole = PARTICIPANT_ROLE.HOME;
-        break;
-      case "away":
-        participantRole = PARTICIPANT_ROLE.AWAY;
-        break;
-      default:
-        return;
-    }
-
-    const currentParticipant = players.find((p) => p.role === participantRole);
-    if (!currentParticipant) return;
+    if (!sessionId || !sessionCode || !participantId) return;
 
     // Helper function to update participant blob
     const updateCurrentParticipantBlob = async () => {
+      const participant = currentParticipantRef.current;
+      if (!participant) return;
+
       const deviceId = getDeviceId();
       const participantBlobData: ParticipantBlobData = {
-        participant_id: currentParticipant.participant_id,
-        profile_id: currentParticipant.profile_id,
-        name: currentParticipant.Profiles?.name || "Unknown",
-        username: currentParticipant.Profiles?.username || null,
-        flag: currentParticipant.Profiles?.flag || "sa",
-        team: currentParticipant.Profiles?.team || null,
-        team_logo_url: currentParticipant.Profiles?.team
-          ? getTeamLogoUrl(currentParticipant.Profiles.team)
+        participant_id: participant.participant_id,
+        profile_id: participant.profile_id,
+        name: participant.Profiles?.name || participant.name || "Unknown",
+        username: participant.Profiles?.username || null,
+        flag: participant.Profiles?.flag || "sa",
+        team: participant.Profiles?.team || null,
+        team_logo_url: participant.Profiles?.team
+          ? getTeamLogoUrl(participant.Profiles.team)
           : null,
 
         current_session_id: sessionId,
         current_session_code: sessionCode,
-        role: currentParticipant.role as
+        role: participant.role as
           | "Host"
           | "Home"
           | "Away"
           | "GameMaster"
           | "Guest",
 
-        lobby_presence: currentParticipant.lobby_presence as
+        lobby_presence: participant.lobby_presence as
           | "NotJoined"
           | "Joined"
           | "Disconnected",
-        video_presence: currentParticipant.video_presence || false,
+        video_presence: participant.video_presence || false,
         last_heartbeat: new Date().toISOString(),
 
-        join_at: currentParticipant.join_at || new Date().toISOString(),
-        disconnect_at: currentParticipant.disconnect_at || null,
+        join_at: participant.join_at || new Date().toISOString(),
+        disconnect_at: participant.disconnect_at || null,
 
         device_id: deviceId,
         last_device_sync: new Date().toISOString(),
 
-        preferred_flag: currentParticipant.Profiles?.flag || null,
-        preferred_team: currentParticipant.Profiles?.team || null,
+        preferred_flag: participant.Profiles?.flag || null,
+        preferred_team: participant.Profiles?.team || null,
 
         audio_enabled: true,
         video_enabled: true,
 
-        created_at: currentParticipant.join_at || new Date().toISOString(),
+        created_at: participant.join_at || new Date().toISOString(),
         last_updated: new Date().toISOString(),
         session_history: [sessionId],
 
@@ -789,14 +836,14 @@ const Lobby: React.FC = () => {
     };
 
     // Send initial heartbeat to DB
-    updateParticipantHeartbeat(currentParticipant.participant_id, sessionId);
+    updateParticipantHeartbeat(participantId, sessionId);
 
     // Update initial participant blob
     updateCurrentParticipantBlob();
 
     // Set up interval to send heartbeat every 30 seconds
     const heartbeatInterval = setInterval(() => {
-      updateParticipantHeartbeat(currentParticipant.participant_id, sessionId);
+      updateParticipantHeartbeat(participantId, sessionId);
       updateCurrentParticipantBlob(); // ✨ Also update blob
     }, 30000); // 30 seconds
 
@@ -804,13 +851,13 @@ const Lobby: React.FC = () => {
     return () => {
       clearInterval(heartbeatInterval);
       // Mark as disconnected when leaving
-      markParticipantDisconnected(currentParticipant.participant_id).catch(
+      markParticipantDisconnected(participantId).catch(
         (err) => {
           Logger.error("Failed to mark participant as disconnected:", err);
         }
       );
     };
-  }, [sessionId, sessionCode, resolvedSeat, players]);
+  }, [sessionId, sessionCode, participantId]);
 
   // ✨ PHASE 2.3: Save lobby snapshot every 30 seconds
   useEffect(() => {
@@ -864,34 +911,14 @@ const Lobby: React.FC = () => {
 
   // Presence tracking: Detect tab close, navigation, and visibility changes
   useEffect(() => {
-    if (!sessionId || !resolvedSeat) return;
-
-    // Find current participant by role
-    const seatRole = SEAT_TO_ROLE[resolvedSeat];
-    let participantRole: string;
-    switch (seatRole) {
-      case "host":
-        participantRole = PARTICIPANT_ROLE.HOST;
-        break;
-      case "home":
-        participantRole = PARTICIPANT_ROLE.HOME;
-        break;
-      case "away":
-        participantRole = PARTICIPANT_ROLE.AWAY;
-        break;
-      default:
-        return;
-    }
-
-    const currentParticipant = players.find((p) => p.role === participantRole);
-    if (!currentParticipant) return;
+    if (!sessionId || !participantId) return;
 
     // Handle beforeunload: Mark as disconnected when user closes tab or navigates away
     const handleBeforeUnload = () => {
       // Use navigator.sendBeacon for reliable last-second requests
       const disconnectUrl = `${window.location.origin}/.netlify/functions/mark-player-disconnected`;
       const data = JSON.stringify({
-        participantId: currentParticipant.participant_id,
+        participantId,
         sessionId: sessionId,
       });
 
@@ -902,8 +929,8 @@ const Lobby: React.FC = () => {
       }
 
       // Also mark in database (may not complete if page unloads fast)
-      markParticipantDisconnected(currentParticipant.participant_id).catch(
-        (err) => Logger.error("Failed to mark disconnected on unload:", err)
+      markParticipantDisconnected(participantId).catch((err) =>
+        Logger.error("Failed to mark disconnected on unload:", err)
       );
     };
 
@@ -915,10 +942,7 @@ const Lobby: React.FC = () => {
       } else {
         // User returned - send heartbeat immediately
         Logger.log("User returned to lobby tab");
-        updateParticipantHeartbeat(
-          currentParticipant.participant_id,
-          sessionId
-        );
+        updateParticipantHeartbeat(participantId, sessionId);
       }
     };
 
@@ -931,7 +955,7 @@ const Lobby: React.FC = () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [sessionId, resolvedSeat, players]);
+  }, [sessionId, participantId]);
 
   const handleStartQuiz = () => {
     // Navigate to quiz page using session code
@@ -975,27 +999,22 @@ const Lobby: React.FC = () => {
   const handleLeaveLobby = async () => {
     try {
       // Use role-based lookup instead of localStorage participant_id
-      if (sessionId && userRole) {
-        // Convert seat role to participant role
-        let participantRole: string;
-        switch (userRole) {
-          case "host":
-            participantRole = PARTICIPANT_ROLE.HOST;
-            break;
-          case "home":
-            participantRole = PARTICIPANT_ROLE.HOME;
-            break;
-          case "away":
-            participantRole = PARTICIPANT_ROLE.AWAY;
-            break;
-          default:
-            Logger.error("Invalid user role for leaving lobby:", userRole);
-            return;
+      if (sessionId) {
+        const participantRole =
+          participantRoleFromSeatRole(userRole) ||
+          (currentParticipant?.role as ParticipantRole | null);
+
+        if (!participantRole) {
+          Logger.error("No participant role available for leaving lobby", {
+            userRole,
+            participantId: currentParticipant?.participant_id,
+          });
+          return;
         }
 
         await leaveLobbyByRole(sessionId, participantRole);
       } else {
-        Logger.error("No session ID or user role available for leaving lobby");
+        Logger.error("No session ID available for leaving lobby");
       }
     } catch (e) {
       Logger.error("Failed to update presence on leave:", e);

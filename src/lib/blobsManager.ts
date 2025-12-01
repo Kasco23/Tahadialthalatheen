@@ -188,7 +188,7 @@ export interface BlobResult<T> {
   data: T | null;
   error: string | null;
   cached: boolean; // Whether data came from cache
-  source: "blob" | "cache" | "localStorage" | "supabase";
+  source: "blob" | "cache" | "localStorage" | "supabase" | "disabled";
 }
 
 // ============================================================================
@@ -295,6 +295,44 @@ class BlobCache {
 const cache = new BlobCache();
 
 // ============================================================================
+// Runtime guards to keep Blobs non-disruptive in dev
+// ============================================================================
+
+// Netlify Functions/Edge are not available when hitting the raw Vite dev server (5173)
+const isPlainViteDev =
+  typeof window !== "undefined" &&
+  window.location.hostname === "localhost" &&
+  window.location.port === "5173";
+
+let blobServiceDisabled = isPlainViteDev;
+let blobDisableReason = isPlainViteDev
+  ? "Blob/Edge functions are unavailable on the Vite dev server; skipping blob calls."
+  : null;
+let blobDisableLogged = false;
+
+const markBlobServiceDisabled = (reason: string) => {
+  blobServiceDisabled = true;
+  blobDisableReason = reason;
+  if (!blobDisableLogged) {
+    Logger.info("Blobs disabled for this session", { reason });
+    blobDisableLogged = true;
+  }
+};
+
+const isBlobDisabled = () => blobServiceDisabled;
+
+const disabledBlobResult = <T>(
+  data: T | null,
+  successWhenDisabled = false
+): BlobResult<T> => ({
+  success: successWhenDisabled,
+  data,
+  error: blobDisableReason,
+  cached: false,
+  source: "disabled",
+});
+
+// ============================================================================
 // Session Blob Operations
 // ============================================================================
 
@@ -306,6 +344,10 @@ export async function getSessionBlob(
   useCache = true
 ): Promise<BlobResult<SessionBlobData>> {
   const cacheKey = `session:${sessionId}`;
+
+  if (isBlobDisabled()) {
+    return disabledBlobResult<SessionBlobData>(null);
+  }
 
   // Try cache first
   if (useCache) {
@@ -373,18 +415,16 @@ export async function getSessionBlob(
       source: "blob",
     };
   } catch (error) {
-    Logger.error(
+    Logger.warn(
       `[getSessionBlob] Error fetching session ${sessionId}:`,
       error
     );
 
-    return {
-      success: false,
-      data: null,
-      error: error instanceof Error ? error.message : "Unknown error",
-      cached: false,
-      source: "blob",
-    };
+    markBlobServiceDisabled(
+      error instanceof Error ? error.message : "Blob session fetch failed"
+    );
+
+    return disabledBlobResult<SessionBlobData>(null);
   }
 }
 
@@ -395,6 +435,10 @@ export async function saveSessionBlob(
   sessionData: SessionBlobData
 ): Promise<BlobResult<SessionBlobData>> {
   const cacheKey = `session:${sessionData.session_id}`;
+
+  if (isBlobDisabled()) {
+    return disabledBlobResult(sessionData, true);
+  }
 
   try {
     // Update last_updated timestamp
@@ -439,18 +483,16 @@ export async function saveSessionBlob(
       source: "blob",
     };
   } catch (error) {
-    Logger.error(
+    Logger.warn(
       `[saveSessionBlob] Error saving session ${sessionData.session_id}:`,
       error
     );
 
-    return {
-      success: false,
-      data: null,
-      error: error instanceof Error ? error.message : "Unknown error",
-      cached: false,
-      source: "blob",
-    };
+    markBlobServiceDisabled(
+      error instanceof Error ? error.message : "Blob session save failed"
+    );
+
+    return disabledBlobResult(sessionData, true);
   }
 }
 
@@ -533,6 +575,10 @@ export async function getParticipantBlob(
 ): Promise<BlobResult<ParticipantBlobData>> {
   const cacheKey = `participant:${participantId}`;
 
+  if (isBlobDisabled()) {
+    return disabledBlobResult<ParticipantBlobData>(null);
+  }
+
   // Try cache first
   if (useCache) {
     const cached = await cache.get<ParticipantBlobData>(cacheKey);
@@ -559,11 +605,10 @@ export async function getParticipantBlob(
     const contentType = response.headers.get("content-type") || "";
     if (!contentType.includes("application/json")) {
       const fallbackText = await response.text();
-      Logger.warn(
-        "[getParticipantBlob] Unexpected response:",
+      Logger.warn("[getParticipantBlob] Unexpected response:", {
         contentType,
-        fallbackText.slice(0, 120)
-      );
+        preview: fallbackText.slice(0, 120),
+      });
       throw new Error("Netlify Functions unavailable");
     }
 
@@ -599,7 +644,7 @@ export async function getParticipantBlob(
       source: "blob",
     };
   } catch (error) {
-    Logger.error(
+    Logger.warn(
       `[getParticipantBlob] Error fetching participant ${participantId}:`,
       error
     );
@@ -624,13 +669,11 @@ export async function getParticipantBlob(
       );
     }
 
-    return {
-      success: false,
-      data: null,
-      error: error instanceof Error ? error.message : "Unknown error",
-      cached: false,
-      source: "blob",
-    };
+    markBlobServiceDisabled(
+      error instanceof Error ? error.message : "Blob participant fetch failed"
+    );
+
+    return disabledBlobResult<ParticipantBlobData>(null);
   }
 }
 
@@ -641,6 +684,10 @@ export async function saveParticipantBlob(
   participantData: ParticipantBlobData
 ): Promise<BlobResult<ParticipantBlobData>> {
   const cacheKey = `participant:${participantData.participant_id}`;
+
+  if (isBlobDisabled()) {
+    return disabledBlobResult(participantData, true);
+  }
 
   // Save to localStorage first (for offline resilience)
   try {
@@ -671,11 +718,10 @@ export async function saveParticipantBlob(
     const contentType = response.headers.get("content-type") || "";
     if (!contentType.includes("application/json")) {
       const fallbackText = await response.text();
-      Logger.warn(
-        "[saveParticipantBlob] Unexpected response:",
+      Logger.warn("[saveParticipantBlob] Unexpected response:", {
         contentType,
-        fallbackText.slice(0, 120)
-      );
+        preview: fallbackText.slice(0, 120),
+      });
       return {
         success: true,
         data: dataToSave,
@@ -715,19 +761,17 @@ export async function saveParticipantBlob(
       source: "blob",
     };
   } catch (error) {
-    Logger.error(
+    Logger.warn(
       `[saveParticipantBlob] Error saving participant ${participantData.participant_id}:`,
       error
     );
 
+    markBlobServiceDisabled(
+      error instanceof Error ? error.message : "Blob participant save failed"
+    );
+
     // Return success if localStorage save succeeded (offline mode)
-    return {
-      success: true,
-      data: participantData,
-      error: "Saved to localStorage only (offline)",
-      cached: false,
-      source: "localStorage",
-    };
+    return disabledBlobResult(participantData, true);
   }
 }
 
@@ -741,6 +785,10 @@ export async function saveParticipantBlob(
 export async function saveLobbySnapshot(
   snapshotData: LobbySnapshotData
 ): Promise<BlobResult<LobbySnapshotData>> {
+  if (isBlobDisabled()) {
+    return disabledBlobResult<LobbySnapshotData>(snapshotData, true);
+  }
+
   try {
     const dataToSave = {
       ...snapshotData,
@@ -769,15 +817,13 @@ export async function saveLobbySnapshot(
       source: "blob",
     };
   } catch (error) {
-    Logger.error(`[saveLobbySnapshot] Error:`, error);
+    Logger.warn(`[saveLobbySnapshot] Error:`, error);
 
-    return {
-      success: false,
-      data: null,
-      error: error instanceof Error ? error.message : "Unknown error",
-      cached: false,
-      source: "blob",
-    };
+    markBlobServiceDisabled(
+      error instanceof Error ? error.message : "Blob snapshot save failed"
+    );
+
+    return disabledBlobResult<LobbySnapshotData>(snapshotData, true);
   }
 }
 
@@ -787,6 +833,10 @@ export async function saveLobbySnapshot(
 export async function getLobbySnapshot(
   sessionId: string
 ): Promise<BlobResult<LobbySnapshotData>> {
+  if (isBlobDisabled()) {
+    return disabledBlobResult<LobbySnapshotData>(null);
+  }
+
   try {
     const response = await fetch(
       `/.netlify/edge-functions/session-state?sessionId=${encodeURIComponent(`snapshot:${sessionId}`)}`,
@@ -819,15 +869,13 @@ export async function getLobbySnapshot(
       source: "blob",
     };
   } catch (error) {
-    Logger.error(`[getLobbySnapshot] Error:`, error);
+    Logger.warn(`[getLobbySnapshot] Error:`, error);
 
-    return {
-      success: false,
-      data: null,
-      error: error instanceof Error ? error.message : "Unknown error",
-      cached: false,
-      source: "blob",
-    };
+    markBlobServiceDisabled(
+      error instanceof Error ? error.message : "Blob snapshot fetch failed"
+    );
+
+    return disabledBlobResult<LobbySnapshotData>(null);
   }
 }
 
@@ -853,6 +901,10 @@ export async function saveQuizQuestions(
   }>
 ): Promise<BlobResult<QuizQuestionsBlob>> {
   const cacheKey = `quiz:${sessionCode}`;
+
+  if (isBlobDisabled()) {
+    return disabledBlobResult<QuizQuestionsBlob>(null, true);
+  }
 
   try {
     const dataToSave: QuizQuestionsBlob = {
@@ -906,18 +958,16 @@ export async function saveQuizQuestions(
       source: "blob",
     };
   } catch (error) {
-    Logger.error(
+    Logger.warn(
       `[saveQuizQuestions] Error saving questions for session ${sessionCode}:`,
       error
     );
 
-    return {
-      success: false,
-      data: null,
-      error: error instanceof Error ? error.message : "Unknown error",
-      cached: false,
-      source: "blob",
-    };
+    markBlobServiceDisabled(
+      error instanceof Error ? error.message : "Blob quiz save failed"
+    );
+
+    return disabledBlobResult<QuizQuestionsBlob>(null, true);
   }
 }
 
@@ -943,6 +993,10 @@ export async function getQuizQuestions(
         source: "cache",
       };
     }
+  }
+
+  if (isBlobDisabled()) {
+    return disabledBlobResult<QuizQuestionsBlob>(null);
   }
 
   try {
@@ -986,18 +1040,16 @@ export async function getQuizQuestions(
       source: "blob",
     };
   } catch (error) {
-    Logger.error(
+    Logger.warn(
       `[getQuizQuestions] Error loading questions for session ${sessionCode}:`,
       error
     );
 
-    return {
-      success: false,
-      data: null,
-      error: error instanceof Error ? error.message : "Unknown error",
-      cached: false,
-      source: "blob",
-    };
+    markBlobServiceDisabled(
+      error instanceof Error ? error.message : "Blob quiz fetch failed"
+    );
+
+    return disabledBlobResult<QuizQuestionsBlob>(null);
   }
 }
 

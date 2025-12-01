@@ -42,7 +42,6 @@ describe("ParticipantTile", () => {
         powerup_bellegoal: null,
         powerup_pass_used: null,
         powerup_slippyg: null,
-        isReady: false,
         Profiles: {
           name: "Test User from Profile",
           flag: "us",
