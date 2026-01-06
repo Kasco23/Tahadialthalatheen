@@ -47,7 +47,7 @@ export async function recordMatch(
   homeTotalPoints: number,
   awayTotalPoints: number,
   winnerId: string | null,
-  segmentsPlayed: SegmentCode[],
+  segmentsPlayed: SegmentCode[]
 ): Promise<Match> {
   try {
     const {
@@ -97,7 +97,7 @@ export async function updateSegmentStats(
   strikes: number = 0,
   points: number = 0,
   wins: number = 0,
-  losses: number = 0,
+  losses: number = 0
 ): Promise<void> {
   try {
     const { error } = await supabase.rpc("upsert_player_segment_stats", {
@@ -129,7 +129,7 @@ export async function updateSegmentStats(
  * @param profileId - The profile ID (defaults to current user)
  */
 export async function getPlayerStats(
-  profileId?: string,
+  profileId?: string
 ): Promise<PlayerStats | null> {
   try {
     const {
@@ -177,7 +177,7 @@ export async function getPlayerStats(
  * @param profileId - The profile ID (defaults to current user)
  */
 export async function getPlayerSegmentStats(
-  profileId?: string,
+  profileId?: string
 ): Promise<PlayerSegmentStats[]> {
   try {
     const {
@@ -214,7 +214,7 @@ export async function getPlayerSegmentStats(
  */
 export async function getHeadToHeadStats(
   opponentId: string,
-  currentUserId?: string,
+  currentUserId?: string
 ): Promise<HeadToHeadStats | null> {
   try {
     const {
@@ -242,7 +242,7 @@ export async function getHeadToHeadStats(
       .from("Matches")
       .select("*")
       .or(
-        `and(home_player_id.eq.${userId},away_player_id.eq.${opponentId}),and(home_player_id.eq.${opponentId},away_player_id.eq.${userId})`,
+        `and(home_player_id.eq.${userId},away_player_id.eq.${opponentId}),and(home_player_id.eq.${opponentId},away_player_id.eq.${userId})`
       );
 
     if (error) {
@@ -297,7 +297,7 @@ export async function getHeadToHeadStats(
  * @param currentUserId - Current user's profile ID (defaults to authenticated user)
  */
 export async function getNemesis(
-  currentUserId?: string,
+  currentUserId?: string
 ): Promise<HeadToHeadStats | null> {
   try {
     const {
@@ -317,10 +317,10 @@ export async function getNemesis(
         *,
         home_player:home_player_id(id, username, name),
         away_player:away_player_id(id, username, name)
-      `,
+      `
       )
       .or(
-        `and(home_player_id.eq.${userId},winner_id.neq.${userId}),and(away_player_id.eq.${userId},winner_id.neq.${userId})`,
+        `and(home_player_id.eq.${userId},winner_id.neq.${userId}),and(away_player_id.eq.${userId},winner_id.neq.${userId})`
       )
       .not("winner_id", "is", null);
 
@@ -354,7 +354,7 @@ export async function getNemesis(
         if (opponentId) {
           lossCountByOpponent[opponentId].count++;
         }
-      },
+      }
     );
 
     // Find opponent with most losses
@@ -387,7 +387,7 @@ export async function getNemesis(
  * @param limit - Number of players to return
  */
 export async function getLeaderboardPlayers(
-  limit: number = 10,
+  limit: number = 10
 ): Promise<LeaderboardPlayer[]> {
   try {
     const { data, error } = await supabase
@@ -412,7 +412,7 @@ export async function getLeaderboardPlayers(
  * @param limit - Number of matches to return
  */
 export async function getLeaderboardMatches(
-  limit: number = 10,
+  limit: number = 10
 ): Promise<LeaderboardMatch[]> {
   try {
     const { data, error } = await supabase
@@ -439,7 +439,7 @@ export async function getLeaderboardMatches(
  */
 export async function getRecentMatches(
   profileId?: string,
-  limit: number = 5,
+  limit: number = 5
 ): Promise<Match[]> {
   try {
     const {

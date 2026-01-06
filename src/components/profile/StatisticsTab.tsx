@@ -30,7 +30,7 @@ export default function StatisticsTab() {
             getPlayerSegmentStats(),
             getNemesis(),
             getRecentMatches(undefined, 5),
-          ],
+          ]
         );
 
         setStats(playerStats);

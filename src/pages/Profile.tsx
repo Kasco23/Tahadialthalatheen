@@ -91,7 +91,7 @@ export default function Profile() {
     } catch (error) {
       console.error("Error uploading avatar:", error);
       toast.error(
-        error instanceof Error ? error.message : "Failed to upload avatar",
+        error instanceof Error ? error.message : "Failed to upload avatar"
       );
     } finally {
       setUploading(false);
@@ -118,7 +118,7 @@ export default function Profile() {
 
     if (!/^[a-z0-9_]{3,20}$/.test(formData.username)) {
       toast.error(
-        "Username can only contain lowercase letters, numbers, and underscores",
+        "Username can only contain lowercase letters, numbers, and underscores"
       );
       return;
     }
@@ -142,7 +142,7 @@ export default function Profile() {
         errorMessage.includes("unique")
       ) {
         toast.error(
-          "This username is already taken. Please choose another one.",
+          "This username is already taken. Please choose another one."
         );
       } else {
         toast.error(errorMessage);
@@ -206,7 +206,7 @@ export default function Profile() {
     } catch (error) {
       console.error("Error changing password:", error);
       toast.error(
-        error instanceof Error ? error.message : "Failed to change password",
+        error instanceof Error ? error.message : "Failed to change password"
       );
     } finally {
       setChangingPassword(false);
@@ -470,13 +470,12 @@ export default function Profile() {
                                   .split("/")
                                   .pop()
                                   ?.replace(".svg", "")
-                                  .replace(/-/g, " ") || profile.team,
+                                  .replace(/-/g, " ") || profile.team
                               )
                                 .split(" ")
                                 .map(
                                   (word) =>
-                                    word.charAt(0).toUpperCase() +
-                                    word.slice(1),
+                                    word.charAt(0).toUpperCase() + word.slice(1)
                                 )
                                 .join(" ")
                             : profile.team}

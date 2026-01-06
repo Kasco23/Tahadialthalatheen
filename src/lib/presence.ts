@@ -63,30 +63,22 @@ export class PresenceHelper {
           this.onPresenceChange(this.formatPresenceState(presenceState));
         }
       })
-      .on(
-        "presence",
-        { event: "join" },
-        () => {
-          if (!this.channel) return;
+      .on("presence", { event: "join" }, () => {
+        if (!this.channel) return;
 
-          const presenceState = this.channel.presenceState();
-          if (this.onPresenceChange && presenceState) {
-            this.onPresenceChange(this.formatPresenceState(presenceState));
-          }
+        const presenceState = this.channel.presenceState();
+        if (this.onPresenceChange && presenceState) {
+          this.onPresenceChange(this.formatPresenceState(presenceState));
         }
-      )
-      .on(
-        "presence",
-        { event: "leave" },
-        () => {
-          if (!this.channel) return;
+      })
+      .on("presence", { event: "leave" }, () => {
+        if (!this.channel) return;
 
-          const presenceState = this.channel.presenceState();
-          if (this.onPresenceChange && presenceState) {
-            this.onPresenceChange(this.formatPresenceState(presenceState));
-          }
+        const presenceState = this.channel.presenceState();
+        if (this.onPresenceChange && presenceState) {
+          this.onPresenceChange(this.formatPresenceState(presenceState));
         }
-      );
+      });
 
     // Subscribe and track this user's presence
     await this.channel.subscribe(async (status: string) => {

@@ -30,7 +30,7 @@ export function useStrikes(sessionId: string | null) {
             acc[strike.participant_id] = strike.strikes;
             return acc;
           },
-          {} as Record<string, number>,
+          {} as Record<string, number>
         );
 
         setStrikes(strikesMap);
@@ -76,7 +76,7 @@ export function useStrikes(sessionId: string | null) {
               return updated;
             });
           }
-        },
+        }
       )
       .subscribe();
 
@@ -91,7 +91,7 @@ export function useStrikes(sessionId: string | null) {
 // Hook to subscribe to segment config for a session
 export function useSegmentConfig(sessionId: string | null) {
   const [segmentConfig, setSegmentConfig] = useState<Tables<"SegmentConfig">[]>(
-    [],
+    []
   );
   const [loading, setLoading] = useState(true);
 
@@ -141,16 +141,16 @@ export function useSegmentConfig(sessionId: string | null) {
             const newData = payload.new as Tables<"SegmentConfig">;
             setSegmentConfig((prev) =>
               prev.map((config) =>
-                config.config_id === newData.config_id ? newData : config,
-              ),
+                config.config_id === newData.config_id ? newData : config
+              )
             );
           } else if (payload.eventType === "DELETE") {
             const oldData = payload.old as Tables<"SegmentConfig">;
             setSegmentConfig((prev) =>
-              prev.filter((config) => config.config_id !== oldData.config_id),
+              prev.filter((config) => config.config_id !== oldData.config_id)
             );
           }
-        },
+        }
       )
       .subscribe();
 
@@ -164,9 +164,7 @@ export function useSegmentConfig(sessionId: string | null) {
 
 // Hook to subscribe to participant data with powerups and Profile information
 export function useParticipants(sessionId: string | null) {
-  const [participants, setParticipants] = useState<ParticipantRow[]>(
-    [],
-  );
+  const [participants, setParticipants] = useState<ParticipantRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -189,7 +187,7 @@ export function useParticipants(sessionId: string | null) {
               flag,
               team
             )
-          `,
+          `
           )
           .eq("session_id", sessionId);
 
@@ -227,19 +225,19 @@ export function useParticipants(sessionId: string | null) {
               prev.map((participant) =>
                 participant.participant_id === newData.participant_id
                   ? newData
-                  : participant,
-              ),
+                  : participant
+              )
             );
           } else if (payload.eventType === "DELETE") {
             const oldData = payload.old as Tables<"Participants">;
             setParticipants((prev) =>
               prev.filter(
                 (participant) =>
-                  participant.participant_id !== oldData.participant_id,
-              ),
+                  participant.participant_id !== oldData.participant_id
+              )
             );
           }
-        },
+        }
       )
       .subscribe();
 

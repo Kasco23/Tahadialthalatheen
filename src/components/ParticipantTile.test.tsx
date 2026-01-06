@@ -61,7 +61,7 @@ describe("ParticipantTile", () => {
       <ParticipantTile
         participantId="test-participant"
         playersByName={mockPlayersByName}
-      />,
+      />
     );
 
     // Moderation controls should never be present
@@ -74,7 +74,7 @@ describe("ParticipantTile", () => {
       <ParticipantTile
         participantId="test-participant"
         playersByName={mockPlayersByName}
-      />,
+      />
     );
 
     // Check that participant info is displayed from Profiles table
@@ -86,12 +86,12 @@ describe("ParticipantTile", () => {
       <ParticipantTile
         participantId="test-participant"
         playersByName={mockPlayersByName}
-      />,
+      />
     );
 
     // Check for connection status indicator (green pulse dot)
     const connectionIndicator = container.querySelector(
-      ".bg-green-500.rounded-full.animate-pulse",
+      ".bg-green-500.rounded-full.animate-pulse"
     );
     expect(connectionIndicator).toBeInTheDocument();
   });
@@ -101,7 +101,7 @@ describe("ParticipantTile", () => {
       <ParticipantTile
         participantId="test-participant"
         playersByName={mockPlayersByName}
-      />,
+      />
     );
 
     // Since mock returns video state as "off", should show camera off indicator

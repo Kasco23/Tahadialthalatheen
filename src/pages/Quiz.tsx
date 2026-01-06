@@ -17,7 +17,11 @@ import {
 import { getQuizQuestions } from "../lib/blobsManager";
 import { dailyUserNameAtom } from "../atoms";
 import { VideoRoom } from "../components/VideoRoom";
-import type { SegmentCode, Database, ParticipantRow } from "../lib/types/supabase";
+import type {
+  SegmentCode,
+  Database,
+  ParticipantRow,
+} from "../lib/types/supabase";
 
 type Participant = Database["public"]["Tables"]["Participants"]["Row"];
 

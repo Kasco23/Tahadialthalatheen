@@ -52,7 +52,7 @@ export async function sendFriendRequest(username: string): Promise<Friend> {
       .from("Friends")
       .select("*")
       .or(
-        `and(requester_id.eq.${user.id},addressee_id.eq.${addressee.id}),and(requester_id.eq.${addressee.id},addressee_id.eq.${user.id})`,
+        `and(requester_id.eq.${user.id},addressee_id.eq.${addressee.id}),and(requester_id.eq.${addressee.id},addressee_id.eq.${user.id})`
       )
       .maybeSingle();
 
@@ -95,7 +95,7 @@ export async function sendFriendRequest(username: string): Promise<Friend> {
  * @param friendshipId - The ID of the friend request to accept
  */
 export async function acceptFriendRequest(
-  friendshipId: string | number,
+  friendshipId: string | number
 ): Promise<Friend> {
   try {
     const {
@@ -136,7 +136,7 @@ export async function acceptFriendRequest(
  * @param friendshipId - The ID of the friend request to decline
  */
 export async function declineFriendRequest(
-  friendshipId: string | number,
+  friendshipId: string | number
 ): Promise<void> {
   try {
     const {
@@ -169,7 +169,9 @@ export async function declineFriendRequest(
  * Remove a friend (or cancel a pending request)
  * @param friendshipId - The ID of the friendship to remove
  */
-export async function deleteFriend(friendshipId: string | number): Promise<void> {
+export async function deleteFriend(
+  friendshipId: string | number
+): Promise<void> {
   try {
     const {
       data: { user },
@@ -218,7 +220,7 @@ export async function getFriends(): Promise<FriendWithProfile[]> {
         *,
         requester:requester_id(id, username, name, avatar_url, flag),
         addressee:addressee_id(id, username, name, avatar_url, flag)
-      `,
+      `
       )
       .eq("status", "accepted")
       .or(`requester_id.eq.${user.id},addressee_id.eq.${user.id}`)
@@ -256,7 +258,7 @@ export async function getPendingRequests(): Promise<FriendWithProfile[]> {
         `
         *,
         requester:requester_id(id, username, name, avatar_url, flag)
-      `,
+      `
       )
       .eq("status", "pending")
       .eq("addressee_id", user.id)
@@ -294,7 +296,7 @@ export async function getSentRequests(): Promise<FriendWithProfile[]> {
         `
         *,
         addressee:addressee_id(id, username, name, avatar_url, flag)
-      `,
+      `
       )
       .eq("status", "pending")
       .eq("requester_id", user.id)
@@ -318,7 +320,7 @@ export async function getSentRequests(): Promise<FriendWithProfile[]> {
  * @returns List of matching profiles
  */
 export async function searchUsersByUsername(
-  searchTerm: string,
+  searchTerm: string
 ): Promise<Profile[]> {
   try {
     if (!searchTerm || searchTerm.trim().length < 2) {
@@ -351,7 +353,7 @@ export async function searchUsersByUsername(
  */
 export function subscribeFriendsUpdates(
   userId: string,
-  callback: (payload: RealtimePostgresChangesPayload<Friend>) => void,
+  callback: (payload: RealtimePostgresChangesPayload<Friend>) => void
 ): () => void {
   const channel = supabase
     .channel(`friends:${userId}`)
@@ -363,7 +365,7 @@ export function subscribeFriendsUpdates(
         table: "Friends",
         filter: `requester_id=eq.${userId},addressee_id=eq.${userId}`,
       },
-      callback,
+      callback
     )
     .subscribe();
 

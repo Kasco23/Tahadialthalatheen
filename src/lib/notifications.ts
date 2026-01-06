@@ -4,12 +4,7 @@
  */
 
 import { supabase } from "./supabaseClient";
-import type {
-  Tables,
-  Views,
-  NotificationType,
-  ParticipantRole,
-} from "./types";
+import type { Tables, Views, NotificationType, ParticipantRole } from "./types";
 import { Logger } from "./logger";
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 
@@ -27,7 +22,7 @@ export type UserInboxItem = Views<"UserInbox"> & {
  * @returns List of notifications with sender information
  */
 export async function getNotifications(
-  unreadOnly: boolean = false,
+  unreadOnly: boolean = false
 ): Promise<UserInboxItem[]> {
   try {
     const {
@@ -98,13 +93,13 @@ export async function getUnreadNotificationCount(): Promise<number> {
  * @param notificationId - The ID of the notification to mark as read
  */
 export async function markNotificationAsRead(
-  notificationId: string | number | null,
+  notificationId: string | number | null
 ): Promise<void> {
   try {
     if (!notificationId) {
       throw new Error("Invalid notification ID");
     }
-    
+
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -157,7 +152,7 @@ export async function markAllNotificationsAsRead(): Promise<void> {
     if (error) {
       Logger.error("Error marking all notifications as read:", error);
       throw new Error(
-        `Failed to mark all notifications as read: ${error.message}`,
+        `Failed to mark all notifications as read: ${error.message}`
       );
     }
 
@@ -173,13 +168,13 @@ export async function markAllNotificationsAsRead(): Promise<void> {
  * @param notificationId - The ID of the notification to delete
  */
 export async function deleteNotification(
-  notificationId: string | number | null,
+  notificationId: string | number | null
 ): Promise<void> {
   try {
     if (!notificationId) {
       throw new Error("Invalid notification ID");
     }
-    
+
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -253,7 +248,7 @@ export async function createNotification(
   title: string,
   message: string,
   link: string | null = null,
-  metadata: Record<string, unknown> = {},
+  metadata: Record<string, unknown> = {}
 ): Promise<Notification> {
   try {
     // Call the Netlify function to create notification with service role
@@ -276,7 +271,7 @@ export async function createNotification(
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(
-        errorData.error || `HTTP error! status: ${response.status}`,
+        errorData.error || `HTTP error! status: ${response.status}`
       );
     }
 
@@ -297,7 +292,7 @@ export async function createNotification(
  */
 export function subscribeNotificationsUpdates(
   userId: string,
-  callback: (payload: RealtimePostgresChangesPayload<Notification>) => void,
+  callback: (payload: RealtimePostgresChangesPayload<Notification>) => void
 ): () => void {
   const channel = supabase
     .channel(`notifications:${userId}`)
@@ -309,7 +304,7 @@ export function subscribeNotificationsUpdates(
         table: "Notifications",
         filter: `recipient_id=eq.${userId}`,
       },
-      callback,
+      callback
     )
     .subscribe();
 
@@ -333,7 +328,7 @@ export async function createSessionInvite(
   senderName: string,
   sessionCode: string,
   sessionId: string,
-  preferredRole?: ParticipantRole,
+  preferredRole?: ParticipantRole
 ): Promise<Notification> {
   // Determine target role for the invite (prefers an open seat)
   let resolvedRole: ParticipantRole = preferredRole || "Home";
@@ -368,6 +363,6 @@ export async function createSessionInvite(
       sessionId,
       inviteType: "session",
       role: resolvedRole,
-    },
+    }
   );
 }

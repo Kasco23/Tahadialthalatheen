@@ -258,7 +258,8 @@ export default function Inbox() {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (notification.id) handleDelete(String(notification.id));
+                          if (notification.id)
+                            handleDelete(String(notification.id));
                         }}
                         className="p-2 hover:bg-red-100 rounded-lg transition-colors"
                         title="Delete"

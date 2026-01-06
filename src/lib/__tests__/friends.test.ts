@@ -14,7 +14,7 @@ vi.mock("../supabaseClient", () => ({
         Promise.resolve({
           data: { user: { id: "test-user-id" } },
           error: null,
-        }),
+        })
       ),
     },
     from: vi.fn(() => ({
@@ -36,7 +36,7 @@ vi.mock("../supabaseClient", () => ({
                 created_at: new Date().toISOString(),
               },
               error: null,
-            }),
+            })
           ),
         })),
       })),
@@ -111,7 +111,7 @@ describe("Friends API", () => {
 
       statuses.forEach((status) => {
         expect(["pending", "accepted", "declined", "blocked"]).toContain(
-          status,
+          status
         );
       });
     });
