@@ -3,12 +3,6 @@ import { supabase } from "./supabaseClient";
 import { updateLobbyPresence } from "./mutations";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 
-interface PresencePayload {
-  key: string;
-  newPresences?: unknown;
-  leftPresences?: unknown;
-}
-
 export interface PresenceUser {
   id: string;
   name: string;
@@ -72,7 +66,7 @@ export class PresenceHelper {
       .on(
         "presence",
         { event: "join" },
-        ({ key, newPresences }: PresencePayload) => {
+        () => {
           if (!this.channel) return;
 
           const presenceState = this.channel.presenceState();
@@ -84,7 +78,7 @@ export class PresenceHelper {
       .on(
         "presence",
         { event: "leave" },
-        ({ key, leftPresences }: PresencePayload) => {
+        () => {
           if (!this.channel) return;
 
           const presenceState = this.channel.presenceState();

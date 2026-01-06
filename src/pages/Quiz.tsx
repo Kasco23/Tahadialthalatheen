@@ -17,7 +17,9 @@ import {
 import { getQuizQuestions } from "../lib/blobsManager";
 import { dailyUserNameAtom } from "../atoms";
 import { VideoRoom } from "../components/VideoRoom";
-import type { Tables, SegmentCode } from "../lib/types";
+import type { SegmentCode, Database, ParticipantRow } from "../lib/types/supabase";
+
+type Participant = Database["public"]["Tables"]["Participants"]["Row"];
 
 /**
  * Quiz Page - Main gameplay interface
@@ -128,11 +130,7 @@ const Quiz: React.FC = () => {
       ? [
           {
             participant_id: "placeholder-1",
-            name: "Player 1 (Test)",
             role: "Home",
-            flag: "gb-eng",
-            team_logo_url:
-              "https://tmssl.akamaized.net/images/wappen/head/11.png",
             session_id: sessionId || "",
             session_presence: "joined",
             video_presence: false,
@@ -141,18 +139,23 @@ const Quiz: React.FC = () => {
             powerup_bellegoal: false,
             powerup_slippyg: false,
             profile_id: null,
-            password: null,
             join_at: new Date().toISOString(),
             lastHeartbeat: new Date().toISOString(),
             disconnect_at: null,
-          } as (typeof realPlayers)[0],
+            Profiles: {
+              id: "placeholder-profile-1",
+              name: "Player 1 (Test)",
+              username: "player1",
+              flag: "gb-eng",
+              team: "11",
+              avatar_url: null,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            },
+          } as ParticipantRow,
           {
             participant_id: "placeholder-2",
-            name: "Player 2 (Test)",
             role: "Away",
-            flag: "es",
-            team_logo_url:
-              "https://tmssl.akamaized.net/images/wappen/head/418.png",
             session_id: sessionId || "",
             session_presence: "joined",
             video_presence: false,
@@ -161,11 +164,20 @@ const Quiz: React.FC = () => {
             powerup_bellegoal: false,
             powerup_slippyg: false,
             profile_id: null,
-            password: null,
             join_at: new Date().toISOString(),
             lastHeartbeat: new Date().toISOString(),
             disconnect_at: null,
-          } as (typeof realPlayers)[0],
+            Profiles: {
+              id: "placeholder-profile-2",
+              name: "Player 2 (Test)",
+              username: "player2",
+              flag: "es",
+              team: "418",
+              avatar_url: null,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            },
+          } as ParticipantRow,
         ]
       : [];
 
@@ -192,7 +204,7 @@ const Quiz: React.FC = () => {
   // 1. currentSegment === 'WDYK'
   // 2. Player has exactly 2 strikes
   // 3. powerup_pass_used === false
-  const canUsePass = (participant: Tables<"Participants">) => {
+  const canUsePass = (participant: Participant) => {
     const participantStrikes = strikes[participant.participant_id] || 0;
     return (
       currentSegment === "WDYK" &&
@@ -201,7 +213,7 @@ const Quiz: React.FC = () => {
     );
   };
 
-  const handlePassButtonClick = async (participant: Tables<"Participants">) => {
+  const handlePassButtonClick = async (participant: Participant) => {
     if (!canUsePass(participant)) return;
 
     setLoading(true);
@@ -474,18 +486,18 @@ const Quiz: React.FC = () => {
                   <div className="flex items-center space-x-3">
                     <div className="flex items-center space-x-2">
                       <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">
-                        {player.flag ? (
+                        {player.Profiles?.flag ? (
                           <span
-                            className={`fi fi-${player.flag} text-lg`}
+                            className={`fi fi-${player.Profiles.flag} text-lg`}
                           ></span>
                         ) : (
-                          player.name.charAt(0)
+                          (player.Profiles?.name || "P").charAt(0)
                         )}
                       </div>
-                      {player.team_logo_url && (
+                      {player.Profiles?.team && (
                         <img
-                          src={player.team_logo_url}
-                          alt={`${player.name} team logo`}
+                          src={`https://tmssl.akamaized.net/images/wappen/head/${player.Profiles.team}.png`}
+                          alt={`${player.Profiles?.name || "Player"} team logo`}
                           className="w-10 h-10 object-contain rounded"
                           onError={(e) => {
                             e.currentTarget.style.display = "none";
@@ -495,7 +507,7 @@ const Quiz: React.FC = () => {
                     </div>
                     <div>
                       <h3 className="text-xl font-bold text-gray-800">
-                        {player.name}
+                        {player.Profiles?.name || "Unknown Player"}
                       </h3>
                       <p className="text-sm text-gray-600">{player.role}</p>
                     </div>
@@ -619,7 +631,7 @@ const Quiz: React.FC = () => {
         {host && (
           <div className="bg-white rounded-xl p-6 shadow-lg">
             <h3 className="text-xl font-bold text-gray-800 mb-4">
-              🎯 Host: {host.name}
+              🎯 Host: {host.Profiles?.name || "Unknown Host"}
             </h3>
             <div className="flex items-center space-x-2">
               <div

@@ -127,7 +127,7 @@ export default function Profile() {
 
     try {
       await updateProfile({
-        name: formData.name || null,
+        name: formData.name || undefined,
         username: formData.username,
       });
       toast.success("Profile updated successfully!");

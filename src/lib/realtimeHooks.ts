@@ -1,7 +1,7 @@
 import { Logger } from "./logger";
 import { useEffect, useState } from "react";
 import { supabase } from "./supabaseClient";
-import type { Tables } from "./types";
+import type { Tables, ParticipantRow } from "./types/supabase";
 
 // Hook to subscribe to strikes for a session
 export function useStrikes(sessionId: string | null) {
@@ -164,7 +164,7 @@ export function useSegmentConfig(sessionId: string | null) {
 
 // Hook to subscribe to participant data with powerups and Profile information
 export function useParticipants(sessionId: string | null) {
-  const [participants, setParticipants] = useState<Tables<"Participants">[]>(
+  const [participants, setParticipants] = useState<ParticipantRow[]>(
     [],
   );
   const [loading, setLoading] = useState(true);

@@ -127,7 +127,9 @@ export default function Leaderboard() {
                       </p>
                     </div>
                   ) : (
-                    players.map((player) => (
+                    players.map((player, index) => {
+                      const rank = index + 1;
+                      return (
                       <div
                         key={player.id}
                         className="bg-white/95 backdrop-blur-sm rounded-xl p-4 shadow-lg hover:shadow-xl transition-all"
@@ -135,9 +137,9 @@ export default function Leaderboard() {
                         <div className="flex items-center gap-4">
                           {/* Rank */}
                           <div
-                            className={`text-3xl font-bold w-16 text-center ${getRankColor(player.rank)}`}
+                            className={`text-3xl font-bold w-16 text-center ${getRankColor(rank)}`}
                           >
-                            {getRankIcon(player.rank) || `#${player.rank}`}
+                            {getRankIcon(rank) || `#${rank}`}
                           </div>
 
                           {/* Player Info */}
@@ -178,7 +180,7 @@ export default function Leaderboard() {
                             <div>
                               <p className="text-sm text-gray-600">Games</p>
                               <p className="font-bold text-gray-800">
-                                {player.total_games}
+                                {player.games_played || 0}
                               </p>
                             </div>
                             <div>
@@ -202,7 +204,7 @@ export default function Leaderboard() {
                           </div>
                         </div>
                       </div>
-                    ))
+                    )})
                   )}
                 </div>
               )}
@@ -220,23 +222,25 @@ export default function Leaderboard() {
                       </p>
                     </div>
                   ) : (
-                    matches.map((match) => (
+                    matches.map((match, index) => {
+                      const rank = index + 1;
+                      return (
                       <div
                         key={match.id}
                         className="bg-white/95 backdrop-blur-sm rounded-xl p-6 shadow-lg hover:shadow-xl transition-all"
                       >
                         <div className="flex items-center justify-between mb-4">
                           <div
-                            className={`text-2xl font-bold ${getRankColor(match.rank)}`}
+                            className={`text-2xl font-bold ${getRankColor(rank)}`}
                           >
-                            {getRankIcon(match.rank) || `#${match.rank}`}
+                            {getRankIcon(rank) || `#${rank}`}
                           </div>
                           <div className="text-right">
                             <p className="text-sm text-gray-600">
-                              {new Date(match.played_at).toLocaleDateString()}
+                              {new Date(match.created_at || "").toLocaleDateString()}
                             </p>
                             <p className="text-lg font-bold text-purple-600">
-                              {match.total_points} total points
+                              {(match.home_total_points || 0) + (match.away_total_points || 0)} total points
                             </p>
                           </div>
                         </div>
@@ -336,7 +340,7 @@ export default function Leaderboard() {
                             </div>
                           )}
                       </div>
-                    ))
+                    )})
                   )}
                 </div>
               )}

@@ -92,8 +92,8 @@ export default function Inbox() {
 
   const handleNotificationClick = async (notification: UserInboxItem) => {
     // Mark as read
-    if (!notification.is_read) {
-      await handleMarkAsRead(notification.id);
+    if (!notification.is_read && notification.id) {
+      await handleMarkAsRead(String(notification.id));
     }
 
     // Navigate to the link if provided
@@ -220,13 +220,13 @@ export default function Inbox() {
                 >
                   <div className="flex items-start gap-4">
                     <div className="flex-shrink-0 mt-1">
-                      {getNotificationIcon(notification.type)}
+                      {getNotificationIcon(notification.type || "default")}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
                         <div>
                           <h3 className="font-semibold text-gray-800 mb-1">
-                            {notification.title}
+                            {notification.title || "Notification"}
                           </h3>
                           <p className="text-gray-600 text-sm">
                             {notification.message}
@@ -238,16 +238,16 @@ export default function Inbox() {
                           )}
                         </div>
                         <span className="text-xs text-gray-500 whitespace-nowrap">
-                          {formatTimestamp(notification.created_at)}
+                          {formatTimestamp(notification.created_at || "")}
                         </span>
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      {!notification.is_read && (
+                      {!notification.is_read && notification.id && (
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleMarkAsRead(notification.id);
+                            handleMarkAsRead(String(notification.id));
                           }}
                           className="p-2 hover:bg-blue-100 rounded-lg transition-colors"
                           title="Mark as read"
@@ -258,7 +258,7 @@ export default function Inbox() {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleDelete(notification.id);
+                          if (notification.id) handleDelete(String(notification.id));
                         }}
                         className="p-2 hover:bg-red-100 rounded-lg transition-colors"
                         title="Delete"

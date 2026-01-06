@@ -95,7 +95,7 @@ export async function sendFriendRequest(username: string): Promise<Friend> {
  * @param friendshipId - The ID of the friend request to accept
  */
 export async function acceptFriendRequest(
-  friendshipId: string,
+  friendshipId: string | number,
 ): Promise<Friend> {
   try {
     const {
@@ -136,7 +136,7 @@ export async function acceptFriendRequest(
  * @param friendshipId - The ID of the friend request to decline
  */
 export async function declineFriendRequest(
-  friendshipId: string,
+  friendshipId: string | number,
 ): Promise<void> {
   try {
     const {
@@ -169,7 +169,7 @@ export async function declineFriendRequest(
  * Remove a friend (or cancel a pending request)
  * @param friendshipId - The ID of the friendship to remove
  */
-export async function removeFriend(friendshipId: string): Promise<void> {
+export async function deleteFriend(friendshipId: string | number): Promise<void> {
   try {
     const {
       data: { user },
@@ -371,3 +371,6 @@ export function subscribeFriendsUpdates(
     supabase.removeChannel(channel);
   };
 }
+
+// Backward compatibility alias
+export { deleteFriend as removeFriend };

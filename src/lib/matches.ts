@@ -15,7 +15,18 @@ import { Logger } from "./logger";
 
 export type Match = Tables<"Matches">;
 export type Profile = Tables<"Profiles">;
-export type PlayerSegmentStats = Tables<"PlayerSegmentStats">;
+// PlayerSegmentStats table doesn't exist yet - using manual interface
+export interface PlayerSegmentStats {
+  profile_id: string;
+  segment_code: string;
+  games_played: number;
+  total_questions: number;
+  correct_answers: number;
+  strikes: number;
+  points: number;
+  wins: number;
+  losses: number;
+}
 export type LeaderboardPlayer = Views<"leaderboard_players">;
 export type LeaderboardMatch = Views<"leaderboard_matches">;
 
@@ -334,13 +345,15 @@ export async function getNemesis(
             ? match.away_player
             : match.home_player;
 
-        if (!lossCountByOpponent[opponentId]) {
+        if (opponentId && !lossCountByOpponent[opponentId]) {
           lossCountByOpponent[opponentId] = {
             count: 0,
             profile: opponentProfile,
           };
         }
-        lossCountByOpponent[opponentId].count++;
+        if (opponentId) {
+          lossCountByOpponent[opponentId].count++;
+        }
       },
     );
 

@@ -76,7 +76,7 @@ describe("Friends API", () => {
   describe("Friend Request Types", () => {
     it("should define Friend type correctly", () => {
       const mockFriend: Friend = {
-        id: "friend-id",
+        id: 123,
         requester_id: "user1",
         addressee_id: "user2",
         status: "pending",

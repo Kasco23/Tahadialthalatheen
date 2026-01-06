@@ -35,7 +35,7 @@ import {
 } from "../lib/types";
 import { resolveSeatFromUrl, setSeatInStorage } from "../lib/userSession";
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
-import type { Database } from "../lib/types/supabase";
+import type { Database, ParticipantRow } from "../lib/types/supabase";
 import { getTeamLogoUrl } from "../lib/teamLogoHelper";
 import {
   subscribeToSessionState,
@@ -52,15 +52,6 @@ import {
   type ParticipantBlobData,
   type LobbySnapshotData,
 } from "../lib/blobsManager";
-
-type ParticipantRow = Database["public"]["Tables"]["Participants"]["Row"] & {
-  Profiles?: {
-    name?: string | null;
-    username?: string | null;
-    flag?: string | null;
-    team?: string | null;
-  } | null;
-};
 
 interface ParticipantCardProps {
   player: ParticipantRow;

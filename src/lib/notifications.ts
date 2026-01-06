@@ -14,7 +14,12 @@ import { Logger } from "./logger";
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 
 export type Notification = Tables<"Notifications">;
-export type UserInboxItem = Views<"UserInbox">;
+export type UserInboxItem = Views<"UserInbox"> & {
+  // Add missing fields from full Notifications table
+  title?: string;
+  link?: string | null;
+  sender_username?: string | null;
+};
 
 /**
  * Get all notifications for the current user
@@ -93,9 +98,13 @@ export async function getUnreadNotificationCount(): Promise<number> {
  * @param notificationId - The ID of the notification to mark as read
  */
 export async function markNotificationAsRead(
-  notificationId: string,
+  notificationId: string | number | null,
 ): Promise<void> {
   try {
+    if (!notificationId) {
+      throw new Error("Invalid notification ID");
+    }
+    
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -164,9 +173,13 @@ export async function markAllNotificationsAsRead(): Promise<void> {
  * @param notificationId - The ID of the notification to delete
  */
 export async function deleteNotification(
-  notificationId: string,
+  notificationId: string | number | null,
 ): Promise<void> {
   try {
+    if (!notificationId) {
+      throw new Error("Invalid notification ID");
+    }
+    
     const {
       data: { user },
     } = await supabase.auth.getUser();

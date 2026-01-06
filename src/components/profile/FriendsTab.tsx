@@ -128,7 +128,7 @@ export default function FriendsTab() {
     }
   };
 
-  const handleRemoveFriend = async (friendshipId: string, username: string) => {
+  const handleRemoveFriend = async (friendshipId: string | number, username: string) => {
     if (
       !window.confirm(
         `Are you sure you want to remove @${username} as a friend?`,
@@ -230,14 +230,14 @@ export default function FriendsTab() {
                 </div>
                 <div className="flex gap-2">
                   <button
-                    onClick={() => handleAcceptRequest(request.id)}
+                    onClick={() => handleAcceptRequest(String(request.id))}
                     className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition-colors"
                   >
                     <CheckIcon className="h-4 w-4 inline mr-1" />
                     Accept
                   </button>
                   <button
-                    onClick={() => handleDeclineRequest(request.id)}
+                    onClick={() => handleDeclineRequest(String(request.id))}
                     className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition-colors"
                   >
                     <XMarkIcon className="h-4 w-4 inline mr-1" />
