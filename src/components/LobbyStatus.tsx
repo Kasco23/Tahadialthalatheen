@@ -180,9 +180,11 @@ const LobbyStatus: React.FC<LobbyStatusProps> = ({
     const participant = participants.find((p) => p.role === role);
     return { role, participant };
   });
-  
+
   const activeParticipantCount = participants.filter(
-    (p) => ["Host", "Home", "Away"].includes(p.role) && p.session_presence === "Joined"
+    (p) =>
+      ["Host", "Home", "Away"].includes(p.role) &&
+      p.session_presence === "Joined"
   ).length;
   const totalSlots = DISPLAY_PARTICIPANT_SLOTS; // Host + 2 Players (excludes GameMaster)
 
