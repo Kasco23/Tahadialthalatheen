@@ -3,14 +3,8 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAtom } from "jotai";
 import { useSession } from "../lib/sessionHooks";
-import {
-  useSegmentConfig,
-  useParticipants,
-} from "../lib/realtimeHooks";
-import {
-  activatePowerup,
-  getSessionIdByCode,
-} from "../lib/mutations";
+import { useSegmentConfig, useParticipants } from "../lib/realtimeHooks";
+import { activatePowerup, getSessionIdByCode } from "../lib/mutations";
 import {
   getQuizQuestions,
   getAllStrikeCounts,
@@ -82,7 +76,9 @@ const Quiz: React.FC = () => {
   // Host should see answers immediately; players never see answers
   const [showAnswers, setShowAnswers] = useState(isHostClient);
   // Track checked answers for list questions (WDYK and AUCT)
-  const [checkedAnswers, setCheckedAnswers] = useState<Record<string, boolean>>({});
+  const [checkedAnswers, setCheckedAnswers] = useState<Record<string, boolean>>(
+    {}
+  );
 
   // Segment completion tracking (in real app would be in database)
   const [completedSegments, setCompletedSegments] = useState<SegmentCode[]>([]);
@@ -217,8 +213,10 @@ const Quiz: React.FC = () => {
               name: "Player 1 (Test)",
               username: "player1",
               flag: "ps",
-              team_url: "https://psdrwkjkgubatiemsgqn.supabase.co/storage/v1/object/public/logos/Ligue-1/paris-saint-germain.svg",
-              avatar_url: "https://psdrwkjkgubatiemsgqn.supabase.co/storage/v1/object/public/avatars/Test_Users/profile-2-2197365079.jpg",
+              team_url:
+                "https://psdrwkjkgubatiemsgqn.supabase.co/storage/v1/object/public/logos/Ligue-1/paris-saint-germain.svg",
+              avatar_url:
+                "https://psdrwkjkgubatiemsgqn.supabase.co/storage/v1/object/public/avatars/Test_Users/profile-2-2197365079.jpg",
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),
             },
@@ -242,8 +240,10 @@ const Quiz: React.FC = () => {
               name: "Player 2 (Test)",
               username: "player2",
               flag: "ps",
-              team_url: "https://psdrwkjkgubatiemsgqn.supabase.co/storage/v1/object/public/logos/Ligue-1/paris-saint-germain.svg",
-              avatar_url: "https://psdrwkjkgubatiemsgqn.supabase.co/storage/v1/object/public/avatars/Test_Users/profile-2-2197365079.jpg",
+              team_url:
+                "https://psdrwkjkgubatiemsgqn.supabase.co/storage/v1/object/public/logos/Ligue-1/paris-saint-germain.svg",
+              avatar_url:
+                "https://psdrwkjkgubatiemsgqn.supabase.co/storage/v1/object/public/avatars/Test_Users/profile-2-2197365079.jpg",
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),
             },
@@ -302,15 +302,15 @@ const Quiz: React.FC = () => {
 
   const handleToggleAnswer = (answerIndex: number) => {
     const key = `${currentQuestion?.question_id}-${answerIndex}`;
-    setCheckedAnswers(prev => ({
+    setCheckedAnswers((prev) => ({
       ...prev,
-      [key]: !prev[key]
+      [key]: !prev[key],
     }));
   };
 
   const handleIncrementStrike = async (participantId: string) => {
     if (!sessionCode || !sessionId) return;
-    
+
     setLoading(true);
     try {
       // Check max strikes limit
@@ -321,7 +321,11 @@ const Quiz: React.FC = () => {
       }
 
       // Update strike count in blob
-      const result = await incrementStrikeInBlob(sessionCode, sessionId, participantId);
+      const result = await incrementStrikeInBlob(
+        sessionCode,
+        sessionId,
+        participantId
+      );
       if (result.success && result.data) {
         setStrikes(result.data.strike_counts || {});
         Logger.log(`✅ Incremented strike for ${participantId}`);
@@ -338,7 +342,7 @@ const Quiz: React.FC = () => {
 
   const handleDecrementStrike = async (participantId: string) => {
     if (!sessionCode || !sessionId) return;
-    
+
     setLoading(true);
     try {
       // Check min strikes limit
@@ -349,7 +353,11 @@ const Quiz: React.FC = () => {
       }
 
       // Update strike count in blob
-      const result = await decrementStrikeInBlob(sessionCode, sessionId, participantId);
+      const result = await decrementStrikeInBlob(
+        sessionCode,
+        sessionId,
+        participantId
+      );
       if (result.success && result.data) {
         setStrikes(result.data.strike_counts || {});
         Logger.log(`✅ Decremented strike for ${participantId}`);
@@ -364,11 +372,7 @@ const Quiz: React.FC = () => {
     }
   };
 
-  if (
-    sessionLoading ||
-    configLoading ||
-    participantsLoading
-  ) {
+  if (sessionLoading || configLoading || participantsLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-600 via-green-700 to-green-800 flex items-center justify-center">
         <div className="text-white text-xl">Loading quiz...</div>
@@ -422,7 +426,6 @@ const Quiz: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Left Column: Player and Host Banners */}
           <div className="lg:col-span-1 space-y-4">
-
             {/* Players Section - Compact */}
             {players.map((player) => {
               const playerStrikes = strikes[player.participant_id] || 0;
@@ -446,7 +449,9 @@ const Quiz: React.FC = () => {
                     {/* Flag */}
                     {player.Profiles?.flag && (
                       <div className="w-12 h-12 flex items-center justify-center">
-                        <span className={`fi fi-${player.Profiles.flag.toLowerCase()} text-2xl`}></span>
+                        <span
+                          className={`fi fi-${player.Profiles.flag.toLowerCase()} text-2xl`}
+                        ></span>
                       </div>
                     )}
                     {/* Team Logo */}
@@ -478,14 +483,18 @@ const Quiz: React.FC = () => {
                   {isHostClient && currentSegment === "WDYK" && (
                     <div className="mb-3 flex gap-2">
                       <button
-                        onClick={() => void handleIncrementStrike(player.participant_id)}
+                        onClick={() =>
+                          void handleIncrementStrike(player.participant_id)
+                        }
                         disabled={loading || playerStrikes >= 3}
                         className="flex-1 px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 disabled:opacity-50"
                       >
                         +1 Strike
                       </button>
                       <button
-                        onClick={() => void handleDecrementStrike(player.participant_id)}
+                        onClick={() =>
+                          void handleDecrementStrike(player.participant_id)
+                        }
                         disabled={loading || playerStrikes <= 0}
                         className="flex-1 px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 disabled:opacity-50"
                       >
@@ -516,14 +525,18 @@ const Quiz: React.FC = () => {
                     {currentSegment === "AUCT" && (
                       <div className="space-y-2">
                         <button
-                          disabled={(player.powerup_alhabeed ?? false) || loading}
+                          disabled={
+                            (player.powerup_alhabeed ?? false) || loading
+                          }
                           className={`w-full py-2 px-3 rounded-lg text-sm font-medium ${
                             player.powerup_alhabeed
                               ? "bg-gray-300 text-gray-500"
                               : "bg-blue-500 hover:bg-blue-600 text-white"
                           }`}
                         >
-                          {player.powerup_alhabeed ? "✓ Al-Habeed Used" : "Al-Habeed (30+)"}
+                          {player.powerup_alhabeed
+                            ? "✓ Al-Habeed Used"
+                            : "Al-Habeed (30+)"}
                         </button>
                         <button
                           disabled={loading}
@@ -535,14 +548,18 @@ const Quiz: React.FC = () => {
                     )}
                     {currentSegment === "BELL" && (
                       <button
-                        disabled={(player.powerup_bellegoal ?? false) || loading}
+                        disabled={
+                          (player.powerup_bellegoal ?? false) || loading
+                        }
                         className={`w-full py-2 px-3 rounded-lg text-sm font-medium ${
                           player.powerup_bellegoal
                             ? "bg-gray-300 text-gray-500"
                             : "bg-purple-500 hover:bg-purple-600 text-white"
                         }`}
                       >
-                        {player.powerup_bellegoal ? "✓ Bellegoal Used" : "Bellegoal"}
+                        {player.powerup_bellegoal
+                          ? "✓ Bellegoal Used"
+                          : "Bellegoal"}
                       </button>
                     )}
                     {currentSegment === "UPDW" && (
@@ -554,7 +571,9 @@ const Quiz: React.FC = () => {
                             : "bg-red-500 hover:bg-red-600 text-white"
                         }`}
                       >
-                        {player.powerup_slippyg ? "✓ Slippy-G Used" : "Slippy-G"}
+                        {player.powerup_slippyg
+                          ? "✓ Slippy-G Used"
+                          : "Slippy-G"}
                       </button>
                     )}
                     {currentSegment === "REMO" && (
@@ -585,7 +604,9 @@ const Quiz: React.FC = () => {
                   {/* Flag */}
                   {host.Profiles?.flag && (
                     <div className="w-12 h-12 flex items-center justify-center">
-                      <span className={`fi fi-${host.Profiles.flag.toLowerCase()} text-2xl`}></span>
+                      <span
+                        className={`fi fi-${host.Profiles.flag.toLowerCase()} text-2xl`}
+                      ></span>
                     </div>
                   )}
                   {/* Team Logo */}
@@ -612,58 +633,60 @@ const Quiz: React.FC = () => {
           <div className="lg:col-span-3 space-y-6">
             {/* Current Segment Info */}
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 text-white">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold">
-              Current Segment: {segments[currentSegment].name}
-            </h2>
-            <div className="text-right">
-              <div className="text-lg font-semibold">
-                Questions Remaining: {remainingQuestions}
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-bold">
+                  Current Segment: {segments[currentSegment].name}
+                </h2>
+                <div className="text-right">
+                  <div className="text-lg font-semibold">
+                    Questions Remaining: {remainingQuestions}
+                  </div>
+                  <div className="text-sm opacity-80">
+                    {segments[currentSegment].description}
+                  </div>
+                </div>
               </div>
-              <div className="text-sm opacity-80">
-                {segments[currentSegment].description}
+
+              {/* Segment Selector */}
+              <div className="flex flex-wrap gap-2">
+                {segmentOrder.map((code) => {
+                  const info = segments[code];
+                  const config = segmentConfig.find(
+                    (c) => c.segment_code === code
+                  );
+                  // Use segmentConfig if available, otherwise count from loaded questions
+                  const questionCount =
+                    config?.questions_count ??
+                    questions.filter((q) => q.segment_code === code).length;
+                  const canStart = canStartSegment(code);
+                  const isCompleted = completedSegments.includes(code);
+                  const isActive = currentSegment === code;
+                  return (
+                    <button
+                      key={code}
+                      onClick={() => {
+                        if (canStart) {
+                          setCurrentSegment(code);
+                        }
+                      }}
+                      disabled={!canStart}
+                      className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                        isActive
+                          ? "bg-yellow-500 text-black"
+                          : isCompleted
+                            ? "bg-green-600 text-white"
+                            : !canStart
+                              ? "bg-gray-400 text-gray-600 cursor-not-allowed"
+                              : "bg-white/20 text-white hover:bg-white/30"
+                      }`}
+                    >
+                      {isCompleted ? "✓ " : !canStart ? "🔒 " : ""}
+                      {info.name} ({questionCount})
+                    </button>
+                  );
+                })}
               </div>
             </div>
-          </div>
-
-          {/* Segment Selector */}
-          <div className="flex flex-wrap gap-2">
-            {segmentOrder.map((code) => {
-              const info = segments[code];
-              const config = segmentConfig.find((c) => c.segment_code === code);
-              // Use segmentConfig if available, otherwise count from loaded questions
-              const questionCount =
-                config?.questions_count ??
-                questions.filter((q) => q.segment_code === code).length;
-              const canStart = canStartSegment(code);
-              const isCompleted = completedSegments.includes(code);
-              const isActive = currentSegment === code;
-              return (
-                <button
-                  key={code}
-                  onClick={() => {
-                    if (canStart) {
-                      setCurrentSegment(code);
-                    }
-                  }}
-                  disabled={!canStart}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                    isActive
-                      ? "bg-yellow-500 text-black"
-                      : isCompleted
-                        ? "bg-green-600 text-white"
-                        : !canStart
-                          ? "bg-gray-400 text-gray-600 cursor-not-allowed"
-                          : "bg-white/20 text-white hover:bg-white/30"
-                  }`}
-                >
-                  {isCompleted ? "✓ " : !canStart ? "🔒 " : ""}
-                  {info.name} ({questionCount})
-                </button>
-              );
-            })}
-          </div>
-        </div>
 
             {/* Segment Completion Button (Host Only) */}
             {isHostClient && !completedSegments.includes(currentSegment) && (
@@ -684,10 +707,13 @@ const Quiz: React.FC = () => {
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
                       <span className="px-3 py-1 bg-blue-500 text-white text-sm font-bold rounded-full">
-                        Question {currentQuestionIndex + 1} of {currentSegmentQuestions.length}
+                        Question {currentQuestionIndex + 1} of{" "}
+                        {currentSegmentQuestions.length}
                       </span>
                       <span className="px-3 py-1 bg-purple-500 text-white text-sm font-bold rounded-full">
-                        {currentQuestion.question_type === "list" ? "List" : "Buzz"}
+                        {currentQuestion.question_type === "list"
+                          ? "List"
+                          : "Buzz"}
                       </span>
                     </div>
                     <h3 className="text-2xl font-bold text-gray-800 mb-4">
@@ -707,7 +733,8 @@ const Quiz: React.FC = () => {
                 {/* Answers Section (Host View) */}
                 {showAnswers && (
                   <div className="mt-4 p-4 bg-green-50 rounded-lg border-2 border-green-300">
-                    {currentQuestion.question_type === "list" && (currentSegment === "WDYK" || currentSegment === "AUCT") ? (
+                    {currentQuestion.question_type === "list" &&
+                    (currentSegment === "WDYK" || currentSegment === "AUCT") ? (
                       <div className="space-y-2">
                         {(Array.isArray(currentQuestion.answers)
                           ? currentQuestion.answers
@@ -757,7 +784,8 @@ const Quiz: React.FC = () => {
                     )}
                     {currentQuestion.total_answers_available && (
                       <p className="text-sm text-green-700 mt-3">
-                        Total answers available: {currentQuestion.total_answers_available}
+                        Total answers available:{" "}
+                        {currentQuestion.total_answers_available}
                       </p>
                     )}
                   </div>
@@ -767,7 +795,9 @@ const Quiz: React.FC = () => {
                 <div className="flex justify-between items-center mt-6 pt-4 border-t">
                   <button
                     onClick={() => {
-                      setCurrentQuestionIndex(Math.max(0, currentQuestionIndex - 1));
+                      setCurrentQuestionIndex(
+                        Math.max(0, currentQuestionIndex - 1)
+                      );
                       setShowAnswers(false);
                       setCheckedAnswers({});
                     }}
@@ -777,17 +807,24 @@ const Quiz: React.FC = () => {
                     ← Previous
                   </button>
                   <span className="text-gray-600 font-medium">
-                    {currentQuestionIndex + 1} / {currentSegmentQuestions.length}
+                    {currentQuestionIndex + 1} /{" "}
+                    {currentSegmentQuestions.length}
                   </span>
                   <button
                     onClick={() => {
                       setCurrentQuestionIndex(
-                        Math.min(currentSegmentQuestions.length - 1, currentQuestionIndex + 1)
+                        Math.min(
+                          currentSegmentQuestions.length - 1,
+                          currentQuestionIndex + 1
+                        )
                       );
                       setShowAnswers(false);
                       setCheckedAnswers({});
                     }}
-                    disabled={currentQuestionIndex === currentSegmentQuestions.length - 1}
+                    disabled={
+                      currentQuestionIndex ===
+                      currentSegmentQuestions.length - 1
+                    }
                     className="px-4 py-2 bg-gray-500 hover:bg-gray-600 disabled:bg-gray-300 text-white font-bold rounded-lg disabled:cursor-not-allowed"
                   >
                     Next →
@@ -802,7 +839,8 @@ const Quiz: React.FC = () => {
                   No questions available for this segment
                 </p>
                 <p className="text-yellow-700 mt-2">
-                  Go back to Game Setup to select questions for {segments[currentSegment].name}
+                  Go back to Game Setup to select questions for{" "}
+                  {segments[currentSegment].name}
                 </p>
               </div>
             )}
@@ -825,4 +863,3 @@ const Quiz: React.FC = () => {
 };
 
 export default Quiz;
-

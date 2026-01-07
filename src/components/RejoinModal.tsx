@@ -19,7 +19,7 @@ interface RejoinModalProps {
   onRejoin: (
     participantId: string,
     password: string,
-    updateConfig: boolean,
+    updateConfig: boolean
   ) => Promise<void>;
   isLoading: boolean;
 }
@@ -41,7 +41,7 @@ const RejoinModal: React.FC<RejoinModalProps> = ({
   if (!isOpen) return null;
 
   const selectedParticipant = participants.find(
-    (p) => p.participant_id === selectedParticipantId,
+    (p) => p.participant_id === selectedParticipantId
   );
 
   const handleSubmit = async (e: React.FormEvent) => {
