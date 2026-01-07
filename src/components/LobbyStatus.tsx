@@ -57,10 +57,11 @@ const LobbyStatus: React.FC<LobbyStatusProps> = ({
               participant_id,
               role,
               session_presence,
+              profile_id,
               Profiles!Participants_profile_id_fkey (
                 name,
                 flag,
-                team
+                team_url
               )
             `
             )
@@ -173,12 +174,15 @@ const LobbyStatus: React.FC<LobbyStatusProps> = ({
     }
   };
 
-  // Filter out GameMaster from displayed participants and counts
-  const displayParticipants = participants.filter((p) =>
-    ["Host", "Home", "Away"].includes(p.role)
-  );
-  const activeParticipantCount = displayParticipants.filter(
-    (p) => p.session_presence === "Joined"
+  // Create ordered participant slots (Host, Home, Away)
+  const roles = ["Host", "Home", "Away"];
+  const participantSlots = roles.map((role) => {
+    const participant = participants.find((p) => p.role === role);
+    return { role, participant };
+  });
+  
+  const activeParticipantCount = participants.filter(
+    (p) => ["Host", "Home", "Away"].includes(p.role) && p.session_presence === "Joined"
   ).length;
   const totalSlots = DISPLAY_PARTICIPANT_SLOTS; // Host + 2 Players (excludes GameMaster)
 
@@ -249,21 +253,22 @@ const LobbyStatus: React.FC<LobbyStatusProps> = ({
             transition={{ duration: 0.2 }}
             className="space-y-2"
           >
-            <div className="flex items-center text-green-600">
+            <div className="flex items-center text-green-600 mb-3">
               <span className="text-xl mr-2">✅</span>
               <span className="font-medium">Room Created</span>
             </div>
-            <div className="text-sm text-gray-600">
-              <div>
-                <strong>Room Name:</strong> {sessionCode}
+            <div className="text-sm text-gray-600 space-y-1">
+              <div className="flex items-start">
+                <strong className="min-w-[80px]">Room Name:</strong>
+                <span className="ml-2">{sessionCode}</span>
               </div>
-              <div>
-                <strong>Room URL:</strong>
+              <div className="flex items-start">
+                <strong className="min-w-[80px]">Room URL:</strong>
                 <a
                   href={dailyRoom.room_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="ml-1 text-blue-600 hover:underline truncate inline-block max-w-xs"
+                  className="ml-2 text-blue-600 hover:underline break-all"
                 >
                   {dailyRoom.room_url}
                 </a>
@@ -278,75 +283,123 @@ const LobbyStatus: React.FC<LobbyStatusProps> = ({
         )}
       </div>
 
+      {/* Host Device Selection */}
+      <div className="mb-6 p-4 border-2 border-purple-300 bg-purple-50 rounded-lg">
+        <h3 className="font-semibold text-gray-800 mb-3 flex items-center">
+          📱 Join Lobby
+        </h3>
+        <p className="text-sm text-gray-700 mb-3">
+          Choose how you want to join the video call:
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <button
+            onClick={() => {
+              // Navigate to lobby from current device
+              window.location.href = `/lobby/${sessionCode}`;
+            }}
+            className="flex flex-col items-center justify-center p-4 bg-white border-2 border-purple-400 rounded-lg hover:bg-purple-100 hover:border-purple-500 transition-all"
+          >
+            <span className="text-3xl mb-2">💻</span>
+            <span className="font-semibold text-gray-800">Current Device</span>
+            <span className="text-xs text-gray-600 mt-1">
+              Join from this browser
+            </span>
+          </button>
+          <button
+            onClick={() => {
+              // Copy lobby link to clipboard for another device
+              const lobbyUrl = `${window.location.origin}/lobby/${sessionCode}`;
+              navigator.clipboard.writeText(lobbyUrl);
+              alert(
+                `Lobby link copied! Open this link on your other device:\n\n${lobbyUrl}`
+              );
+            }}
+            className="flex flex-col items-center justify-center p-4 bg-white border-2 border-blue-400 rounded-lg hover:bg-blue-100 hover:border-blue-500 transition-all"
+          >
+            <span className="text-3xl mb-2">📱</span>
+            <span className="font-semibold text-gray-800">Another Device</span>
+            <span className="text-xs text-gray-600 mt-1">
+              Copy link for phone/tablet
+            </span>
+          </button>
+        </div>
+      </div>
+
       {/* Participants List */}
       <div className="mb-6">
         <h3 className="font-semibold text-gray-800 mb-3 flex items-center">
           👥 Participants
         </h3>
         <div className="space-y-3">
-          {displayParticipants.map((participant) => (
-            <div
-              key={participant.participant_id}
-              className="flex items-center justify-between p-3 border rounded-lg"
-            >
-              <div className="flex items-center space-x-3">
-                <span className="text-2xl">
-                  {getRoleIcon(participant.role)}
-                </span>
-                <div>
-                  <div className="font-medium text-gray-800">
-                    {participant.Profiles?.name || "Guest"}
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    {participant.role}
-                  </div>
-                </div>
-                {participant.Profiles?.flag && (
-                  <span
-                    className={`fi fi-${participant.Profiles.flag} text-lg`}
-                  ></span>
-                )}
-                {participant.Profiles?.team_url && (
-                  <img
-                    src={
-                      getTeamLogoUrl(participant.Profiles.team_url) ||
-                      participant.Profiles.team_url
-                    }
-                    alt="Team Logo"
-                    className="w-6 h-6 rounded object-contain"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = "none";
-                    }}
-                  />
-                )}
-              </div>
-              <span
-                className={`px-2 py-1 rounded-full text-xs font-medium ${getPresenceColor(participant.session_presence)}`}
-              >
-                Status: {participant.session_presence}
-              </span>
-            </div>
-          ))}
-
-          {/* Empty slots */}
-          {displayParticipants.length < totalSlots && (
-            <>
-              {Array(totalSlots - displayParticipants.length)
-                .fill(0)
-                .map((_, index) => (
-                  <div
-                    key={`empty-${index}`}
-                    className="flex items-center space-x-3 p-3 border-2 border-dashed border-gray-300 rounded-lg"
-                  >
-                    <span className="text-2xl text-gray-400">⭕</span>
-                    <div className="text-gray-500">
-                      <div className="font-medium">Empty Slot</div>
-                      <div className="text-sm">Waiting for player...</div>
+          {participantSlots.map(({ role, participant }) => {
+            if (participant && participant.profile_id) {
+              // Show participant with profile data
+              return (
+                <div
+                  key={participant.participant_id}
+                  className="flex items-center justify-between p-4 border rounded-lg bg-gray-50"
+                >
+                  <div className="flex items-center space-x-4">
+                    {/* Flag - convert to lowercase for flag-icons */}
+                    {participant.Profiles?.flag && (
+                      <span
+                        className={`fi fi-${participant.Profiles.flag.toLowerCase()} text-3xl`}
+                      ></span>
+                    )}
+                    {/* Team Logo */}
+                    {participant.Profiles?.team_url && (
+                      <img
+                        src={
+                          getTeamLogoUrl(participant.Profiles.team_url) ||
+                          participant.Profiles.team_url
+                        }
+                        alt="Team Logo"
+                        className="w-10 h-10 rounded object-contain"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = "none";
+                        }}
+                      />
+                    )}
+                    {/* Name and Role */}
+                    <div>
+                      <div className="font-bold text-gray-900 text-lg">
+                        {participant.Profiles?.name}
+                      </div>
+                      <div className="text-sm text-gray-600 flex items-center gap-1">
+                        <span>{getRoleIcon(participant.role)}</span>
+                        <span>{participant.role}</span>
+                      </div>
                     </div>
                   </div>
-                ))}
-            </>
-          )}
+                  {/* Status */}
+                  <span
+                    className={`px-3 py-1 rounded-full text-sm font-semibold ${getPresenceColor(participant.session_presence)}`}
+                  >
+                    {participant.session_presence === "Joined"
+                      ? "Joined"
+                      : "Disconnected"}
+                  </span>
+                </div>
+              );
+            } else {
+              // Show empty slot for missing or test players
+              return (
+                <div
+                  key={`empty-${role}`}
+                  className="flex items-center space-x-3 p-4 border-2 border-dashed border-gray-300 rounded-lg"
+                >
+                  <span className="text-2xl text-gray-400">⭕</span>
+                  <div className="text-gray-500">
+                    <div className="font-medium flex items-center gap-1">
+                      <span>{getRoleIcon(role)}</span>
+                      <span>{role}</span>
+                    </div>
+                    <div className="text-sm">Waiting for player...</div>
+                  </div>
+                </div>
+              );
+            }
+          })}
         </div>
       </div>
 

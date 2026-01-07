@@ -405,7 +405,7 @@ const GameSetup: React.FC = () => {
     }
   };
 
-  const handleStartQuiz = async () => {
+  const handleStartQuiz = async (isTestMode: boolean = false) => {
     if (!sessionId) {
       setNotice({
         type: "error",
@@ -421,6 +421,51 @@ const GameSetup: React.FC = () => {
           'Please create a Daily room first by clicking "Create Daily Room"',
       });
       return;
+    }
+
+    // If test mode, create 2 test participants
+    if (isTestMode) {
+      try {
+        setIsLoading(true);
+
+        // Create test player 1 (Home role)
+        const { error: testPlayer1Error } = await supabase
+          .from("Participants")
+          .insert({
+            session_id: sessionId,
+            role: "Home",
+            session_presence: "Joined",
+            video_presence: false,
+          });
+
+        if (testPlayer1Error) {
+          Logger.error("Error creating test player 1:", testPlayer1Error);
+        }
+
+        // Create test player 2 (Away role)
+        const { error: testPlayer2Error } = await supabase
+          .from("Participants")
+          .insert({
+            session_id: sessionId,
+            role: "Away",
+            session_presence: "Joined",
+            video_presence: false,
+          });
+
+        if (testPlayer2Error) {
+          Logger.error("Error creating test player 2:", testPlayer2Error);
+        }
+
+        Logger.log("✅ Test players created successfully");
+      } catch (error) {
+        Logger.error("Error creating test players:", error);
+        setNotice({
+          type: "error",
+          message: "Failed to create test players",
+        });
+        setIsLoading(false);
+        return;
+      }
     }
 
     // Fetch full question data and save to Netlify Blobs
@@ -593,11 +638,11 @@ const GameSetup: React.FC = () => {
         {/* Main content container */}
         <div className="relative z-10 flex-1 max-w-7xl mx-auto w-full">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full">
-            {/* Left side - Game Configuration */}
+            {/* Left side - Questions Configuration */}
             <div className="flex items-start justify-center">
               <div className="w-full max-w-lg bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl border border-white/20 p-6">
                 <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
-                  ⚙️ Game Configuration
+                  📋 Questions Configuration
                 </h2>
 
                 {/* Notice */}
@@ -628,18 +673,6 @@ const GameSetup: React.FC = () => {
                   </button>
                 )}
 
-                {/* Room Created Confirmation */}
-                {isDailyRoomCreated && roomInfo && (
-                  <div className="mb-6 p-4 bg-green-50 border-2 border-green-400 rounded-lg">
-                    <p className="text-green-800 font-semibold mb-2 flex items-center">
-                      ✅ Daily Room Created!
-                    </p>
-                    <p className="text-sm text-green-700 break-all">
-                      Room URL: {roomInfo.room_url}
-                    </p>
-                  </div>
-                )}
-
                 {/* Segment Configuration Form */}
                 <form
                   onSubmit={(e) => {
@@ -648,9 +681,21 @@ const GameSetup: React.FC = () => {
                   }}
                   className="space-y-4"
                 >
+                  {/* Manage Questions Button - Moved to Top */}
+                  <div className="mb-6">
+                    <Link
+                      to="/quiz-admin"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block w-full py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold rounded-xl shadow-lg transition-all duration-300 hover:shadow-2xl hover:scale-105 text-base text-center"
+                    >
+                      📝 Manage Questions
+                    </Link>
+                  </div>
+
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold text-gray-700 flex items-center gap-2 border-b pb-2">
-                      <span>📋</span> Select Questions by Segment
+                      Select Questions by Segment
                     </h3>
                     <p className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg border border-blue-200">
                       💡 Click each segment to choose questions. The question
@@ -665,13 +710,9 @@ const GameSetup: React.FC = () => {
                         className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 border-2 border-blue-300 rounded-lg transition-all hover:shadow-md"
                       >
                         <div className="flex items-center gap-3">
-                          <span className="text-2xl">🧠</span>
                           <div className="text-left">
                             <div className="font-semibold text-gray-800">
-                              WDYK - What Do You Know
-                            </div>
-                            <div className="text-xs text-gray-600">
-                              List question format
+                              What Do You Know
                             </div>
                           </div>
                         </div>
@@ -692,13 +733,9 @@ const GameSetup: React.FC = () => {
                         className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-orange-50 to-orange-100 hover:from-orange-100 hover:to-orange-200 border-2 border-orange-300 rounded-lg transition-all hover:shadow-md"
                       >
                         <div className="flex items-center gap-3">
-                          <span className="text-2xl">🔨</span>
                           <div className="text-left">
                             <div className="font-semibold text-gray-800">
-                              AUCT - Auction
-                            </div>
-                            <div className="text-xs text-gray-600">
-                              Bidding format
+                              Auction
                             </div>
                           </div>
                         </div>
@@ -719,13 +756,9 @@ const GameSetup: React.FC = () => {
                         className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-yellow-50 to-yellow-100 hover:from-yellow-100 hover:to-yellow-200 border-2 border-yellow-300 rounded-lg transition-all hover:shadow-md"
                       >
                         <div className="flex items-center gap-3">
-                          <span className="text-2xl">🔔</span>
                           <div className="text-left">
                             <div className="font-semibold text-gray-800">
-                              BELL - Bell Round
-                            </div>
-                            <div className="text-xs text-gray-600">
-                              First to answer
+                              Bell Round
                             </div>
                           </div>
                         </div>
@@ -746,13 +779,9 @@ const GameSetup: React.FC = () => {
                         className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 border-2 border-purple-300 rounded-lg transition-all hover:shadow-md"
                       >
                         <div className="flex items-center gap-3">
-                          <span className="text-2xl">🔄</span>
                           <div className="text-left">
                             <div className="font-semibold text-gray-800">
-                              UPDW - Upside-Down
-                            </div>
-                            <div className="text-xs text-gray-600">
-                              Order matters
+                              Upside-Down
                             </div>
                           </div>
                         </div>
@@ -773,13 +802,9 @@ const GameSetup: React.FC = () => {
                         className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-red-50 to-red-100 hover:from-red-100 hover:to-red-200 border-2 border-red-300 rounded-lg transition-all hover:shadow-md"
                       >
                         <div className="flex items-center gap-3">
-                          <span className="text-2xl">⚡</span>
                           <div className="text-left">
                             <div className="font-semibold text-gray-800">
-                              REMO - Remontada
-                            </div>
-                            <div className="text-xs text-gray-600">
-                              Comeback round
+                              Remontada
                             </div>
                           </div>
                         </div>
@@ -795,42 +820,23 @@ const GameSetup: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Manage Questions Link */}
-                  <div className="pt-4">
-                    <Link
-                      to="/quiz-admin"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block w-full py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold rounded-xl shadow-lg transition-all duration-300 hover:shadow-2xl hover:scale-105 text-base text-center"
-                    >
-                      📝 Manage Questions (New Tab)
-                    </Link>
-                  </div>
-
-                  {/* Test Mode Indicator */}
-                  {isDailyRoomCreated && participantCount === 1 && (
-                    <div className="mb-4 bg-yellow-500/20 border-2 border-yellow-400 rounded-lg p-3">
-                      <div className="flex items-center gap-2 text-yellow-900">
-                        <span className="text-xl">🧪</span>
-                        <div className="text-sm">
-                          <div className="font-bold">Test Mode Active</div>
-                          <div className="text-xs text-yellow-800">
-                            You can start the quiz solo for testing
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Start Quiz Button */}
-                  <div className="pt-4">
+                  {/* Start Quiz Buttons */}
+                  <div className="pt-4 space-y-3">
                     <button
                       type="submit"
-                      disabled={!isDailyRoomCreated}
+                      disabled={!isDailyRoomCreated || participantCount < 3}
                       className="w-full py-4 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 disabled:from-gray-400 disabled:to-gray-500 text-black font-bold rounded-xl shadow-lg transition-all duration-300 hover:shadow-2xl hover:scale-105 disabled:cursor-not-allowed disabled:hover:scale-100 text-lg"
                     >
-                      🚀 Start Quiz{" "}
-                      {participantCount === 1 ? "(Solo Test)" : ""}
+                      🚀 Start Quiz
+                      {participantCount < 3 && " (Requires 3 participants)"}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={!isDailyRoomCreated}
+                      onClick={() => handleStartQuiz(true)}
+                      className="w-full py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-bold rounded-xl shadow-lg transition-all duration-300 hover:shadow-2xl hover:scale-105 disabled:cursor-not-allowed disabled:hover:scale-100"
+                    >
+                      🧪 Start Test Quiz (2 Test Players)
                     </button>
                   </div>
                 </form>
