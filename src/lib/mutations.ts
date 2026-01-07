@@ -319,7 +319,7 @@ export async function joinAsPlayerWithCode(
   sessionCode: string,
   _name: string, // Deprecated - now using Profiles.name
   _flag: string, // Deprecated - now using Profiles.flag
-  _logoUrl: string, // Deprecated - now using Profiles.team
+  _logoUrl: string, // Deprecated - now using Profiles.team_url
   profileId?: string
 ): Promise<{ participantId: string; role: string }> {
   const sessionId = await getSessionIdByCode(sessionCode);
@@ -1414,7 +1414,7 @@ export async function updateParticipantConfig(
   if (config.name !== undefined) profileUpdate.name = config.name;
   if (config.flag !== undefined) profileUpdate.flag = config.flag;
   if (config.team_logo_url !== undefined)
-    profileUpdate.team = config.team_logo_url;
+    profileUpdate.team_url = config.team_logo_url;
 
   const { error } = await supabase
     .from("Profiles")

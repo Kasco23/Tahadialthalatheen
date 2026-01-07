@@ -20,8 +20,6 @@ const FlagSelection = lazy(() => import("./pages/FlagSelection"));
 const TeamSelection = lazy(() => import("./pages/TeamSelection"));
 const Inbox = lazy(() => import("./pages/Inbox"));
 const Leaderboard = lazy(() => import("./pages/Leaderboard"));
-const TransfermarktAPI = lazy(() => import("./pages/TransfermarktAPI"));
-const QuestionBuilder = lazy(() => import("./pages/QuestionBuilder"));
 const QuizAdmin = lazy(() => import("./pages/QuizAdmin"));
 
 function App() {
@@ -55,8 +53,6 @@ function App() {
               <Route path="/quiz/:sessionCode" element={<Quiz />} />
               <Route path="/results/:sessionCode" element={<Results />} />
               <Route path="/results" element={<Results />} />
-              <Route path="/transfermarkt-api" element={<TransfermarktAPI />} />
-              <Route path="/question-builder" element={<QuestionBuilder />} />
               <Route path="/quiz-admin" element={<QuizAdmin />} />
             </Routes>
           </Suspense>

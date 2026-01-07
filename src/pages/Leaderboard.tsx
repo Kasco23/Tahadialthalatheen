@@ -68,7 +68,9 @@ export default function Leaderboard() {
                 </div>
               </div>
               <button
-                onClick={() => navigate("/")}
+                onClick={() => {
+                  navigate("/");
+                }}
                 className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors font-medium"
               >
                 Back to Home
@@ -78,7 +80,9 @@ export default function Leaderboard() {
             {/* Tabs */}
             <div className="flex gap-2 border-b-2 border-gray-200">
               <button
-                onClick={() => setActiveTab("players")}
+                onClick={() => {
+                  setActiveTab("players");
+                }}
                 className={`px-6 py-3 font-semibold transition-all ${
                   activeTab === "players"
                     ? "border-b-4 border-green-600 text-green-600"
@@ -91,7 +95,9 @@ export default function Leaderboard() {
                 </div>
               </button>
               <button
-                onClick={() => setActiveTab("matches")}
+                onClick={() => {
+                  setActiveTab("matches");
+                }}
                 className={`px-6 py-3 font-semibold transition-all ${
                   activeTab === "matches"
                     ? "border-b-4 border-green-600 text-green-600"
@@ -139,7 +145,7 @@ export default function Leaderboard() {
                             <div
                               className={`text-3xl font-bold w-16 text-center ${getRankColor(rank)}`}
                             >
-                              {getRankIcon(rank) || `#${rank}`}
+                              {getRankIcon(rank) ?? `#${rank}`}
                             </div>
 
                             {/* Player Info */}
@@ -147,12 +153,12 @@ export default function Leaderboard() {
                               {player.avatar_url ? (
                                 <img
                                   src={player.avatar_url}
-                                  alt={player.name || "Player"}
+                                  alt={player.name ?? "Player"}
                                   className="w-12 h-12 rounded-lg object-cover"
                                 />
                               ) : (
                                 <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white font-bold text-lg">
-                                  {(player.name || player.username || "?")
+                                  {(player.name ?? player.username ?? "?")
                                     .charAt(0)
                                     .toUpperCase()}
                                 </div>
@@ -160,7 +166,7 @@ export default function Leaderboard() {
                               <div>
                                 <div className="flex items-center gap-2">
                                   <h3 className="font-bold text-gray-800">
-                                    {player.name || "Unknown"}
+                                    {player.name ?? "Unknown"}
                                   </h3>
                                   {player.flag && (
                                     <Flag
@@ -180,7 +186,7 @@ export default function Leaderboard() {
                               <div>
                                 <p className="text-sm text-gray-600">Games</p>
                                 <p className="font-bold text-gray-800">
-                                  {player.games_played || 0}
+                                  {player.games_played ?? 0}
                                 </p>
                               </div>
                               <div>
@@ -194,7 +200,7 @@ export default function Leaderboard() {
                                   Win Rate
                                 </p>
                                 <p className="font-bold text-blue-600">
-                                  {player.win_rate?.toFixed(1) || 0}%
+                                  {player.win_rate?.toFixed(1) ?? 0}%
                                 </p>
                               </div>
                               <div>
@@ -236,7 +242,7 @@ export default function Leaderboard() {
                             <div
                               className={`text-2xl font-bold ${getRankColor(rank)}`}
                             >
-                              {getRankIcon(rank) || `#${rank}`}
+                              {getRankIcon(rank) ?? `#${rank}`}
                             </div>
                             <div className="text-right">
                               <p className="text-sm text-gray-600">
@@ -245,8 +251,8 @@ export default function Leaderboard() {
                                 ).toLocaleDateString()}
                               </p>
                               <p className="text-lg font-bold text-purple-600">
-                                {(match.home_total_points || 0) +
-                                  (match.away_total_points || 0)}{" "}
+                                {(match.home_total_points ?? 0) +
+                                  (match.away_total_points ?? 0)}{" "}
                                 total points
                               </p>
                             </div>
@@ -268,10 +274,10 @@ export default function Leaderboard() {
                                   )}
                                 </div>
                                 <p className="font-bold text-gray-800">
-                                  {match.home_name || "Unknown"}
+                                  {match.home_name ?? "Unknown"}
                                 </p>
                                 <p className="text-sm text-gray-600">
-                                  @{match.home_username || "unknown"}
+                                  @{match.home_username ?? "unknown"}
                                 </p>
                               </div>
                             </div>
@@ -315,10 +321,10 @@ export default function Leaderboard() {
                                   </span>
                                 </div>
                                 <p className="font-bold text-gray-800">
-                                  {match.away_name || "Unknown"}
+                                  {match.away_name ?? "Unknown"}
                                 </p>
                                 <p className="text-sm text-gray-600">
-                                  @{match.away_username || "unknown"}
+                                  @{match.away_username ?? "unknown"}
                                 </p>
                               </div>
                             </div>

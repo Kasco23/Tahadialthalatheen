@@ -68,7 +68,7 @@ const ParticipantCard: React.FC<ParticipantCardProps> = ({
 }) => {
   // Generate team logo URL from Profile data only
   const teamLogoUrl = useMemo(() => {
-    const profileTeam = player.Profiles?.team;
+    const profileTeam = player.Profiles?.team_url;
 
     // If profile team exists and doesn't look like a URL, try to generate one
     if (profileTeam && !profileTeam.startsWith("http")) {
@@ -77,7 +77,7 @@ const ParticipantCard: React.FC<ParticipantCardProps> = ({
 
     // Otherwise use as-is
     return profileTeam ?? "";
-  }, [player.Profiles?.team]);
+  }, [player.Profiles?.team_url]);
 
   return (
     <div
@@ -616,9 +616,9 @@ const Lobby: React.FC = () => {
                 name: ourPlayer.Profiles?.name || "Unknown",
                 username: ourPlayer.Profiles?.username || null,
                 flag: ourPlayer.Profiles?.flag || "sa",
-                team: ourPlayer.Profiles?.team || null,
-                team_logo_url: ourPlayer.Profiles?.team
-                  ? getTeamLogoUrl(ourPlayer.Profiles.team)
+                team_url: ourPlayer.Profiles?.team_url || null,
+                team_logo_url: ourPlayer.Profiles?.team_url
+                  ? getTeamLogoUrl(ourPlayer.Profiles.team_url)
                   : null,
 
                 current_session_id: sessionId,
@@ -645,7 +645,7 @@ const Lobby: React.FC = () => {
                 last_device_sync: new Date().toISOString(),
 
                 preferred_flag: ourPlayer.Profiles?.flag || null,
-                preferred_team: ourPlayer.Profiles?.team || null,
+                preferred_team_url: ourPlayer.Profiles?.team_url || null,
 
                 audio_enabled: true, // Default values
                 video_enabled: true,
@@ -766,9 +766,9 @@ const Lobby: React.FC = () => {
         name: participant.Profiles?.name || participant.name || "Unknown",
         username: participant.Profiles?.username || null,
         flag: participant.Profiles?.flag || "sa",
-        team: participant.Profiles?.team || null,
-        team_logo_url: participant.Profiles?.team
-          ? getTeamLogoUrl(participant.Profiles.team)
+        team_url: participant.Profiles?.team_url || null,
+        team_logo_url: participant.Profiles?.team_url
+          ? getTeamLogoUrl(participant.Profiles.team_url)
           : null,
 
         current_session_id: sessionId,
@@ -794,7 +794,7 @@ const Lobby: React.FC = () => {
         last_device_sync: new Date().toISOString(),
 
         preferred_flag: participant.Profiles?.flag || null,
-        preferred_team: participant.Profiles?.team || null,
+        preferred_team_url: participant.Profiles?.team_url || null,
 
         audio_enabled: true,
         video_enabled: true,
@@ -852,7 +852,7 @@ const Lobby: React.FC = () => {
           name: p.Profiles?.name || "Unknown",
           role: p.role,
           flag: p.Profiles?.flag || "sa",
-          team: p.Profiles?.team || null,
+          team_url: p.Profiles?.team_url || null,
           session_presence: p.session_presence,
           video_presence: p.video_presence || false,
           join_at: p.join_at || null,

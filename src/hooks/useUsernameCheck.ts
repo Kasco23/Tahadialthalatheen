@@ -66,9 +66,12 @@ export function useRequireUsername(options?: {
   const hasUsername = !!(profile?.username && profile.username.length >= 3);
 
   useEffect(() => {
-    if (autoShow && user && !hasUsername) {
-      setShowModal(true);
-    }
+    const checkAndShow = () => {
+      if (autoShow && user && !hasUsername) {
+        setShowModal(true);
+      }
+    };
+    checkAndShow();
   }, [autoShow, user, hasUsername]);
 
   const hideModal = () => {

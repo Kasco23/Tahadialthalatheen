@@ -255,50 +255,6 @@
 
 ## Developer Tools & Testing
 
-### TransfermarktAPI.tsx
-
-- **Status**: ✅ Active
-- **Route**: `/transfermarkt-api`
-- **Purpose**: API testing interface for Transfermarkt API integration
-- **Dependencies**: React Router, Netlify Functions
-- **Key Features**:
-  - Three-tabbed interface (Competitions, Clubs, Players)
-  - Live API testing with real-time responses via proxy
-  - Support for all OpenAPI endpoints
-  - Response display with status codes and JSON formatting
-  - Search functionality for competitions, clubs, and players
-  - Detailed player endpoints (profile, market value, transfers, stats, injuries, achievements)
-  - Club endpoints (profile, players by season)
-  - Competition endpoints (search, clubs by season)
-  - CORS-free requests through Netlify Functions proxy
-- **Backend**: Uses `transfermarkt-proxy.mts` Netlify function to avoid CORS
-- **API Base URL**: `https://transfermarkt-api-jftx.onrender.com` (proxied)
-- **Use Case**: Production-like testing environment for API integration
-- **Note**: All input fields start empty - no mock data or placeholders
-- **Size**: ~12KB
-
-### QuestionBuilder.tsx
-
-- **Status**: ✅ Active
-- **Route**: `/question-builder`
-- **Purpose**: Structured data explorer to help users find football data for creating quiz questions
-- **Dependencies**: React Router, Netlify Functions (via transfermarkt-proxy)
-- **Key Features**:
-  - Three category types: Competitions, Clubs, Players
-  - Smart filtering system with empty defaults
-  - Competition filters: Name (required), Season (default: 2025), Continent, Country, Top Leagues (All/Top 5/Top 10)
-  - Club filters: Name (required), Country
-  - Player filters: Name (required), Position, Nationality
-  - Top 5 Leagues logic: Premier League, La Liga, Serie A, Bundesliga, Ligue 1
-  - Top 10 Leagues: Top 5 + Portugal, Netherlands, Belgium, Russia, Turkey
-  - Clean table displays (not JSON) with formatted data
-  - Currency formatting for market values (€X.XM format)
-  - Result counts and empty states
-  - Responsive grid layouts
-- **Use Case**: Question research and data discovery for quiz creation
-- **Note**: All filters start empty except Season (2025)
-- **Size**: ~15KB
-
 ---
 
 ## Technical Notes

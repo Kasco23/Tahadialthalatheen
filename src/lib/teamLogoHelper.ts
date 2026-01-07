@@ -102,7 +102,7 @@ export function getTeamLogoUrl(
   const detectedLeague = league || getLeagueForTeam(teamName);
 
   if (!detectedLeague) {
-    console.warn(`League not found for team: ${teamName}`);
+    console.warn(`League not found for team_url: ${teamName}`);
     return null;
   }
 

@@ -79,7 +79,7 @@ export interface ParticipantBlobData {
   name: string;
   username: string | null;
   flag: string;
-  team: string | null;
+  team_url: string | null;
   team_logo_url: string | null;
 
   // Session Relationship
@@ -100,7 +100,7 @@ export interface ParticipantBlobData {
 
   // User Preferences (persists across sessions)
   preferred_flag: string | null;
-  preferred_team: string | null;
+  preferred_team_url: string | null;
   audio_enabled: boolean;
   video_enabled: boolean;
 
@@ -141,7 +141,7 @@ export interface LobbySnapshotData {
     name: string;
     role: string;
     flag: string;
-    team: string | null;
+    team_url: string | null;
     session_presence: string;
     video_presence: boolean;
     join_at: string | null;
@@ -178,6 +178,9 @@ export interface QuizQuestionsBlob {
   current_segment: string | null;
   current_question_index: number;
   completed_segments: string[];
+
+  // Strike counters per participant (participant_id -> strike count)
+  strike_counts?: Record<string, number>;
 }
 
 /**
@@ -1157,4 +1160,153 @@ export async function invalidateBlobCache(keys: string[]): Promise<void> {
     await cache.invalidate(key);
   }
   Logger.log(`[BlobsManager] Invalidated ${keys.length} cache entries`);
+}
+
+// ============================================================================
+// Strike Counter Management (Blob-based persistence)
+// ============================================================================
+
+/**
+ * Get strike count for a participant in a quiz session
+ */
+export async function getStrikeCount(
+  sessionCode: string,
+  participantId: string
+): Promise<number> {
+  try {
+    const result = await getQuizQuestions(sessionCode);
+    if (result.success && result.data) {
+      return result.data.strike_counts?.[participantId] || 0;
+    }
+    return 0;
+  } catch (error) {
+    Logger.error(`[getStrikeCount] Error:`, error);
+    return 0;
+  }
+}
+
+/**
+ * Get all strike counts for a quiz session
+ */
+export async function getAllStrikeCounts(
+  sessionCode: string
+): Promise<Record<string, number>> {
+  try {
+    const result = await getQuizQuestions(sessionCode);
+    if (result.success && result.data) {
+      return result.data.strike_counts || {};
+    }
+    return {};
+  } catch (error) {
+    Logger.error(`[getAllStrikeCounts] Error:`, error);
+    return {};
+  }
+}
+
+/**
+ * Update strike count for a participant
+ */
+export async function updateStrikeCount(
+  sessionCode: string,
+  _sessionId: string,
+  participantId: string,
+  strikeCount: number
+): Promise<BlobResult<QuizQuestionsBlob>> {
+  try {
+    // Get current quiz data
+    const result = await getQuizQuestions(sessionCode, false);
+    if (!result.success || !result.data) {
+      return {
+        success: false,
+        data: null,
+        error: "Quiz questions not found",
+        cached: false,
+        source: "blob",
+      };
+    }
+
+    // Update strike count
+    const updatedData: QuizQuestionsBlob = {
+      ...result.data,
+      strike_counts: {
+        ...result.data.strike_counts,
+        [participantId]: Math.max(0, Math.min(3, strikeCount)), // Clamp between 0-3
+      },
+      last_updated: new Date().toISOString(),
+    };
+
+    // Save back to blob
+    const response = await fetch("/.netlify/edge-functions/session-state", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sessionId: `quiz:${sessionCode}`,
+        state: updatedData,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    // Update cache
+    const cacheKey = `quiz:${sessionCode}`;
+    await cache.set(cacheKey, updatedData);
+
+    Logger.log(
+      `[updateStrikeCount] Updated strikes for ${participantId} to ${strikeCount}`
+    );
+
+    return {
+      success: true,
+      data: updatedData,
+      error: null,
+      cached: false,
+      source: "blob",
+    };
+  } catch (error) {
+    Logger.error(`[updateStrikeCount] Error:`, error);
+    return {
+      success: false,
+      data: null,
+      error: error instanceof Error ? error.message : "Unknown error",
+      cached: false,
+      source: "blob",
+    };
+  }
+}
+
+/**
+ * Increment strike count for a participant
+ */
+export async function incrementStrikeInBlob(
+  sessionCode: string,
+  sessionId: string,
+  participantId: string
+): Promise<BlobResult<QuizQuestionsBlob>> {
+  const currentCount = await getStrikeCount(sessionCode, participantId);
+  return updateStrikeCount(sessionCode, sessionId, participantId, currentCount + 1);
+}
+
+/**
+ * Decrement strike count for a participant
+ */
+export async function decrementStrikeInBlob(
+  sessionCode: string,
+  sessionId: string,
+  participantId: string
+): Promise<BlobResult<QuizQuestionsBlob>> {
+  const currentCount = await getStrikeCount(sessionCode, participantId);
+  return updateStrikeCount(sessionCode, sessionId, participantId, currentCount - 1);
+}
+
+/**
+ * Reset strike count for a participant
+ */
+export async function resetStrikeInBlob(
+  sessionCode: string,
+  sessionId: string,
+  participantId: string
+): Promise<BlobResult<QuizQuestionsBlob>> {
+  return updateStrikeCount(sessionCode, sessionId, participantId, 0);
 }

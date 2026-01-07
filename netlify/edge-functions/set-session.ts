@@ -44,7 +44,7 @@ export default async (req: Request, context: Context) => {
       );
       try {
         body = await req.json();
-      } catch (finalError) {
+      } catch (_finalError) {
         return new Response(
           JSON.stringify({
             success: false,

@@ -504,7 +504,7 @@ export type Database = {
           flag: string | null;
           id: string;
           name: string;
-          team: string | null;
+          team_url: string | null;
           updated_at: string;
           username: string;
         };
@@ -514,7 +514,7 @@ export type Database = {
           flag?: string | null;
           id: string;
           name: string;
-          team?: string | null;
+          team_url?: string | null;
           updated_at?: string;
           username: string;
         };
@@ -524,7 +524,7 @@ export type Database = {
           flag?: string | null;
           id?: string;
           name?: string;
-          team?: string | null;
+          team_url?: string | null;
           updated_at?: string;
           username?: string;
         };
@@ -832,7 +832,7 @@ export type Database = {
           away_flag: string | null;
           away_name: string | null;
           away_player_id: string | null;
-          away_team: string | null;
+          away_team_url: string | null;
           away_total_points: number | null;
           away_username: string | null;
           created_at: string | null;
@@ -840,7 +840,7 @@ export type Database = {
           home_flag: string | null;
           home_name: string | null;
           home_player_id: string | null;
-          home_team: string | null;
+          home_team_url: string | null;
           home_total_points: number | null;
           home_username: string | null;
           id: number | null;
@@ -868,7 +868,7 @@ export type Database = {
           id: string | null;
           losses: number | null;
           name: string | null;
-          team: string | null;
+          team_url: string | null;
           total_points: number | null;
           username: string | null;
           win_rate: number | null;

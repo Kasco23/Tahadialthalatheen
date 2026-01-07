@@ -13,7 +13,6 @@ import { validateQuestionFilter } from "../../src/lib/validation/questionSchemas
  * - segment_code?: 'WDYK' | 'AUCT' | 'BELL' | 'UPDW' | 'REMO'
  * - question_type?: 'list' | 'buzz'
  * - difficulty?: 'easy' | 'medium' | 'hard'
- * - api_source?: 'manual' | 'transfermarkt'
  * - limit?: number (default: 10, max: 100)
  * - offset?: number (default: 0)
  */
@@ -34,7 +33,6 @@ export default async (req: Request, context: Context) => {
       segment_code: url.searchParams.get("segment_code") || undefined,
       question_type: url.searchParams.get("question_type") || undefined,
       difficulty: url.searchParams.get("difficulty") || undefined,
-      api_source: url.searchParams.get("api_source") || undefined,
       limit: parseInt(url.searchParams.get("limit") || "10"),
       offset: parseInt(url.searchParams.get("offset") || "0"),
     };

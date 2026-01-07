@@ -7,7 +7,7 @@ export interface TimerProps {
   /** Callback when timer completes */
   onComplete?: () => void;
   /** Callback called every second with remaining time */
-  onTick?: (remaining: number) => void;
+  onTick?: (_remaining: number) => void;
   /** Auto-start timer on mount */
   autoStart?: boolean;
   /** Custom className for styling */
@@ -55,11 +55,14 @@ export const Timer: React.FC<TimerProps> = ({
 
   // Reset timer when duration changes
   useEffect(() => {
-    setTimeRemaining(duration);
-    setIsComplete(false);
-    if (autoStart) {
-      setIsRunning(true);
-    }
+    const resetTimer = () => {
+      setTimeRemaining(duration);
+      setIsComplete(false);
+      if (autoStart) {
+        setIsRunning(true);
+      }
+    };
+    resetTimer();
   }, [duration, autoStart]);
 
   // Main timer logic
@@ -92,7 +95,9 @@ export const Timer: React.FC<TimerProps> = ({
       });
     }, 1000);
 
-    return () => clearInterval(intervalId);
+    return () => {
+      clearInterval(intervalId);
+    };
   }, [isRunning, isComplete, onComplete, onTick]);
 
   const start = useCallback(() => {

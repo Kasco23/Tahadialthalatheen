@@ -56,20 +56,24 @@ export const StadiumBackground: React.FC<StadiumBackgroundProps> = ({
   };
 
   const colors = variants[variant];
-  const crowdShapes = useMemo(
-    () =>
-      Array.from({ length: 60 }, (_, i) => ({
-        id: i,
-        cx: i * 20 + 10,
-        opacity: 0.6 + Math.random() * 0.4,
-        ellipseCy: 180 + Math.random() * 10,
-        ellipseRx: 4 + Math.random() * 2,
-        ellipseRy: 15 + Math.random() * 5,
-        circleCy: 165 + Math.random() * 5,
-        circleR: 4 + Math.random() * 2,
-      })),
-    []
-  );
+  const crowdShapes = useMemo(() => {
+    // Use deterministic pseudo-random based on index for stable rendering
+    const seededRandom = (seed: number) => {
+      const x = Math.sin(seed) * 10000;
+      return x - Math.floor(x);
+    };
+
+    return Array.from({ length: 60 }, (_, i) => ({
+      id: i,
+      cx: i * 20 + 10,
+      opacity: 0.6 + seededRandom(i) * 0.4,
+      ellipseCy: 180 + seededRandom(i + 100) * 10,
+      ellipseRx: 4 + seededRandom(i + 200) * 2,
+      ellipseRy: 15 + seededRandom(i + 300) * 5,
+      circleCy: 165 + seededRandom(i + 400) * 5,
+      circleR: 4 + seededRandom(i + 500) * 2,
+    }));
+  }, []);
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">

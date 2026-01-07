@@ -137,7 +137,7 @@ const Results: React.FC = () => {
               // Add legacy fields for backward compatibility
               name: profileData?.name || "Guest",
               flag: profileData?.flag || "xx",
-              team_logo_url: profileData?.team || null,
+              team_logo_url: profileData?.team_url || null,
             };
           });
           setPlayers(normalizedPlayers);

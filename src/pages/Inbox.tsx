@@ -45,11 +45,11 @@ export default function Inbox() {
       return;
     }
 
-    loadNotifications();
+    void loadNotifications();
 
     // Subscribe to real-time updates
     const unsubscribe = subscribeNotificationsUpdates(user.id, () => {
-      loadNotifications();
+      void loadNotifications();
     });
 
     return () => {
@@ -163,7 +163,9 @@ export default function Inbox() {
             <div className="flex flex-wrap gap-2 justify-between items-center">
               <div className="flex gap-2">
                 <button
-                  onClick={() => setFilter("all")}
+                  onClick={() => {
+                    setFilter("all");
+                  }}
                   className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                     filter === "all"
                       ? "bg-green-600 text-white"
@@ -220,7 +222,7 @@ export default function Inbox() {
                 >
                   <div className="flex items-start gap-4">
                     <div className="flex-shrink-0 mt-1">
-                      {getNotificationIcon(notification.type || "default")}
+                      {getNotificationIcon(notification.type ?? "default")}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
@@ -259,7 +261,7 @@ export default function Inbox() {
                         onClick={(e) => {
                           e.stopPropagation();
                           if (notification.id)
-                            handleDelete(String(notification.id));
+                            void handleDelete(String(notification.id));
                         }}
                         className="p-2 hover:bg-red-100 rounded-lg transition-colors"
                         title="Delete"

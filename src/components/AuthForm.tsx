@@ -30,7 +30,6 @@ export default function AuthForm({
     password: "",
     name: "",
     username: "",
-    team: "",
     flag: "",
     keepSignedIn: true,
   });

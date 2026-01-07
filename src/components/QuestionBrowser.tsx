@@ -27,7 +27,6 @@ interface Question {
   question_text: string;
   answers: string | string[];
   difficulty: string;
-  api_source: string;
   created_at: string;
 }
 
@@ -101,13 +100,13 @@ export const QuestionBrowser: React.FC = () => {
   // Pagination handlers
   const handleNextPage = () => {
     if (pagination.hasMore) {
-      fetchQuestions(pagination.offset + pagination.limit);
+      void fetchQuestions(pagination.offset + pagination.limit);
     }
   };
 
   const handlePrevPage = () => {
     if (pagination.offset > 0) {
-      fetchQuestions(Math.max(0, pagination.offset - pagination.limit));
+      void fetchQuestions(Math.max(0, pagination.offset - pagination.limit));
     }
   };
 
@@ -258,10 +257,7 @@ export const QuestionBrowser: React.FC = () => {
                       <span className="text-sm font-semibold">Answers: </span>
                       {renderAnswers(question)}
                     </div>
-                    <p className="text-xs text-base-content/50">
-                      Created:{" "}
-                      {new Date(question.created_at).toLocaleDateString()}
-                    </p>
+                    {/* Removed creation date display per project ToDos */}
                   </div>
                   <div className="flex gap-2">
                     <button

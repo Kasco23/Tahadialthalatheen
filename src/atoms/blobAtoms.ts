@@ -451,9 +451,9 @@ export const currentParticipantPreferencesAtom = atom((get) => {
 
   return {
     preferred_flag: data.preferred_flag,
-    preferred_team: data.preferred_team,
+    preferred_team_url: data.preferred_team_url,
     flag: data.flag,
-    team: data.team,
+    team_url: data.team_url,
     team_logo_url: data.team_logo_url,
     audio_enabled: data.audio_enabled,
     video_enabled: data.video_enabled,

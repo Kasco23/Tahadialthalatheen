@@ -57,7 +57,7 @@ export const JoinModal: React.FC<JoinModalProps> = ({ isOpen, onClose }) => {
         profile.name || undefined,
         profile.flag || undefined,
         undefined, // team logo url
-        profile.team || undefined,
+        profile.team_url || undefined,
       );
 
       // Navigate to lobby

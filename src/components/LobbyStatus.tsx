@@ -23,7 +23,7 @@ interface ParticipantInfo {
   Profiles?: {
     name?: string | null;
     flag?: string | null;
-    team?: string | null;
+    team_url?: string | null;
   } | null;
 }
 
@@ -306,11 +306,11 @@ const LobbyStatus: React.FC<LobbyStatusProps> = ({
                     className={`fi fi-${participant.Profiles.flag} text-lg`}
                   ></span>
                 )}
-                {participant.Profiles?.team && (
+                {participant.Profiles?.team_url && (
                   <img
                     src={
-                      getTeamLogoUrl(participant.Profiles.team) ||
-                      participant.Profiles.team
+                      getTeamLogoUrl(participant.Profiles.team_url) ||
+                      participant.Profiles.team_url
                     }
                     alt="Team Logo"
                     className="w-6 h-6 rounded object-contain"

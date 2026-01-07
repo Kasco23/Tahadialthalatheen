@@ -182,10 +182,12 @@ export function useParticipants(sessionId: string | null) {
             `
             *,
             Profiles!profile_id (
+              id,
               name,
               username,
               flag,
-              team
+              team_url,
+              avatar_url
             )
           `
           )
@@ -213,21 +215,47 @@ export function useParticipants(sessionId: string | null) {
           table: "Participants",
           filter: `session_id=eq.${sessionId}`,
         },
-        (payload) => {
+        async (payload) => {
           Logger.log("Participant update:", payload);
 
-          if (payload.eventType === "INSERT") {
-            const newData = payload.new as Tables<"Participants">;
-            setParticipants((prev) => [...prev, newData]);
-          } else if (payload.eventType === "UPDATE") {
-            const newData = payload.new as Tables<"Participants">;
-            setParticipants((prev) =>
-              prev.map((participant) =>
-                participant.participant_id === newData.participant_id
-                  ? newData
-                  : participant
-              )
-            );
+          // Refetch participant with Profile data to ensure we have complete information
+          if (payload.eventType === "INSERT" || payload.eventType === "UPDATE") {
+            try {
+              const participantId = payload.new.participant_id;
+              const { data, error } = await supabase
+                .from("Participants")
+                .select(
+                  `
+                  *,
+                  Profiles!profile_id (
+                    id,
+                    name,
+                    username,
+                    flag,
+                    team_url,
+                    avatar_url
+                  )
+                `
+                )
+                .eq("participant_id", participantId)
+                .single();
+
+              if (error) throw error;
+
+              if (payload.eventType === "INSERT") {
+                setParticipants((prev) => [...prev, data]);
+              } else if (payload.eventType === "UPDATE") {
+                setParticipants((prev) =>
+                  prev.map((participant) =>
+                    participant.participant_id === data.participant_id
+                      ? data
+                      : participant
+                  )
+                );
+              }
+            } catch (error) {
+              Logger.error("Error refetching participant with Profile:", error);
+            }
           } else if (payload.eventType === "DELETE") {
             const oldData = payload.old as Tables<"Participants">;
             setParticipants((prev) =>

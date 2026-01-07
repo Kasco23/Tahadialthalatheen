@@ -445,12 +445,12 @@ export default function Profile() {
                     Favorite Team
                   </label>
                   <div className="px-4 py-3 border-2 border-gray-200 rounded-xl bg-gray-50">
-                    {profile?.team ? (
+                    {profile?.team_url ? (
                       <div className="flex items-center gap-3">
                         {/* Show team logo if it's a URL */}
-                        {profile.team.startsWith("http") && (
+                        {profile.team_url.startsWith("http") && (
                           <img
-                            src={profile.team}
+                            src={profile.team_url}
                             alt="Team logo"
                             className="w-8 h-8 object-contain"
                             style={{
@@ -464,13 +464,13 @@ export default function Profile() {
                         )}
                         <span className="text-sm font-medium text-gray-700">
                           {/* Extract team name from URL or show as-is */}
-                          {profile.team.startsWith("http")
+                          {profile.team_url.startsWith("http")
                             ? decodeURIComponent(
-                                profile.team
+                                profile.team_url
                                   .split("/")
                                   .pop()
                                   ?.replace(".svg", "")
-                                  .replace(/-/g, " ") || profile.team
+                                  .replace(/-/g, " ") || profile.team_url
                               )
                                 .split(" ")
                                 .map(
@@ -478,7 +478,7 @@ export default function Profile() {
                                     word.charAt(0).toUpperCase() + word.slice(1)
                                 )
                                 .join(" ")
-                            : profile.team}
+                            : profile.team_url}
                         </span>
                       </div>
                     ) : (

@@ -30,12 +30,12 @@ export default function TeamSelection() {
 
     setSaving(true);
     try {
-      await updateProfile({ team: selectedTeamName });
+      await updateProfile({ team_url: selectedTeamName });
       toast.success("Team saved! Profile complete!");
       // Redirect to homepage
       navigate("/");
     } catch (error) {
-      console.error("Error saving team:", error);
+      console.error("Error saving team_url:", error);
       toast.error(
         error instanceof Error ? error.message : "Failed to save team",
       );

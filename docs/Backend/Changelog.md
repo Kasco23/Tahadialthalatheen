@@ -6,37 +6,12 @@
 
 ## November 14, 2025
 
-### transfermarkt-proxy.mts - Created
-
-- **Type**: New Netlify Serverless Function
-- **Purpose**: Proxy requests to Transfermarkt API to avoid CORS policy issues
-- **Reason**: Browser direct calls to `https://transfermarkt-api-jftx.onrender.com` blocked by CORS
-- **Endpoint**: `/.netlify/functions/transfermarkt-proxy?endpoint={path}`
-- **Method**: GET (supports all methods via req.method)
-- **Request**: Query parameter `endpoint` (e.g., `/players/search/Messi?page_number=1`)
-- **Response**: Proxied JSON response from Transfermarkt API
-- **Key Features**:
-  - Proxies all requests to external Transfermarkt API
-  - Adds proper CORS headers (`Access-Control-Allow-Origin: *`)
-  - Passes through request method
-  - Error handling with detailed error messages
-  - No authentication required (public API proxy)
-  - Logging for debugging
-- **Environment Variables**: None (uses public API)
-- **Size**: ~2KB
-- **Used By**: TransfermarktAPI.tsx testing page
-- **Impact**: Enables frontend to test Transfermarkt API endpoints without CORS restrictions
-- **Runtime**: Netlify Functions v2
-
----
-
 ## January 24, 2025
 
 ### Question Generator Functions - Planning Complete
 
 - **Type**: Planned (Phases 4-7)
 - **Purpose**: Create 5 Netlify serverless functions for semi-automatic football quiz question generation
-- **Reason**: Enable hosts to generate questions on-demand using Transfermarkt API data instead of manual creation
 - **Planned Functions**:
   1. **generate-remontada-question.mts** (Phase 4): REMO segment using player transfer history
   2. **generate-bell-question.mts** (Phase 5): BELL segment using statistical data
@@ -59,14 +34,12 @@
   - BELL: 1 day (stats change seasonally)
   - WDYK/AUCT: 7 days (rosters relatively stable)
   - UPDW: 30 days (achievements/jersey numbers rarely change)
-- **Dependencies**: api/transfermarkt.ts (API wrapper), api/transfermarktCache.ts (caching layer)
 - **Impact**:
   - Hosts can generate questions in seconds
   - Access to comprehensive football data (transfers, stats, achievements)
   - Reduced manual data entry errors
   - Support for all 5 quiz segments
   - Cache layer minimizes API calls
-- **Part Of**: Transfermarkt API Integration Project (14-phase implementation)
 - **Implementation Order**: Phase 4 (REMO) → Phase 5 (BELL) → Phase 6 (WDYK/AUCT) → Phase 7 (UPDW)
 - **Next Action**: Implement after API wrapper (Phase 1) and caching layer (Phase 2) are complete
 

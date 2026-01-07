@@ -8,7 +8,7 @@ export interface RejoinParticipant {
   Profiles?: {
     name?: string | null;
     flag?: string | null;
-    team?: string | null;
+    team_url?: string | null;
   } | null;
 }
 
@@ -113,9 +113,9 @@ const RejoinModal: React.FC<RejoinModalProps> = ({
                     }`}
                   >
                     <div className="flex items-center space-x-4">
-                      {participant.Profiles?.team && (
+                      {participant.Profiles?.team_url && (
                         <img
-                          src={participant.Profiles.team}
+                          src={participant.Profiles.team_url}
                           alt={participant.Profiles.name || "Player"}
                           className="w-12 h-12 object-contain"
                         />

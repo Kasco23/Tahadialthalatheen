@@ -18,8 +18,6 @@ import { validateQuestionUpdate } from "../../src/lib/validation/questionSchemas
  *   question_text?: string,
  *   answers?: string[] (for list) | string (for buzz),
  *   difficulty?: 'easy' | 'medium' | 'hard',
- *   api_source?: 'manual' | 'transfermarkt',
- *   api_params?: object,
  *   metadata?: object
  * }
  */

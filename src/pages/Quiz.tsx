@@ -4,19 +4,22 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useAtom } from "jotai";
 import { useSession } from "../lib/sessionHooks";
 import {
-  useStrikes,
   useSegmentConfig,
   useParticipants,
 } from "../lib/realtimeHooks";
 import {
-  incrementStrike,
-  resetStrikes,
   activatePowerup,
   getSessionIdByCode,
 } from "../lib/mutations";
-import { getQuizQuestions } from "../lib/blobsManager";
+import {
+  getQuizQuestions,
+  getAllStrikeCounts,
+  incrementStrikeInBlob,
+  decrementStrikeInBlob,
+} from "../lib/blobsManager";
 import { dailyUserNameAtom } from "../atoms";
 import { VideoRoom } from "../components/VideoRoom";
+import { useAuth } from "../contexts/AuthContext";
 import type {
   SegmentCode,
   Database,
@@ -40,12 +43,27 @@ const Quiz: React.FC = () => {
   const navigate = useNavigate();
   const [sessionId, setSessionId] = useState<string | null>(null);
   const { session, loading: sessionLoading } = useSession(sessionId);
-  const { strikes, loading: strikesLoading } = useStrikes(sessionId);
   const { segmentConfig, loading: configLoading } = useSegmentConfig(sessionId);
   const { participants, loading: participantsLoading } =
     useParticipants(sessionId);
 
+  // Strike counts from Blobs (local state)
+  const [strikes, setStrikes] = useState<Record<string, number>>({});
+
   const [userName] = useAtom(dailyUserNameAtom);
+  const { profile } = useAuth();
+
+  // Determine if current user is host
+  // Priority: 1) Match profile_id in participants, 2) Fallback to localStorage for testing
+  const currentUserParticipant = participants.find(
+    (p) => p.profile_id === profile?.id
+  );
+  const isHostClient =
+    currentUserParticipant?.role === "Host" ||
+    (typeof window !== "undefined" &&
+      window.localStorage.getItem("isHost") === "true" &&
+      !currentUserParticipant);
+
   const [currentSegment, setCurrentSegment] = useState<SegmentCode>("WDYK");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -61,7 +79,16 @@ const Quiz: React.FC = () => {
     }>
   >([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [showAnswers, setShowAnswers] = useState(false);
+  // Host should see answers immediately; players never see answers
+  const [showAnswers, setShowAnswers] = useState(isHostClient);
+  // Track checked answers for list questions (WDYK and AUCT)
+  const [checkedAnswers, setCheckedAnswers] = useState<Record<string, boolean>>({});
+
+  // Segment completion tracking (in real app would be in database)
+  const [completedSegments, setCompletedSegments] = useState<SegmentCode[]>([]);
+
+  // Segment order definition
+  const segmentOrder: SegmentCode[] = ["WDYK", "AUCT", "BELL", "UPDW", "REMO"];
 
   // Get participant name
   const participantName =
@@ -86,7 +113,7 @@ const Quiz: React.FC = () => {
     };
 
     if (sessionCode) {
-      resolveSessionId();
+      void resolveSessionId();
     }
   }, [sessionCode]);
 
@@ -100,23 +127,59 @@ const Quiz: React.FC = () => {
 
       if (result.success && result.data) {
         setQuestions(result.data.questions);
+        // Load strike counts from blob
+        setStrikes(result.data.strike_counts || {});
         Logger.log(
           `✅ Loaded ${result.data.questions.length} questions from Netlify Blobs`
         );
       } else {
         Logger.error("Failed to load questions:", result.error);
         setError("No questions found. Please go back and select questions.");
-
-        // Redirect back to GameSetup after 3 seconds
-        setTimeout(() => {
-          navigate(`/gamesetup/${sessionCode}`);
-        }, 3000);
       }
       setLoading(false);
     };
 
     void fetchQuestions();
+  }, [sessionCode, navigate]);
+
+  // Poll for strike count updates every 2 seconds
+  useEffect(() => {
+    if (!sessionCode) return;
+
+    const pollStrikes = setInterval(async () => {
+      const strikeCounts = await getAllStrikeCounts(sessionCode);
+      setStrikes(strikeCounts);
+    }, 2000);
+
+    return () => clearInterval(pollStrikes);
   }, [sessionCode]);
+
+  // Helper: Check if segment can be started
+  const canStartSegment = (segmentCode: SegmentCode): boolean => {
+    const segmentIndex = segmentOrder.indexOf(segmentCode);
+    if (segmentIndex === 0) return true; // First segment always available
+
+    // All previous segments must be completed
+    const previousSegment = segmentOrder[segmentIndex - 1];
+    return completedSegments.includes(previousSegment);
+  };
+
+  // Helper: Mark current segment as complete
+  const handleCompleteSegment = () => {
+    if (!completedSegments.includes(currentSegment)) {
+      setCompletedSegments([...completedSegments, currentSegment]);
+
+      // Auto-advance to next segment if available
+      const currentIndex = segmentOrder.indexOf(currentSegment);
+      if (currentIndex < segmentOrder.length - 1) {
+        const nextSegment = segmentOrder[currentIndex + 1];
+        setCurrentSegment(nextSegment);
+        setCurrentQuestionIndex(0);
+        setShowAnswers(isHostClient);
+        setCheckedAnswers({});
+      }
+    }
+  };
 
   // Segment definitions
   const segments = {
@@ -127,6 +190,9 @@ const Quiz: React.FC = () => {
     REMO: { name: "Remontada", description: "Career path questions" },
   };
 
+  // Identify host participant from session
+  const host = participants.find((p) => p.role === "Host");
+
   // Add placeholder participants if testing solo
   const realPlayers = participants.filter((p) => p.role !== "Host");
   const placeholderParticipants: typeof realPlayers =
@@ -135,7 +201,7 @@ const Quiz: React.FC = () => {
           {
             participant_id: "placeholder-1",
             role: "Home",
-            session_id: sessionId || "",
+            session_id: sessionId ?? "",
             session_presence: "joined",
             video_presence: false,
             powerup_pass_used: false,
@@ -150,9 +216,9 @@ const Quiz: React.FC = () => {
               id: "placeholder-profile-1",
               name: "Player 1 (Test)",
               username: "player1",
-              flag: "gb-eng",
-              team: "11",
-              avatar_url: null,
+              flag: "ps",
+              team_url: "https://psdrwkjkgubatiemsgqn.supabase.co/storage/v1/object/public/logos/Ligue-1/paris-saint-germain.svg",
+              avatar_url: "https://psdrwkjkgubatiemsgqn.supabase.co/storage/v1/object/public/avatars/Test_Users/profile-2-2197365079.jpg",
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),
             },
@@ -175,9 +241,9 @@ const Quiz: React.FC = () => {
               id: "placeholder-profile-2",
               name: "Player 2 (Test)",
               username: "player2",
-              flag: "es",
-              team: "418",
-              avatar_url: null,
+              flag: "ps",
+              team_url: "https://psdrwkjkgubatiemsgqn.supabase.co/storage/v1/object/public/logos/Ligue-1/paris-saint-germain.svg",
+              avatar_url: "https://psdrwkjkgubatiemsgqn.supabase.co/storage/v1/object/public/avatars/Test_Users/profile-2-2197365079.jpg",
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),
             },
@@ -187,7 +253,6 @@ const Quiz: React.FC = () => {
 
   const players =
     realPlayers.length > 0 ? realPlayers : placeholderParticipants;
-  const host = participants.find((p) => p.role === "Host");
 
   // Get questions for current segment
   const currentSegmentQuestions = questions.filter(
@@ -202,7 +267,7 @@ const Quiz: React.FC = () => {
     );
   };
 
-  const remainingQuestions = getCurrentSegmentConfig()?.questions_count || 0;
+  const remainingQuestions = getCurrentSegmentConfig()?.questions_count ?? 0;
 
   // PASS Button Logic - Enabled only if:
   // 1. currentSegment === 'WDYK'
@@ -235,17 +300,32 @@ const Quiz: React.FC = () => {
     }
   };
 
+  const handleToggleAnswer = (answerIndex: number) => {
+    const key = `${currentQuestion?.question_id}-${answerIndex}`;
+    setCheckedAnswers(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }));
+  };
+
   const handleIncrementStrike = async (participantId: string) => {
+    if (!sessionCode || !sessionId) return;
+    
     setLoading(true);
     try {
-      // Skip database operations for placeholder test participants
-      if (participantId.startsWith("placeholder-")) {
-        Logger.log(
-          `Skipping strike increment for test participant ${participantId}`
-        );
+      // Check max strikes limit
+      const currentStrikes = strikes[participantId] ?? 0;
+      if (currentStrikes >= 3) {
+        Logger.log(`Participant ${participantId} already has 3 strikes (max)`);
         return;
       }
-      await incrementStrike(sessionId!, participantId);
+
+      // Update strike count in blob
+      const result = await incrementStrikeInBlob(sessionCode, sessionId, participantId);
+      if (result.success && result.data) {
+        setStrikes(result.data.strike_counts || {});
+        Logger.log(`✅ Incremented strike for ${participantId}`);
+      }
     } catch (error) {
       Logger.error("Error incrementing strike:", error);
       setError(
@@ -256,21 +336,28 @@ const Quiz: React.FC = () => {
     }
   };
 
-  const handleResetStrikes = async (participantId: string) => {
+  const handleDecrementStrike = async (participantId: string) => {
+    if (!sessionCode || !sessionId) return;
+    
     setLoading(true);
     try {
-      // Skip database operations for placeholder test participants
-      if (participantId.startsWith("placeholder-")) {
-        Logger.log(
-          `Skipping strike reset for test participant ${participantId}`
-        );
+      // Check min strikes limit
+      const currentStrikes = strikes[participantId] ?? 0;
+      if (currentStrikes <= 0) {
+        Logger.log(`Participant ${participantId} already has 0 strikes (min)`);
         return;
       }
-      await resetStrikes(sessionId!, participantId);
+
+      // Update strike count in blob
+      const result = await decrementStrikeInBlob(sessionCode, sessionId, participantId);
+      if (result.success && result.data) {
+        setStrikes(result.data.strike_counts || {});
+        Logger.log(`✅ Decremented strike for ${participantId}`);
+      }
     } catch (error) {
-      Logger.error("Error resetting strikes:", error);
+      Logger.error("Error decrementing strike:", error);
       setError(
-        error instanceof Error ? error.message : "Failed to reset strikes"
+        error instanceof Error ? error.message : "Failed to decrement strike"
       );
     } finally {
       setLoading(false);
@@ -279,7 +366,6 @@ const Quiz: React.FC = () => {
 
   if (
     sessionLoading ||
-    strikesLoading ||
     configLoading ||
     participantsLoading
   ) {
@@ -300,29 +386,232 @@ const Quiz: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-600 via-green-700 to-green-800 p-4">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-8 text-white">
+        <div className="text-center mb-6 text-white">
           <h1 className="text-4xl font-bold mb-2">⚽ Quiz In Progress</h1>
-          <p className="text-xl opacity-90">Session: {sessionId}</p>
+          <p className="text-xl opacity-90">Session: {sessionCode}</p>
           <p className="text-lg opacity-80">
             Phase: {session.phase} | Game State: {session.game_state}
           </p>
         </div>
 
-        {/* Video Room - Persists from Lobby */}
-        <div className="mb-8">
-          <VideoRoom
-            players={participants}
-            sessionCode={sessionCode || ""}
-            sessionId={sessionId || ""}
-            participantName={participantName}
-            autoJoin={true} // Auto-join in Quiz to maintain call from Lobby
-          />
-        </div>
+        {/* Error Display - Show at top if present */}
+        {error && (
+          <div className="mb-6 p-4 bg-red-100 border-2 border-red-400 text-red-700 rounded-lg">
+            <p className="font-bold text-lg mb-2">Error</p>
+            <p className="mb-4">{error}</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setError(null)}
+                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 font-medium"
+              >
+                Dismiss
+              </button>
+              <button
+                onClick={() => navigate(`/gamesetup/${sessionCode}`)}
+                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 font-medium"
+              >
+                Go to Game Setup
+              </button>
+            </div>
+          </div>
+        )}
 
-        {/* Current Segment Info */}
-        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 mb-8 text-white">
+        {/* Main Grid Layout: Banners Left | Q&A Top-Right | Video Bottom-Right */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Left Column: Player and Host Banners */}
+          <div className="lg:col-span-1 space-y-4">
+
+            {/* Players Section - Compact */}
+            {players.map((player) => {
+              const playerStrikes = strikes[player.participant_id] || 0;
+              return (
+                <div
+                  key={player.participant_id}
+                  className="bg-white rounded-xl p-4 shadow-lg"
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    {/* Profile Picture - Squared */}
+                    {player.Profiles?.avatar_url && (
+                      <img
+                        src={player.Profiles.avatar_url}
+                        alt={player.Profiles.name || "Player"}
+                        className="w-12 h-12 rounded object-cover"
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                        }}
+                      />
+                    )}
+                    {/* Flag */}
+                    {player.Profiles?.flag && (
+                      <div className="w-12 h-12 flex items-center justify-center">
+                        <span className={`fi fi-${player.Profiles.flag.toLowerCase()} text-2xl`}></span>
+                      </div>
+                    )}
+                    {/* Team Logo */}
+                    {player.Profiles?.team_url && (
+                      <img
+                        src={player.Profiles.team_url}
+                        alt="Team logo"
+                        className="w-12 h-12 object-contain"
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                        }}
+                      />
+                    )}
+                  </div>
+                  <div className="mb-2">
+                    <h3 className="text-lg font-bold text-gray-800">
+                      {player.Profiles?.name || "Unknown Player"}
+                    </h3>
+                    <p className="text-sm text-gray-600">{player.role}</p>
+                  </div>
+                  <div className="flex justify-between items-center mb-3">
+                    <div className="text-xl font-bold text-gray-800">0 pts</div>
+                    <div className="text-sm text-red-600 font-semibold">
+                      Strikes: {playerStrikes}
+                    </div>
+                  </div>
+
+                  {/* Strike Management (Host only, WDYK segment only) */}
+                  {isHostClient && currentSegment === "WDYK" && (
+                    <div className="mb-3 flex gap-2">
+                      <button
+                        onClick={() => void handleIncrementStrike(player.participant_id)}
+                        disabled={loading || playerStrikes >= 3}
+                        className="flex-1 px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 disabled:opacity-50"
+                      >
+                        +1 Strike
+                      </button>
+                      <button
+                        onClick={() => void handleDecrementStrike(player.participant_id)}
+                        disabled={loading || playerStrikes <= 0}
+                        className="flex-1 px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 disabled:opacity-50"
+                      >
+                        -1 Strike
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Powerup Buttons - Segment Specific */}
+                  <div className="space-y-2">
+                    {currentSegment === "WDYK" && (
+                      <button
+                        onClick={() => void handlePassButtonClick(player)}
+                        disabled={!canUsePass(player) || loading}
+                        className={`w-full py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
+                          canUsePass(player) && !loading
+                            ? "bg-yellow-500 hover:bg-yellow-600 text-black"
+                            : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                        }`}
+                      >
+                        {player.powerup_pass_used
+                          ? "✓ PASS Used"
+                          : playerStrikes !== 2
+                            ? `PASS (Need 2 strikes)`
+                            : "PASS Available"}
+                      </button>
+                    )}
+                    {currentSegment === "AUCT" && (
+                      <div className="space-y-2">
+                        <button
+                          disabled={(player.powerup_alhabeed ?? false) || loading}
+                          className={`w-full py-2 px-3 rounded-lg text-sm font-medium ${
+                            player.powerup_alhabeed
+                              ? "bg-gray-300 text-gray-500"
+                              : "bg-blue-500 hover:bg-blue-600 text-white"
+                          }`}
+                        >
+                          {player.powerup_alhabeed ? "✓ Al-Habeed Used" : "Al-Habeed (30+)"}
+                        </button>
+                        <button
+                          disabled={loading}
+                          className="w-full py-2 px-3 rounded-lg text-sm font-medium bg-orange-500 hover:bg-orange-600 text-white"
+                        >
+                          Withdraw
+                        </button>
+                      </div>
+                    )}
+                    {currentSegment === "BELL" && (
+                      <button
+                        disabled={(player.powerup_bellegoal ?? false) || loading}
+                        className={`w-full py-2 px-3 rounded-lg text-sm font-medium ${
+                          player.powerup_bellegoal
+                            ? "bg-gray-300 text-gray-500"
+                            : "bg-purple-500 hover:bg-purple-600 text-white"
+                        }`}
+                      >
+                        {player.powerup_bellegoal ? "✓ Bellegoal Used" : "Bellegoal"}
+                      </button>
+                    )}
+                    {currentSegment === "UPDW" && (
+                      <button
+                        disabled={player.powerup_slippyg || loading}
+                        className={`w-full py-2 px-3 rounded-lg text-sm font-medium ${
+                          player.powerup_slippyg
+                            ? "bg-gray-300 text-gray-500"
+                            : "bg-red-500 hover:bg-red-600 text-white"
+                        }`}
+                      >
+                        {player.powerup_slippyg ? "✓ Slippy-G Used" : "Slippy-G"}
+                      </button>
+                    )}
+                    {currentSegment === "REMO" && (
+                      <div className="text-center text-xs text-gray-500 py-2">
+                        No powerups
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Host Section - Compact */}
+            {host && (
+              <div className="bg-white rounded-xl p-4 shadow-lg">
+                <div className="flex items-center gap-3 mb-2">
+                  {/* Profile Picture - Squared */}
+                  {host.Profiles?.avatar_url && (
+                    <img
+                      src={host.Profiles.avatar_url}
+                      alt={host.Profiles.name || "Host"}
+                      className="w-12 h-12 rounded object-cover"
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                      }}
+                    />
+                  )}
+                  {/* Flag */}
+                  {host.Profiles?.flag && (
+                    <div className="w-12 h-12 flex items-center justify-center">
+                      <span className={`fi fi-${host.Profiles.flag.toLowerCase()} text-2xl`}></span>
+                    </div>
+                  )}
+                  {/* Team Logo */}
+                  {host.Profiles?.team_url && (
+                    <img
+                      src={host.Profiles.team_url}
+                      alt="Team logo"
+                      className="w-12 h-12 object-contain"
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                      }}
+                    />
+                  )}
+                </div>
+                <h3 className="text-lg font-bold text-gray-800">
+                  {host.Profiles?.name || "Unknown Host"}
+                </h3>
+                <p className="text-sm text-gray-600">Host</p>
+              </div>
+            )}
+          </div>
+
+          {/* Right Column: Segment Info, Questions, and Video */}
+          <div className="lg:col-span-3 space-y-6">
+            {/* Current Segment Info */}
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 text-white">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-2xl font-bold">
               Current Segment: {segments[currentSegment].name}
@@ -339,333 +628,201 @@ const Quiz: React.FC = () => {
 
           {/* Segment Selector */}
           <div className="flex flex-wrap gap-2">
-            {Object.entries(segments).map(([code, info]) => {
+            {segmentOrder.map((code) => {
+              const info = segments[code];
               const config = segmentConfig.find((c) => c.segment_code === code);
+              // Use segmentConfig if available, otherwise count from loaded questions
+              const questionCount =
+                config?.questions_count ??
+                questions.filter((q) => q.segment_code === code).length;
+              const canStart = canStartSegment(code);
+              const isCompleted = completedSegments.includes(code);
+              const isActive = currentSegment === code;
               return (
                 <button
                   key={code}
-                  onClick={() => setCurrentSegment(code as SegmentCode)}
+                  onClick={() => {
+                    if (canStart) {
+                      setCurrentSegment(code);
+                    }
+                  }}
+                  disabled={!canStart}
                   className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                    currentSegment === code
+                    isActive
                       ? "bg-yellow-500 text-black"
-                      : "bg-white/20 text-white hover:bg-white/30"
+                      : isCompleted
+                        ? "bg-green-600 text-white"
+                        : !canStart
+                          ? "bg-gray-400 text-gray-600 cursor-not-allowed"
+                          : "bg-white/20 text-white hover:bg-white/30"
                   }`}
                 >
-                  {info.name} ({config?.questions_count || 0})
+                  {isCompleted ? "✓ " : !canStart ? "🔒 " : ""}
+                  {info.name} ({questionCount})
                 </button>
               );
             })}
           </div>
         </div>
 
-        {/* Question Display Section */}
-        {currentQuestion && (
-          <div className="bg-white rounded-xl p-6 shadow-lg mb-8">
-            <div className="flex justify-between items-start mb-4">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="px-3 py-1 bg-blue-500 text-white text-sm font-bold rounded-full">
-                    Question {currentQuestionIndex + 1} of{" "}
-                    {currentSegmentQuestions.length}
-                  </span>
-                  <span className="px-3 py-1 bg-purple-500 text-white text-sm font-bold rounded-full">
-                    {currentQuestion.question_type === "list"
-                      ? "📚 List"
-                      : "🔔 Buzz"}
-                  </span>
-                </div>
-                <h3 className="text-2xl font-bold text-gray-800 mb-4">
-                  {currentQuestion.question_text}
-                </h3>
-              </div>
-              <button
-                onClick={() => {
-                  setShowAnswers(!showAnswers);
-                }}
-                className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white font-bold rounded-lg transition-colors"
-              >
-                {showAnswers ? "🙈 Hide Answers" : "👁️ Show Answers"}
-              </button>
-            </div>
-
-            {/* Answers Section (Host View) */}
-            {showAnswers && (
-              <div className="mt-4 p-4 bg-green-50 rounded-lg border-2 border-green-300">
-                <h4 className="text-lg font-bold text-green-800 mb-3">
-                  ✅ Correct Answers:
-                </h4>
-                {currentQuestion.question_type === "list" ? (
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                    {(Array.isArray(currentQuestion.answers)
-                      ? currentQuestion.answers
-                      : JSON.parse(currentQuestion.answers as string)
-                    ).map((answer: string, idx: number) => (
-                      <div
-                        key={idx}
-                        className="px-3 py-2 bg-white rounded-lg border border-green-300 text-gray-800 font-medium"
-                      >
-                        {idx + 1}. {answer}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="px-4 py-3 bg-white rounded-lg border border-green-300">
-                    <p className="text-gray-800 font-bold text-lg">
-                      {typeof currentQuestion.answers === "string"
-                        ? currentQuestion.answers
-                        : (currentQuestion.answers as string[])[0]}
-                    </p>
-                  </div>
-                )}
-                {currentQuestion.total_answers_available && (
-                  <p className="text-sm text-green-700 mt-2">
-                    Total answers available:{" "}
-                    {currentQuestion.total_answers_available}
-                  </p>
-                )}
+            {/* Segment Completion Button (Host Only) */}
+            {isHostClient && !completedSegments.includes(currentSegment) && (
+              <div className="mb-4 text-center">
+                <button
+                  onClick={handleCompleteSegment}
+                  className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold"
+                >
+                  Complete {segments[currentSegment].name} Segment
+                </button>
               </div>
             )}
 
-            {/* Question Navigation */}
-            <div className="flex justify-between items-center mt-6 pt-4 border-t">
-              <button
-                onClick={() => {
-                  setCurrentQuestionIndex(
-                    Math.max(0, currentQuestionIndex - 1)
-                  );
-                  setShowAnswers(false);
-                }}
-                disabled={currentQuestionIndex === 0}
-                className="px-4 py-2 bg-gray-500 hover:bg-gray-600 disabled:bg-gray-300 text-white font-bold rounded-lg disabled:cursor-not-allowed"
-              >
-                ← Previous
-              </button>
-              <span className="text-gray-600 font-medium">
-                {currentQuestionIndex + 1} / {currentSegmentQuestions.length}
-              </span>
-              <button
-                onClick={() => {
-                  setCurrentQuestionIndex(
-                    Math.min(
-                      currentSegmentQuestions.length - 1,
-                      currentQuestionIndex + 1
-                    )
-                  );
-                  setShowAnswers(false);
-                }}
-                disabled={
-                  currentQuestionIndex === currentSegmentQuestions.length - 1
-                }
-                className="px-4 py-2 bg-gray-500 hover:bg-gray-600 disabled:bg-gray-300 text-white font-bold rounded-lg disabled:cursor-not-allowed"
-              >
-                Next →
-              </button>
-            </div>
-          </div>
-        )}
-
-        {!currentQuestion && (
-          <div className="bg-yellow-50 border-2 border-yellow-300 rounded-xl p-6 text-center mb-8">
-            <p className="text-xl text-yellow-800 font-bold">
-              📝 No questions available for this segment
-            </p>
-            <p className="text-yellow-700 mt-2">
-              Go back to Game Setup to select questions for{" "}
-              {segments[currentSegment].name}
-            </p>
-          </div>
-        )}
-
-        {/* Players Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          {players.map((player) => {
-            const playerStrikes = strikes[player.participant_id] || 0;
-
-            return (
-              <div
-                key={player.participant_id}
-                className="bg-white rounded-xl p-6 shadow-lg"
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-3">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">
-                        {player.Profiles?.flag ? (
-                          <span
-                            className={`fi fi-${player.Profiles.flag} text-lg`}
-                          ></span>
-                        ) : (
-                          (player.Profiles?.name || "P").charAt(0)
-                        )}
-                      </div>
-                      {player.Profiles?.team && (
-                        <img
-                          src={`https://tmssl.akamaized.net/images/wappen/head/${player.Profiles.team}.png`}
-                          alt={`${player.Profiles?.name || "Player"} team logo`}
-                          className="w-10 h-10 object-contain rounded"
-                          onError={(e) => {
-                            e.currentTarget.style.display = "none";
-                          }}
-                        />
-                      )}
+            {/* Question Display Section */}
+            {currentQuestion && (
+              <div className="bg-white rounded-xl p-6 shadow-lg">
+                <div className="flex justify-between items-start mb-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="px-3 py-1 bg-blue-500 text-white text-sm font-bold rounded-full">
+                        Question {currentQuestionIndex + 1} of {currentSegmentQuestions.length}
+                      </span>
+                      <span className="px-3 py-1 bg-purple-500 text-white text-sm font-bold rounded-full">
+                        {currentQuestion.question_type === "list" ? "List" : "Buzz"}
+                      </span>
                     </div>
-                    <div>
-                      <h3 className="text-xl font-bold text-gray-800">
-                        {player.Profiles?.name || "Unknown Player"}
-                      </h3>
-                      <p className="text-sm text-gray-600">{player.role}</p>
-                    </div>
+                    <h3 className="text-2xl font-bold text-gray-800 mb-4">
+                      {currentQuestion.question_text}
+                    </h3>
                   </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-bold text-gray-800">
-                      0 pts
-                    </div>
-                    <div className="text-sm text-red-600 font-semibold">
-                      Strikes: {playerStrikes}
-                    </div>
-                  </div>
+                  {isHostClient && (
+                    <button
+                      onClick={() => setShowAnswers(!showAnswers)}
+                      className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white font-bold rounded-lg transition-colors"
+                    >
+                      {showAnswers ? "Hide Answers" : "Show Answers"}
+                    </button>
+                  )}
                 </div>
 
-                {/* Strike Management (WDYK only) */}
-                {currentSegment === "WDYK" && (
-                  <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-gray-700">
-                        Strike Management:
-                      </span>
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() =>
-                            handleIncrementStrike(player.participant_id)
-                          }
-                          disabled={loading}
-                          className="px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 disabled:opacity-50"
-                        >
-                          +1 Strike
-                        </button>
-                        <button
-                          onClick={() =>
-                            handleResetStrikes(player.participant_id)
-                          }
-                          disabled={loading}
-                          className="px-3 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 disabled:opacity-50"
-                        >
-                          Reset
-                        </button>
+                {/* Answers Section (Host View) */}
+                {showAnswers && (
+                  <div className="mt-4 p-4 bg-green-50 rounded-lg border-2 border-green-300">
+                    {currentQuestion.question_type === "list" && (currentSegment === "WDYK" || currentSegment === "AUCT") ? (
+                      <div className="space-y-2">
+                        {(Array.isArray(currentQuestion.answers)
+                          ? currentQuestion.answers
+                          : JSON.parse(currentQuestion.answers as string)
+                        ).map((answer: string, idx: number) => {
+                          const checkKey = `${currentQuestion.question_id}-${idx}`;
+                          return (
+                            <label
+                              key={idx}
+                              className="flex items-center gap-3 px-3 py-2 bg-white rounded-lg border border-green-300 hover:bg-green-50 cursor-pointer"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={checkedAnswers[checkKey] || false}
+                                onChange={() => handleToggleAnswer(idx)}
+                                className="w-5 h-5 text-green-600 rounded focus:ring-green-500"
+                              />
+                              <span className="text-gray-800 font-medium">
+                                {idx + 1}. {answer}
+                              </span>
+                            </label>
+                          );
+                        })}
                       </div>
-                    </div>
+                    ) : currentQuestion.question_type === "list" ? (
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                        {(Array.isArray(currentQuestion.answers)
+                          ? currentQuestion.answers
+                          : JSON.parse(currentQuestion.answers as string)
+                        ).map((answer: string, idx: number) => (
+                          <div
+                            key={idx}
+                            className="px-3 py-2 bg-white rounded-lg border border-green-300 text-gray-800 font-medium"
+                          >
+                            {idx + 1}. {answer}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="px-4 py-3 bg-white rounded-lg border border-green-300">
+                        <p className="text-gray-800 font-bold text-lg">
+                          {typeof currentQuestion.answers === "string"
+                            ? currentQuestion.answers
+                            : (currentQuestion.answers as string[])[0]}
+                        </p>
+                      </div>
+                    )}
+                    {currentQuestion.total_answers_available && (
+                      <p className="text-sm text-green-700 mt-3">
+                        Total answers available: {currentQuestion.total_answers_available}
+                      </p>
+                    )}
                   </div>
                 )}
 
-                {/* Powerup Buttons */}
-                <div className="space-y-2">
-                  {/* PASS Button - WDYK only, specific conditions */}
+                {/* Question Navigation */}
+                <div className="flex justify-between items-center mt-6 pt-4 border-t">
                   <button
-                    onClick={() => handlePassButtonClick(player)}
-                    disabled={!canUsePass(player) || loading}
-                    className={`w-full py-2 px-4 rounded-lg font-medium transition-colors ${
-                      canUsePass(player) && !loading
-                        ? "bg-yellow-500 hover:bg-yellow-600 text-black"
-                        : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    }`}
+                    onClick={() => {
+                      setCurrentQuestionIndex(Math.max(0, currentQuestionIndex - 1));
+                      setShowAnswers(false);
+                      setCheckedAnswers({});
+                    }}
+                    disabled={currentQuestionIndex === 0}
+                    className="px-4 py-2 bg-gray-500 hover:bg-gray-600 disabled:bg-gray-300 text-white font-bold rounded-lg disabled:cursor-not-allowed"
                   >
-                    {player.powerup_pass_used
-                      ? "✓ PASS Used"
-                      : currentSegment !== "WDYK"
-                        ? "PASS (WDYK only)"
-                        : playerStrikes !== 2
-                          ? `PASS (Need 2 strikes, have ${playerStrikes})`
-                          : "PASS Available"}
+                    ← Previous
                   </button>
-
-                  {/* Other Powerups */}
-                  <div className="grid grid-cols-3 gap-2">
-                    <button
-                      disabled={player.powerup_alhabeed || loading}
-                      className={`py-1 px-2 text-xs rounded font-medium ${
-                        player.powerup_alhabeed
-                          ? "bg-gray-300 text-gray-500"
-                          : "bg-blue-500 hover:bg-blue-600 text-white"
-                      }`}
-                    >
-                      {player.powerup_alhabeed ? "✓ Al-Habeed" : "Al-Habeed"}
-                    </button>
-
-                    <button
-                      disabled={player.powerup_bellegoal || loading}
-                      className={`py-1 px-2 text-xs rounded font-medium ${
-                        player.powerup_bellegoal
-                          ? "bg-gray-300 text-gray-500"
-                          : "bg-purple-500 hover:bg-purple-600 text-white"
-                      }`}
-                    >
-                      {player.powerup_bellegoal ? "✓ Bellegoal" : "Bellegoal"}
-                    </button>
-
-                    <button
-                      disabled={player.powerup_slippyg || loading}
-                      className={`py-1 px-2 text-xs rounded font-medium ${
-                        player.powerup_slippyg
-                          ? "bg-gray-300 text-gray-500"
-                          : "bg-red-500 hover:bg-red-600 text-white"
-                      }`}
-                    >
-                      {player.powerup_slippyg ? "✓ Slippy-G" : "Slippy-G"}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Connection Status */}
-                <div className="mt-4 flex items-center space-x-2">
-                  <div
-                    className={`w-3 h-3 rounded-full ${
-                      player.video_presence ? "bg-green-500" : "bg-red-500"
-                    }`}
-                  ></div>
-                  <span className="text-sm text-gray-600">
-                    {player.video_presence ? "Connected" : "Disconnected"}
+                  <span className="text-gray-600 font-medium">
+                    {currentQuestionIndex + 1} / {currentSegmentQuestions.length}
                   </span>
+                  <button
+                    onClick={() => {
+                      setCurrentQuestionIndex(
+                        Math.min(currentSegmentQuestions.length - 1, currentQuestionIndex + 1)
+                      );
+                      setShowAnswers(false);
+                      setCheckedAnswers({});
+                    }}
+                    disabled={currentQuestionIndex === currentSegmentQuestions.length - 1}
+                    className="px-4 py-2 bg-gray-500 hover:bg-gray-600 disabled:bg-gray-300 text-white font-bold rounded-lg disabled:cursor-not-allowed"
+                  >
+                    Next →
+                  </button>
                 </div>
               </div>
-            );
-          })}
-        </div>
+            )}
 
-        {/* Host Section */}
-        {host && (
-          <div className="bg-white rounded-xl p-6 shadow-lg">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">
-              🎯 Host: {host.Profiles?.name || "Unknown Host"}
-            </h3>
-            <div className="flex items-center space-x-2">
-              <div
-                className={`w-3 h-3 rounded-full ${
-                  host.video_presence ? "bg-green-500" : "bg-red-500"
-                }`}
-              ></div>
-              <span className="text-sm text-gray-600">
-                {host.video_presence ? "Connected" : "Disconnected"}
-              </span>
+            {!currentQuestion && (
+              <div className="bg-yellow-50 border-2 border-yellow-300 rounded-xl p-6 text-center">
+                <p className="text-xl text-yellow-800 font-bold">
+                  No questions available for this segment
+                </p>
+                <p className="text-yellow-700 mt-2">
+                  Go back to Game Setup to select questions for {segments[currentSegment].name}
+                </p>
+              </div>
+            )}
+
+            {/* Video Room - Below Questions */}
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+              <VideoRoom
+                players={participants}
+                sessionCode={sessionCode ?? ""}
+                sessionId={sessionId ?? ""}
+                participantName={participantName}
+                autoJoin={true}
+              />
             </div>
           </div>
-        )}
-
-        {/* Error Display */}
-        {error && (
-          <div className="mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-            <p className="font-medium">Error:</p>
-            <p>{error}</p>
-            <button
-              onClick={() => setError(null)}
-              className="mt-2 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
-            >
-              Dismiss
-            </button>
-          </div>
-        )}
+        </div>
       </div>
     </div>
   );
 };
 
 export default Quiz;
+

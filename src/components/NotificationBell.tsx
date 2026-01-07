@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import {
@@ -12,32 +12,39 @@ export default function NotificationBell() {
   const navigate = useNavigate();
   const [unreadCount, setUnreadCount] = useState(0);
 
-  useEffect(() => {
+  const loadUnreadCount = useCallback(async () => {
     if (!user) {
       setUnreadCount(0);
       return;
     }
-
-    loadUnreadCount();
-
-    // Subscribe to real-time updates
-    const unsubscribe = subscribeNotificationsUpdates(user.id, () => {
-      loadUnreadCount();
-    });
-
-    return () => {
-      unsubscribe();
-    };
-  }, [user]);
-
-  const loadUnreadCount = async () => {
     try {
       const count = await getUnreadNotificationCount();
       setUnreadCount(count);
     } catch (error) {
       console.error("Error loading unread count:", error);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    // Load initial count asynchronously
+    const loadInitial = async () => {
+      await loadUnreadCount();
+    };
+    void loadInitial();
+
+    // Subscribe to real-time updates
+    const unsubscribe = subscribeNotificationsUpdates(user.id, () => {
+      void loadUnreadCount();
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [loadUnreadCount, user]);
 
   const handleClick = () => {
     navigate("/inbox");

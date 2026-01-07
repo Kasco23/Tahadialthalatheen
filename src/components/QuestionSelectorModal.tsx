@@ -16,7 +16,7 @@ interface QuestionSelectorModalProps {
   onClose: () => void;
   segment: SegmentCode;
   selectedQuestions: string[];
-  onSelectionChange: (questionIds: string[]) => void;
+  onSelectionChange: (_questionIds: string[]) => void;
 }
 
 const segmentNames: Record<SegmentCode, string> = {
@@ -89,7 +89,7 @@ export const QuestionSelectorModal: React.FC<QuestionSelectorModalProps> = ({
               questions = data.data;
             }
           }
-        } catch (fetchError) {
+        } catch (_fetchError) {
           Logger.warn(
             "Netlify function not available, using direct Supabase query"
           );

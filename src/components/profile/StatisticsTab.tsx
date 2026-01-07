@@ -44,7 +44,7 @@ export default function StatisticsTab() {
       }
     };
 
-    loadStatistics();
+    void loadStatistics();
   }, [user]);
 
   if (loading) {
@@ -216,7 +216,7 @@ export default function StatisticsTab() {
                         {won ? "WIN" : tied ? "TIE" : "LOSS"}
                       </span>
                       <span className="text-sm text-gray-600">
-                        {new Date(match.created_at || "").toLocaleDateString()}
+                        {new Date(match.created_at ?? "").toLocaleDateString()}
                       </span>
                     </div>
                   </div>

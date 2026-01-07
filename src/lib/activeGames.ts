@@ -221,7 +221,7 @@ export async function persistActiveGamesToBlob(
       name: profile?.name ?? data?.name ?? profile?.username ?? "Player",
       username: profile?.username ?? data?.username ?? null,
       flag: profile?.flag ?? data?.flag ?? "sa",
-      team: profile?.team ?? data?.team ?? null,
+      team_url: profile?.team_url ?? data?.team_url ?? null,
       team_logo_url: profile?.avatar_url ?? data?.team_logo_url ?? null,
       current_session_id:
         data?.current_session_id ?? primaryJoined?.session_id ?? null,
@@ -236,7 +236,7 @@ export async function persistActiveGamesToBlob(
       device_id: data?.device_id ?? `device-${profileId}`,
       last_device_sync: now,
       preferred_flag: data?.preferred_flag ?? null,
-      preferred_team: data?.preferred_team ?? null,
+      preferred_team_url: data?.preferred_team_url ?? null,
       audio_enabled: data?.audio_enabled ?? true,
       video_enabled: data?.video_enabled ?? true,
       created_at: data?.created_at ?? now,

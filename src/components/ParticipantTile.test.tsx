@@ -39,7 +39,7 @@ describe("ParticipantTile", () => {
           name: "Test User",
           username: "testuser",
           flag: "us",
-          team: null,
+          team_url: null,
           avatar_url: null,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),

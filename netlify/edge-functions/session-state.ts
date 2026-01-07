@@ -67,7 +67,7 @@ export default async (req: Request, context: Context) => {
           const body = await req.json();
           sessionId = body.sessionId;
           stateData = body.state;
-        } catch (finalError) {
+        } catch (_finalError) {
           return new Response(
             JSON.stringify({
               success: false,
@@ -160,7 +160,7 @@ export default async (req: Request, context: Context) => {
 
         // Merge with new state
         const mergedState = {
-          ...(existingState || {}),
+          ...(existingState ?? {}),
           ...stateData,
           lastUpdated: Date.now(),
         };

@@ -102,7 +102,7 @@ const JoinSimplified: React.FC = () => {
                 profile_id: user.id,
                 name: profile?.name || "Host",
                 flag: profile?.flag || null,
-                team_logo_url: profile?.team || null,
+                team_logo_url: profile?.team_url || null,
                 session_presence: "Joined",
                 join_at: new Date().toISOString(),
                 disconnect_at: null,
@@ -137,7 +137,7 @@ const JoinSimplified: React.FC = () => {
               profile_id: user.id,
               name: profile?.name || "Player",
               flag: profile?.flag || null,
-              team_logo_url: profile?.team || null,
+              team_logo_url: profile?.team_url || null,
               role: role,
               session_presence: "Joined",
               join_at: new Date().toISOString(),
@@ -161,8 +161,8 @@ const JoinSimplified: React.FC = () => {
       if (profile?.flag) {
         localStorage.setItem("selectedFlag", profile.flag);
       }
-      if (profile?.team) {
-        localStorage.setItem("teamLogoUrl", profile.team);
+      if (profile?.team_url) {
+        localStorage.setItem("teamLogoUrl", profile.team_url);
       }
       if (profile?.name) {
         localStorage.setItem("teamName", profile.name);
