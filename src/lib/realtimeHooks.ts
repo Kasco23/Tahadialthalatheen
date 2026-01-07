@@ -219,7 +219,10 @@ export function useParticipants(sessionId: string | null) {
           Logger.log("Participant update:", payload);
 
           // Refetch participant with Profile data to ensure we have complete information
-          if (payload.eventType === "INSERT" || payload.eventType === "UPDATE") {
+          if (
+            payload.eventType === "INSERT" ||
+            payload.eventType === "UPDATE"
+          ) {
             try {
               const participantId = payload.new.participant_id;
               const { data, error } = await supabase

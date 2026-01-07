@@ -1285,7 +1285,12 @@ export async function incrementStrikeInBlob(
   participantId: string
 ): Promise<BlobResult<QuizQuestionsBlob>> {
   const currentCount = await getStrikeCount(sessionCode, participantId);
-  return updateStrikeCount(sessionCode, sessionId, participantId, currentCount + 1);
+  return updateStrikeCount(
+    sessionCode,
+    sessionId,
+    participantId,
+    currentCount + 1
+  );
 }
 
 /**
@@ -1297,7 +1302,12 @@ export async function decrementStrikeInBlob(
   participantId: string
 ): Promise<BlobResult<QuizQuestionsBlob>> {
   const currentCount = await getStrikeCount(sessionCode, participantId);
-  return updateStrikeCount(sessionCode, sessionId, participantId, currentCount - 1);
+  return updateStrikeCount(
+    sessionCode,
+    sessionId,
+    participantId,
+    currentCount - 1
+  );
 }
 
 /**
