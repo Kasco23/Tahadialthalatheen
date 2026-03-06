@@ -10,12 +10,17 @@ import NotificationBell from "../components/NotificationBell";
 import { updateSessionState } from "../lib/sessionState";
 import { UsernameSetupBanner } from "../components/UsernameSetupBanner";
 import ActiveGamesSidebar from "../components/ActiveGames";
+import { DeviceSelectionModal } from "../components/DeviceSelectionModal";
 
 const Homepage: React.FC = () => {
   const [isCreatingSession, setIsCreatingSession] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
   const [isActiveGamesOpen, setIsActiveGamesOpen] = useState(false);
+  const [isDeviceModalOpen, setIsDeviceModalOpen] = useState(false);
+  const [createdSessionCode, setCreatedSessionCode] = useState<string | null>(
+    null
+  );
   const [alert, setAlert] = useState<{
     type: "error" | "success" | "info";
     message: string;
@@ -62,12 +67,13 @@ const Homepage: React.FC = () => {
         // Log the error but don't block navigation - room can be created later in GameSetup
         Logger.error(
           "Failed to auto-create Daily room (non-blocking):",
-          roomError,
+          roomError
         );
       }
 
-      // Navigate to game setup
-      navigate(`/gamesetup/${sessionCode}`);
+      // Store session code and open device modal instead of navigating
+      setCreatedSessionCode(sessionCode);
+      setIsDeviceModalOpen(true);
     } catch (error) {
       Logger.error("Error creating session:", error);
       setAlert({
@@ -349,6 +355,25 @@ const Homepage: React.FC = () => {
       <ActiveGamesSidebar
         isOpen={isActiveGamesOpen}
         onClose={() => setIsActiveGamesOpen(false)}
+      />
+
+      {/* Device Selection Modal */}
+      <DeviceSelectionModal
+        isOpen={isDeviceModalOpen}
+        onClose={() => {
+          setIsDeviceModalOpen(false);
+          // Fallback navigation or do nothing if they close
+        }}
+        onSelect={(device) => {
+          setIsDeviceModalOpen(false);
+          if (createdSessionCode) {
+            if (device === "pc") {
+              navigate(`/lobby/${createdSessionCode}`);
+            } else {
+              navigate(`/gamesetup/${createdSessionCode}`);
+            }
+          }
+        }}
       />
     </StadiumBackground>
   );

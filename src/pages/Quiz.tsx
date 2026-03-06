@@ -1,5 +1,5 @@
 import { Logger } from "../lib/logger";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAtom } from "jotai";
 import { useSession } from "../lib/sessionHooks";
@@ -84,7 +84,10 @@ const Quiz: React.FC = () => {
   const [completedSegments, setCompletedSegments] = useState<SegmentCode[]>([]);
 
   // Segment order definition
-  const segmentOrder: SegmentCode[] = ["WDYK", "AUCT", "BELL", "UPDW", "REMO"];
+  const segmentOrder = useMemo<SegmentCode[]>(
+    () => ["WDYK", "AUCT", "BELL", "UPDW", "REMO"],
+    []
+  );
 
   // Get participant name
   const participantName =
@@ -150,18 +153,8 @@ const Quiz: React.FC = () => {
     return () => clearInterval(pollStrikes);
   }, [sessionCode]);
 
-  // Helper: Check if segment can be started
-  const canStartSegment = (segmentCode: SegmentCode): boolean => {
-    const segmentIndex = segmentOrder.indexOf(segmentCode);
-    if (segmentIndex === 0) return true; // First segment always available
-
-    // All previous segments must be completed
-    const previousSegment = segmentOrder[segmentIndex - 1];
-    return completedSegments.includes(previousSegment);
-  };
-
   // Helper: Mark current segment as complete
-  const handleCompleteSegment = () => {
+  const handleCompleteSegment = useCallback(() => {
     if (!completedSegments.includes(currentSegment)) {
       setCompletedSegments([...completedSegments, currentSegment]);
 
@@ -175,6 +168,41 @@ const Quiz: React.FC = () => {
         setCheckedAnswers({});
       }
     }
+  }, [completedSegments, currentSegment, segmentOrder, isHostClient]);
+
+  // Monitor strikes to automatically complete segments when a player hits 3
+  useEffect(() => {
+    if (!isHostClient || !currentSegment) return;
+
+    // Check if any player has 3 or more strikes in the current segment
+    // But ONLY if we haven't already marked this segment as completed
+    const hasPlayerWithMaxStrikes = Object.values(strikes).some(
+      (count) => count >= 3
+    );
+
+    if (
+      hasPlayerWithMaxStrikes &&
+      !completedSegments.includes(currentSegment)
+    ) {
+      Logger.log("Player reached 3 strikes! Automatically completing segment.");
+      handleCompleteSegment();
+    }
+  }, [
+    strikes,
+    isHostClient,
+    currentSegment,
+    completedSegments,
+    handleCompleteSegment,
+  ]);
+
+  // Helper: Check if segment can be started
+  const canStartSegment = (segmentCode: SegmentCode): boolean => {
+    const segmentIndex = segmentOrder.indexOf(segmentCode);
+    if (segmentIndex === 0) return true; // First segment always available
+
+    // All previous segments must be completed
+    const previousSegment = segmentOrder[segmentIndex - 1];
+    return completedSegments.includes(previousSegment);
   };
 
   // Segment definitions

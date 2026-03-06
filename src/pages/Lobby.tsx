@@ -43,6 +43,7 @@ import {
 } from "../lib/sessionState";
 import { InviteFriendsModal } from "../components/InviteFriendsModal";
 import { UsernameSetupBanner } from "../components/UsernameSetupBanner";
+import { GameConfigurationModal } from "../components/GameConfigurationModal";
 import {
   saveParticipantBlob,
   getParticipantBlob,
@@ -192,6 +193,7 @@ const Lobby: React.FC = () => {
 
   // Invite modal state
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [isGameConfigModalOpen, setIsGameConfigModalOpen] = useState(false);
 
   // ✨ PHASE 2.3: Snapshot recovery indicator
   const [recoveredFromSnapshot, setRecoveredFromSnapshot] = useState(false);
@@ -1218,6 +1220,14 @@ const Lobby: React.FC = () => {
               {/* Action Buttons */}
               <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20">
                 <div className="space-y-3">
+                  {userRole === "host" && (
+                    <button
+                      onClick={() => setIsGameConfigModalOpen(true)}
+                      className="w-full px-6 py-3 bg-purple-500 hover:bg-purple-600 text-white font-bold rounded-lg transition-colors duration-200 transform hover:scale-105 border border-purple-400/50"
+                    >
+                      ⚙️ Configure Game
+                    </button>
+                  )}
                   {canStartQuiz() && (
                     <button
                       onClick={handleStartQuiz}
@@ -1307,6 +1317,16 @@ const Lobby: React.FC = () => {
           }}
           sessionCode={sessionCode}
           sessionId={sessionId}
+        />
+      )}
+
+      {/* Game Configuration Modal (Host Only) */}
+      {sessionId && sessionCode && userRole === "host" && (
+        <GameConfigurationModal
+          isOpen={isGameConfigModalOpen}
+          onClose={() => setIsGameConfigModalOpen(false)}
+          sessionId={sessionId}
+          sessionCode={sessionCode}
         />
       )}
     </StadiumBackground>
