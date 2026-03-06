@@ -22,6 +22,12 @@ const DEFAULT_CONFIG: DailyTokenRefreshConfig = {
 const STORAGE_KEY = "daily_token_cache";
 const TOKEN_EXPIRY_HOURS = 2; // Daily.co tokens typically expire in 2 hours
 
+const createErrorWithCause = (message: string, cause: unknown): Error => {
+  const wrappedError = new Error(message);
+  (wrappedError as Error & { cause?: unknown }).cause = cause;
+  return wrappedError;
+};
+
 class DailyTokenManager {
   private cache: DailyTokenCache = {};
   private config: DailyTokenRefreshConfig;
@@ -137,7 +143,7 @@ class DailyTokenManager {
 
   private async createToken(
     roomName: string,
-    userName: string,
+    userName: string
   ): Promise<DailyTokenData> {
     const response = await this.createTokenWithRetry(roomName, userName);
 
@@ -158,7 +164,7 @@ class DailyTokenManager {
   private async createTokenWithRetry(
     roomName: string,
     userName: string,
-    attempt: number = 1,
+    attempt: number = 1
   ): Promise<{ token: string }> {
     try {
       // Check if we're in local development without Netlify CLI
@@ -169,7 +175,7 @@ class DailyTokenManager {
 
       if (isLocalDev) {
         Logger.warn(
-          "Running in local development mode - using mock Daily token",
+          "Running in local development mode - using mock Daily token"
         );
 
         // Generate a mock token for development
@@ -193,29 +199,30 @@ class DailyTokenManager {
           .json()
           .catch(() => ({ error: "Unknown error" }));
         throw new Error(
-          `HTTP ${response.status}: ${JSON.stringify(errorData)}`,
+          `HTTP ${response.status}: ${JSON.stringify(errorData)}`
         );
       }
 
       return await response.json();
     } catch (error) {
       if (attempt >= this.config.maxRetries) {
-        throw new Error(
+        throw createErrorWithCause(
           `Failed to create Daily token after ${this.config.maxRetries} attempts: ${
             error instanceof Error ? error.message : "Unknown error"
           }`,
+          error
         );
       }
 
       // Exponential backoff with jitter
       const delay = Math.min(
         this.config.baseDelay * Math.pow(2, attempt - 1) + Math.random() * 1000,
-        this.config.maxDelay,
+        this.config.maxDelay
       );
 
       Logger.warn(
         `Daily token creation attempt ${attempt} failed, retrying in ${delay}ms:`,
-        error,
+        error
       );
       await new Promise((resolve) => setTimeout(resolve, delay));
 

@@ -17,12 +17,20 @@ import {
   updateActiveGamePresenceInBlob,
 } from "./activeGames";
 
+const createErrorWithCause = (message: string, cause: unknown): Error => {
+  const wrappedError = new Error(message);
+  (wrappedError as Error & { cause?: unknown }).cause = cause;
+  return wrappedError;
+};
+
 const resolveApiBase = (): string => {
   if (typeof window === "undefined") return "/api";
 
   const { hostname, port } = window.location;
   const isLocal =
-    hostname === "localhost" || hostname === "127.0.0.1" || hostname === "[::1]";
+    hostname === "localhost" ||
+    hostname === "127.0.0.1" ||
+    hostname === "[::1]";
 
   if (isLocal && port === "5173") {
     return "http://localhost:3000/api";
@@ -48,7 +56,9 @@ const netlifyFunctionBases = (): string[] => {
   if (typeof window !== "undefined") {
     const { hostname, port } = window.location;
     const isLocal =
-      hostname === "localhost" || hostname === "127.0.0.1" || hostname === "[::1]";
+      hostname === "localhost" ||
+      hostname === "127.0.0.1" ||
+      hostname === "[::1]";
 
     if (isLocal && port === "5173") {
       bases.unshift("http://localhost:3000/.netlify/functions");
@@ -210,7 +220,10 @@ export async function createSession(
     if (error instanceof Error) {
       throw error;
     }
-    throw new Error(`Unexpected error creating session: ${String(error)}`);
+    throw createErrorWithCause(
+      `Unexpected error creating session: ${String(error)}`,
+      error
+    );
   }
 }
 
@@ -508,44 +521,48 @@ export async function createDailyRoom(
     }
 
     // Call Netlify function with session_code for room name
-    const response = await callNetlifyApi(
-      "/create-daily-room",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          session_code: sessionCode,
-        }),
-      }
-    );
+    const response = await callNetlifyApi("/create-daily-room", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        session_code: sessionCode,
+      }),
+    });
 
     Logger.debug("Daily room creation response status:", response.status);
 
     if (!response.ok) {
       // Clone response to allow reading body multiple times
       const responseClone = response.clone();
+      let detailedErrorMessage = `HTTP error! status: ${response.status}`;
 
       // Try to get the error details from the response
       try {
         const errorData = await response.json();
         Logger.error("Daily room creation error details:", errorData);
-        throw new Error(
-          `HTTP error! status: ${response.status}, details: ${JSON.stringify(errorData)}`
-        );
-      } catch (_parseError) {
+        detailedErrorMessage = `HTTP error! status: ${response.status}, details: ${JSON.stringify(errorData)}`;
+      } catch (parseError) {
         // If we can't parse JSON, get text from the cloned response
         try {
           const errorText = await responseClone.text();
           Logger.error("Daily room creation error (raw):", errorText);
-          throw new Error(
-            `HTTP error! status: ${response.status}, response: ${errorText}`
+          detailedErrorMessage = `HTTP error! status: ${response.status}, response: ${errorText}`;
+        } catch (textError) {
+          Logger.warn(
+            "Failed to parse Daily room error response as JSON and text",
+            {
+              parseError,
+              textError,
+            }
           );
-        } catch (_textError) {
-          throw new Error(`HTTP error! status: ${response.status}`);
         }
       }
+
+      throw createErrorWithCause(detailedErrorMessage, {
+        status: response.status,
+      });
     }
 
     const data: CreateDailyRoomResponse = await response.json();
@@ -563,8 +580,11 @@ export async function createDailyRoom(
     }
     return data;
   } catch (error) {
-    throw new Error(
-      `Failed to create Daily room: ${error instanceof Error ? error.message : "Unknown error"}`
+    throw createErrorWithCause(
+      `Failed to create Daily room: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`,
+      error
     );
   }
 }
@@ -840,7 +860,8 @@ export async function updateLobbyPresence(
         .maybeSingle();
 
       sessionId = sessionId ?? participantRow?.session_id ?? undefined;
-      profileId = profileId ?? (participantRow?.profile_id as string | undefined);
+      profileId =
+        profileId ?? (participantRow?.profile_id as string | undefined);
     }
 
     if (sessionId && profileId) {
@@ -939,8 +960,11 @@ export async function createDailyToken(
     };
   } catch (error) {
     Logger.error("Error creating Daily token:", error);
-    throw new Error(
-      `Failed to create Daily token: ${error instanceof Error ? error.message : "Unknown error"}`
+    throw createErrorWithCause(
+      `Failed to create Daily token: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`,
+      error
     );
   }
 }
@@ -1319,9 +1343,8 @@ export async function setParticipantPassword(
   password: string
 ): Promise<void> {
   // Use the new participantAuth module which handles hashing via database function
-  const { setParticipantPassword: setPassword } = await import(
-    "./participantAuth"
-  );
+  const { setParticipantPassword: setPassword } =
+    await import("./participantAuth");
   await setPassword(participantId, password);
 }
 
@@ -1345,9 +1368,8 @@ export async function verifyParticipantPassword(
   };
 }> {
   // Use the new participantAuth module
-  const { verifyParticipantPassword: verifyPassword } = await import(
-    "./participantAuth"
-  );
+  const { verifyParticipantPassword: verifyPassword } =
+    await import("./participantAuth");
   const isValid = await verifyPassword(participantId, password);
 
   if (!isValid) {
@@ -1602,6 +1624,26 @@ export async function getSessionQuestions(sessionId: string): Promise<{
   error?: string;
 }> {
   try {
+    type SessionQuestionWithDetails = {
+      question_id: string;
+      segment_code: SegmentCode;
+      display_order: number;
+      Questions:
+        | {
+            question_text: string;
+            question_type: "list" | "buzz";
+            answers: string | string[];
+            total_answers_available?: number | null;
+          }
+        | Array<{
+            question_text: string;
+            question_type: "list" | "buzz";
+            answers: string | string[];
+            total_answers_available?: number | null;
+          }>
+        | null;
+    };
+
     const { data, error } = await supabase
       .from("SessionQuestions")
       .select(
@@ -1627,15 +1669,28 @@ export async function getSessionQuestions(sessionId: string): Promise<{
     }
 
     // Flatten the data structure
-    const formattedData = (data || []).map((item: any) => ({
-      question_id: item.question_id,
-      segment_code: item.segment_code,
-      display_order: item.display_order,
-      question_text: item.Questions.question_text,
-      question_type: item.Questions.question_type,
-      answers: item.Questions.answers,
-      total_answers_available: item.Questions.total_answers_available,
-    }));
+    const formattedData = ((data || []) as SessionQuestionWithDetails[])
+      .map((item) => {
+        const questionData = Array.isArray(item.Questions)
+          ? item.Questions[0]
+          : item.Questions;
+
+        if (!questionData) {
+          return null;
+        }
+
+        return {
+          question_id: item.question_id,
+          segment_code: item.segment_code,
+          display_order: item.display_order,
+          question_text: questionData.question_text,
+          question_type: questionData.question_type,
+          answers: questionData.answers,
+          total_answers_available:
+            questionData.total_answers_available ?? undefined,
+        };
+      })
+      .filter((item): item is NonNullable<typeof item> => item !== null);
 
     return { success: true, data: formattedData };
   } catch (error) {

@@ -5,6 +5,52 @@
 
 ---
 
+## March 6, 2026
+
+### Results.tsx - Updated
+
+**Type**: Bug Fix (Verify Cleanup)  
+**Impact**: Medium - Resolved typing and lint issues in player profile normalization
+
+#### Changes
+
+- **Fixed**: Removed explicit `any` usage in player normalization mapping
+- **Added**: Typed payload adapter for Supabase profile relation data (object-or-array shape)
+- **Fixed**: Legacy `team_logo_url` mapping to use existing `team` field and align with `string | undefined` type
+
+#### Impact
+
+- **Lint**: Eliminates `@typescript-eslint/no-explicit-any` warning
+- **Build**: Prevents TypeScript assignment mismatch in normalized players
+- **Runtime**: Keeps backward-compatible fields while preserving strict typing
+
+### GameSetup.tsx - Updated
+
+**Type**: Bug Fix (Build Warning)  
+**Impact**: Low - Resolved TypeScript unused variable warning
+
+#### Changes
+
+- **Fixed**: Suppressed unused variable warning for `roomInfo` state (line 48)
+- **Method**: Changed from `const [roomInfo, setRoomInfo]` to `const [, setRoomInfo]`
+- **Reason**: Variable is write-only - value stored in `dailyRoomUrlAtom` instead
+- **Context**: Leftover from Version 1.2.0 video token management centralization
+
+#### Technical Details
+
+- `setRoomInfo` is still used at lines 178, 203, and 331
+- Actual room URL stored in global Jotai atom (`dailyRoomUrlAtom`)
+- Using underscore pattern indicates intentionally unused variable
+- Maintains existing functionality while satisfying TypeScript compiler
+
+#### Impact
+
+- **Build**: Eliminates TS6133 warning "declared but never read"
+- **Runtime**: No functional changes
+- **Code Quality**: Clarifies intent that state is write-only
+
+---
+
 ## November 14, 2025
 
 ### QuestionBuilder.tsx - Created

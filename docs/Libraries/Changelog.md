@@ -2,6 +2,34 @@
 
 **Tracking Start**: October 21, 2025
 
+## March 6, 2026
+
+### mutations.ts - Updated (Verify Cleanup)
+
+- **Change**: Added explicit caught-error cause preservation when rethrowing failures
+- **Reason**: Resolve `preserve-caught-error` lint errors from `pnpm verify`
+- **Details**:
+  - Added shared `createErrorWithCause()` helper
+  - Updated rethrows in session creation, Daily room creation, and Daily token creation paths
+  - Refined Daily room HTTP error parsing flow to avoid nested throw/catch loss of context
+  - Replaced `any` in `getSessionQuestions()` flattening logic with explicit typed payload handling
+- **Impact**: Lint passes with improved error traceability and safer typing
+
+### dailyTokenManager.ts - Updated (Verify Cleanup)
+
+- **Change**: Preserved original caught error cause for token retry exhaustion
+- **Reason**: Resolve `preserve-caught-error` lint error
+- **Details**:
+  - Added `createErrorWithCause()` helper
+  - Retry-final error now retains original failure context via `error.cause`
+- **Impact**: Better observability when token creation retries are exhausted
+
+### AuthContext.tsx - Updated (Lint Rule Compliance)
+
+- **Change**: Added targeted lint suppression for hook exports in context module
+- **Reason**: Resolve `react-refresh/only-export-components` warnings while preserving existing API (`useAuth`, `useProfile`)
+- **Impact**: Clean lint output without breaking import paths across pages/components
+
 ## January 24, 2025
 
 ## October 22, 2025

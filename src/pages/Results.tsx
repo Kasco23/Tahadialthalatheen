@@ -31,6 +31,13 @@ interface SegmentScore {
   player2_score: number;
 }
 
+type PlayerWithProfilePayload = Omit<
+  PlayerData,
+  "Profiles" | "name" | "flag" | "team_logo_url"
+> & {
+  Profiles?: PlayerData["Profiles"] | PlayerData["Profiles"][] | null;
+};
+
 const Results: React.FC = () => {
   const { sessionCode } = useParams<{ sessionCode: string }>();
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -96,7 +103,7 @@ const Results: React.FC = () => {
           (payload) => {
             Logger.log("Player update in results:", payload);
             loadPlayers();
-          },
+          }
         )
         .subscribe();
 
@@ -118,7 +125,7 @@ const Results: React.FC = () => {
               flag,
               team
             )
-          `,
+          `
           )
           .eq("session_id", sessionId);
 
@@ -127,19 +134,21 @@ const Results: React.FC = () => {
           setError("Failed to load player data");
         } else {
           // Normalize the data - Profiles could be object or array
-          const normalizedPlayers = (playersData || []).map((p: any) => {
-            const profileData = Array.isArray(p.Profiles)
-              ? p.Profiles[0]
-              : p.Profiles;
-            return {
-              ...p,
-              Profiles: profileData || null,
-              // Add legacy fields for backward compatibility
-              name: profileData?.name || "Guest",
-              flag: profileData?.flag || "xx",
-              team_logo_url: profileData?.team_url || null,
-            };
-          });
+          const normalizedPlayers: PlayerData[] = (playersData || []).map(
+            (p: PlayerWithProfilePayload) => {
+              const profileData = Array.isArray(p.Profiles)
+                ? p.Profiles[0]
+                : p.Profiles;
+              return {
+                ...p,
+                Profiles: profileData || null,
+                // Add legacy fields for backward compatibility
+                name: profileData?.name || "Guest",
+                flag: profileData?.flag || "xx",
+                team_logo_url: profileData?.team || undefined,
+              };
+            }
+          );
           setPlayers(normalizedPlayers);
         }
       } catch (err) {
@@ -178,10 +187,10 @@ const Results: React.FC = () => {
 
   const getPlayerScores = useCallback(() => {
     const player1 = players.find(
-      (p) => p.role === "Home" || p.role === "playerA",
+      (p) => p.role === "Home" || p.role === "playerA"
     );
     const player2 = players.find(
-      (p) => p.role === "Away" || p.role === "playerB",
+      (p) => p.role === "Away" || p.role === "playerB"
     );
 
     return {
@@ -225,7 +234,7 @@ const Results: React.FC = () => {
           .eq("session_id", sessionId);
 
         const segmentsPlayed = (segmentConfigs || []).map(
-          (sc) => sc.segment_code as SegmentCode,
+          (sc) => sc.segment_code as SegmentCode
         );
 
         // Determine winner
@@ -244,7 +253,7 @@ const Results: React.FC = () => {
           total1,
           total2,
           winnerId,
-          segmentsPlayed,
+          segmentsPlayed
         );
 
         setMatchRecorded(true);
@@ -425,7 +434,7 @@ const Results: React.FC = () => {
               <tbody>
                 {segments.map((segment) => {
                   const segmentScore = segmentScores.find(
-                    (s) => s.segment_code === segment.code,
+                    (s) => s.segment_code === segment.code
                   );
                   return (
                     <tr key={segment.code} className="border-b border-white/10">

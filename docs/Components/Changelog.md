@@ -5,6 +5,51 @@
 
 ---
 
+## March 6, 2026
+
+### ParticipantTile.test.tsx - Updated
+
+**Type**: Test Fix (Verify Cleanup)  
+**Impact**: Medium - Restored failing unit test in `pnpm verify`
+
+#### Changes
+
+- **Updated**: Mock profile name in fixture to `Test User from Profile`
+- **Reason**: Align test expectation with component behavior that prioritizes `Profiles.name` over Daily username
+- **Validated**: Participant info rendering assertion now reflects real display priority logic
+
+#### Impact
+
+- **Tests**: Fixes failing test `should display participant information correctly`
+- **Behavior Coverage**: Explicitly verifies profile-name precedence path
+
+### LobbyStatus.tsx - Updated
+
+**Type**: Bug Fix (Build-Blocking)  
+**Impact**: Critical - Resolved TypeScript compilation error
+
+#### Changes
+
+- **Fixed**: Added missing `profile_id` field to `ParticipantInfo` interface (line 19)
+- **Fixed**: Removed explicit `any` in participant normalization by introducing typed payload mapping
+- **Reason**: Interface was incomplete after Version 1.2.0 token management refactoring
+- **Field Added**: `profile_id: string | null;`
+- **Usage**: Required for participant profile matching at line 337
+
+#### Technical Details
+
+- The interface now matches the actual data structure from database queries
+- Field is nullable to match database foreign key constraints
+- Resolves build error: `Property 'profile_id' does not exist on type 'ParticipantInfo'`
+
+#### Impact
+
+- **Build**: TypeScript compilation now succeeds
+- **Runtime**: No functional changes - fixes type safety only
+- **Database**: Aligns with Participants table schema (profile_id FK to Profiles)
+
+---
+
 ## January 15, 2025
 
 ### QuestionManager.tsx - Created

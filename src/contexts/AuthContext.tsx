@@ -21,12 +21,12 @@ interface AuthContextType {
     email: string,
     password: string,
     name: string,
-    username: string,
+    username: string
   ) => Promise<void>;
   signIn: (
     email: string,
     password: string,
-    keepSignedIn: boolean,
+    keepSignedIn: boolean
   ) => Promise<void>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
@@ -104,7 +104,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     email: string,
     password: string,
     name: string,
-    username: string,
+    username: string
   ) => {
     // First check if username is already taken
     const { data: existingUser, error: checkError } = await supabase
@@ -115,7 +115,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (checkError && checkError.code !== "PGRST116") {
       throw new Error(
-        `Failed to check username availability: ${checkError.message}`,
+        `Failed to check username availability: ${checkError.message}`
       );
     }
 
@@ -149,7 +149,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signIn = async (
     email: string,
     password: string,
-    _keepSignedIn: boolean,
+    _keepSignedIn: boolean
   ) => {
     // Sign in with Supabase Auth
     // Supabase Auth automatically handles session persistence with localStorage/sessionStorage
@@ -215,6 +215,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
@@ -223,6 +224,7 @@ export function useAuth() {
   return context;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useProfile() {
   const { profile, updateProfile, refreshProfile, loading } = useAuth();
   return { profile, updateProfile, refreshProfile, loading };

@@ -18,6 +18,7 @@ interface LobbyStatusProps {
 
 interface ParticipantInfo {
   participant_id: string;
+  profile_id: string | null;
   role: string;
   session_presence: string;
   Profiles?: {
@@ -26,6 +27,10 @@ interface ParticipantInfo {
     team_url?: string | null;
   } | null;
 }
+
+type ParticipantWithProfilePayload = Omit<ParticipantInfo, "Profiles"> & {
+  Profiles?: ParticipantInfo["Profiles"] | ParticipantInfo["Profiles"][] | null;
+};
 
 interface DailyRoomInfo {
   room_url: string;
@@ -71,17 +76,17 @@ const LobbyStatus: React.FC<LobbyStatusProps> = ({
           Logger.error("Error fetching participants:", participantsError);
         } else {
           // Normalize the data - Profiles could be object or array
-          const normalizedParticipants = (participantsData || []).map(
-            (p: any) => {
-              const profileData = Array.isArray(p.Profiles)
-                ? p.Profiles[0]
-                : p.Profiles;
-              return {
-                ...p,
-                Profiles: profileData || null,
-              };
-            }
-          );
+          const normalizedParticipants: ParticipantInfo[] = (
+            participantsData || []
+          ).map((p: ParticipantWithProfilePayload) => {
+            const profileData = Array.isArray(p.Profiles)
+              ? p.Profiles[0]
+              : p.Profiles;
+            return {
+              ...p,
+              Profiles: profileData || null,
+            };
+          });
           setParticipants(normalizedParticipants);
         }
 

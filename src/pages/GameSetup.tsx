@@ -45,7 +45,7 @@ const GameSetup: React.FC = () => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [isDailyRoomCreated, setIsDailyRoomCreated] = useState(false);
-  const [roomInfo, setRoomInfo] = useState<{ room_url: string } | null>(null);
+  const [, setRoomInfo] = useState<{ room_url: string } | null>(null);
   const [participantCount, setParticipantCount] = useState(0);
   const [hostParticipantId, setHostParticipantId] = useState<string | null>(
     () => localStorage.getItem("hostParticipantId")

@@ -36,7 +36,7 @@ describe("ParticipantTile", () => {
         profile_id: "test-profile-id",
         Profiles: {
           id: "test-profile-id",
-          name: "Test User",
+          name: "Test User from Profile",
           username: "testuser",
           flag: "us",
           team_url: null,
